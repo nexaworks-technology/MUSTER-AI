@@ -1,0 +1,4 @@
+contact_id,account_id,account_domain,email,name,title,role,status
+FC-1,FX-1,,dana.price@foxglove-freight.test,Dana Price,Head of Operations,Champion,Active
+FC-2,FX-1,,omar.reid@foxglove-freight.test,Omar Reid,CFO,Decision maker,Active
+,FX-3,,lucy.hart@bramble-health.test,Lucy Hart,Analytics Lead,Champion,Active

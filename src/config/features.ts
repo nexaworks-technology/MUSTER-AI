@@ -13,6 +13,8 @@ export interface NavItem {
   href: Route | null;
   milestone: number;
   permission?: Permission;
+  /** Shown when the member has at least one of these. */
+  anyPermission?: readonly Permission[];
 }
 
 export const NAV: readonly NavItem[] = [
@@ -33,7 +35,12 @@ export const NAV: readonly NavItem[] = [
   { label: "Reports", href: null, milestone: 11 },
   { label: "Ask AI", href: null, milestone: 11 },
   { label: "Customers", href: null, milestone: 10 },
-  { label: "Settings", href: "/settings/users", milestone: 1, permission: "workspace:manageUsers" },
+  {
+    label: "Settings",
+    href: "/settings",
+    milestone: 1,
+    anyPermission: ["workspace:manageUsers", "workspace:manageSettings", "data:import"],
+  },
 ];
 
 export function visibleNav(
@@ -44,6 +51,7 @@ export function visibleNav(
     (item): item is NavItem & { href: Route } =>
       item.milestone <= shipped &&
       item.href !== null &&
-      (!item.permission || can(member, item.permission) !== null),
+      (!item.permission || can(member, item.permission) !== null) &&
+      (!item.anyPermission || item.anyPermission.some((p) => can(member, p) !== null)),
   );
 }

@@ -374,6 +374,37 @@ async function setupM2(base: typeof A) {
     template,
     note,
     notification,
+    externalRef: await db.externalRef.create({
+      data: {
+        workspaceId,
+        source: "CSV",
+        objectType: "Account",
+        externalId: "ACME-1",
+        internalType: "Account",
+        internalId: account.id,
+      },
+    }),
+    importJob: await db.importJob.create({
+      data: {
+        workspaceId,
+        kind: "ACCOUNTS",
+        fileObjectId: (
+          await db.fileObject.create({
+            data: {
+              workspaceId,
+              purpose: "CSV_IMPORT",
+              storageKey: `ws/${workspaceId}/files/t`,
+              filename: "a.csv",
+              mimeType: "text/csv",
+              sizeBytes: 1,
+              sha256: "x",
+            },
+          })
+        ).id,
+        headers: ["name"],
+        mapping: {},
+      },
+    }),
     segment: await db.segment.create({
       data: {
         workspaceId,
@@ -406,6 +437,8 @@ const M2_CASES = [
   { model: "Note", delegate: "note", row: (s: Side) => s.note },
   { model: "Notification", delegate: "notification", row: (s: Side) => s.notification },
   { model: "Segment", delegate: "segment", row: (s: Side) => s.segment },
+  { model: "ExternalRef", delegate: "externalRef", row: (s: Side) => s.externalRef },
+  { model: "ImportJob", delegate: "importJob", row: (s: Side) => s.importJob },
 ] as const;
 
 describe("tenant isolation — M2 models (Rule 2)", () => {
@@ -606,6 +639,24 @@ describe("tenant isolation — M2 models (Rule 2)", () => {
         },
       }),
     ).rejects.toSatisfy(fk);
+  });
+
+  it("the same external id in two workspaces is two separate records, and an import job cannot use another workspace's file", async () => {
+    expect(a2.externalRef.externalId).toBe(b2.externalRef.externalId);
+    expect(a2.externalRef.id).not.toBe(b2.externalRef.id);
+    await expect(
+      A.db.importJob.create({
+        data: {
+          workspaceId: A.workspace.id,
+          kind: "ACCOUNTS",
+          fileObjectId: b2.importJob.fileObjectId,
+          headers: [],
+          mapping: {},
+        },
+      }),
+    ).rejects.toSatisfy(
+      (e) => e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2003",
+    );
   });
 
   it("a sentiment label without the AgentRun that produced it is rejected (Rule 5)", async () => {

@@ -1,0 +1,3 @@
+invoice_number,account_id,account_domain,amount,currency,issued_date,due_date,paid_date,status
+FI-1001,FX-1,,24000.00,USD,2026-03-01,2026-03-31,2026-03-20,Paid
+FI-1002,FX-3,,96000.00,USD,2026-01-15,2026-02-14,,Failed

@@ -1,0 +1,3 @@
+message_id,ticket_id,sent_at,direction,body,from_email
+FM-1,FT-1,2026-10-28T15:00:00Z,Inbound,The filters on our main dashboard reset every time we refresh the page.,dana.price@foxglove-freight.test
+FM-2,FT-1,2026-10-28T17:10:00Z,Outbound,Thanks Dana. We can reproduce this and are looking into it.,support@larkspur.test

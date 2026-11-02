@@ -1,0 +1,3 @@
+ticket_id,account_id,account_domain,subject,opened_at,closed_at,status,priority,escalated,contact_email
+FT-1,FX-1,,Dashboard filters reset after refresh,2026-10-28T15:00:00Z,,Open,High,no,dana.price@foxglove-freight.test
+FT-2,FX-3,,How do I schedule a weekly report?,2026-10-20T09:30:00Z,2026-10-21T10:00:00Z,Closed,Normal,no,lucy.hart@bramble-health.test

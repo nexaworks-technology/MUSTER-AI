@@ -1,0 +1,4 @@
+account_id,name,tier,domain,stage,owner_email,plan,industry,employee_band,onboarding_started
+FX-1,Foxglove Freight,Mid-touch,foxglove-freight.test,Adopting,aisha@larkspur.test,Growth,Logistics,51-200,
+FX-2,Hollyhock Retail,Long-tail,hollyhock-retail.test,Onboarding,,Starter,Retail,1-50,2026-10-12
+FX-3,Bramble Health,High-touch,bramble-health.test,Mature,leo@larkspur.test,Scale,Healthcare,201-1000,

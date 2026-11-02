@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { NAV, visibleNav } from "../features";
 
-const member = (role: "ADMIN" | "CSM" | "VIEWER") => ({
+const member = (role: "ADMIN" | "CS_LEADER" | "CSM" | "VIEWER") => ({
   role,
   canViewRevenue: false,
   bookScope: "OWN" as const,
@@ -34,6 +34,15 @@ describe("navigation gating (Rule 6: no coming-soon screens)", () => {
     ]);
     expect(visibleNav(member("CSM")).map((n) => n.label)).toEqual(["Home", "Accounts", "Tasks"]);
     expect(visibleNav(member("VIEWER")).map((n) => n.label)).toEqual(["Home", "Accounts", "Tasks"]);
+  });
+
+  it("CS Leaders see Settings for the Import tab (data:import, D-46)", () => {
+    expect(visibleNav(member("CS_LEADER")).map((n) => n.label)).toEqual([
+      "Home",
+      "Accounts",
+      "Tasks",
+      "Settings",
+    ]);
   });
 
   it("M1 screens stay exactly as they were when only M1 has shipped", () => {

@@ -1,0 +1,8 @@
+account_id,name,tier,domain,stage,owner_email,plan,industry,employee_band,onboarding_started
+FX-10,Clover Labs,Mid-touch,clover-labs.test,Adopting,,Growth,Biotech,51-200,2026-09-01
+FX-11,,Long-tail,nameless.test,Adopting,,Starter,Retail,1-50,
+FX-12,Thistle Media,Platinum,thistle-media.test,Adopting,,Growth,Media,51-200,
+FX-13,Yarrow Works,Mid-touch,yarrow-works.test,Sleeping,,Growth,Manufacturing,51-200,
+FX-14,Sorrel Group,High-touch,sorrel-group.test,Mature,,Scale,Advisory,201-1000,31/13/2026
+FX-10,Clover Labs (again),Mid-touch,clover-labs.test,Adopting,,Growth,Biotech,51-200,
+FX-15,Fennel Partners,Mid-touch,fennel.test,Adopting,nobody@larkspur.test,Growth,Advisory,51-200,

@@ -2,6 +2,7 @@ import type { Job } from "bullmq";
 import { dispatchOutbox, OUTBOX_ROUTES } from "@/lib/jobs/outbox";
 import type { QueueName } from "@/lib/jobs/queues";
 import { logger } from "@/lib/logger";
+import { importJobPayload, runImportJob } from "@/modules/imports/service";
 
 /**
  * Job handlers by queue and job name. Tenant handlers (added from M2/M3 on) must parse their
@@ -10,6 +11,14 @@ import { logger } from "@/lib/logger";
 export type Processor = (job: Job) => Promise<unknown>;
 
 export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> = {
+  sync: {
+    /** CSV import run (M2, D-47); re-scoped by the payload's workspaceId. */
+    async "import.run"(job) {
+      const { workspaceId, importJobId } = importJobPayload.parse(job.data);
+      await runImportJob(workspaceId, importJobId);
+      return { importJobId };
+    },
+  },
   maintenance: {
     async heartbeat(job) {
       const at = new Date().toISOString();

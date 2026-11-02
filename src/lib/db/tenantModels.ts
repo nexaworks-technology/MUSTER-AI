@@ -30,6 +30,8 @@ export const TENANT_MODELS = [
   "Notification",
   "Segment",
   "FileObject",
+  "ExternalRef",
+  "ImportJob",
 ] as const;
 
 /** Models without tenant scope: identity tables, the tenant root and the outbox (D-22). */

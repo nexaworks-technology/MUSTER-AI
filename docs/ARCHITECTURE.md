@@ -169,6 +169,10 @@ go through the outbox (`src/lib/jobs/outbox.ts`).
 | `reports` | Pre-made leader reports, weekly Leader Reporter digest | ReportSnapshot, ProductEvent (M12) | — | M11 |
 | `ask-ai` | Copilot: tool-using Q&A over scoped data, file upload Q&A, confirmed actions | AskThread, AskMessage | — | M11 |
 | `integrations` | Adapter framework, OAuth, sync jobs, webhooks, write-back gate, setup wizard | Integration, SyncJob, WebhookEvent, ExternalRef | `sync.completed` | M5 (+ adapters in M6/M9/M10) |
+| `imports` | CSV import: templates, parsing/validation, preview (dry run), background run in chunks, result report (D-47) | ImportJob, ExternalRef (CSV) | — | M2 |
+| `files` | Upload safety, guarded downloads, contract documents (D-46) | FileObject | — | M2 |
+| `timeline` | Account timeline: merges the sources each module exports (D-44) | — (read model) | — | M2 (+ sources from M3/M4/M10) |
+| `notifications` | In-app notifications (mentions, task assignments), bell | Notification | — | M2 |
 | `settings` | Workspace settings, users & invitations, roles, approval rules, data controls, export/delete | Workspace, Membership, Invitation, WorkspaceSettings | — | M1 |
 | `audit` | Audit viewer + export (the write primitive lives in `src/lib/audit`) | AuditLog | — | M1 (write), M4 (viewer/export) |
 
@@ -330,6 +334,7 @@ Cross-cutting libraries (`src/lib/`): `auth`, `db` (scoped client, RLS), `ai` (p
 | WebhookEvent | W | integrationId, externalEventId, payloadStorageKey, receivedAt, processedAt?, status | unique (workspaceId, integrationId, externalEventId) |
 | ExternalRef | W | integrationId?, source, objectType, externalId, internalType, internalId | unique (workspaceId, source, objectType, externalId) |
 | FileObject | W | storageKey, filename, mimeType (sniffed), sizeBytes, sha256, uploadedById, scanStatus (`PENDING | CLEAN | REJECTED`), purpose | (workspaceId, createdAt) |
+| ImportJob | W | kind (one of 9 CSV templates), fileObjectId (composite FK), status (`UPLOADED | PREVIEWED | QUEUED | RUNNING | COMPLETED | FAILED`), headers, mapping, rowsTotal, rowsValid, created, updated, unchanged, failed, report (plain-words row errors, capped), errorPlain, createdByMembershipId, confirmedAt, startedAt, finishedAt | (workspaceId, createdAt). Added in M2 (D-47) |
 | AuditLog | W | actorType (`USER | AGENT | SYSTEM | INTEGRATION | PORTAL_CONTACT`), actorId, action, targetType, targetId, agentRunId?, summary, before/after (redacted JSON), ip?, createdAt. Append-only (DB trigger blocks UPDATE/DELETE except workspace purge) | (workspaceId, createdAt), (workspaceId, targetType, targetId) |
 | OutboxEvent | G* | workspaceId (still carried), type, payload, availableAt, processedAt | (processedAt, availableAt). *Global table read only by the worker's dispatcher; payload carries workspaceId and every handler re-scopes. |
 

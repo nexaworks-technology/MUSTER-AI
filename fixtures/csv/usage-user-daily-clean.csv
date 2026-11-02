@@ -1,0 +1,3 @@
+account_id,account_domain,user_id,date,events,sessions,contact_email
+FX-1,,u-dana,2026-10-30,44,3,dana.price@foxglove-freight.test
+FX-1,,u-omar,2026-10-30,6,1,omar.reid@foxglove-freight.test

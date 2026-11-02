@@ -1,0 +1,4 @@
+account_id,account_domain,date,active_users,sessions,events,seats_used
+FX-1,,2026-10-29,14,20,310,18
+FX-1,,2026-10-30,15,22,330,18
+FX-3,,2026-10-30,52,80,1400,61

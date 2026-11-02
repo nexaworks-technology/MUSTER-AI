@@ -88,6 +88,8 @@ model Workspace {
   notifications    Notification[]
   segments         Segment[]
   files            FileObject[]
+  externalRefs     ExternalRef[]
+  importJobs       ImportJob[]
 }
 
 // ─── Global identity (Auth.js) ───────────────────────────────────────────────
@@ -180,6 +182,7 @@ model Membership {
   notifications      Notification[] @relation("NotificationRecipient")
   segments           Segment[]      @relation("SegmentCreator")
   uploadedFiles      FileObject[]   @relation("FileUploader")
+  importJobs         ImportJob[]    @relation("ImportCreator")
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, userId])
@@ -972,7 +975,87 @@ model FileObject {
   account    Account?    @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
   uploadedBy Membership? @relation("FileUploader", fields: [workspaceId, uploadedByMembershipId], references: [workspaceId, id], onDelete: SetNull)
   contracts  Contract[]
+  importJobs ImportJob[]
 
   @@unique([workspaceId, id])
   @@index([workspaceId, accountId])
+}
+
+// ─── M2: Import plumbing ─────────────────────────────────────────────────────
+
+enum ImportKind {
+  ACCOUNTS
+  CONTACTS
+  CONTRACTS
+  INVOICES
+  USAGE_ACCOUNT_DAILY
+  USAGE_USER_DAILY
+  USAGE_FEATURE_DAILY
+  TICKETS
+  TICKET_MESSAGES
+}
+
+enum ImportStatus {
+  UPLOADED
+  PREVIEWED
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+/// [W] Maps an outside id to our record, so re-imports update instead of duplicating
+/// (ARCHITECTURE §8.1). Unique per workspace + source + record type + external id.
+model ExternalRef {
+  id            String       @id @default(cuid())
+  workspaceId   String
+  source        RecordSource
+  objectType    String
+  externalId    String
+  internalType  String
+  internalId    String
+  /// Integration id once connectors exist (M5); null for CSV.
+  integrationId String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, source, objectType, externalId])
+  @@index([workspaceId, internalType, internalId])
+}
+
+/// [W] One CSV import: upload → mapping → preview (dry run) → confirm → background run → report.
+model ImportJob {
+  id                    String       @id @default(cuid())
+  workspaceId           String
+  kind                  ImportKind
+  fileObjectId          String
+  status                ImportStatus @default(UPLOADED)
+  headers               String[]
+  /// Our field key → the CSV column it reads from.
+  mapping               Json
+  rowsTotal             Int          @default(0)
+  rowsValid             Int          @default(0)
+  created               Int          @default(0)
+  updated               Int          @default(0)
+  unchanged             Int          @default(0)
+  failed                Int          @default(0)
+  /// Per-row problems in plain words (capped), plus the full count.
+  report                Json?
+  errorPlain            String?
+  createdByMembershipId String?
+  confirmedAt           DateTime?
+  startedAt             DateTime?
+  finishedAt            DateTime?
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+
+  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  file      FileObject  @relation(fields: [workspaceId, fileObjectId], references: [workspaceId, id], onDelete: Restrict)
+  createdBy Membership? @relation("ImportCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: SetNull)
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, createdAt])
 }
