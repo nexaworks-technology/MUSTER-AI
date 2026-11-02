@@ -1,16 +1,34 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+import { signIn } from "./support/app";
 
-/** No serious or critical axe violations on every M1 screen, at 1280 px and 375 px (M1 #15). */
-const SCREENS = ["/"];
-
-for (const route of SCREENS) {
-  test(`axe: ${route}`, async ({ page }) => {
-    await page.goto(route);
-    const results = await new AxeBuilder({ page }).analyze();
-    const blocking = results.violations.filter((v) =>
-      ["serious", "critical"].includes(v.impact ?? ""),
-    );
-    expect(blocking.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
-  });
+/** No serious or critical axe violations on M1 screens, at 1280 px and 375 px (M1 #15). */
+async function expectNoBlockingViolations(page: Page) {
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+    .analyze();
+  const blocking = results.violations.filter((v) =>
+    ["serious", "critical"].includes(v.impact ?? ""),
+  );
+  expect(blocking.map((v) => `${v.id}: ${v.help} (${v.nodes.length})`)).toEqual([]);
 }
+
+test("axe: sign in", async ({ page }) => {
+  await page.goto("/sign-in");
+  await expectNoBlockingViolations(page);
+});
+
+test("axe: home, settings › users, settings › workspace", async ({ page }) => {
+  await signIn(page, "admin@larkspur.test");
+  await expectNoBlockingViolations(page);
+  await page.goto("/settings/users");
+  await expectNoBlockingViolations(page);
+  await page.goto("/settings/workspace");
+  await expectNoBlockingViolations(page);
+});
+
+test("axe: invalid invitation link", async ({ page }) => {
+  await page.goto(`/invite/${"x".repeat(43)}`);
+  await expect(page.getByText("isn't valid")).toBeVisible();
+  await expectNoBlockingViolations(page);
+});

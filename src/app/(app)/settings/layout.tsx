@@ -1,13 +1,10 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
-import { can } from "@/lib/auth/permissions";
-import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
+import { requireSettingsAccess } from "./access";
 
 /** Settings is admin-only; for everyone else it does not exist (404), matching the hidden nav. */
 export default async function SettingsLayout({ children }: { children: ReactNode }) {
-  const ctx = await resolveWorkspaceContext(await requireSession());
-  if (!ctx || !can(ctx, "workspace:manageUsers")) notFound();
+  await requireSettingsAccess();
   return (
     <div className="space-y-6">
       <div className="space-y-3">

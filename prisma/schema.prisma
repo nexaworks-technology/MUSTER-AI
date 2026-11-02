@@ -1,4 +1,4 @@
-// NexaWorks AI CSM — data model. Conventions: prisma/README.md and docs/ARCHITECTURE.md §3.
+// Data model. Conventions: prisma/README.md and docs/ARCHITECTURE.md §3.
 // Runtime connects as app_user (DATABASE_URL, subject to RLS); migrations run as the
 // schema owner (DATABASE_URL_MIGRATE).
 

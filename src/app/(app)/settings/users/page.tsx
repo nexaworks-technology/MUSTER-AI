@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { ROLE_LABELS } from "@/modules/settings/schemas";
 import { listMembers, listPendingInvitations } from "@/modules/settings/service";
+import { requireSettingsAccess } from "../access";
 import { InviteForm } from "./invite-form";
 import { MemberRow } from "./member-row";
 import { RevokeButton } from "./revoke-button";
@@ -10,7 +10,7 @@ import { RevokeButton } from "./revoke-button";
 export const metadata: Metadata = { title: "Users" };
 
 export default async function UsersPage() {
-  const ctx = (await resolveWorkspaceContext(await requireSession()))!;
+  const ctx = await requireSettingsAccess("workspace:manageUsers");
   const [members, invitations] = await Promise.all([listMembers(ctx), listPendingInvitations(ctx)]);
   return (
     <div className="max-w-3xl space-y-6">

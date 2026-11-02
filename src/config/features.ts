@@ -4,7 +4,7 @@ import { can, type MemberAccess, type Permission } from "@/lib/auth/permissions"
 /**
  * Navigation, in the spec's words (spec §5). An item appears only once the milestone that
  * builds its screen has shipped; until then it is hidden and its URL is a normal 404 (Rule 6 —
- * no "coming soon" screens). Bump SHIPPED_MILESTONE and set `href` when a screen lands.
+ * no placeholder screens). Bump SHIPPED_MILESTONE and set `href` when a screen lands.
  */
 export const SHIPPED_MILESTONE = 1;
 

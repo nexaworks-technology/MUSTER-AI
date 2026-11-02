@@ -36,7 +36,9 @@ export function MemberRow({ member }: { member: MemberRowData }) {
         </div>
         <div className="text-muted-foreground flex gap-2 text-xs">
           {member.canViewRevenue ? (
-            <span className="rounded border px-1.5 py-0.5">Revenue access</span>
+            <span className="rounded border px-1.5 py-0.5" data-testid="revenue-badge">
+              Revenue access
+            </span>
           ) : null}
           {member.active ? null : <span className="rounded border px-1.5 py-0.5">Deactivated</span>}
         </div>

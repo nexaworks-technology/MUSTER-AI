@@ -71,6 +71,7 @@ export default defineConfig([
       "prisma/**",
       "src/test/**",
       "**/*.test.ts",
+      "e2e/**",
       "src/lib/jobs/outbox.ts",
       "scripts/**",
     ],

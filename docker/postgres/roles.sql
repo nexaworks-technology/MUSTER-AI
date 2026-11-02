@@ -1,4 +1,4 @@
--- Roles and databases for NexaWorks AI CSM (ARCHITECTURE §7.1). Idempotent.
+-- Roles and databases for the app (ARCHITECTURE §7.1). Idempotent.
 -- Run with psql variables: owner_password, app_password.
 --   nexaworks_owner: owns schema + tables, runs migrations (CREATEDB for Prisma's shadow DB).
 --   app_user:        runtime role. Not superuser, not owner, NOBYPASSRLS, so Postgres row-level

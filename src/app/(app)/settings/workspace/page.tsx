@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { CURRENCY_OPTIONS, TIMEZONE_OPTIONS } from "@/modules/settings/schemas";
+import { requireSettingsAccess } from "../access";
 import { WorkspaceForm } from "./workspace-form";
 
 export const metadata: Metadata = { title: "Workspace" };
 
 export default async function WorkspaceSettingsPage() {
-  const ctx = (await resolveWorkspaceContext(await requireSession()))!;
+  const ctx = await requireSettingsAccess("workspace:manageSettings");
   return (
     <WorkspaceForm
       name={ctx.workspace.name}
