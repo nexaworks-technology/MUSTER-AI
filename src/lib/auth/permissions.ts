@@ -19,6 +19,7 @@ export const PERMISSIONS = [
   "workspace:manageUsers",
   "workspace:manageSettings",
   "data:exportDelete",
+  "data:import",
   "campaigns:draft",
   "campaigns:send",
   "reports:view",
@@ -64,6 +65,8 @@ const TABLE: Record<Exclude<Permission, "revenue:view">, RoleTable> = {
   "workspace:manageUsers": ADMIN_ONLY,
   "workspace:manageSettings": ADMIN_ONLY,
   "data:exportDelete": ADMIN_ONLY,
+  /** CSV import (M2, DECISIONS D-46): data owners — Admin and CS Leader. */
+  "data:import": LEADERS,
   "campaigns:draft": LEADERS_AND_CSM,
   "campaigns:send": LEADERS,
   "reports:view": { ...LEADERS_AND_CSM_BOOK, VIEWER: "all" },

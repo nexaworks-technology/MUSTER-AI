@@ -24,5 +24,8 @@ export function applyTestDatabaseEnv(): void {
     if (!new URL(v).pathname.endsWith("_test"))
       throw new Error("Refusing to test against a non-_test database");
   }
+  // Uploads in tests go to a separate bucket, never the dev one.
+  if (process.env.S3_BUCKET && !process.env.S3_BUCKET.endsWith("-test"))
+    process.env.S3_BUCKET = `${process.env.S3_BUCKET}-test`;
   Object.assign(process.env, { NODE_ENV: "test" });
 }

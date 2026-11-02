@@ -30,6 +30,8 @@ const MATRIX: Record<Exclude<Permission, "revenue:view">, [Cell, Cell, Cell, Cel
   "workspace:manageUsers": ["all", "-", "-", "-"],
   "workspace:manageSettings": ["all", "-", "-", "-"],
   "data:exportDelete": ["all", "-", "-", "-"],
+  // Added in M2 (D-46): CSV import is for data owners.
+  "data:import": ["all", "all", "-", "-"],
   "campaigns:draft": ["all", "all", "all", "-"],
   "campaigns:send": ["all", "all", "-", "-"],
   "reports:view": ["all", "all", "book", "all"],

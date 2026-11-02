@@ -3,6 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatArr, formatDate, RESTRICTED } from "@/lib/format";
 import { formatMoney } from "@/lib/money";
 import { getBilling } from "@/modules/billing/service";
+import { listContractDocuments } from "@/modules/files/service";
+import { ContractDocumentUpload } from "@/components/app/contract-document-upload";
+import { ALLOWED_BY_PURPOSE } from "@/config/uploads";
 import { loadAccount } from "../data";
 
 export const metadata: Metadata = { title: "Contracts & billing" };
@@ -26,7 +29,11 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
   const { id } = await params;
   const { ctx, account } = await loadAccount(id);
   const tz = ctx.workspace.timezone;
-  const billing = await getBilling(ctx, account.id);
+  const [billing, documents] = await Promise.all([
+    getBilling(ctx, account.id),
+    listContractDocuments(ctx, account.id),
+  ]);
+  const accept = ALLOWED_BY_PURPOSE.CONTRACT_DOCUMENT.map((e) => `.${e}`).join(",");
   const money = (minor: bigint | undefined | null, currency: string) =>
     !billing.moneyVisible ? (
       <span className="text-muted-foreground">{RESTRICTED}</span>
@@ -120,6 +127,45 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
           ) : null}
         </CardContent>
       </Card>
+      {billing.moneyVisible ? (
+        <section aria-labelledby="documents" className="space-y-2">
+          <h2 id="documents" className="text-base font-semibold">
+            Contract documents
+          </h2>
+          {documents.length === 0 ? (
+            <p className="text-muted-foreground text-sm">No signed contract document on file.</p>
+          ) : (
+            <ul className="divide-border border-border divide-y rounded-md border text-sm">
+              {documents.map((d) => (
+                <li
+                  key={d.id}
+                  className="flex flex-wrap justify-between gap-2 p-3"
+                  data-testid="contract-document"
+                >
+                  <span>
+                    {d.filename} · {Math.max(1, Math.round(d.sizeBytes / 1024))} KB ·{" "}
+                    {formatDate(d.createdAt, tz)}
+                  </span>
+                  {d.scanStatus === "CLEAN" ? (
+                    <a href={`/api/files/${d.id}/download`} className="underline">
+                      Download
+                    </a>
+                  ) : (
+                    <span className="text-muted-foreground">Waiting for security scan</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          {account.canEdit && current ? (
+            <ContractDocumentUpload
+              accountId={account.id}
+              contractId={current.id}
+              accept={accept}
+            />
+          ) : null}
+        </section>
+      ) : null}
 
       <section aria-labelledby="history" className="space-y-2">
         <h2 id="history" className="text-base font-semibold">
