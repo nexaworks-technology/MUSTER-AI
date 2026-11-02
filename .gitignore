@@ -25,3 +25,4 @@ blob-report/
 
 # os
 .DS_Store
+.claude/launch.json

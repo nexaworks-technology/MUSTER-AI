@@ -18,6 +18,7 @@ you must flag the disagreement in `docs/QUESTIONS.md` — never silently follow 
   · Fallback without Docker (Homebrew Postgres/Redis/MinIO, same role SQL): `pnpm services:native`
   (needs `.env` with the local-services names from `.env.example`; see DECISIONS D-31)
 - Migrate: `pnpm db:migrate` · Generate client: `pnpm db:generate` · Seed demo: `pnpm db:seed`
+  (add `-- --with-test-tenant` for the second tenant, Ferngrove Software, used by isolation checks)
 - Test (unit+integration): `pnpm test` · E2E: `pnpm test:e2e`
 - Typecheck: `pnpm typecheck` · Lint: `pnpm lint` · Format check: `pnpm format:check`
 - Build: `pnpm build` · Full gate (must pass before any commit): `pnpm gate`
