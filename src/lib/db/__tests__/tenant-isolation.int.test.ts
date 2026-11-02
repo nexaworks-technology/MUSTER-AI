@@ -414,6 +414,16 @@ async function setupM2(base: typeof A) {
         askedAt: new Date(),
       },
     }),
+    dataIssue: await db.dataQualityIssue.create({
+      data: {
+        workspaceId,
+        accountId: account.id,
+        kind: "STALE",
+        detail: "Stale",
+        suggestedFix: { type: "NONE" },
+        dedupeKey: `stale:${account.id}`,
+      },
+    }),
     segment: await db.segment.create({
       data: {
         workspaceId,
@@ -449,6 +459,7 @@ const M2_CASES = [
   { model: "ExternalRef", delegate: "externalRef", row: (s: Side) => s.externalRef },
   { model: "ImportJob", delegate: "importJob", row: (s: Side) => s.importJob },
   { model: "MissingDataPrompt", delegate: "missingDataPrompt", row: (s: Side) => s.missingPrompt },
+  { model: "DataQualityIssue", delegate: "dataQualityIssue", row: (s: Side) => s.dataIssue },
 ] as const;
 
 describe("tenant isolation — M2 models (Rule 2)", () => {

@@ -33,6 +33,7 @@ export const TENANT_MODELS = [
   "ExternalRef",
   "ImportJob",
   "MissingDataPrompt",
+  "DataQualityIssue",
 ] as const;
 
 /** Models without tenant scope: identity tables, the tenant root and the outbox (D-22). */

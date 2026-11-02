@@ -10,6 +10,7 @@ export const SETTINGS_TABS: ReadonlyArray<{ label: string; href: Route; permissi
     { label: "Users", href: "/settings/users", permission: "workspace:manageUsers" },
     { label: "Workspace", href: "/settings/workspace", permission: "workspace:manageSettings" },
     { label: "Import", href: "/settings/import", permission: "data:import" },
+    { label: "Data quality", href: "/settings/data-quality", permission: "data:import" },
   ];
 
 export const allowedSettingsTabs = (member: MemberAccess) =>

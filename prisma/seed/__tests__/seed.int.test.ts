@@ -240,3 +240,24 @@ describe("seed v1 — conversations, tickets, transcripts (docs/SEED_DATA.md §5
     ).toBe(1);
   });
 });
+
+describe("seed v1 — data quality (docs/SEED_DATA.md, Silverline)", () => {
+  it("leaves Silverline's duplicates waiting in Data quality, without duplicating issues on re-seed", async () => {
+    await runSeed({ includeTestTenant: false });
+    const [ws] = await runSeed({ includeTestTenant: false });
+    const db = scopedDb({ workspaceId: ws!.id });
+    const silverline = seedId("account:silverline");
+    const open = await db.dataQualityIssue.findMany({ where: { status: "OPEN" } });
+    const merges = open.filter((i) => i.accountId === silverline && i.kind === "DUPLICATE_CONTACT");
+    // Two same-account merges (Ken, Amy) plus Ken on the duplicate account, left for a person.
+    expect(merges.map((i) => (i.suggestedFix as { type: string }).type).sort()).toEqual([
+      "MERGE_CONTACTS",
+      "MERGE_CONTACTS",
+      "NONE",
+    ]);
+    expect(
+      open.filter((i) => i.kind === "DUPLICATE_ACCOUNT" && i.detail.includes("Silverline")),
+    ).toHaveLength(1);
+    expect(new Set(open.map((i) => i.dedupeKey)).size).toBe(open.length);
+  });
+});

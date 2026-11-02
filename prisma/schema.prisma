@@ -91,6 +91,7 @@ model Workspace {
   externalRefs     ExternalRef[]
   importJobs       ImportJob[]
   missingPrompts   MissingDataPrompt[]
+  dataIssues       DataQualityIssue[]
 }
 
 // ─── Global identity (Auth.js) ───────────────────────────────────────────────
@@ -373,6 +374,7 @@ model Account {
   notes            Note[]
   files            FileObject[]
   missingPrompts   MissingDataPrompt[]
+  dataIssues       DataQualityIssue[]
 
   @@unique([workspaceId, id])
   @@index([workspaceId, renewalDate])
@@ -1092,4 +1094,43 @@ model MissingDataPrompt {
   @@unique([workspaceId, id])
   @@unique([workspaceId, accountId, field])
   @@index([workspaceId, askedMembershipId, askedAt])
+}
+
+enum DataQualityKind {
+  DUPLICATE_ACCOUNT
+  DUPLICATE_CONTACT
+  INVALID_EMAIL
+  STALE
+}
+
+enum DataQualityStatus {
+  OPEN
+  FIXED
+  DISMISSED
+  RESOLVED
+}
+
+/// [W] A data problem for a person to review (spec §6A6). The suggested fix is applied only
+/// after confirmation; RESOLVED means a later scan no longer found it.
+model DataQualityIssue {
+  id                  String            @id @default(cuid())
+  workspaceId         String
+  accountId           String?
+  contactId           String?
+  kind                DataQualityKind
+  detail              String
+  suggestedFix        Json
+  dedupeKey           String
+  status              DataQualityStatus @default(OPEN)
+  fixedByMembershipId String?
+  fixedAt             DateTime?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account?  @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, dedupeKey])
+  @@index([workspaceId, status])
 }

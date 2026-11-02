@@ -7,8 +7,9 @@ import { seedCommercial } from "./demo/commercial";
 import { seedUsage } from "./demo/usage";
 import { seedConversations } from "./demo/conversations";
 import { seedWork } from "./demo/work";
-import { recomputeLastTouch } from "@/modules/accounts/service";
-import { seedId } from "./demo/ids";
+import { recomputeLastTouch, runDataQualityScan } from "@/modules/accounts/service";
+import { ids, seedId } from "./demo/ids";
+import { daysAgo } from "./demo/dates";
 import {
   DEMO_PASSWORD,
   DEMO_USERS,
@@ -90,6 +91,9 @@ async function seedDemoData(workspaceId: string): Promise<void> {
   await seedConversations(db, workspaceId);
   await seedWork(db, workspaceId);
   await recomputeLastTouch(db, workspaceId);
+  // The checker runs as Priya (Admin) so Silverline's duplicates are waiting in Data quality.
+  const admin = await db.membership.findUniqueOrThrow({ where: { id: ids.membership("priya") } });
+  await runDataQualityScan({ ...admin, workspaceId, membershipId: admin.id }, daysAgo(0));
 }
 
 export async function runSeed({ includeTestTenant }: { includeTestTenant: boolean }) {

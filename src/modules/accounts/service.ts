@@ -504,3 +504,12 @@ export async function markMissingDataAnswered(
     update: { answeredAt: now, answeredByMembershipId: actor.membershipId, snoozeUntil: null },
   });
 }
+
+// ─── Data quality (spec §6A6, D-49): implemented in data-quality-service.ts ──
+export {
+  applyDataQualityFixes,
+  dismissDataQualityIssue,
+  listDataQualityIssues,
+  previewDataQualityFixes,
+  runDataQualityScan,
+} from "./data-quality-service";
