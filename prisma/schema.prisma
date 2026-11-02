@@ -92,6 +92,11 @@ model Workspace {
   importJobs       ImportJob[]
   missingPrompts   MissingDataPrompt[]
   dataIssues       DataQualityIssue[]
+  healthModels     HealthModel[]
+  healthSnapshots  HealthScoreSnapshot[]
+  healthReasons    HealthReason[]
+  pulses           CsmPulse[]
+  usageBaselines   UsageBaseline[]
 }
 
 // ─── Global identity (Auth.js) ───────────────────────────────────────────────
@@ -186,6 +191,9 @@ model Membership {
   uploadedFiles      FileObject[]        @relation("FileUploader")
   importJobs         ImportJob[]         @relation("ImportCreator")
   missingPrompts     MissingDataPrompt[] @relation("PromptAskedTo")
+  healthModelsMade   HealthModel[]       @relation("HealthModelCreator")
+  healthModelsOked   HealthModel[]       @relation("HealthModelApprover")
+  pulses             CsmPulse[]          @relation("PulseAuthor")
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, userId])
@@ -328,35 +336,37 @@ enum StakeholderRoleType {
 
 /// [W] One of our customer's customers — the centre of the Account Graph (spec §6A1).
 model Account {
-  id                  String         @id @default(cuid())
-  workspaceId         String
-  name                String
-  domain              String?
-  tier                AccountTier
-  tierSource          TierSource     @default(RULE)
-  lifecycleStage      LifecycleStage @default(ADOPTING)
-  stageChangedAt      DateTime?
-  onboardingStartedAt DateTime?
-  churnedAt           DateTime?
-  ownerMembershipId   String?
-  plan                String?
-  industry            String?
-  employeeBand        String?
-  useCase             String?
-  timezone            String?
+  id                      String         @id @default(cuid())
+  workspaceId             String
+  name                    String
+  domain                  String?
+  tier                    AccountTier
+  tierSource              TierSource     @default(RULE)
+  lifecycleStage          LifecycleStage @default(ADOPTING)
+  stageChangedAt          DateTime?
+  onboardingStartedAt     DateTime?
+  churnedAt               DateTime?
+  ownerMembershipId       String?
+  plan                    String?
+  industry                String?
+  employeeBand            String?
+  useCase                 String?
+  timezone                String?
   /// Derived from the active contract (billing service). Null = no contract on file, never 0.
-  arrMinor            BigInt?
-  arrCurrency         String?        @db.Char(3)
+  arrMinor                BigInt?
+  arrCurrency             String?        @db.Char(3)
   /// Derived from the current contract; null = no renewal date on file.
-  renewalDate         DateTime?
-  lastTouchAt         DateTime?
-  source              RecordSource   @default(MANUAL)
-  archivedAt          DateTime?
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
+  renewalDate             DateTime?
+  lastTouchAt             DateTime?
+  /// The latest live snapshot under the active model (ARCHITECTURE §11 cache).
+  currentHealthSnapshotId String?
+  source                  RecordSource   @default(MANUAL)
+  archivedAt              DateTime?
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
 
-  workspace        Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  owner            Membership?         @relation("AccountOwner", fields: [workspaceId, ownerMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  workspace        Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  owner            Membership?           @relation("AccountOwner", fields: [workspaceId, ownerMembershipId], references: [workspaceId, id], onDelete: Restrict)
   contacts         Contact[]
   stakeholderRoles StakeholderRole[]
   contracts        Contract[]
@@ -375,6 +385,10 @@ model Account {
   files            FileObject[]
   missingPrompts   MissingDataPrompt[]
   dataIssues       DataQualityIssue[]
+  healthSnapshots  HealthScoreSnapshot[] @relation("AccountSnapshots")
+  currentHealth    HealthScoreSnapshot?  @relation("AccountCurrentSnapshot", fields: [workspaceId, currentHealthSnapshotId], references: [workspaceId, id], onDelete: NoAction)
+  pulses           CsmPulse[]
+  usageBaselines   UsageBaseline[]
 
   @@unique([workspaceId, id])
   @@index([workspaceId, renewalDate])
@@ -1137,4 +1151,211 @@ model DataQualityIssue {
   @@unique([workspaceId, id])
   @@unique([workspaceId, dedupeKey])
   @@index([workspaceId, status])
+}
+
+// ─── M3: Health ──────────────────────────────────────────────────────────────
+
+enum HealthModelStatus {
+  DRAFT
+  ACTIVE
+  RETIRED
+}
+
+enum HealthModelOrigin {
+  SYSTEM_DEFAULT
+  BACKTEST_PROPOSAL
+  HUMAN
+}
+
+enum RiskLevel {
+  HEALTHY
+  WATCH
+  AT_RISK
+  INSUFFICIENT_DATA
+}
+
+enum HealthPillar {
+  ADOPTION
+  ENGAGEMENT
+  SUPPORT
+  RELATIONSHIP
+  COMMERCIAL
+  SENTIMENT
+}
+
+enum ReasonDirection {
+  UP
+  DOWN
+  NEUTRAL
+}
+
+enum ReasonKind {
+  EVIDENCE
+  MISSING_DATA
+}
+
+enum PulseValue {
+  FINE
+  WORRIED
+}
+
+/// [W] A versioned health model (ARCHITECTURE §4.5). Immutable once it leaves DRAFT (DB trigger):
+/// edits create a new version, and every snapshot keeps the version that produced it.
+model HealthModel {
+  id                     String            @id @default(cuid())
+  workspaceId            String
+  version                Int
+  status                 HealthModelStatus @default(DRAFT)
+  proposedBy             HealthModelOrigin
+  /// { ADOPTION: 0.30, … } — sums to 1 (Zod).
+  pillarWeights          Json
+  /// Component weights and curves per pillar (Zod, src/modules/health/engine/model.ts).
+  componentConfig        Json
+  /// { healthyMin, watchMin }
+  thresholds             Json
+  /// { HIGH_TOUCH?: { healthyMin, watchMin }, … }
+  perTierOverrides       Json              @default("{}")
+  backtestResult         Json?
+  basedOnVersion         Int?
+  note                   String?
+  createdByMembershipId  String?
+  approvedByMembershipId String?
+  activatedAt            DateTime?
+  retiredAt              DateTime?
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+
+  workspace  Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy  Membership?           @relation("HealthModelCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  approvedBy Membership?           @relation("HealthModelApprover", fields: [workspaceId, approvedByMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  snapshots  HealthScoreSnapshot[]
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, version])
+}
+
+/// [W] One account's health as of one calendar date under one model version. Only
+/// health.writeSnapshot() inserts these. Unique per (account, model version, date, back-test):
+/// a model change writes new rows under the new version; the old rows never change (DB trigger).
+model HealthScoreSnapshot {
+  id                      String      @id @default(cuid())
+  workspaceId             String
+  accountId               String
+  healthModelId           String
+  asOf                    DateTime    @db.Date
+  /// Each null = "no data" (never 0). Overall is null when fewer than 2 pillars have data.
+  overall                 Decimal?    @db.Decimal(5, 2)
+  adoption                Decimal?    @db.Decimal(5, 2)
+  engagement              Decimal?    @db.Decimal(5, 2)
+  support                 Decimal?    @db.Decimal(5, 2)
+  relationship            Decimal?    @db.Decimal(5, 2)
+  commercial              Decimal?    @db.Decimal(5, 2)
+  sentiment               Decimal?    @db.Decimal(5, 2)
+  overallExcludingPulse   Decimal?    @db.Decimal(5, 2)
+  riskLevel               RiskLevel
+  riskLevelExcludingPulse RiskLevel
+  /// The most negative reason; must be one of THIS snapshot's own reasons (deferred FK).
+  riskReasonId            String?
+  pulseValue              PulseValue?
+  pulseId                 String?
+  pulseDisagreement       Boolean     @default(false)
+  /// Weights after renormalisation over the pillars that have data (shown in Why).
+  effectiveWeights        Json
+  inputsHash              String
+  isBacktest              Boolean     @default(false)
+  createdAt               DateTime    @default(now())
+
+  workspace   Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account     Account        @relation("AccountSnapshots", fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  healthModel HealthModel    @relation(fields: [workspaceId, healthModelId], references: [workspaceId, id], onDelete: Restrict)
+  riskReason  HealthReason?  @relation("SnapshotRiskReason", fields: [workspaceId, id, riskReasonId], references: [workspaceId, snapshotId, id], onDelete: NoAction, onUpdate: NoAction)
+  pulse       CsmPulse?      @relation(fields: [workspaceId, pulseId], references: [workspaceId, id], onDelete: Restrict)
+  reasons     HealthReason[] @relation("SnapshotReasons")
+  currentFor  Account[]      @relation("AccountCurrentSnapshot")
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, accountId, healthModelId, asOf, isBacktest])
+  @@index([workspaceId, asOf, riskLevel])
+}
+
+/// [W] One reason behind a snapshot: the input, its value, the baseline it was compared with,
+/// the delta, the source record ids and the dates (spec §6C2). Immutable.
+model HealthReason {
+  id          String          @id @default(cuid())
+  workspaceId String
+  snapshotId  String
+  pillar      HealthPillar
+  component   String
+  kind        ReasonKind
+  direction   ReasonDirection
+  /// Signed points this reason moves the overall (they sum to overall − 100).
+  impact      Decimal         @db.Decimal(6, 2)
+  /// Component score 0–100; null for MISSING_DATA.
+  score       Decimal?        @db.Decimal(5, 2)
+  message     String
+  input       String
+  value       Decimal?        @db.Decimal(14, 4)
+  baseline    Decimal?        @db.Decimal(14, 4)
+  delta       Decimal?        @db.Decimal(14, 4)
+  cohortValue Decimal?        @db.Decimal(14, 4)
+  cohortKey   String?
+  cohortSize  Int?
+  periodStart DateTime?       @db.Date
+  periodEnd   DateTime?       @db.Date
+  /// [{ sourceType, sourceId } | { sourceType, accountId, from, to }] — ≥ 1 for EVIDENCE (DB CHECK).
+  sources     Json            @default("[]")
+  sortOrder   Int             @default(0)
+  createdAt   DateTime        @default(now())
+
+  workspace     Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  snapshot      HealthScoreSnapshot   @relation("SnapshotReasons", fields: [workspaceId, snapshotId], references: [workspaceId, id], onDelete: Cascade)
+  riskReasonFor HealthScoreSnapshot[] @relation("SnapshotRiskReason")
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, snapshotId, id])
+  @@index([workspaceId, snapshotId])
+}
+
+/// [W] A CSM's judgement on an account (spec §6C5, Q-07, Q-21). A real input to Relationship,
+/// valid for 30 days, never a silent override.
+model CsmPulse {
+  id           String     @id @default(cuid())
+  workspaceId  String
+  accountId    String
+  membershipId String
+  value        PulseValue
+  comment      String?
+  expiresAt    DateTime
+  createdAt    DateTime   @default(now())
+
+  workspace  Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account    Account               @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  membership Membership            @relation("PulseAuthor", fields: [workspaceId, membershipId], references: [workspaceId, id], onDelete: Restrict)
+  snapshots  HealthScoreSnapshot[]
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, accountId, createdAt])
+}
+
+/// [W] An account's own normal and its cohort's, for one metric as of one date (ARCHITECTURE §4.2).
+model UsageBaseline {
+  id            String   @id @default(cuid())
+  workspaceId   String
+  accountId     String
+  metric        String
+  windowEnd     DateTime @db.Date
+  accountMedian Decimal? @db.Decimal(14, 4)
+  accountP25    Decimal? @db.Decimal(14, 4)
+  historyDays   Int
+  /// e.g. "tier=MID_TOUCH|plan=Growth" — the fallback level actually used.
+  cohortKey     String?
+  cohortMedian  Decimal? @db.Decimal(14, 4)
+  cohortSize    Int      @default(0)
+  computedAt    DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account   @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, accountId, metric, windowEnd])
 }

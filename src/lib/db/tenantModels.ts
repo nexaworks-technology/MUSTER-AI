@@ -34,6 +34,11 @@ export const TENANT_MODELS = [
   "ImportJob",
   "MissingDataPrompt",
   "DataQualityIssue",
+  "HealthModel",
+  "HealthScoreSnapshot",
+  "HealthReason",
+  "CsmPulse",
+  "UsageBaseline",
 ] as const;
 
 /** Models without tenant scope: identity tables, the tenant root and the outbox (D-22). */
