@@ -5,7 +5,12 @@ import { z } from "zod";
 import { ForbiddenError } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
-import { acknowledgeSignal, markFalseAlarm, updateRuleSettings } from "../service";
+import {
+  acknowledgeSignal,
+  createOutsideSignal,
+  markFalseAlarm,
+  updateRuleSettings,
+} from "../service";
 
 export interface ActionState {
   ok?: string;
@@ -89,5 +94,21 @@ export async function ruleSettingsAction(
     return { ok: "Saved." };
   } catch (error) {
     return fail(error, "rule settings");
+  }
+}
+
+export async function outsideSignalAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  try {
+    const a = await actor();
+    if (!a) return { error: "You're not a member of this workspace." };
+    const s = await createOutsideSignal(a, Object.fromEntries(formData));
+    refresh();
+    revalidatePath("/settings/signals");
+    return { ok: `Added: ${s.title}` };
+  } catch (error) {
+    return fail(error, "outside signal");
   }
 }

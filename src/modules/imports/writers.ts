@@ -1,5 +1,13 @@
 import type { Prisma } from "@prisma/client";
+import {
+  insertOutsideSignal,
+  outsideDedupeKey,
+  outsideInputFor,
+  syncSignalRules,
+} from "@/modules/signals/service";
 import type { ScopedDb } from "@/lib/db/scoped";
+import { todayIn } from "@/lib/dates";
+import { loadContext } from "@/modules/health/service";
 import type { ValidRecord } from "./parse";
 import type { ImportKind } from "./templates";
 
@@ -597,7 +605,71 @@ export async function planRecords(
         update: (tx, id, data) => tx.message.update({ where: { id }, data }),
       });
     }
+    case "OUTSIDE_SIGNALS":
+      return planOutside(db, ctx, records);
     default:
       return planUsage(db, ctx, kind, records);
   }
+}
+
+/**
+ * Outside signals (M3, INTERP-6): validated like the manual form (public link + date, not in the
+ * future); a row whose source and date are already recorded is unchanged on re-import.
+ */
+async function planOutside(
+  db: ScopedDb,
+  ctx: PlanContext,
+  records: ValidRecord[],
+): Promise<PlannedRow[]> {
+  const resolve = await accountResolver(db, records);
+  // The workspace's own date (D-50, M3 rule 7): an event dated today there is not "in the future".
+  const today = todayIn((await loadContext(ctx)).timeZone);
+  const schema = outsideInputFor(today);
+  await syncSignalRules(ctx);
+  const rule = await db.signalRule.findFirstOrThrow({ where: { ruleKey: "outside_event" } });
+  const parsed = records.map(({ row, values: v }) => {
+    const acct = resolve(v, row);
+    if (!acct.id) return { row, fail: acct.reason };
+    const r = schema.safeParse({
+      accountId: acct.id,
+      kind: v.kind,
+      headline: v.headline,
+      sourceUrl: v.source_url ?? "",
+      eventDate:
+        v.event_date instanceof Date
+          ? v.event_date.toISOString().slice(0, 10)
+          : (v.event_date ?? ""),
+    });
+    if (!r.success)
+      return {
+        row,
+        fail: `Row ${row}: ${r.error.issues[0]?.path[0] === "sourceUrl" ? "source_url" : String(r.error.issues[0]?.path[0] ?? "")}: ${r.error.issues[0]?.message}`,
+      };
+    return { row, input: r.data };
+  });
+  const keys = parsed.flatMap((p) => ("input" in p && p.input ? [outsideDedupeKey(p.input)] : []));
+  const known = new Set(
+    (
+      await db.signal.findMany({ where: { dedupeKey: { in: keys } }, select: { dedupeKey: true } })
+    ).map((s) => s.dedupeKey),
+  );
+  return parsed.map((p): PlannedRow => {
+    if (!("input" in p) || !p.input) return { row: p.row, action: "FAIL", reason: p.fail };
+    const input = p.input;
+    if (known.has(outsideDedupeKey(input))) return { row: p.row, action: "UNCHANGED" };
+    known.add(outsideDedupeKey(input));
+    return {
+      row: p.row,
+      action: "CREATE",
+      apply: async (tx) => {
+        await insertOutsideSignal(tx, ctx.workspaceId, input, {
+          origin: "IMPORT",
+          createdByMembershipId: ctx.actorMembershipId,
+          today,
+          now: new Date(),
+          ruleVersion: rule.version,
+        });
+      },
+    };
+  });
 }

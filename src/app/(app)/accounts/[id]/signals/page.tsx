@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SignalList } from "@/components/app/signal-list";
+import { OutsideSignalForm } from "@/components/app/outside-signal-form";
 import { can } from "@/lib/auth/permissions";
+import { todayIn } from "@/lib/dates";
 import { listAccountSignals } from "@/modules/signals/service";
 import { loadAccount } from "../data";
 
@@ -25,8 +27,21 @@ export default async function AccountSignalsPage({ params }: { params: Promise<{
           a CSM Pulse change.
         </p>
       ) : (
-        <SignalList signals={data.signals} rules={data.rules} canAct={() => canAct} />
+        <SignalList
+          signals={data.signals}
+          rules={data.rules}
+          canAct={() => canAct}
+          today={todayIn(ctx.workspace.timezone)}
+        />
       )}
+      {account.canEdit ? (
+        <details className="border-border rounded-md border p-3">
+          <summary className="cursor-pointer text-sm font-medium">Add an outside signal</summary>
+          <div className="mt-2">
+            <OutsideSignalForm accounts={[{ id: account.id, name: account.name }]} />
+          </div>
+        </details>
+      ) : null}
     </section>
   );
 }

@@ -8,7 +8,14 @@ import {
   requireEditableAccount,
   type Actor,
 } from "@/modules/accounts/service";
-import { describeSource, sourceLookups, type SourceRef } from "@/modules/health/service";
+import {
+  describeSource,
+  loadContext,
+  sourceLookups,
+  type SourceRef,
+} from "@/modules/health/service";
+import { systemClock, todayIn, type Clock } from "@/lib/dates";
+import { insertOutsideSignal, outsideInputFor } from "./outside";
 import type { SignalListQuery } from "./schemas";
 import { parseParams, RULE_BY_KEY, RULES, type RuleKey } from "./rules/catalog";
 import { syncSignalRules } from "./rule-rows";
@@ -268,5 +275,50 @@ export async function updateRuleSettings(
       tx,
     );
     return updated;
+  });
+}
+
+// ─── Outside signals (INTERP-6) ──────────────────────────────────────────────
+
+export {
+  outsideDedupeKey,
+  outsideInputFor,
+  insertOutsideSignal,
+  type OutsideInput,
+} from "./outside";
+
+/** A person adds public news about an account in their book, with its source link and date. */
+export async function createOutsideSignal(actor: Actor, raw: unknown, clock: Clock = systemClock) {
+  requirePermission(actor, "accounts:edit");
+  const ctx = await loadContext(actor);
+  const today = todayIn(ctx.timeZone, clock);
+  const input = outsideInputFor(today).parse(raw);
+  await requireEditableAccount(actor, input.accountId);
+  await syncSignalRules(actor);
+  const db = scopedDb(actor);
+  const rule = await db.signalRule.findFirstOrThrow({ where: { ruleKey: "outside_event" } });
+  return db.$tenantTransaction(async (tx) => {
+    const { signal, created } = await insertOutsideSignal(tx, actor.workspaceId, input, {
+      origin: "HUMAN",
+      createdByMembershipId: actor.membershipId,
+      today,
+      now: clock(),
+      ruleVersion: rule.version,
+    });
+    if (created)
+      await writeAudit(
+        {
+          workspaceId: actor.workspaceId,
+          actorType: "USER",
+          actorId: actor.userId,
+          action: "signal.outside_added",
+          targetType: "Signal",
+          targetId: signal.id,
+          summary: `Outside signal: ${signal.title}`,
+          after: { sourceUrl: input.sourceUrl, eventDate: input.eventDate },
+        },
+        tx,
+      );
+    return signal;
   });
 }

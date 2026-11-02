@@ -4,6 +4,7 @@ import { NativeSelect } from "@/components/app/native-select";
 import { SignalList } from "@/components/app/signal-list";
 import { Button } from "@/components/ui/button";
 import { can } from "@/lib/auth/permissions";
+import { todayIn } from "@/lib/dates";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { scopedDb } from "@/lib/db/scoped";
 import {
@@ -110,6 +111,7 @@ export default async function SignalsPage({ searchParams }: { searchParams: Sear
         rules={ruleMap}
         showAccount
         canAct={() => canDecide !== null}
+        today={todayIn(ctx.workspace.timezone)}
       />
       <nav aria-label="Pages" className="flex gap-3 text-sm">
         {page.prevCursor !== null ? (

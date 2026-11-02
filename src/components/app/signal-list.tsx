@@ -2,7 +2,12 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { formatCalendarDate } from "@/lib/format";
 import { SignalActions } from "./signal-actions";
-import { CATEGORY_WORDS, SEVERITY_WORDS, STATUS_WORDS } from "@/modules/signals/schemas";
+import {
+  CATEGORY_WORDS,
+  outsideLabel,
+  SEVERITY_WORDS,
+  STATUS_WORDS,
+} from "@/modules/signals/schemas";
 
 /** One list for the account Signals tab and the portfolio (spec §6D: each signal explains itself). */
 export interface SignalRow {
@@ -43,11 +48,14 @@ export function SignalList({
   rules,
   canAct,
   showAccount = false,
+  today,
 }: {
   signals: SignalRow[];
   rules: Map<string, RuleFields>;
   canAct: (s: SignalRow) => boolean;
   showAccount?: boolean;
+  /** The workspace's today: outside events older than 30 days read "Reported <date>", never "New". */
+  today: string;
 }) {
   if (signals.length === 0)
     return <p className="text-muted-foreground text-sm">No signals match.</p>;
@@ -92,7 +100,9 @@ export function SignalList({
               {CATEGORY_WORDS[s.category]} · {STATUS_WORDS[s.status]} · episode {s.episode} · first
               seen {formatCalendarDate(s.firstSeenAt)} · last seen{" "}
               {formatCalendarDate(s.lastSeenAt)}
-              {s.publicSourceDate ? ` · reported ${formatCalendarDate(s.publicSourceDate)}` : ""}
+              {s.publicSourceDate
+                ? ` · ${outsideLabel(s.publicSourceDate.toISOString().slice(0, 10), today, 30)}`
+                : ""}
             </p>
             {s.resolvedReason ? (
               <p className="text-muted-foreground text-xs">{s.resolvedReason}</p>

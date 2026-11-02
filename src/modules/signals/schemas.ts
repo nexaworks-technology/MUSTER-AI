@@ -40,3 +40,43 @@ export const CATEGORY_WORDS = {
   PROMISES: "Promises",
   OUTSIDE: "Outside",
 } as const;
+
+// ─── Outside signals (spec §6D, INTERP-6) ────────────────────────────────────
+
+export const OUTSIDE_KINDS = [
+  "FUNDING",
+  "HIRING",
+  "LEADERSHIP_CHANGE",
+  "ACQUISITION",
+  "LAYOFFS",
+  "OTHER",
+] as const;
+export type OutsideKind = (typeof OUTSIDE_KINDS)[number];
+export const OUTSIDE_KIND_WORDS: Record<OutsideKind, string> = {
+  FUNDING: "Funding",
+  HIRING: "Hiring",
+  LEADERSHIP_CHANGE: "Leadership change",
+  ACQUISITION: "Acquisition",
+  LAYOFFS: "Layoffs",
+  OTHER: "News",
+};
+/** Growth news is an opportunity; the rest is a risk to look at. */
+export const OUTSIDE_POLARITY: Record<OutsideKind, "RISK" | "OPPORTUNITY"> = {
+  FUNDING: "OPPORTUNITY",
+  HIRING: "OPPORTUNITY",
+  LEADERSHIP_CHANGE: "RISK",
+  ACQUISITION: "RISK",
+  LAYOFFS: "RISK",
+  OTHER: "RISK",
+};
+
+const dayFmt = new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" });
+
+/** "New · Oct 20, 2026" within `newWithinDays` of the event, else "Reported Aug 14, 2026" — never fresh when old. */
+export function outsideLabel(eventDate: string, today: string, newWithinDays: number): string {
+  const days = Math.round(
+    (Date.parse(`${today}T00:00:00Z`) - Date.parse(`${eventDate}T00:00:00Z`)) / 86_400_000,
+  );
+  const shown = dayFmt.format(new Date(`${eventDate}T00:00:00Z`));
+  return days <= newWithinDays ? `New · ${shown}` : `Reported ${shown}`;
+}

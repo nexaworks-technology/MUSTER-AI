@@ -11,7 +11,8 @@ export type ImportKind =
   | "USAGE_USER_DAILY"
   | "USAGE_FEATURE_DAILY"
   | "TICKETS"
-  | "TICKET_MESSAGES";
+  | "TICKET_MESSAGES"
+  | "OUTSIDE_SIGNALS";
 
 export type FieldType =
   | { type: "text"; max: number }
@@ -306,6 +307,41 @@ export const TEMPLATES: Record<ImportKind, ImportTemplate> = {
       ),
       f("body", "Message", true, text(20_000), "The export failed again."),
       f("from_email", "From email", false, { type: "email" }, "pat@acme-freight.test"),
+    ],
+  },
+  OUTSIDE_SIGNALS: {
+    kind: "OUTSIDE_SIGNALS",
+    slug: "outside-signals",
+    title: "Outside signals",
+    dedupe: "account + source_url + event_date",
+    description:
+      "Public news about a customer's company. Every row needs the public source link and the date of the event.",
+    oneOf: ["account_id", "account_domain"],
+    fields: [
+      ...ACCOUNT_REF,
+      f(
+        "kind",
+        "Kind",
+        true,
+        {
+          type: "enum",
+          values: {
+            funding: "FUNDING",
+            hiring: "HIRING",
+            "leadership change": "LEADERSHIP_CHANGE",
+            leadership: "LEADERSHIP_CHANGE",
+            acquisition: "ACQUISITION",
+            acquired: "ACQUISITION",
+            layoffs: "LAYOFFS",
+            other: "OTHER",
+            news: "OTHER",
+          },
+        },
+        "Acquisition",
+      ),
+      f("headline", "Headline", true, text(200), "Acquired by Haverford Group"),
+      f("source_url", "Public source link", true, text(2000), "https://news.example.test/story"),
+      f("event_date", "Event date", true, { type: "date" }, "2026-10-20"),
     ],
   },
 };

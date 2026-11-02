@@ -1029,6 +1029,8 @@ enum ImportKind {
   USAGE_FEATURE_DAILY
   TICKETS
   TICKET_MESSAGES
+  /// M3: public news about a customer (INTERP-6), deferred here from M2.
+  OUTSIDE_SIGNALS
 }
 
 enum ImportStatus {

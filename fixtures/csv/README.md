@@ -15,3 +15,8 @@ M2 e2e demo.
   - an owner who isn't a member.
 - `contacts-sample-fixed.csv`: the corrected version of `docs/samples/contacts-sample.csv`. The
   sample has one bad email address, which the demo fixes before importing.
+
+## outside-signals-clean.csv (M3)
+
+Public news about a customer (SEED_DATA §3: Brightwell acquired by Haverford Group, dated 2026-10-20).
+Every row needs `source_url` and `event_date`; importing it again creates nothing.

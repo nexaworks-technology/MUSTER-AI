@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { OutsideSignalForm } from "@/components/app/outside-signal-form";
 import { RuleSettingsForm } from "@/components/app/rule-settings-form";
+import { scopedDb } from "@/lib/db/scoped";
 import { formatDateTime } from "@/lib/format";
 import { CATEGORY_WORDS } from "@/modules/signals/schemas";
 import { listRuleSettings } from "@/modules/signals/service";
@@ -14,7 +16,14 @@ export const metadata: Metadata = { title: "Signals settings" };
  */
 export default async function SignalSettingsPage() {
   const ctx = await requireSettingsAccess("healthModel:propose");
-  const rules = await listRuleSettings(ctx);
+  const [rules, accounts] = await Promise.all([
+    listRuleSettings(ctx),
+    scopedDb(ctx).account.findMany({
+      where: { lifecycleStage: { not: "LOST" }, archivedAt: null },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
   return (
     <div className="max-w-4xl space-y-4">
       <p className="text-muted-foreground text-sm">
@@ -22,6 +31,17 @@ export default async function SignalSettingsPage() {
         threshold creates a new rule version; signals already raised keep the version that raised
         them.
       </p>
+      <section aria-labelledby="outside" className="border-border space-y-2 rounded-md border p-3">
+        <h2 id="outside" className="text-base font-semibold">
+          Add an outside signal
+        </h2>
+        <p className="text-muted-foreground text-sm">
+          Public news about a customer&apos;s company. The source link and the event&apos;s date are
+          required; news older than 30 days is shown as &quot;Reported&quot;, never as new. Many
+          rows at once: Settings › Import › Outside signals.
+        </p>
+        <OutsideSignalForm accounts={accounts} />
+      </section>
       <ul className="space-y-3" aria-label="Signal rules">
         {rules.map((r) => (
           <li
