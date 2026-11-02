@@ -8,6 +8,7 @@ import { logger } from "@/lib/logger";
 import { getStorage } from "@/lib/storage";
 import type { Actor } from "@/modules/accounts/service";
 import { recomputeCommercials } from "@/modules/billing/service";
+import { enqueueAccountEvaluation } from "@/modules/signals/service";
 import { storeUpload, UploadRejectedError } from "@/modules/files/service";
 import { autoMap, parseCsv, validateRows, type RowError } from "./parse";
 import { TEMPLATES, type ImportKind } from "./templates";
@@ -309,6 +310,15 @@ export async function runImportJob(workspaceId: string, importJobId: string): Pr
         for (const accountId of touchedAccounts)
           await recomputeCommercials(tx, workspaceId, accountId);
       });
+    }
+    // Real-time hook (ARCHITECTURE §5.2): payment failures and escalations are re-checked now,
+    // not at tonight's run. A queue outage never fails the import itself.
+    if ((job.kind === "INVOICES" || job.kind === "TICKETS") && touchedAccounts.size > 0) {
+      try {
+        await enqueueAccountEvaluation({ workspaceId }, [...touchedAccounts], `import-${job.kind}`);
+      } catch (err) {
+        logger.warn({ err, importJobId }, "could not queue signal evaluation after import");
+      }
     }
     failures.sort((a, b) => a.row - b.row);
     const report: ImportReport = {

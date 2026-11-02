@@ -22,6 +22,8 @@ you must flag the disagreement in `docs/QUESTIONS.md` — never silently follow 
 - Test (unit+integration): `pnpm test` (one file: `pnpm test <name>`) · E2E: `pnpm test:e2e`
   (runs `next dev` on port 3100 and the worker against the `_test` database, queue prefix
   `nexaworks-e2e`: stop any other `next dev` in this folder first)
+- Nightly health + signals run for one workspace, through the real queue (safe to re-run):
+  `pnpm jobs:nightly --workspace <slug>` (add `--as-of YYYY-MM-DD` to date the run)
 - Typecheck: `pnpm typecheck` · Lint: `pnpm lint` · Format check: `pnpm format:check`
 - Build: `pnpm build` · Full gate (must pass before any commit): `pnpm gate`
   (= typecheck + lint + test + build, in that order)

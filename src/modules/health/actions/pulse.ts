@@ -5,6 +5,7 @@ import { z } from "zod";
 import { ForbiddenError } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
+import { enqueueAccountEvaluation } from "@/modules/signals/service";
 import { setPulse } from "../service";
 
 export interface ActionState {
@@ -24,6 +25,10 @@ export async function pulseAction(_prev: ActionState, formData: FormData): Promi
     if (!actor) return { error: "You're not a member of this workspace." };
     const { accountId, value, comment } = input.parse(Object.fromEntries(formData));
     await setPulse(actor, accountId, { value, comment });
+    // The score was re-computed at once; signals for the account are re-checked by the worker.
+    await enqueueAccountEvaluation(actor, [accountId], "pulse").catch((err: unknown) =>
+      logger.warn({ err, accountId }, "could not queue signal evaluation after a Pulse"),
+    );
     revalidatePath(`/accounts/${accountId}`, "layout");
     revalidatePath("/accounts");
     revalidatePath("/health");

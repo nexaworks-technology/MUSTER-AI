@@ -11,7 +11,7 @@ import {
   closeQueues,
 } from "@/lib/jobs/queues";
 import { logger } from "@/lib/logger";
-import { processorFor, SCHEDULES } from "./processors";
+import { processorFor, SCHEDULES, syncNightlySchedules } from "./processors";
 
 process.env.NEXAWORKS_PROCESS ??= "worker";
 
@@ -33,7 +33,11 @@ async function main(): Promise<void> {
   for (const s of SCHEDULES) {
     await getQueue(s.queue).upsertJobScheduler(s.id, { every: s.everyMs }, { name: s.job });
   }
-  logger.info({ queues: workers.map((w) => w.name) }, "worker started");
+  const scheduled = await syncNightlySchedules();
+  logger.info(
+    { queues: workers.map((w) => w.name), nightlyWorkspaces: scheduled },
+    "worker started",
+  );
 
   const shutdown = async (signal: string) => {
     logger.info({ signal }, "worker stopping");

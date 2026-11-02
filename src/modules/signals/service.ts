@@ -322,3 +322,12 @@ export async function createOutsideSignal(actor: Actor, raw: unknown, clock: Clo
     return signal;
   });
 }
+
+// ─── Pipeline (ARCHITECTURE §1.2, M3 rule 9) ─────────────────────────────────
+
+export {
+  createPipelineProcessors,
+  enqueueAccountEvaluation,
+  enqueueWorkspaceRun,
+  type PipelineDeps,
+} from "./pipeline";

@@ -18,8 +18,10 @@ import { writeAudit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth/permissions";
 import { systemClock, todayIn, type Clock } from "@/lib/dates";
 import { getAccount, requireEditableAccount, type Actor } from "@/modules/accounts/service";
-import { calendarDateOf } from "@/lib/dates";
-import { loadBundles, type LoadContext } from "./loader";
+import { calendarDateOf, utcMidnight } from "@/lib/dates";
+import { loadBundles, loadPeers, type LoadContext } from "./loader";
+import { ownBaselinesSql } from "./baselines-sql";
+import { cohortBaseline } from "./engine/baselines";
 import { describeSource, sourceLookups, type ResolvedSource } from "./sources";
 import type { SourceRef } from "./engine/types";
 import { writeSnapshot, type WriteResult } from "./snapshots";
@@ -101,21 +103,78 @@ export async function scoreAsOf(
   );
 }
 
-/** Scores and stores snapshots for a chunk (the nightly job and "Recompute now" both use this). */
+/**
+ * Scores and stores snapshots for a chunk (the nightly job, the real-time hook and "Recompute
+ * now" all use this). Existing snapshots and pointers are fetched in one go, so an unchanged
+ * re-run issues a fixed number of queries whatever the chunk size. The account's current pointer
+ * only moves forward in time (a back-dated run never replaces a newer current snapshot).
+ */
 export async function scoreAndStore(
   ctx: TenantContext,
   accountIds: string[],
   asOf: CalendarDate,
   modelRow: HealthModel,
   opts: { isBacktest?: boolean; makeCurrent?: boolean } = {},
-): Promise<Map<string, WriteResult & { score: Aggregate }>> {
-  const scored = await scoreAsOf(ctx, accountIds, asOf, {
-    id: modelRow.id,
-    config: modelConfigOf(modelRow),
-  });
+): Promise<Map<string, WriteResult & { score: Aggregate; previous: string | null }>> {
   const db = scopedDb(ctx);
-  const out = new Map<string, WriteResult & { score: Aggregate }>();
+  const isBacktest = opts.isBacktest ?? false;
+  const [scored, existing, pointers, previous] = await Promise.all([
+    scoreAsOf(ctx, accountIds, asOf, { id: modelRow.id, config: modelConfigOf(modelRow) }),
+    db.healthScoreSnapshot.findMany({
+      where: {
+        accountId: { in: accountIds },
+        healthModelId: modelRow.id,
+        asOf: utcMidnight(asOf),
+        isBacktest,
+      },
+      select: { id: true, accountId: true, inputsHash: true },
+    }),
+    opts.makeCurrent
+      ? db.account.findMany({
+          where: { id: { in: accountIds } },
+          select: {
+            id: true,
+            currentHealthSnapshotId: true,
+            currentHealth: { select: { asOf: true } },
+          },
+        })
+      : Promise.resolve([]),
+    // The band before this date (same model), to report band changes.
+    db.healthScoreSnapshot.findMany({
+      where: {
+        accountId: { in: accountIds },
+        healthModelId: modelRow.id,
+        asOf: { lt: utcMidnight(asOf) },
+        isBacktest,
+      },
+      orderBy: [{ accountId: "asc" }, { asOf: "desc" }],
+      distinct: ["accountId"],
+      select: { accountId: true, riskLevel: true },
+    }),
+  ]);
+  const have = new Map(existing.map((e) => [e.accountId, e]));
+  const pointer = new Map(pointers.map((p) => [p.id, p]));
+  const before = new Map(previous.map((p) => [p.accountId, p.riskLevel]));
+  const out = new Map<string, WriteResult & { score: Aggregate; previous: string | null }>();
   for (const [id, s] of scored) {
+    const p = pointer.get(id);
+    const makeCurrent =
+      (opts.makeCurrent ?? false) &&
+      (!p?.currentHealth || calendarDateOf(p.currentHealth.asOf) <= asOf);
+    const prev = have.get(id);
+    if (
+      prev &&
+      prev.inputsHash === s.inputsHash &&
+      (!makeCurrent || p?.currentHealthSnapshotId === prev.id)
+    ) {
+      out.set(id, {
+        id: prev.id,
+        outcome: "UNCHANGED",
+        score: s.score,
+        previous: before.get(id) ?? null,
+      });
+      continue;
+    }
     const written = await writeSnapshot(
       db,
       ctx.workspaceId,
@@ -123,15 +182,56 @@ export async function scoreAndStore(
         accountId: id,
         healthModelId: modelRow.id,
         asOf,
-        isBacktest: opts.isBacktest ?? false,
+        isBacktest,
         inputsHash: s.inputsHash,
         score: s.score,
       },
-      { makeCurrent: opts.makeCurrent ?? false },
+      { makeCurrent },
     );
-    out.set(id, { ...written, score: s.score });
+    out.set(id, { ...written, score: s.score, previous: before.get(id) ?? null });
   }
   return out;
+}
+
+/**
+ * Stores the chunk's own normal and cohort for the date (ARCHITECTURE §4.2): computed in SQL,
+ * create-only for a given date, so a re-run leaves the rows exactly as they were.
+ */
+export async function storeUsageBaselines(
+  ctx: TenantContext,
+  asOf: CalendarDate,
+  accountIds: string[],
+) {
+  const db = scopedDb(ctx);
+  const load = await loadContext(ctx);
+  const [own, peers] = await Promise.all([
+    ownBaselinesSql(db, ctx.workspaceId, asOf, accountIds),
+    loadPeers(db, load, asOf),
+  ]);
+  const byId = new Map(peers.list.map((p) => [p.id, p]));
+  await db.usageBaseline.createMany({
+    skipDuplicates: true,
+    data: accountIds.flatMap((id) => {
+      const me = byId.get(id);
+      const o = own.get(id);
+      if (!me || !o) return [];
+      const cohort = cohortBaseline(me, peers.list, DEFAULT_PARAMS.cohortMinPeers);
+      return [
+        {
+          workspaceId: ctx.workspaceId,
+          accountId: id,
+          metric: "active_users_typical_weekday",
+          windowEnd: utcMidnight(asOf),
+          accountMedian: o.median,
+          accountP25: o.p25,
+          historyDays: o.historyDays,
+          cohortKey: cohort.key,
+          cohortMedian: cohort.medianRate,
+          cohortSize: cohort.size,
+        },
+      ];
+    }),
+  });
 }
 
 // ─── Reads for the screens (RBAC: the account must be in the viewer's book) ───

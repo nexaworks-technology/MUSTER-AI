@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LineChart } from "@/components/app/line-chart";
 import { PulseControls } from "@/components/app/pulse-controls";
+import { RecomputeButton } from "@/components/app/recompute-button";
 import { DisagreementMark, RISK_WORDS, RiskBadge } from "@/components/app/risk-badge";
 import { formatCalendarDate, formatDateTime } from "@/lib/format";
 import { getAccountHealth, type AccountHealth } from "@/modules/health/service";
@@ -109,6 +110,7 @@ export default async function HealthPage({ params }: { params: Promise<{ id: str
             </span>
           </div>
         )}
+        {account.canEdit ? <RecomputeButton accountId={account.id} /> : null}
         {s && s.riskReasonId ? (
           <p className="text-sm">
             <span className="font-medium">Why At Risk: </span>

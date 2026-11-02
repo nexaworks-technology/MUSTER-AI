@@ -2,12 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { ForbiddenError } from "@/lib/auth/permissions";
+import { ForbiddenError, requirePermission } from "@/lib/auth/permissions";
+import { requireEditableAccount } from "@/modules/accounts/service";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
 import {
   acknowledgeSignal,
   createOutsideSignal,
+  enqueueAccountEvaluation,
+  enqueueWorkspaceRun,
   markFalseAlarm,
   updateRuleSettings,
 } from "../service";
@@ -110,5 +113,27 @@ export async function outsideSignalAction(
     return { ok: `Added: ${s.title}` };
   } catch (error) {
     return fail(error, "outside signal");
+  }
+}
+
+/** "Recompute now": the same queue job as the nightly run, for one account or the workspace. */
+export async function recomputeAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  try {
+    const a = await actor();
+    if (!a) return { error: "You're not a member of this workspace." };
+    const accountId = formData.get("accountId");
+    if (typeof accountId === "string" && accountId) {
+      await requireEditableAccount(a, accountId);
+      await enqueueAccountEvaluation(a, [accountId], "manual");
+      return { ok: "Queued: health and signals are being recomputed. Refresh in a moment." };
+    }
+    requirePermission(a, "healthModel:propose");
+    await enqueueWorkspaceRun(a);
+    return { ok: "Queued: every account is being recomputed. Refresh in a minute." };
+  } catch (error) {
+    return fail(error, "recompute");
   }
 }
