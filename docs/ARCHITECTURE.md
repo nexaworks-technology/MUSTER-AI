@@ -115,7 +115,7 @@ the `maintenance.deadLetter` list, which the Settings › Data health page shows
    **ContextBundle**: a list of `{ sourceType, sourceId, fields }`. The bundle's ids are persisted to `AgentRun.inputRefs`.
 4. **Render prompt.** The worker loads `prompts/renewal-manager.md` (frontmatter `name`, `version`) and renders it with the bundle.
    The model name comes from the env var for the agent's tier.
-5. **Call the model.** `src/lib/ai` calls the Anthropic SDK and requests structured output through a tool whose JSON Schema is generated from the agent's Zod `outputSchema`.
+5. **Call the model.** `src/lib/ai` calls the Anthropic SDK and requests structured output with the Messages API's `output_config.format`, built from the agent's Zod `outputSchema` (`messages.parse` + `zodOutputFormat`; D-35; forced `tool_choice` is rejected by current models).
    Requests carry no customer data beyond this workspace's bundle (Rule 8), and the request id is logged (never the content).
 6. **Validate.**
    a. Zod-parse the output. On failure, run one repair call; if that also fails, set `AgentRun.status = INVALID_OUTPUT` and render nothing.
