@@ -1,8 +1,13 @@
 import type { BookScope, Prisma } from "@prisma/client";
+import { writeAudit } from "@/lib/audit";
 import { can, ForbiddenError, requirePermission, type Grant } from "@/lib/auth/permissions";
 import type { WorkspaceContext } from "@/lib/auth/session";
 import { scopedDb } from "@/lib/db/scoped";
-import { PAGE_SIZE, type AccountListQuery } from "./schemas";
+import { getOwnWorkspace } from "@/lib/db/workspace";
+import { minorDigits } from "@/lib/money";
+import { getSettingsData } from "@/modules/settings/service";
+import { deriveTier } from "./tier";
+import { accountPatch, PAGE_SIZE, type AccountListQuery } from "./schemas";
 
 /**
  * Accounts — the Account Graph's read and write paths (ARCHITECTURE §2 `accounts`).
@@ -37,6 +42,9 @@ export interface AccountListRow {
   arr?: { minor: bigint; currency: string } | null;
   lastTouchAt: Date | null;
   renewalDate: Date | null;
+  ownerMembershipId: string | null;
+  hasContract: boolean;
+  canEdit: boolean;
 }
 
 export interface AccountListPage {
@@ -46,6 +54,8 @@ export interface AccountListPage {
   nextCursor: string | null;
   prevCursor: string | null;
   arrVisible: boolean;
+  /** Owner changes need workspace-wide edit rights. */
+  canChangeOwner: boolean;
 }
 
 function orderBy(
@@ -117,6 +127,8 @@ export async function listAccounts(
         lifecycleStage: true,
         lastTouchAt: true,
         renewalDate: true,
+        ownerMembershipId: true,
+        _count: { select: { contracts: true } },
         arrMinor: arrVisible,
         arrCurrency: arrVisible,
         owner: { select: { user: { select: { name: true, email: true } } } },
@@ -133,6 +145,9 @@ export async function listAccounts(
       ownerName: a.owner ? (a.owner.user.name ?? a.owner.user.email) : null,
       lastTouchAt: a.lastTouchAt,
       renewalDate: a.renewalDate,
+      ownerMembershipId: a.ownerMembershipId,
+      hasContract: a._count.contracts > 0,
+      canEdit: canEditAccount(actor, a.ownerMembershipId),
     };
     if (arrVisible)
       row.arr =
@@ -148,6 +163,7 @@ export async function listAccounts(
     nextCursor: accounts.length > PAGE_SIZE ? String(offset + PAGE_SIZE) : null,
     prevCursor: offset > 0 ? String(Math.max(0, offset - PAGE_SIZE)) : null,
     arrVisible,
+    canChangeOwner: can(actor, "accounts:edit")?.scope === "ALL",
   };
 }
 
@@ -262,4 +278,101 @@ export async function recomputeLastTouch(
     ) t
     WHERE a.id = t."accountId" AND a."workspaceId" = ${workspaceId}
       AND a."lastTouchAt" IS DISTINCT FROM t.last`;
+}
+
+// ─── Inline edit & tier rule ─────────────────────────────────────────────────
+
+/** A failure the user can act on; the message is safe to show. */
+export class AccountInputError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AccountInputError";
+  }
+}
+
+async function tierRuleFor(workspaceId: string) {
+  const [settings, workspace] = await Promise.all([
+    getSettingsData(workspaceId),
+    getOwnWorkspace({ workspaceId }),
+  ]);
+  const scale = 10n ** BigInt(minorDigits(workspace.baseCurrency));
+  return {
+    highTouchMinArrMinor: BigInt(settings.tierRule.highTouchMinArr) * scale,
+    midTouchMinArrMinor: BigInt(settings.tierRule.midTouchMinArr) * scale,
+    currency: workspace.baseCurrency,
+  };
+}
+
+/** Re-derives one account's tier from its ARR (no-op for manual tiers or missing ARR). */
+export async function applyTierRule(
+  tx: Prisma.TransactionClient,
+  workspaceId: string,
+  accountId: string,
+): Promise<void> {
+  const account = await tx.account.findUniqueOrThrow({ where: { id: accountId } });
+  const arr =
+    account.arrMinor !== null && account.arrCurrency
+      ? { minor: account.arrMinor, currency: account.arrCurrency }
+      : null;
+  const tier = deriveTier(arr, await tierRuleFor(workspaceId), account);
+  if (tier !== account.tier) await tx.account.update({ where: { id: accountId }, data: { tier } });
+}
+
+/**
+ * Inline edit (Accounts list): owner, tier (or back to the ARR rule) and stage. Changing the
+ * owner needs workspace-wide edit rights (Admin / CS Leader); a CSM edits only their book.
+ */
+export async function updateAccountFields(actor: Actor, accountId: string, raw: unknown) {
+  const patch = accountPatch.parse(raw);
+  const account = await requireEditableAccount(actor, accountId);
+  if (patch.ownerMembershipId !== undefined && can(actor, "accounts:edit")?.scope !== "ALL") {
+    throw new ForbiddenError("accounts:edit");
+  }
+  const db = scopedDb(actor);
+  if (patch.ownerMembershipId) {
+    const owner = await db.membership.findFirst({
+      where: {
+        id: patch.ownerMembershipId,
+        status: "ACTIVE",
+        role: { in: ["ADMIN", "CS_LEADER", "CSM"] },
+      },
+    });
+    if (!owner)
+      throw new AccountInputError("Choose an active admin, CS leader or CSM as the owner.");
+  }
+  return db.$tenantTransaction(async (tx) => {
+    const before = await tx.account.findUniqueOrThrow({ where: { id: accountId } });
+    const data: Prisma.AccountUncheckedUpdateInput = {};
+    if (patch.ownerMembershipId !== undefined) data.ownerMembershipId = patch.ownerMembershipId;
+    if (patch.lifecycleStage && patch.lifecycleStage !== before.lifecycleStage) {
+      data.lifecycleStage = patch.lifecycleStage;
+      data.stageChangedAt = new Date();
+    }
+    if (patch.tier === "RULE") data.tierSource = "RULE";
+    else if (patch.tier) Object.assign(data, { tier: patch.tier, tierSource: "MANUAL" });
+    await tx.account.update({ where: { id: accountId }, data });
+    if (patch.tier === "RULE") await applyTierRule(tx, actor.workspaceId, accountId);
+    const after = await tx.account.findUniqueOrThrow({ where: { id: accountId } });
+    const pick = (a: typeof before) => ({
+      ownerMembershipId: a.ownerMembershipId,
+      tier: a.tier,
+      tierSource: a.tierSource,
+      lifecycleStage: a.lifecycleStage,
+    });
+    await writeAudit(
+      {
+        workspaceId: actor.workspaceId,
+        actorType: "USER",
+        actorId: actor.userId,
+        action: "account.updated",
+        targetType: "Account",
+        targetId: accountId,
+        summary: `Updated ${account.name}`,
+        before: pick(before),
+        after: pick(after),
+      },
+      tx,
+    );
+    return after;
+  });
 }

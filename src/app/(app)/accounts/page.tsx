@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { InlineField } from "@/components/app/inline-field";
 import { NativeSelect } from "@/components/app/native-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -178,10 +179,50 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
                       <div className="text-muted-foreground text-xs">{a.domain}</div>
                     ) : null}
                   </td>
-                  <td className="px-3 py-2">{TIER_LABELS[a.tier]}</td>
-                  <td className="px-3 py-2">{STAGE_LABELS[a.lifecycleStage]}</td>
                   <td className="px-3 py-2">
-                    {a.ownerName ?? <span className="text-muted-foreground">No owner</span>}
+                    {a.canEdit ? (
+                      <InlineField
+                        accountId={a.id}
+                        field="tier"
+                        label={`Tier for ${a.name}`}
+                        value={a.tier}
+                        options={[
+                          ...TIERS.map((t) => ({ value: t, label: TIER_LABELS[t] })),
+                          { value: "RULE", label: "Set by ARR rule" },
+                        ]}
+                      />
+                    ) : (
+                      TIER_LABELS[a.tier]
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    {a.canEdit ? (
+                      <InlineField
+                        accountId={a.id}
+                        field="lifecycleStage"
+                        label={`Stage for ${a.name}`}
+                        value={a.lifecycleStage}
+                        options={STAGES.map((s) => ({ value: s, label: STAGE_LABELS[s] }))}
+                      />
+                    ) : (
+                      STAGE_LABELS[a.lifecycleStage]
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    {a.canEdit && page.canChangeOwner ? (
+                      <InlineField
+                        accountId={a.id}
+                        field="ownerMembershipId"
+                        label={`Owner of ${a.name}`}
+                        value={a.ownerMembershipId ?? "none"}
+                        options={[
+                          { value: "none", label: "No owner" },
+                          ...owners.map((o) => ({ value: o.membershipId, label: o.name })),
+                        ]}
+                      />
+                    ) : (
+                      (a.ownerName ?? <span className="text-muted-foreground">No owner</span>)
+                    )}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums">
                     {page.arrVisible ? (
@@ -191,10 +232,20 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
                     )}
                   </td>
                   <td className="px-3 py-2">
-                    {a.renewalDate ? (
+                    {a.canEdit && a.hasContract ? (
+                      <InlineField
+                        accountId={a.id}
+                        field="renewalDate"
+                        type="date"
+                        label={`Renewal date for ${a.name}`}
+                        value={a.renewalDate ? a.renewalDate.toISOString().slice(0, 10) : ""}
+                      />
+                    ) : a.renewalDate ? (
                       formatDate(a.renewalDate, tz)
                     ) : (
-                      <span className="text-muted-foreground">Not on file</span>
+                      <span className="text-muted-foreground">
+                        {a.hasContract ? "Not on file" : "No contract"}
+                      </span>
                     )}
                   </td>
                   <td className="px-3 py-2">{formatDate(a.lastTouchAt, tz)}</td>

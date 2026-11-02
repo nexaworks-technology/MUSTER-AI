@@ -15,6 +15,8 @@ import { getOwnWorkspace, updateOwnWorkspace } from "@/lib/db/workspace";
 import { sendStaffEmail } from "@/lib/email";
 import { PRODUCT_NAME } from "@/config/product";
 import {
+  workspaceSettingsData,
+  type WorkspaceSettingsData,
   ROLE_LABELS,
   type acceptAsNewUserInput,
   type inviteInput,
@@ -351,4 +353,15 @@ export async function updateWorkspaceProfile(
     after: input,
   });
   return updated;
+}
+
+// ─── Typed workspace settings ───────────────────────────────────────────────
+
+/** Reads WorkspaceSettings.data with every default applied (no row = all defaults). */
+export async function getSettingsData(workspaceId: string): Promise<WorkspaceSettingsData> {
+  const row = await scopedDb({ workspaceId }).workspaceSettings.findUnique({
+    where: { workspaceId },
+  });
+  const parsed = workspaceSettingsData.safeParse(row?.data ?? {});
+  return parsed.success ? parsed.data : workspaceSettingsData.parse({});
 }

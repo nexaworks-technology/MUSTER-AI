@@ -7,7 +7,9 @@ import { scopedDb, type ScopedDb } from "@/lib/db/scoped";
 import { formatMoney } from "@/lib/money";
 import type { TimelineItem } from "@/modules/accounts/schemas";
 import {
+  AccountInputError,
   AccountNotFoundError,
+  applyTierRule,
   getAccount,
   requireEditableAccount,
   type Actor,
@@ -65,6 +67,36 @@ export async function recomputeCommercials(
       arrCurrency: current?.valueMinor !== null && current ? current.currency : null,
       renewalDate: current?.renewalDate ?? null,
     },
+  });
+  await applyTierRule(tx, workspaceId, accountId);
+}
+
+/** Sets the renewal date on the account's current contract (no contract on file = refused). */
+export async function setRenewalDate(actor: Actor, accountId: string, renewalDate: Date) {
+  const account = await requireEditableAccount(actor, accountId);
+  return scopedDb(actor).$tenantTransaction(async (tx) => {
+    const contract = currentContract(
+      await tx.contract.findMany({ where: { accountId } }),
+      new Date(),
+    );
+    if (!contract)
+      throw new AccountInputError("There is no contract on file to set a renewal date on.");
+    await tx.contract.update({ where: { id: contract.id }, data: { renewalDate } });
+    await recomputeCommercials(tx, actor.workspaceId, accountId);
+    await writeAudit(
+      {
+        workspaceId: actor.workspaceId,
+        actorType: "USER",
+        actorId: actor.userId,
+        action: "contract.renewal_date_set",
+        targetType: "Contract",
+        targetId: contract.id,
+        summary: `Set the renewal date for ${account.name}`,
+        before: { renewalDate: contract.renewalDate },
+        after: { renewalDate },
+      },
+      tx,
+    );
   });
 }
 

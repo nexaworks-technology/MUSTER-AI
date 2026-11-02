@@ -70,3 +70,15 @@ export interface TimelineItem {
 }
 
 export { decodeCursor, encodeCursor, mergeTimeline } from "./timeline";
+
+/** Inline edit: any subset of owner / tier / stage. tier "RULE" hands the tier back to the ARR rule. */
+export const accountPatch = z
+  .object({
+    ownerMembershipId: z.preprocess(
+      (v) => (v === "none" ? null : v),
+      z.string().min(1).nullable().optional(),
+    ),
+    tier: z.enum(["HIGH_TOUCH", "MID_TOUCH", "LONG_TAIL", "RULE"]).optional(),
+    lifecycleStage: z.enum(STAGES).optional(),
+  })
+  .refine((p) => Object.keys(p).length > 0, "Nothing to change");

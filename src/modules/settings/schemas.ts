@@ -58,3 +58,32 @@ export const workspaceProfileInput = z.object({
 
 export const TIMEZONE_OPTIONS = [...TIMEZONES].sort();
 export const CURRENCY_OPTIONS = [...CURRENCIES].sort();
+
+/**
+ * Typed WorkspaceSettings.data (ARCHITECTURE §3.2). Every field has a default, so a workspace
+ * with an empty settings row behaves exactly like the documented defaults.
+ * Missing-data snooze defaults to 7 days (founder decision C2, supersedes Q-09's 30 days).
+ */
+export const workspaceSettingsData = z.object({
+  tierRule: z
+    .object({
+      /** ARR (whole units of the base currency) at or above which an account is high-touch. */
+      highTouchMinArr: z.number().int().positive().default(50_000),
+      midTouchMinArr: z.number().int().positive().default(10_000),
+    })
+    .prefault({}),
+  missingData: z
+    .object({
+      snoozeDays: z.number().int().min(1).max(365).default(7),
+      maxPromptsPerUserPerDay: z.number().int().min(1).max(20).default(3),
+    })
+    .prefault({}),
+  dataQuality: z
+    .object({
+      /** An account with no update and no activity for this long is flagged as stale. */
+      staleAfterDays: z.number().int().min(30).max(730).default(180),
+    })
+    .prefault({}),
+});
+
+export type WorkspaceSettingsData = z.infer<typeof workspaceSettingsData>;
