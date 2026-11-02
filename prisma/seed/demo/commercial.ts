@@ -27,19 +27,12 @@ function contractPlans(a: AccountSpec, renewedIndex: number): ContractPlan[] {
   if (a.arrUsd === null) return []; // Fairhaven: no contract on file
   const v = a.arrUsd;
   if (a.churnedDaysAgo !== undefined) {
+    // One two-year contract ending at the churn (D-52 seed correction: not also a renewal).
     const end = a.churnedDaysAgo;
     return [
       {
-        key: "1",
-        start: daysAgo(end + 730),
-        end: daysAgo(end + 365),
-        renewal: daysAgo(end + 365),
-        value: v,
-        status: "ENDED",
-      },
-      {
         key: "2",
-        start: daysAgo(end + 365),
+        start: daysAgo(end + 730),
         end: daysAgo(end),
         renewal: daysAgo(end),
         value: v,
@@ -66,14 +59,24 @@ function contractPlans(a: AccountSpec, renewedIndex: number): ContractPlan[] {
       },
     ];
   }
+  if (renewedIndex < 0) {
+    // Seed correction (D-52, founder decision 1): accounts outside SEED_DATA §8's 12 renewals are on
+    // 2- or 3-year terms, so their data shows no renewal in the last year. Same renewal date as before.
+    const years = a.key.length % 2 === 0 ? 2 : 3;
+    return [
+      {
+        key: "2",
+        start: daysAgo(years * 365 - a.renewalInDays),
+        end: daysFromNow(a.renewalInDays),
+        renewal: daysFromNow(a.renewalInDays),
+        value: v,
+        status: "ACTIVE",
+      },
+    ];
+  }
   const startAgo = 365 - a.renewalInDays;
   // Renewed set (SEED_DATA §6/§8): 6 expansions, 3 contractions, the rest flat.
-  const prior =
-    renewedIndex >= 0 && renewedIndex < 6
-      ? Math.round(v * 0.8)
-      : renewedIndex >= 6 && renewedIndex < 9
-        ? Math.round(v * 1.2)
-        : v;
+  const prior = renewedIndex < 6 ? Math.round(v * 0.8) : renewedIndex < 9 ? Math.round(v * 1.2) : v;
   return [
     {
       key: "1",
@@ -108,9 +111,15 @@ export async function seedCommercial(db: ScopedDb, workspaceId: string): Promise
   const invoices: Prisma.InvoiceCreateManyInput[] = [];
   let invoiceNo = 1000;
 
+  const plannedContracts = new Set<string>();
+  const plannedSubscriptions = new Set<string>();
   for (const a of ROSTER) {
     const accountId = ids.account(a.key);
     const plans = contractPlans(a, renewed.indexOf(a.key));
+    for (const p of plans) {
+      plannedContracts.add(seedId(`contract:${a.key}:${p.key}`));
+      plannedSubscriptions.add(seedId(`subscription:${a.key}:${p.key}`));
+    }
     const monthly = a.plan === "Starter";
     for (const p of plans) {
       const contractId = seedId(`contract:${a.key}:${p.key}`);
@@ -243,6 +252,11 @@ export async function seedCommercial(db: ScopedDb, workspaceId: string): Promise
         }),
       );
   }
+  // A re-seed removes seeded contracts the plan no longer has (D-52 seed correction).
+  await db.subscription.deleteMany({
+    where: { source: "SEED", id: { notIn: [...plannedSubscriptions] } },
+  });
+  await db.contract.deleteMany({ where: { source: "SEED", id: { notIn: [...plannedContracts] } } });
   for (let i = 0; i < invoices.length; i += 500) {
     await db.invoice.createMany({ data: invoices.slice(i, i + 500) });
   }

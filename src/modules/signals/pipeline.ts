@@ -86,12 +86,17 @@ export async function kickoff(raw: unknown, deps: PipelineDeps) {
   return { asOf, runId: run, chunks: chunk, accounts: accounts.length };
 }
 
+/** Evaluate stage of one chunk (shared by the queue job and the seed's inline run). */
+async function evaluateCore(data: ChunkData, clock: Clock) {
+  const ctx = { workspaceId: data.workspaceId };
+  await storeUsageBaselines(ctx, data.asOf, data.accountIds);
+  return evaluateAndStore(ctx, data.accountIds, data.asOf, clock);
+}
+
 export async function evaluateChunk(raw: unknown, deps: PipelineDeps) {
   const data = chunkPayload.parse(raw);
   await deps.beforeStage?.("evaluate", data);
-  const ctx = { workspaceId: data.workspaceId };
-  await storeUsageBaselines(ctx, data.asOf, data.accountIds);
-  const signals = await evaluateAndStore(ctx, data.accountIds, data.asOf, deps.clock);
+  const signals = await evaluateCore(data, deps.clock);
   await add(
     "health",
     "health.scoreChunk",
@@ -104,6 +109,11 @@ export async function evaluateChunk(raw: unknown, deps: PipelineDeps) {
 export async function scoreChunk(raw: unknown, deps: PipelineDeps) {
   const data = chunkPayload.parse(raw);
   await deps.beforeStage?.("score", data);
+  return scoreCore(data);
+}
+
+/** Score stage of one chunk (shared by the queue job and the seed's inline run). */
+async function scoreCore(data: ChunkData) {
   const ctx = { workspaceId: data.workspaceId };
   const model = await getActiveModel(ctx);
   const results = await scoreAndStore(ctx, data.accountIds, data.asOf, model, {
@@ -214,4 +224,40 @@ export async function backtestRunning(ctx: TenantContext): Promise<boolean> {
     200,
   );
   return jobs.some((j) => j?.name === "health.backtest" && j.data?.workspaceId === ctx.workspaceId);
+}
+
+/**
+ * The same nightly stages run inline, chunk by chunk, for the seed (which has no worker). The
+ * queue path (kickoff → evaluate → score jobs) is what runs every night and what the pipeline
+ * test proves; this only skips the hand-off between processes.
+ */
+export async function runNightlyInline(ctx: TenantContext, asOf: string, clock: Clock) {
+  const accounts = await scopedDb(ctx).account.findMany({
+    where: { lifecycleStage: { not: "LOST" }, archivedAt: null },
+    select: { id: true },
+    orderBy: { id: "asc" },
+  });
+  const totals = {
+    opened: 0,
+    updated: 0,
+    resolved: 0,
+    suppressed: 0,
+    CREATED: 0,
+    REPLACED: 0,
+    UNCHANGED: 0,
+    bandChanges: 0,
+  };
+  for (let i = 0, chunk = 0; i < accounts.length; i += CHUNK_SIZE, chunk++) {
+    const data: ChunkData = {
+      workspaceId: ctx.workspaceId,
+      asOf,
+      runId: "seed",
+      chunk,
+      accountIds: accounts.slice(i, i + CHUNK_SIZE).map((a) => a.id),
+    };
+    const e = await evaluateCore(data, clock);
+    const sc = await scoreCore(data);
+    for (const [k, v] of Object.entries({ ...e, ...sc })) totals[k as keyof typeof totals] += v;
+  }
+  return totals;
 }

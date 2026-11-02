@@ -347,6 +347,19 @@ export async function seedConversations(db: ScopedDb, workspaceId: string): Prom
         });
       }
     }
+    if (a.renewedDaysAgo !== undefined && a.story?.includes("migration support spike")) {
+      // SEED_DATA §8 false-alarm case (D-58): six tickets in one week during a data migration,
+      // about 50 days before the renewal, all closed within days. The account renewed anyway.
+      for (const [i, before] of [52, 51, 51, 50, 49, 47].entries()) {
+        ticket(a, {
+          subject: i === 0 ? "Data migration: import is failing" : `Data migration: question ${i}`,
+          body: "We are moving our historical data across this week and hit a problem with the import.",
+          openedDaysAgo: a.renewedDaysAgo + before,
+          priority: i < 3 ? "HIGH" : "NORMAL",
+          escalated: i === 0,
+        });
+      }
+    }
     if (a.churnedDaysAgo !== undefined && a.story?.includes("support escalation")) {
       for (const before of [70, 55, 40]) {
         ticket(a, {

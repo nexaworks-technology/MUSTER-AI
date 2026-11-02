@@ -707,7 +707,12 @@ function generated(): AccountSpec[] {
     .forEach((a, i) => {
       a.renewedDaysAgo = 365 - a.renewalInDays!;
       a.story =
-        i < 2 ? "renewed; had a temporary dip (false-alarm case)" : "renewed in the last 12 months";
+        // SEED_DATA §8: one seasonal usage dip and one migration support spike (D-58).
+        i === 0
+          ? "renewed; had a temporary dip (false-alarm case)"
+          : i === 1
+            ? "renewed; had a migration support spike (false-alarm case)"
+            : "renewed in the last 12 months";
     });
 
   // 12 churned accounts (lifecycle LOST), churned 1–14 months ago; 3 are silent churns.
@@ -741,6 +746,18 @@ function generated(): AccountSpec[] {
       story: `churned (${pattern})`,
     });
   });
+  // SEED_DATA §8 "champion left" (D-58): the champion's role ends and they leave 50 days before
+  // the churn, dated (D-56). Post-processing only: the random sequence above is unchanged.
+  for (const c of churned.filter((a) => a.story?.includes("champion left"))) {
+    const left = c.churnedDaysAgo! + 50;
+    const champion = c.contacts.find((p) => p.roles.some((r) => r.role === "CHAMPION"));
+    if (!champion) continue;
+    champion.roles = champion.roles.map((r) =>
+      r.role === "CHAMPION" ? { ...r, toDaysAgo: left } : r,
+    );
+    champion.status = "LEFT";
+    champion.statusDaysAgo = left;
+  }
   return [...active, ...churned];
 }
 

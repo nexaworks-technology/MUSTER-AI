@@ -357,6 +357,23 @@ describe("health.writeSnapshot(): the only insert path (M3 rule 2, condition B)"
     ).toBe(second.id);
   });
 
+  it("concurrent writers for the same account, model and day all succeed and leave one row", async () => {
+    // Two re-score runs can overlap (a model activation while a nightly chunk is running).
+    const results = await Promise.all(
+      [10, 40, 70, 95].map((a, i) =>
+        writeSnapshot(db, ws, draft("2026-03-07", agg(a), `race-${i}`), { makeCurrent: true }),
+      ),
+    );
+    const rows = await db.healthScoreSnapshot.findMany({
+      where: { asOf: new Date("2026-03-07") },
+    });
+    expect(rows).toHaveLength(1);
+    expect(results.map((r) => r.id)).toContain(rows[0]!.id);
+    expect(
+      (await db.account.findUniqueOrThrow({ where: { id: accountId } })).currentHealthSnapshotId,
+    ).toBe(rows[0]!.id);
+  });
+
   it("another model version writes its own row; the old version's snapshot is untouched", async () => {
     const v1 = await writeSnapshot(db, ws, draft("2026-03-06"));
     const v2Model = await db.healthModel.create({

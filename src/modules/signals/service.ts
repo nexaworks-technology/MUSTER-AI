@@ -331,5 +331,6 @@ export {
   enqueueWorkspaceRun,
   enqueueBacktest,
   backtestRunning,
+  runNightlyInline,
   type PipelineDeps,
 } from "./pipeline";

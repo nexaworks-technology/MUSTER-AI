@@ -7,6 +7,8 @@ import { seedCommercial } from "./demo/commercial";
 import { seedUsage } from "./demo/usage";
 import { seedConversations } from "./demo/conversations";
 import { seedWork } from "./demo/work";
+import { seedHealth } from "./demo/health";
+import { withDatabaseLock } from "@/lib/db/locks";
 import { recomputeLastTouch, runDataQualityScan } from "@/modules/accounts/service";
 import { ids, seedId } from "./demo/ids";
 import { daysAgo } from "./demo/dates";
@@ -94,6 +96,7 @@ async function seedDemoData(workspaceId: string): Promise<void> {
   // The checker runs as Priya (Admin) so Silverline's duplicates are waiting in Data quality.
   const admin = await db.membership.findUniqueOrThrow({ where: { id: ids.membership("priya") } });
   await runDataQualityScan({ ...admin, workspaceId, membershipId: admin.id }, daysAgo(0));
+  await seedHealth(db, workspaceId);
 }
 
 export async function runSeed({ includeTestTenant }: { includeTestTenant: boolean }) {
@@ -102,10 +105,13 @@ export async function runSeed({ includeTestTenant }: { includeTestTenant: boolea
       "Refusing to seed demo data in production (set ALLOW_DEMO_SEED=true for a demo environment)",
     );
   }
-  const larkspur = await seedWorkspace(DEMO_WORKSPACE, DEMO_USERS);
-  // Demo data goes to Larkspur only; Ferngrove stays an empty second tenant (SEED_DATA §2).
-  await seedDemoData(larkspur.id);
-  const seeded = [larkspur];
-  if (includeTestTenant) seeded.push(await seedWorkspace(TEST_TENANT, TEST_TENANT_USERS));
-  return seeded;
+  // Two seeds against one database at once would collide; the second waits (D-68).
+  return withDatabaseLock("demo-seed", async () => {
+    const larkspur = await seedWorkspace(DEMO_WORKSPACE, DEMO_USERS);
+    // Demo data goes to Larkspur only; Ferngrove stays an empty second tenant (SEED_DATA §2).
+    await seedDemoData(larkspur.id);
+    const seeded = [larkspur];
+    if (includeTestTenant) seeded.push(await seedWorkspace(TEST_TENANT, TEST_TENANT_USERS));
+    return seeded;
+  });
 }

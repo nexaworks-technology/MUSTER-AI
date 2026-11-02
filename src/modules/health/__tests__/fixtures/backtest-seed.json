@@ -1,0 +1,53 @@
+{
+  "window": {
+    "from": "2024-11-01",
+    "to": "2026-11-02",
+    "months": 24
+  },
+  "outcomes": {
+    "churns": 12,
+    "renewals": 12
+  },
+  "defaultModel": {
+    "caught": 0,
+    "churns": 12,
+    "renewals": 12,
+    "falseAlarms": 0,
+    "meanLeadDays": null,
+    "medianLeadDays": null,
+    "unscorable": [],
+    "caughtAccounts": [],
+    "falseAlarmAccounts": [],
+    "sentence": "With this model, we would have flagged 0 of your last 12 churns, with 0 false alarms out of 12 renewals."
+  },
+  "proposal": {
+    "weights": {
+      "ADOPTION": 0.7,
+      "ENGAGEMENT": 0.05,
+      "SUPPORT": 0.05,
+      "RELATIONSHIP": 0.05,
+      "COMMERCIAL": 0.05,
+      "SENTIMENT": 0.1
+    },
+    "thresholds": {
+      "healthyMin": 60,
+      "watchMin": 55
+    },
+    "sufficient": true,
+    "caught": 4,
+    "churns": 12,
+    "renewals": 12,
+    "falseAlarms": 0,
+    "meanLeadDays": 28,
+    "medianLeadDays": 28,
+    "unscorable": [],
+    "caughtAccounts": [
+      "Northway Logistics (28 days)",
+      "Junipermark Retail (35 days)",
+      "Crescentline Care Partners (28 days)",
+      "Coastalgate Retail (21 days)"
+    ],
+    "falseAlarmAccounts": [],
+    "sentence": "With this model, we would have flagged 4 of your last 12 churns, on average 28 days early, with 0 false alarms out of 12 renewals."
+  }
+}

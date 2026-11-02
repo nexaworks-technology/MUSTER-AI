@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState, type ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -76,6 +76,25 @@ export function ModelEditForm({
   thresholds: { healthyMin: number; watchMin: number };
 }) {
   const [state, action, pending] = useActionState<ModelActionState, FormData>(modelEditAction, {});
+  // Controlled: React resets an uncontrolled form after each action, which would put the inputs
+  // back to the starting weights after "Preview" and make "Save" save something not previewed.
+  const [values, setValues] = useState<Record<string, string>>(() => ({
+    ...Object.fromEntries(
+      (Object.keys(LABELS) as Array<keyof typeof LABELS>).map((p) => [
+        `w.${p}`,
+        String(Math.round(weights[p] * 100)),
+      ]),
+    ),
+    healthyMin: String(thresholds.healthyMin),
+    watchMin: String(thresholds.watchMin),
+    note: "",
+  }));
+  const field = (name: string) => ({
+    name,
+    value: values[name] ?? "",
+    onChange: (e: ChangeEvent<HTMLInputElement>) =>
+      setValues((v) => ({ ...v, [name]: e.target.value })),
+  });
   return (
     <form action={action} className="space-y-3">
       <input type="hidden" name="basedOnId" value={basedOnId} />
@@ -90,12 +109,11 @@ export function ModelEditForm({
             </label>
             <Input
               id={`w-${p}`}
-              name={`w.${p}`}
+              {...field(`w.${p}`)}
               type="number"
               min={0}
               max={100}
               step={1}
-              defaultValue={Math.round(weights[p] * 100)}
               className="h-8 w-24"
             />
           </div>
@@ -106,11 +124,10 @@ export function ModelEditForm({
           </label>
           <Input
             id="healthyMin"
-            name="healthyMin"
+            {...field("healthyMin")}
             type="number"
             min={1}
             max={100}
-            defaultValue={thresholds.healthyMin}
             className="h-8 w-24"
           />
         </div>
@@ -120,11 +137,10 @@ export function ModelEditForm({
           </label>
           <Input
             id="watchMin"
-            name="watchMin"
+            {...field("watchMin")}
             type="number"
             min={0}
             max={99}
-            defaultValue={thresholds.watchMin}
             className="h-8 w-24"
           />
         </div>
@@ -133,7 +149,7 @@ export function ModelEditForm({
         <label htmlFor="note" className="text-muted-foreground block text-xs">
           Why this change (optional)
         </label>
-        <Input id="note" name="note" maxLength={500} className="max-w-lg" />
+        <Input id="note" {...field("note")} maxLength={500} className="max-w-lg" />
       </div>
       <div className="flex flex-wrap gap-2">
         <Button type="submit" name="intent" value="preview" variant="outline" disabled={pending}>

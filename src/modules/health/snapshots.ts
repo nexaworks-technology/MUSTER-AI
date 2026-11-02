@@ -113,6 +113,10 @@ export async function writeSnapshot(
   const d = snapshotDraft.parse(input);
   const asOf = utcMidnight(d.asOf);
   return db.$tenantTransaction(async (tx) => {
+    // Two re-score runs can overlap (an activation during a nightly chunk). Lock the account row
+    // so find-then-replace for one account is serial; other accounts are not blocked.
+    await tx.$queryRaw`SELECT id FROM "Account"
+      WHERE "workspaceId" = ${workspaceId} AND id = ${d.accountId} FOR UPDATE`;
     const existing = await tx.healthScoreSnapshot.findUnique({
       where: {
         workspaceId_accountId_healthModelId_asOf_isBacktest: {
