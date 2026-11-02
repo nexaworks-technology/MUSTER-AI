@@ -167,7 +167,9 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
               {page.rows.map((a) => (
                 <tr key={a.id} className="border-border border-t">
                   <td className="px-3 py-2">
-                    <span className="font-medium">{a.name}</span>
+                    <Link href={`/accounts/${a.id}`} className="font-medium hover:underline">
+                      {a.name}
+                    </Link>
                     {a.domain ? (
                       <div className="text-muted-foreground text-xs">{a.domain}</div>
                     ) : null}

@@ -1,0 +1,39 @@
+import type { Route } from "next";
+import Link from "next/link";
+import type { ReactNode } from "react";
+import { STAGE_LABELS, TIER_LABELS } from "@/modules/accounts/schemas";
+import { loadAccount } from "./data";
+import { TabNav } from "./tab-nav";
+
+/** Account 360 (spec §5). Tabs appear only for data that exists in this milestone. */
+export default async function AccountLayout({
+  children,
+  params,
+}: {
+  children: ReactNode;
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const { account } = await loadAccount(id);
+  const base = `/accounts/${account.id}`;
+  const tabs = [
+    { label: "Overview", href: base },
+    { label: "People", href: `${base}/people` },
+  ] as Array<{ label: string; href: Route }>;
+  return (
+    <div className="space-y-4">
+      <div>
+        <Link href="/accounts" className="text-muted-foreground text-sm hover:underline">
+          ← Accounts
+        </Link>
+        <h1 className="mt-1 text-2xl font-semibold">{account.name}</h1>
+        <p className="text-muted-foreground text-sm">
+          {TIER_LABELS[account.tier]} · {STAGE_LABELS[account.lifecycleStage]} ·{" "}
+          {account.ownerName ? `Owner: ${account.ownerName}` : "No owner"}
+        </p>
+      </div>
+      <TabNav tabs={tabs} />
+      {children}
+    </div>
+  );
+}

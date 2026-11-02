@@ -1,5 +1,5 @@
 import type { BookScope, Prisma } from "@prisma/client";
-import { can, requirePermission, type Grant } from "@/lib/auth/permissions";
+import { can, ForbiddenError, requirePermission, type Grant } from "@/lib/auth/permissions";
 import type { WorkspaceContext } from "@/lib/auth/session";
 import { scopedDb } from "@/lib/db/scoped";
 import { PAGE_SIZE, type AccountListQuery } from "./schemas";
@@ -155,4 +155,77 @@ export async function listOwners(actor: Actor) {
     orderBy: { createdAt: "asc" },
   });
   return members.map((m) => ({ membershipId: m.id, name: m.user.name ?? m.user.email }));
+}
+
+// ─── Account 360 ─────────────────────────────────────────────────────────────
+
+/** Thrown when an account is outside the actor's workspace or book: callers render a 404. */
+export class AccountNotFoundError extends Error {
+  constructor() {
+    super("Account not found");
+    this.name = "AccountNotFoundError";
+  }
+}
+
+/**
+ * The account header used by every Account 360 tab. Returns null for accounts in another
+ * workspace (RLS + scoping) or outside the actor's book, so the route 404s either way.
+ */
+export async function getAccount(actor: Actor, accountId: string) {
+  const grant = requirePermission(actor, "accounts:view");
+  const arrVisible = can(actor, "revenue:view") !== null;
+  const account = await scopedDb(actor).account.findFirst({
+    where: { AND: [{ id: accountId }, bookWhere(actor, grant.scope)] },
+    select: {
+      id: true,
+      name: true,
+      domain: true,
+      tier: true,
+      tierSource: true,
+      lifecycleStage: true,
+      onboardingStartedAt: true,
+      churnedAt: true,
+      ownerMembershipId: true,
+      plan: true,
+      industry: true,
+      employeeBand: true,
+      timezone: true,
+      lastTouchAt: true,
+      source: true,
+      arrMinor: arrVisible,
+      arrCurrency: arrVisible,
+      owner: { select: { user: { select: { name: true, email: true } } } },
+    },
+  });
+  if (!account) return null;
+  const { arrMinor, arrCurrency, owner, ...rest } = account;
+  return {
+    ...rest,
+    ownerName: owner ? (owner.user.name ?? owner.user.email) : null,
+    arrVisible,
+    arr:
+      arrVisible && arrMinor !== null && arrMinor !== undefined
+        ? { minor: arrMinor, currency: arrCurrency ?? "USD" }
+        : null,
+    canEdit: canEditAccount(actor, rest.ownerMembershipId),
+  };
+}
+
+export type AccountHeader = NonNullable<Awaited<ReturnType<typeof getAccount>>>;
+
+/** accounts:edit within the actor's book (Viewers never; CSMs only their book). */
+export function canEditAccount(actor: Actor, ownerMembershipId: string | null): boolean {
+  const grant = can(actor, "accounts:edit");
+  if (!grant) return false;
+  if (grant.scope === "ALL") return true;
+  if (ownerMembershipId === actor.membershipId) return true;
+  return grant.scope === "TEAM" && ownerMembershipId === null;
+}
+
+/** Loads the account for a write and enforces accounts:edit within the actor's book. */
+export async function requireEditableAccount(actor: Actor, accountId: string) {
+  const account = await getAccount(actor, accountId);
+  if (!account) throw new AccountNotFoundError();
+  if (!account.canEdit) throw new ForbiddenError("accounts:edit");
+  return account;
 }
