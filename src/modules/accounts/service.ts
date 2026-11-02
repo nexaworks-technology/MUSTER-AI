@@ -36,6 +36,7 @@ export interface AccountListRow {
   /** Present only for members with revenue:view; otherwise the key is absent entirely. */
   arr?: { minor: bigint; currency: string } | null;
   lastTouchAt: Date | null;
+  renewalDate: Date | null;
 }
 
 export interface AccountListPage {
@@ -61,7 +62,9 @@ function orderBy(
       ? { arrMinor: { sort: dir, nulls: "last" } }
       : sort === "lastTouch"
         ? { lastTouchAt: { sort: dir, nulls: "last" } }
-        : { name: dir };
+        : sort === "renewal"
+          ? { renewalDate: { sort: dir, nulls: "last" } }
+          : { name: dir };
   return [primary, { id: "asc" }];
 }
 
@@ -113,6 +116,7 @@ export async function listAccounts(
         tier: true,
         lifecycleStage: true,
         lastTouchAt: true,
+        renewalDate: true,
         arrMinor: arrVisible,
         arrCurrency: arrVisible,
         owner: { select: { user: { select: { name: true, email: true } } } },
@@ -128,6 +132,7 @@ export async function listAccounts(
       lifecycleStage: a.lifecycleStage,
       ownerName: a.owner ? (a.owner.user.name ?? a.owner.user.email) : null,
       lastTouchAt: a.lastTouchAt,
+      renewalDate: a.renewalDate,
     };
     if (arrVisible)
       row.arr =

@@ -19,6 +19,7 @@ export default async function AccountLayout({
   const tabs = [
     { label: "Overview", href: base },
     { label: "People", href: `${base}/people` },
+    { label: "Contracts & billing", href: `${base}/billing` },
   ] as Array<{ label: string; href: Route }>;
   return (
     <div className="space-y-4">

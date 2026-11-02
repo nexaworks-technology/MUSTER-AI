@@ -100,3 +100,52 @@ describe("seed v1 — accounts and people (docs/SEED_DATA.md §3)", () => {
     expect(emails.every((e) => e.email!.trim().toLowerCase().endsWith(".test"))).toBe(true);
   });
 });
+
+describe("seed v1 — commercial (docs/SEED_DATA.md §6)", () => {
+  it("derives revenue events by rule: NEW for every contracted account, 6 expansions, 3 contractions, 12 churns", async () => {
+    const [ws] = await runSeed({ includeTestTenant: false });
+    const db = scopedDb({ workspaceId: ws!.id });
+    const byType = Object.fromEntries(
+      (
+        await db.revenueEvent.groupBy({
+          by: ["type"],
+          where: { account: { source: "SEED" } },
+          _count: true,
+        })
+      ).map((g) => [g.type, g._count]),
+    );
+    expect(byType).toMatchObject({ NEW: 71, EXPANSION: 6, CONTRACTION: 3, CHURN: 12 });
+  });
+
+  it("plants the story facts: Fairhaven has no contract, Kestrel no renewal date, Sundial failed twice", async () => {
+    const [ws] = await runSeed({ includeTestTenant: false });
+    const db = scopedDb({ workspaceId: ws!.id });
+    const acct = (name: string) =>
+      db.account.findFirstOrThrow({
+        where: { name },
+        include: { contracts: true, invoices: true },
+      });
+    const fairhaven = await acct("Fairhaven Dental Group");
+    expect(fairhaven.contracts).toHaveLength(0);
+    expect(fairhaven.arrMinor).toBeNull();
+    const kestrel = await acct("Kestrel Robotics");
+    expect(kestrel.renewalDate).toBeNull();
+    expect(kestrel.arrMinor).not.toBeNull();
+    const sundial = await acct("Sundial Fitness");
+    expect(sundial.invoices.some((i) => i.status === "FAILED" && i.failureCount === 2)).toBe(true);
+    const northgate = await acct("Northgate Freight");
+    expect(
+      Math.round(
+        (northgate.renewalDate!.getTime() - Date.parse("2026-11-02T14:00:00Z")) / 86_400_000,
+      ),
+    ).toBe(41);
+  });
+
+  it("stores contract terms as ciphertext", async () => {
+    const [ws] = await runSeed({ includeTestTenant: false });
+    const contract = await scopedDb({ workspaceId: ws!.id }).contract.findFirstOrThrow({
+      where: { source: "SEED" },
+    });
+    expect(contract.termsEnc).not.toMatch(/Annual subscription/);
+  });
+});

@@ -70,6 +70,10 @@ model Workspace {
   accounts         Account[]
   contacts         Contact[]
   stakeholderRoles StakeholderRole[]
+  contracts        Contract[]
+  subscriptions    Subscription[]
+  invoices         Invoice[]
+  revenueEvents    RevenueEvent[]
 }
 
 // ─── Global identity (Auth.js) ───────────────────────────────────────────────
@@ -316,6 +320,8 @@ model Account {
   /// Derived from the active contract (billing service). Null = no contract on file, never 0.
   arrMinor            BigInt?
   arrCurrency         String?        @db.Char(3)
+  /// Derived from the current contract; null = no renewal date on file.
+  renewalDate         DateTime?
   lastTouchAt         DateTime?
   source              RecordSource   @default(MANUAL)
   archivedAt          DateTime?
@@ -326,8 +332,13 @@ model Account {
   owner            Membership?       @relation("AccountOwner", fields: [workspaceId, ownerMembershipId], references: [workspaceId, id], onDelete: Restrict)
   contacts         Contact[]
   stakeholderRoles StakeholderRole[]
+  contracts        Contract[]
+  subscriptions    Subscription[]
+  invoices         Invoice[]
+  revenueEvents    RevenueEvent[]
 
   @@unique([workspaceId, id])
+  @@index([workspaceId, renewalDate])
   @@index([workspaceId, ownerMembershipId])
   @@index([workspaceId, tier])
   @@index([workspaceId, lifecycleStage])
@@ -385,4 +396,155 @@ model StakeholderRole {
   @@unique([workspaceId, id])
   @@index([workspaceId, accountId, role, validTo])
   @@index([workspaceId, contactId])
+}
+
+// ─── M2: Commercial ──────────────────────────────────────────────────────────
+
+enum ContractStatus {
+  ACTIVE
+  ENDED
+  CANCELLED
+}
+
+enum BillingInterval {
+  MONTH
+  YEAR
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  ENDED
+}
+
+enum InvoiceStatus {
+  OPEN
+  PAID
+  FAILED
+  VOID
+  UNCOLLECTIBLE
+}
+
+enum RevenueEventType {
+  NEW
+  EXPANSION
+  CONTRACTION
+  CHURN
+  REACTIVATION
+}
+
+enum ComputedBy {
+  RULE
+}
+
+/// [W] Contract & commercial record (spec §6A3). Terms and pricing notes are encrypted (INTERP-4).
+model Contract {
+  id               String         @id @default(cuid())
+  workspaceId      String
+  accountId        String
+  startDate        DateTime
+  endDate          DateTime?
+  /// Null = no renewal date on file (the missing-data helper asks for it).
+  renewalDate      DateTime?
+  autoRenew        Boolean?
+  noticePeriodDays Int?
+  /// Annual value in minor units. Null = value not on file (never treated as 0).
+  valueMinor       BigInt?
+  currency         String         @default("USD") @db.Char(3)
+  seatsPurchased   Int?
+  creditsPurchased Int?
+  termsEnc         String?
+  pricingNotesEnc  String?
+  status           ContractStatus @default(ACTIVE)
+  /// FileObject id of the signed contract; FK added with FileObject (M2 slice 11).
+  documentFileId   String?
+  source           RecordSource   @default(MANUAL)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  workspace     Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account       Account        @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  subscriptions Subscription[]
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, accountId, startDate])
+  @@index([workspaceId, renewalDate])
+}
+
+/// [W] A billing subscription (Stripe/Chargebee in M5; CSV/seed now).
+model Subscription {
+  id               String             @id @default(cuid())
+  workspaceId      String
+  accountId        String
+  contractId       String?
+  plan             String
+  interval         BillingInterval
+  amountMinor      BigInt
+  currency         String             @default("USD") @db.Char(3)
+  quantity         Int                @default(1)
+  status           SubscriptionStatus @default(ACTIVE)
+  currentPeriodEnd DateTime?
+  source           RecordSource       @default(MANUAL)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account   @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  contract  Contract? @relation(fields: [workspaceId, contractId], references: [workspaceId, id], onDelete: SetNull)
+  invoices  Invoice[]
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, accountId])
+}
+
+/// [W] An invoice and its payment outcome.
+model Invoice {
+  id             String        @id @default(cuid())
+  workspaceId    String
+  accountId      String
+  subscriptionId String?
+  number         String
+  amountMinor    BigInt
+  currency       String        @default("USD") @db.Char(3)
+  issuedAt       DateTime
+  dueAt          DateTime
+  paidAt         DateTime?
+  status         InvoiceStatus @default(OPEN)
+  failureCount   Int           @default(0)
+  lastFailedAt   DateTime?
+  source         RecordSource  @default(MANUAL)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account      Account       @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [workspaceId, subscriptionId], references: [workspaceId, id], onDelete: SetNull)
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, status, dueAt])
+  @@index([workspaceId, accountId, issuedAt])
+}
+
+/// [W] ARR movement derived by rule from contracts (never typed in, never from an LLM).
+model RevenueEvent {
+  id            String           @id @default(cuid())
+  workspaceId   String
+  accountId     String
+  type          RevenueEventType
+  deltaArrMinor BigInt
+  currency      String           @db.Char(3)
+  effectiveDate DateTime
+  sourceType    String
+  sourceId      String
+  computedBy    ComputedBy       @default(RULE)
+  createdAt     DateTime         @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account   @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, sourceType, sourceId, type])
+  @@index([workspaceId, effectiveDate])
+  @@index([workspaceId, accountId])
 }

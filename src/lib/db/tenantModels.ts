@@ -12,6 +12,10 @@ export const TENANT_MODELS = [
   "Account",
   "Contact",
   "StakeholderRole",
+  "Contract",
+  "Subscription",
+  "Invoice",
+  "RevenueEvent",
 ] as const;
 
 /** Models without tenant scope: identity tables, the tenant root and the outbox (D-22). */

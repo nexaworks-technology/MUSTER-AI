@@ -15,7 +15,7 @@ export const STAGE_LABELS = {
 
 export const TIERS = ["HIGH_TOUCH", "MID_TOUCH", "LONG_TAIL"] as const;
 export const STAGES = ["ONBOARDING", "ADOPTING", "MATURE", "RENEWING", "LOST"] as const;
-export const SORTS = ["name", "arr", "lastTouch"] as const;
+export const SORTS = ["name", "arr", "renewal", "lastTouch"] as const;
 export const PAGE_SIZE = 50;
 
 const emptyToUndefined = (v: unknown) => (v === "" || v === null ? undefined : v);

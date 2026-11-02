@@ -3,6 +3,7 @@ import { hashPassword } from "@/lib/auth/password";
 import { rawDb } from "@/lib/db/raw";
 import { scopedDb } from "@/lib/db/scoped";
 import { seedAccounts } from "./demo/accounts";
+import { seedCommercial } from "./demo/commercial";
 import { seedId } from "./demo/ids";
 import {
   DEMO_PASSWORD,
@@ -80,6 +81,7 @@ async function seedWorkspace(
 async function seedDemoData(workspaceId: string): Promise<void> {
   const db = scopedDb({ workspaceId });
   await seedAccounts(db, workspaceId);
+  await seedCommercial(db, workspaceId);
 }
 
 export async function runSeed({ includeTestTenant }: { includeTestTenant: boolean }) {

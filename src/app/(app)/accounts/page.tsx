@@ -47,7 +47,7 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
         aria-label="Filter accounts"
       >
         <div className="space-y-1">
-          <label htmlFor="q" className="text-muted-foreground text-xs">
+          <label htmlFor="q" className="text-muted-foreground block text-xs">
             Search
           </label>
           <Input
@@ -105,6 +105,7 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
           <NativeSelect id="sort" name="sort" defaultValue={query.sort}>
             <option value="name">Name</option>
             {page.arrVisible ? <option value="arr">ARR</option> : null}
+            <option value="renewal">Renewal date</option>
             <option value="lastTouch">Last touch</option>
           </NativeSelect>
         </div>
@@ -159,6 +160,9 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
                   ARR
                 </th>
                 <th scope="col" className="px-3 py-2 font-medium">
+                  Renewal date
+                </th>
+                <th scope="col" className="px-3 py-2 font-medium">
                   Last touch
                 </th>
               </tr>
@@ -184,6 +188,13 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
                       formatArr(a.arr)
                     ) : (
                       <span className="text-muted-foreground">{RESTRICTED}</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    {a.renewalDate ? (
+                      formatDate(a.renewalDate, tz)
+                    ) : (
+                      <span className="text-muted-foreground">Not on file</span>
                     )}
                   </td>
                   <td className="px-3 py-2">{formatDate(a.lastTouchAt, tz)}</td>
