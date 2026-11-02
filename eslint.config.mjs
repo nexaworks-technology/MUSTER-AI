@@ -1,6 +1,7 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import rawSqlWorkspace from "./eslint-rules/raw-sql-workspace.mjs";
 
 /**
  * Import boundaries that make Rule 2 (tenant isolation) and Rule 3 (approval before
@@ -52,8 +53,10 @@ export default defineConfig([
     "**/__tests__/lint-fixtures/**",
   ]),
   {
+    plugins: { nexaworks: { rules: { "raw-sql-workspace": rawSqlWorkspace } } },
     rules: {
       ...restricted([RAW_DB, CUSTOMER_TRANSPORT, MODULE_INTERNALS]),
+      "nexaworks/raw-sql-workspace": "error",
       "@typescript-eslint/no-unused-vars": [
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
@@ -76,6 +79,23 @@ export default defineConfig([
       "scripts/**",
     ],
     rules: restricted([CUSTOMER_TRANSPORT, MODULE_INTERNALS], []),
+  },
+  {
+    // D-40 permits, named one by one (each must be logged when added):
+    // - src/lib/db/**: the scoped client itself sets app.workspace_id and wraps raw calls.
+    // - src/lib/auth/invitations.ts, identity.ts: set_config for identity, before any workspace.
+    // - src/lib/jobs/outbox.ts: OutboxEvent is a global [G] table by design.
+    // - tests (*.test.ts, src/test, e2e): they attack isolation on purpose.
+    files: [
+      "src/lib/db/**",
+      "src/lib/auth/invitations.ts",
+      "src/lib/auth/identity.ts",
+      "src/lib/jobs/outbox.ts",
+      "**/*.test.ts",
+      "src/test/**",
+      "e2e/**",
+    ],
+    rules: { "nexaworks/raw-sql-workspace": "off" },
   },
   {
     files: ["src/app/**", "src/components/**"],

@@ -48,7 +48,7 @@ export async function getUsage(
   const account = await getAccount(actor, accountId);
   if (!account) throw new AccountNotFoundError();
   const db = scopedDb(actor);
-  const ws = actor.workspaceId;
+  const workspaceId = actor.workspaceId;
   const since91 = new Date(asOf.getTime() - 91 * DAY);
   const since28 = new Date(asOf.getTime() - 28 * DAY);
 
@@ -57,12 +57,12 @@ export async function getUsage(
       db.$queryRaw<Array<{ week: Date; n: bigint }>>(Prisma.sql`
       SELECT date_trunc('week', "date")::date AS week, count(DISTINCT "externalUserId") AS n
       FROM "UserUsageDaily"
-      WHERE "workspaceId" = ${ws} AND "accountId" = ${accountId} AND "date" > ${since91} AND "date" <= ${asOf}
+      WHERE "workspaceId" = ${workspaceId} AND "accountId" = ${accountId} AND "date" > ${since91} AND "date" <= ${asOf}
       GROUP BY 1 ORDER BY 1`),
       db.$queryRaw<Array<{ week: Date; n: number }>>(Prisma.sql`
       SELECT date_trunc('week', "date")::date AS week, max("activeUsers") AS n
       FROM "UsageDaily"
-      WHERE "workspaceId" = ${ws} AND "accountId" = ${accountId} AND "date" > ${since91} AND "date" <= ${asOf}
+      WHERE "workspaceId" = ${workspaceId} AND "accountId" = ${accountId} AND "date" > ${since91} AND "date" <= ${asOf}
       GROUP BY 1 ORDER BY 1`),
       db.usageDaily.findFirst({
         where: { accountId, activeUsers: { gt: 0 }, date: { lte: asOf } },
@@ -71,7 +71,7 @@ export async function getUsage(
       }),
       db.$queryRaw<Array<{ n: bigint }>>(Prisma.sql`
       SELECT count(DISTINCT "externalUserId") AS n FROM "UserUsageDaily"
-      WHERE "workspaceId" = ${ws} AND "accountId" = ${accountId} AND "date" > ${since28} AND "date" <= ${asOf}`),
+      WHERE "workspaceId" = ${workspaceId} AND "accountId" = ${accountId} AND "date" > ${since28} AND "date" <= ${asOf}`),
       db.featureUsageDaily.groupBy({
         by: ["featureKey"],
         where: { accountId, date: { gt: since28, lte: asOf }, users: { gt: 0 } },
@@ -85,7 +85,7 @@ export async function getUsage(
       SELECT u."externalUserId", c."name" AS "contactName", sum(u."events") AS events, count(*) AS days
       FROM "UserUsageDaily" u
       LEFT JOIN "Contact" c ON c."workspaceId" = u."workspaceId" AND c."id" = u."contactId"
-      WHERE u."workspaceId" = ${ws} AND u."accountId" = ${accountId} AND u."date" > ${since28} AND u."date" <= ${asOf}
+      WHERE u."workspaceId" = ${workspaceId} AND u."accountId" = ${accountId} AND u."date" > ${since28} AND u."date" <= ${asOf}
       GROUP BY 1, 2 ORDER BY events DESC, 1 ASC LIMIT 10`),
       db.contract.findFirst({
         where: { accountId, status: "ACTIVE", startDate: { lte: asOf } },
