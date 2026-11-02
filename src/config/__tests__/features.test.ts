@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { NAV, visibleNav } from "../features";
+import { NAV, SHIPPED_MILESTONE, visibleNav } from "../features";
 
 const member = (role: "ADMIN" | "CS_LEADER" | "CSM" | "VIEWER") => ({
   role,
@@ -23,31 +23,45 @@ describe("navigation gating (Rule 6: no coming-soon screens)", () => {
     );
   });
 
-  // Approved change (M2, founder decision C1): the exact list grows as screens ship. These
-  // assertions stay exact-list matches, updated per milestone, never loosened to "contains".
-  it("shows exactly the shipped screens: M2 adds Accounts and Tasks", () => {
-    expect(visibleNav(member("ADMIN")).map((n) => n.label)).toEqual([
-      "Home",
-      "Accounts",
-      "Tasks",
-      "Settings",
-    ]);
-    expect(visibleNav(member("CSM")).map((n) => n.label)).toEqual(["Home", "Accounts", "Tasks"]);
-    expect(visibleNav(member("VIEWER")).map((n) => n.label)).toEqual(["Home", "Accounts", "Tasks"]);
-  });
+  // Founder decision 3 (M3, D-54): one fixed, exact nav list per role for each milestone. A later
+  // milestone adds a row and never edits an existing one; every row stays an exact-list match.
+  // (Replaces the M2 form of these assertions, which C1 approved; the M1 and M2 rows below carry
+  // exactly the lists those assertions held.)
+  const NAV_BY_MILESTONE = {
+    1: {
+      ADMIN: ["Home", "Settings"],
+      CS_LEADER: ["Home", "Settings"],
+      CSM: ["Home"],
+      VIEWER: ["Home"],
+    },
+    2: {
+      ADMIN: ["Home", "Accounts", "Tasks", "Settings"],
+      CS_LEADER: ["Home", "Accounts", "Tasks", "Settings"],
+      CSM: ["Home", "Accounts", "Tasks"],
+      VIEWER: ["Home", "Accounts", "Tasks"],
+    },
+    3: {
+      ADMIN: ["Home", "Accounts", "Tasks", "Health", "Settings"],
+      CS_LEADER: ["Home", "Accounts", "Tasks", "Health", "Settings"],
+      CSM: ["Home", "Accounts", "Tasks", "Health"],
+      VIEWER: ["Home", "Accounts", "Tasks", "Health"],
+    },
+  } as const;
 
-  it("CS Leaders see Settings for the Import tab (data:import, D-46)", () => {
-    expect(visibleNav(member("CS_LEADER")).map((n) => n.label)).toEqual([
-      "Home",
-      "Accounts",
-      "Tasks",
-      "Settings",
-    ]);
-  });
+  for (const [milestone, roles] of Object.entries(NAV_BY_MILESTONE))
+    for (const [role, labels] of Object.entries(roles))
+      it(`milestone ${milestone}: ${role} sees exactly ${labels.join(", ")}`, () => {
+        expect(
+          visibleNav(member(role as keyof typeof roles), Number(milestone)).map((n) => n.label),
+        ).toEqual(labels);
+      });
 
-  it("M1 screens stay exactly as they were when only M1 has shipped", () => {
-    expect(visibleNav(member("ADMIN"), 1).map((n) => n.label)).toEqual(["Home", "Settings"]);
-    expect(visibleNav(member("CSM"), 1).map((n) => n.label)).toEqual(["Home"]);
+  it("the shipped milestone shows the latest row", () => {
+    const latest = Math.max(
+      ...Object.keys(NAV_BY_MILESTONE).map(Number),
+    ) as keyof typeof NAV_BY_MILESTONE;
+    expect(SHIPPED_MILESTONE).toBe(latest);
+    expect(visibleNav(member("ADMIN")).map((n) => n.label)).toEqual(NAV_BY_MILESTONE[latest].ADMIN);
   });
 
   it("never shows an item without a real route, even if its milestone number has passed", () => {

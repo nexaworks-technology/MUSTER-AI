@@ -17,7 +17,12 @@ import { z } from "zod";
 import { writeAudit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth/permissions";
 import { systemClock, todayIn, type Clock } from "@/lib/dates";
-import { getAccount, requireEditableAccount, type Actor } from "@/modules/accounts/service";
+import {
+  bookWhere,
+  getAccount,
+  requireEditableAccount,
+  type Actor,
+} from "@/modules/accounts/service";
 import { calendarDateOf, utcMidnight } from "@/lib/dates";
 import { loadBundles, loadPeers, type LoadContext } from "./loader";
 import { ownBaselinesSql } from "./baselines-sql";
@@ -460,3 +465,165 @@ export { rolesKnown, statusAsOf, validOn, currentHolder } from "./engine/compone
 export { day as formatDay } from "./engine/format";
 export { loadBundles } from "./loader";
 export { describeSource, sourceLookups, type ResolvedSource } from "./sources";
+
+// ─── Health screen (spec §5 Health): bands, movers, disagreements ────────────
+
+const BANDS = ["AT_RISK", "WATCH", "HEALTHY", "INSUFFICIENT_DATA"] as const;
+export type Band = (typeof BANDS)[number];
+
+export interface Mover {
+  accountId: string;
+  name: string;
+  from: { overall: number | null; riskLevel: Band };
+  to: { overall: number | null; riskLevel: Band };
+  /** The reason whose impact changed most between the two snapshots. */
+  topReason: string | null;
+}
+
+/**
+ * The portfolio as the viewer may see it (book scope): accounts per band (ARR per band only with
+ * revenue access, M3 rule 11), what moved since yesterday and in the last 7 days (band changed or
+ * ≥ 10 points) with the reason that moved most, and where score and CSM disagree.
+ */
+export async function healthOverview(actor: Actor) {
+  const grant = requirePermission(actor, "accounts:view");
+  const db = scopedDb(actor);
+  const model = await getActiveModel(actor);
+  const accounts = await db.account.findMany({
+    where: {
+      AND: [bookWhere(actor, grant.scope), { archivedAt: null, lifecycleStage: { not: "LOST" } }],
+    },
+    select: {
+      id: true,
+      name: true,
+      arrMinor: true,
+      arrCurrency: true,
+      ownerMembershipId: true,
+      currentHealth: {
+        select: {
+          id: true,
+          asOf: true,
+          overall: true,
+          riskLevel: true,
+          healthModelId: true,
+          pulseDisagreement: true,
+          pulseValue: true,
+          riskLevelExcludingPulse: true,
+          overallExcludingPulse: true,
+        },
+      },
+    },
+    orderBy: { name: "asc" },
+  });
+  const current = accounts.filter((a) => a.currentHealth?.healthModelId === model.id);
+  const latest = current.reduce<Date | null>(
+    (m, a) => (m === null || a.currentHealth!.asOf > m ? a.currentHealth!.asOf : m),
+    null,
+  );
+  const bands = Object.fromEntries(BANDS.map((b) => [b, { count: 0, arrMinor: 0n }])) as Record<
+    Band,
+    { count: number; arrMinor: bigint }
+  >;
+  let unscored = 0;
+  for (const a of accounts) {
+    const h = a.currentHealth?.healthModelId === model.id ? a.currentHealth : null;
+    if (!h) {
+      unscored++;
+      continue;
+    }
+    bands[h.riskLevel].count++;
+    bands[h.riskLevel].arrMinor += a.arrMinor ?? 0n;
+  }
+
+  const movers = { today: [] as Mover[], week: [] as Mover[] };
+  if (latest) {
+    const day = (n: number) => new Date(latest.getTime() - n * 86_400_000);
+    const past = await db.healthScoreSnapshot.findMany({
+      where: {
+        accountId: { in: current.map((a) => a.id) },
+        healthModelId: model.id,
+        isBacktest: false,
+        asOf: { in: [day(1), day(7)] },
+      },
+      select: { id: true, accountId: true, asOf: true, overall: true, riskLevel: true },
+    });
+    const pick = (n: number) =>
+      new Map(
+        past.filter((p) => p.asOf.getTime() === day(n).getTime()).map((p) => [p.accountId, p]),
+      );
+    const moved = (n: number) =>
+      current.flatMap((a) => {
+        const was = pick(n).get(a.id);
+        const now = a.currentHealth!;
+        if (!was) return [];
+        const delta = Math.abs((num(now.overall) ?? 0) - (num(was.overall) ?? 0));
+        if (was.riskLevel === now.riskLevel && delta < 10) return [];
+        return [{ a, was, now }];
+      });
+    const today = moved(1);
+    const week = moved(7);
+    const ids = [...today, ...week].flatMap((m) => [m.was.id, m.now.id]);
+    const reasons = ids.length
+      ? await db.healthReason.findMany({
+          where: { snapshotId: { in: ids }, kind: "EVIDENCE" },
+          select: { snapshotId: true, component: true, impact: true, message: true },
+        })
+      : [];
+    const top = (wasId: string, nowId: string) => {
+      const before = new Map(
+        reasons
+          .filter((r) => r.snapshotId === wasId)
+          .map((r) => [r.component, r.impact.toNumber()]),
+      );
+      return (
+        reasons
+          .filter((r) => r.snapshotId === nowId)
+          .map((r) => ({
+            message: r.message,
+            change: Math.abs(r.impact.toNumber() - (before.get(r.component) ?? 0)),
+          }))
+          .sort((x, y) => y.change - x.change)[0]?.message ?? null
+      );
+    };
+    const toMover = (m: (typeof today)[number]): Mover => ({
+      accountId: m.a.id,
+      name: m.a.name,
+      from: { overall: num(m.was.overall), riskLevel: m.was.riskLevel },
+      to: { overall: num(m.now.overall), riskLevel: m.now.riskLevel },
+      topReason: top(m.was.id, m.now.id),
+    });
+    movers.today = today.map(toMover);
+    movers.week = week.map(toMover);
+  }
+
+  const pulses = await latestPulses(
+    db,
+    current.filter((a) => a.currentHealth!.pulseDisagreement).map((a) => a.id),
+  );
+  const disagreements = current
+    .filter((a) => a.currentHealth!.pulseDisagreement)
+    .map((a) => ({
+      accountId: a.id,
+      name: a.name,
+      overall: num(a.currentHealth!.overall),
+      riskLevel: a.currentHealth!.riskLevel,
+      overallExcludingPulse: num(a.currentHealth!.overallExcludingPulse),
+      riskLevelExcludingPulse: a.currentHealth!.riskLevelExcludingPulse,
+      pulse: pulses.get(a.id) ?? null,
+    }));
+
+  return {
+    model: { version: model.version, proposedBy: model.proposedBy },
+    asOf: latest ? calendarDateOf(latest) : null,
+    bands: Object.fromEntries(
+      BANDS.map((b) => [
+        b,
+        // Money only with revenue access (M2 "Restricted" pattern).
+        { count: bands[b].count, arrMinor: actor.canViewRevenue ? bands[b].arrMinor : null },
+      ]),
+    ) as Record<Band, { count: number; arrMinor: bigint | null }>,
+    unscored,
+    movers,
+    disagreements,
+  };
+}
