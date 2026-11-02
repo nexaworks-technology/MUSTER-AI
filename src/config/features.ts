@@ -20,6 +20,7 @@ export const NAV: readonly NavItem[] = [
   { label: "Today", href: null, milestone: 4 },
   { label: "Approvals", href: null, milestone: 4 },
   { label: "Accounts", href: "/accounts", milestone: 2 },
+  { label: "Tasks", href: "/tasks", milestone: 2 },
   { label: "Health", href: null, milestone: 3 },
   { label: "Onboarding", href: null, milestone: 6 },
   { label: "Renewals", href: null, milestone: 7 },

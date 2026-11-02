@@ -6,6 +6,7 @@ import { seedAccounts } from "./demo/accounts";
 import { seedCommercial } from "./demo/commercial";
 import { seedUsage } from "./demo/usage";
 import { seedConversations } from "./demo/conversations";
+import { seedWork } from "./demo/work";
 import { recomputeLastTouch } from "@/modules/accounts/service";
 import { seedId } from "./demo/ids";
 import {
@@ -87,6 +88,7 @@ async function seedDemoData(workspaceId: string): Promise<void> {
   await seedCommercial(db, workspaceId);
   await seedUsage(db, workspaceId);
   await seedConversations(db, workspaceId);
+  await seedWork(db, workspaceId);
   await recomputeLastTouch(db, workspaceId);
 }
 

@@ -25,14 +25,15 @@ describe("navigation gating (Rule 6: no coming-soon screens)", () => {
 
   // Approved change (M2, founder decision C1): the exact list grows as screens ship. These
   // assertions stay exact-list matches, updated per milestone, never loosened to "contains".
-  it("shows exactly the shipped screens: M2 adds Accounts (Tasks joins with its screen)", () => {
+  it("shows exactly the shipped screens: M2 adds Accounts and Tasks", () => {
     expect(visibleNav(member("ADMIN")).map((n) => n.label)).toEqual([
       "Home",
       "Accounts",
+      "Tasks",
       "Settings",
     ]);
-    expect(visibleNav(member("CSM")).map((n) => n.label)).toEqual(["Home", "Accounts"]);
-    expect(visibleNav(member("VIEWER")).map((n) => n.label)).toEqual(["Home", "Accounts"]);
+    expect(visibleNav(member("CSM")).map((n) => n.label)).toEqual(["Home", "Accounts", "Tasks"]);
+    expect(visibleNav(member("VIEWER")).map((n) => n.label)).toEqual(["Home", "Accounts", "Tasks"]);
   });
 
   it("M1 screens stay exactly as they were when only M1 has shipped", () => {

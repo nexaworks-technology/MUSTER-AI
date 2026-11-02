@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { NativeSelect } from "@/components/app/native-select";
 import { PRODUCT_NAME } from "@/config/product";
 import { visibleNav } from "@/config/features";
+import { unreadCount } from "@/modules/notifications/service";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { signOutAction } from "../sign-in/actions";
 import { switchWorkspaceAction } from "./actions";
@@ -35,6 +36,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   }
 
   const nav = visibleNav(ctx);
+  const unread = await unreadCount(ctx);
   return (
     <div className="min-h-screen md:grid md:grid-cols-[13rem_1fr]">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:p-2">
@@ -79,6 +81,21 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
             <span className="text-sm font-medium">{ctx.workspace.name}</span>
           )}
           <div className="text-muted-foreground flex items-center gap-2 text-sm">
+            <Link
+              href="/notifications"
+              className="hover:bg-accent rounded-md px-2 py-1"
+              aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
+            >
+              <span aria-hidden="true">🔔</span>
+              {unread > 0 ? (
+                <span
+                  className="bg-primary text-primary-foreground ml-1 rounded-full px-1.5 text-xs"
+                  data-testid="unread-count"
+                >
+                  {unread}
+                </span>
+              ) : null}
+            </Link>
             <span>{userLabel}</span>
             {signOut}
           </div>

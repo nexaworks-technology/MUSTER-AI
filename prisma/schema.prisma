@@ -82,6 +82,10 @@ model Workspace {
   messages         Message[]
   tickets          Ticket[]
   transcripts      CallTranscript[]
+  tasks            Task[]
+  noteTemplates    NoteTemplate[]
+  notes            Note[]
+  notifications    Notification[]
 }
 
 // ─── Global identity (Auth.js) ───────────────────────────────────────────────
@@ -163,11 +167,15 @@ model Membership {
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 
-  workspace          Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user               User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  invitationsCreated Invitation[] @relation("InvitedBy")
-  ownedAccounts      Account[]    @relation("AccountOwner")
-  sentMessages       Message[]    @relation("MessageFromMember")
+  workspace          Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user               User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invitationsCreated Invitation[]   @relation("InvitedBy")
+  ownedAccounts      Account[]      @relation("AccountOwner")
+  sentMessages       Message[]      @relation("MessageFromMember")
+  ownedTasks         Task[]         @relation("TaskOwner")
+  createdTasks       Task[]         @relation("TaskCreator")
+  notes              Note[]         @relation("NoteAuthor")
+  notifications      Notification[] @relation("NotificationRecipient")
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, userId])
@@ -352,6 +360,8 @@ model Account {
   messages         Message[]
   tickets          Ticket[]
   transcripts      CallTranscript[]
+  tasks            Task[]
+  notes            Note[]
 
   @@unique([workspaceId, id])
   @@index([workspaceId, renewalDate])
@@ -792,4 +802,115 @@ model CallTranscript {
 
   @@unique([workspaceId, id])
   @@index([workspaceId, accountId, occurredAt])
+}
+
+// ─── M2: Work — tasks, notes, notifications ──────────────────────────────────
+
+enum TaskStatus {
+  OPEN
+  DONE
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  NORMAL
+  HIGH
+}
+
+enum NotificationType {
+  MENTION
+  TASK_ASSIGNED
+}
+
+/// [W] A unit of work for one member (spec §6F3). Agents and plays create tasks from M4/M8.
+model Task {
+  id                    String       @id @default(cuid())
+  workspaceId           String
+  accountId             String?
+  title                 String
+  detail                String?
+  ownerMembershipId     String
+  createdByMembershipId String?
+  dueAt                 DateTime?
+  status                TaskStatus   @default(OPEN)
+  priority              TaskPriority @default(NORMAL)
+  completedAt           DateTime?
+  escalatedAt           DateTime?
+  origin                RecordOrigin @default(HUMAN)
+  agentRunId            String?
+  source                RecordSource @default(MANUAL)
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+
+  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account?    @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  owner     Membership  @relation("TaskOwner", fields: [workspaceId, ownerMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  createdBy Membership? @relation("TaskCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: SetNull)
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, ownerMembershipId, status, dueAt])
+  @@index([workspaceId, accountId])
+}
+
+/// [W] A note template per call type (spec §6F4).
+model NoteTemplate {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  callType    String
+  body        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  notes     Note[]
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, name])
+}
+
+/// [W] A note on an account, with tags and @mentions (spec §6F4).
+model Note {
+  id                   String       @id @default(cuid())
+  workspaceId          String
+  accountId            String
+  authorMembershipId   String?
+  templateId           String?
+  body                 String
+  tags                 String[]
+  mentionMembershipIds String[]
+  origin               RecordOrigin @default(HUMAN)
+  agentRunId           String?
+  source               RecordSource @default(MANUAL)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  workspace Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account       @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  author    Membership?   @relation("NoteAuthor", fields: [workspaceId, authorMembershipId], references: [workspaceId, id], onDelete: SetNull)
+  template  NoteTemplate? @relation(fields: [workspaceId, templateId], references: [workspaceId, id], onDelete: SetNull)
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, accountId, createdAt])
+}
+
+/// [W] An in-app notification for one member.
+model Notification {
+  id                    String           @id @default(cuid())
+  workspaceId           String
+  recipientMembershipId String
+  type                  NotificationType
+  title                 String
+  refType               String
+  refId                 String
+  accountId             String?
+  readAt                DateTime?
+  createdAt             DateTime         @default(now())
+
+  workspace Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  recipient Membership @relation("NotificationRecipient", fields: [workspaceId, recipientMembershipId], references: [workspaceId, id], onDelete: Cascade)
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, recipientMembershipId, readAt])
 }

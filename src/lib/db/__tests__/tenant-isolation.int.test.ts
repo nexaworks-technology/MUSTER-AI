@@ -324,6 +324,36 @@ async function setupM2(base: typeof A) {
       text: "Transcript",
     },
   });
+  const task = await db.task.create({
+    data: {
+      workspaceId,
+      accountId: account.id,
+      title: "Call them",
+      ownerMembershipId: base.membership.id,
+    },
+  });
+  const template = await db.noteTemplate.create({
+    data: { workspaceId, name: `Check-in ${workspaceId}`, callType: "check-in", body: "Agenda" },
+  });
+  const note = await db.note.create({
+    data: {
+      workspaceId,
+      accountId: account.id,
+      authorMembershipId: base.membership.id,
+      templateId: template.id,
+      body: "Note",
+    },
+  });
+  const notification = await db.notification.create({
+    data: {
+      workspaceId,
+      recipientMembershipId: base.membership.id,
+      type: "MENTION",
+      title: "Hi",
+      refType: "Note",
+      refId: note.id,
+    },
+  });
   return {
     account,
     contact,
@@ -340,6 +370,10 @@ async function setupM2(base: typeof A) {
     message,
     ticket,
     transcript,
+    task,
+    template,
+    note,
+    notification,
   };
 }
 
@@ -359,6 +393,10 @@ const M2_CASES = [
   { model: "Message", delegate: "message", row: (s: Side) => s.message },
   { model: "Ticket", delegate: "ticket", row: (s: Side) => s.ticket },
   { model: "CallTranscript", delegate: "callTranscript", row: (s: Side) => s.transcript },
+  { model: "Task", delegate: "task", row: (s: Side) => s.task },
+  { model: "NoteTemplate", delegate: "noteTemplate", row: (s: Side) => s.template },
+  { model: "Note", delegate: "note", row: (s: Side) => s.note },
+  { model: "Notification", delegate: "notification", row: (s: Side) => s.notification },
 ] as const;
 
 describe("tenant isolation — M2 models (Rule 2)", () => {
@@ -518,6 +556,44 @@ describe("tenant isolation — M2 models (Rule 2)", () => {
           provider: "x",
           occurredAt: new Date(),
           text: "x",
+        },
+      }),
+    ).rejects.toSatisfy(fk);
+  });
+
+  it("tasks, notes and notifications cannot be assigned across workspaces", async () => {
+    const fk = (e: unknown) =>
+      e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2003";
+    const ws = A.workspace.id;
+    await expect(
+      A.db.task.create({
+        data: { workspaceId: ws, title: "x", ownerMembershipId: B.membership.id },
+      }),
+    ).rejects.toSatisfy(fk);
+    await expect(
+      A.db.task.create({
+        data: {
+          workspaceId: ws,
+          accountId: b2.account.id,
+          title: "x",
+          ownerMembershipId: A.membership.id,
+        },
+      }),
+    ).rejects.toSatisfy(fk);
+    await expect(
+      A.db.note.create({
+        data: { workspaceId: ws, accountId: a2.account.id, templateId: b2.template.id, body: "x" },
+      }),
+    ).rejects.toSatisfy(fk);
+    await expect(
+      A.db.notification.create({
+        data: {
+          workspaceId: ws,
+          recipientMembershipId: B.membership.id,
+          type: "MENTION",
+          title: "x",
+          refType: "Note",
+          refId: "x",
         },
       }),
     ).rejects.toSatisfy(fk);
