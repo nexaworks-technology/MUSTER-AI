@@ -13,7 +13,11 @@ import {
   type ModelConfig,
 } from "./engine/model";
 import type { AccountBundle } from "./engine/types";
-import { getAccount, type Actor } from "@/modules/accounts/service";
+import { z } from "zod";
+import { writeAudit } from "@/lib/audit";
+import { requirePermission } from "@/lib/auth/permissions";
+import { systemClock, todayIn, type Clock } from "@/lib/dates";
+import { getAccount, requireEditableAccount, type Actor } from "@/modules/accounts/service";
 import { calendarDateOf } from "@/lib/dates";
 import { loadBundles, type LoadContext } from "./loader";
 import { describeSource, sourceLookups, type ResolvedSource } from "./sources";
@@ -273,6 +277,76 @@ export async function healthForAccounts(ctx: TenantContext, accountIds: string[]
       },
     ]),
   );
+}
+
+// ─── CSM Pulse (spec §6C5, INTERP-2, M3 rule 10) ─────────────────────────────
+
+export const pulseInput = z.object({
+  value: z.enum(["FINE", "WORRIED"]),
+  comment: z
+    .string()
+    .trim()
+    .max(500, "Keep the comment under 500 characters")
+    .optional()
+    .transform((v) => v || undefined),
+});
+
+/**
+ * A CSM's "Actually fine" / "Worried". Stored with who and when (history is kept), valid for 30
+ * days, audited, and the account is re-scored at once through the same scoring path as the
+ * nightly run. The score is never set to match the Pulse: the Pulse is one Relationship input.
+ */
+export async function setPulse(
+  actor: Actor,
+  accountId: string,
+  raw: unknown,
+  clock: Clock = systemClock,
+) {
+  requirePermission(actor, "pulse:set");
+  await requireEditableAccount(actor, accountId);
+  const input = pulseInput.parse(raw);
+  const now = clock();
+  const pulse = await scopedDb(actor).$tenantTransaction(async (tx) => {
+    const p = await tx.csmPulse.create({
+      data: {
+        workspaceId: actor.workspaceId,
+        accountId,
+        membershipId: actor.membershipId,
+        value: input.value,
+        comment: input.comment ?? null,
+        createdAt: now,
+        expiresAt: new Date(now.getTime() + DEFAULT_PARAMS.pulseValidDays * 86_400_000),
+      },
+    });
+    await writeAudit(
+      {
+        workspaceId: actor.workspaceId,
+        actorType: "USER",
+        actorId: actor.userId,
+        action: "health.pulse_set",
+        targetType: "Account",
+        targetId: accountId,
+        summary: `CSM Pulse: ${input.value === "FINE" ? "Actually fine" : "Worried"}`,
+        after: { value: input.value, comment: input.comment ?? null, pulseId: p.id },
+      },
+      tx,
+    );
+    return p;
+  });
+  await recomputeAccounts(actor, [accountId], clock);
+  return pulse;
+}
+
+/** Re-scores accounts for today (workspace time zone) with the active model. */
+export async function recomputeAccounts(
+  ctx: TenantContext,
+  accountIds: string[],
+  clock: Clock = systemClock,
+) {
+  const load = await loadContext(ctx);
+  return scoreAndStore(ctx, accountIds, todayIn(load.timeZone, clock), await getActiveModel(ctx), {
+    makeCurrent: true,
+  });
 }
 
 export { DEFAULT_MODEL, modelConfigSchema, type ModelConfig };

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LineChart } from "@/components/app/line-chart";
+import { PulseControls } from "@/components/app/pulse-controls";
 import { DisagreementMark, RISK_WORDS, RiskBadge } from "@/components/app/risk-badge";
 import { formatCalendarDate, formatDateTime } from "@/lib/format";
 import { getAccountHealth, type AccountHealth } from "@/modules/health/service";
@@ -141,6 +142,7 @@ export default async function HealthPage({ params }: { params: Promise<{ id: str
             {PULSE_WORDS[pulse.value]}. Both are shown; neither replaces the other.
           </p>
         ) : null}
+        {account.canEdit ? <PulseControls accountId={account.id} /> : null}
       </section>
 
       {s ? (

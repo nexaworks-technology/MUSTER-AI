@@ -17,6 +17,7 @@ import { listAccounts, listOwners } from "@/modules/accounts/service";
 import { listSegments } from "@/modules/segments/service";
 import { SaveSegment } from "@/components/app/save-segment";
 import { can } from "@/lib/auth/permissions";
+import { PulseControls } from "@/components/app/pulse-controls";
 import { DisagreementMark, RISK_WORDS, RiskBadge } from "@/components/app/risk-badge";
 import { healthForAccounts } from "@/modules/health/service";
 
@@ -270,12 +271,18 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
                   <td className="px-3 py-2">
                     {(() => {
                       const h = health.get(a.id);
-                      if (!h?.pulse?.valid) return <span className="text-muted-foreground">—</span>;
                       return (
-                        <span className="inline-flex flex-wrap items-center gap-1">
-                          <span>{PULSE_WORDS[h.pulse.value]}</span>
-                          {h.pulseDisagreement ? <DisagreementMark /> : null}
-                        </span>
+                        <div className="space-y-1">
+                          {h?.pulse?.valid ? (
+                            <span className="inline-flex flex-wrap items-center gap-1">
+                              <span>{PULSE_WORDS[h.pulse.value]}</span>
+                              {h.pulseDisagreement ? <DisagreementMark /> : null}
+                            </span>
+                          ) : null}
+                          {a.canEdit ? (
+                            <PulseControls accountId={a.id} accountName={a.name} compact />
+                          ) : null}
+                        </div>
                       );
                     })()}
                   </td>
