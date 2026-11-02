@@ -14,7 +14,9 @@ you must flag the disagreement in `docs/QUESTIONS.md` — never silently follow 
 ## Commands (keep this section TRUE — update it the moment a command changes)
 - Install: `pnpm install`
 - Dev (web + worker): `pnpm dev`  · Web only: `pnpm dev:web`
-- DB up (local): `docker compose up -d postgres redis`
+- Local services (canonical): `docker compose up -d postgres redis minio`
+  · Fallback without Docker (Homebrew Postgres/Redis/MinIO, same role SQL): `pnpm services:native`
+  (needs `.env` with the local-services names from `.env.example`; see DECISIONS D-31)
 - Migrate: `pnpm db:migrate` · Generate client: `pnpm db:generate` · Seed demo: `pnpm db:seed`
 - Test (unit+integration): `pnpm test` · E2E: `pnpm test:e2e`
 - Typecheck: `pnpm typecheck` · Lint: `pnpm lint` · Format check: `pnpm format:check`

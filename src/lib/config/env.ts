@@ -23,7 +23,6 @@ export const envSchema = z
 
     DATABASE_URL: z.url(),
     DATABASE_URL_MIGRATE: optionalString,
-    DATABASE_URL_TEST: optionalString,
     REDIS_URL: z.url(),
 
     AUTH_SECRET: z.string().min(32, "must be at least 32 characters"),

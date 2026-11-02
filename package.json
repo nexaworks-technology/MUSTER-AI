@@ -18,9 +18,13 @@
     "format:check": "prettier --check .",
     "gate": "pnpm typecheck && pnpm lint && pnpm test && pnpm build",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "services:native": "sh scripts/services-native.sh"
   },
   "dependencies": {
+    "@prisma/client": "6.19.3",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "lucide-react": "1.66.0",
@@ -41,6 +45,7 @@
     "eslint-config-next": "16.4.3",
     "prettier": "3.9.10",
     "prettier-plugin-tailwindcss": "0.8.1",
+    "prisma": "6.19.3",
     "tailwindcss": "4.3.3",
     "tsx": "4.23.15",
     "typescript": "5.9.3",
