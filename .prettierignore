@@ -1,0 +1,12 @@
+pnpm-lock.yaml
+.next/
+node_modules/
+coverage/
+playwright-report/
+test-results/
+.dev-mail/
+.dev-data/
+# planning docs are authored prose; formatting them is not part of the gate
+docs/
+CLAUDE.md
+ai-customer-success-manager-complete-product-spec-2026-10-31.md
