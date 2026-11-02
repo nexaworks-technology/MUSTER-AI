@@ -374,6 +374,14 @@ async function setupM2(base: typeof A) {
     template,
     note,
     notification,
+    segment: await db.segment.create({
+      data: {
+        workspaceId,
+        name: `Seg ${workspaceId}`,
+        filter: { all: [{ field: "tier", op: "eq", value: "MID_TOUCH" }] },
+        createdByMembershipId: base.membership.id,
+      },
+    }),
   };
 }
 
@@ -397,6 +405,7 @@ const M2_CASES = [
   { model: "NoteTemplate", delegate: "noteTemplate", row: (s: Side) => s.template },
   { model: "Note", delegate: "note", row: (s: Side) => s.note },
   { model: "Notification", delegate: "notification", row: (s: Side) => s.notification },
+  { model: "Segment", delegate: "segment", row: (s: Side) => s.segment },
 ] as const;
 
 describe("tenant isolation — M2 models (Rule 2)", () => {

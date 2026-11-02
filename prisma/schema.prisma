@@ -86,6 +86,7 @@ model Workspace {
   noteTemplates    NoteTemplate[]
   notes            Note[]
   notifications    Notification[]
+  segments         Segment[]
 }
 
 // ─── Global identity (Auth.js) ───────────────────────────────────────────────
@@ -176,6 +177,7 @@ model Membership {
   createdTasks       Task[]         @relation("TaskCreator")
   notes              Note[]         @relation("NoteAuthor")
   notifications      Notification[] @relation("NotificationRecipient")
+  segments           Segment[]      @relation("SegmentCreator")
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, userId])
@@ -913,4 +915,22 @@ model Notification {
 
   @@unique([workspaceId, id])
   @@index([workspaceId, recipientMembershipId, readAt])
+}
+
+/// [W] A saved account filter (spec §6F5). `filter` is the Zod-validated segment DSL (D-45).
+model Segment {
+  id                    String   @id @default(cuid())
+  workspaceId           String
+  name                  String
+  filter                Json
+  isDynamic             Boolean  @default(true)
+  createdByMembershipId String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy Membership? @relation("SegmentCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: SetNull)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, name])
 }

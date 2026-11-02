@@ -14,6 +14,9 @@ import {
   TIERS,
 } from "@/modules/accounts/schemas";
 import { listAccounts, listOwners } from "@/modules/accounts/service";
+import { listSegments } from "@/modules/segments/service";
+import { SaveSegment } from "@/components/app/save-segment";
+import { can } from "@/lib/auth/permissions";
 
 export const metadata: Metadata = { title: "Accounts" };
 
@@ -30,7 +33,12 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
   const raw = single(await searchParams);
   const parsed = accountListQuery.safeParse(raw);
   const query = parsed.success ? parsed.data : accountListQuery.parse({});
-  const [page, owners] = await Promise.all([listAccounts(ctx, query), listOwners(ctx)]);
+  const [page, owners, segments] = await Promise.all([
+    listAccounts(ctx, query),
+    listOwners(ctx),
+    listSegments(ctx),
+  ]);
+  const hasListFilters = Boolean(query.q || query.tier || query.stage || query.owner);
   const tz = ctx.workspace.timezone;
 
   const pageHref = (cursor: string) => ({
@@ -100,6 +108,21 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
           </NativeSelect>
         </div>
         <div className="space-y-1">
+          <label htmlFor="segment" className="text-muted-foreground block text-xs">
+            Segment
+          </label>
+          <NativeSelect id="segment" name="segment" defaultValue={query.segment ?? ""}>
+            <option value="">No segment</option>
+            {segments
+              .filter((sg) => sg.valid)
+              .map((sg) => (
+                <option key={sg.id} value={sg.id}>
+                  {sg.name}
+                </option>
+              ))}
+          </NativeSelect>
+        </div>
+        <div className="space-y-1">
           <label htmlFor="sort" className="text-muted-foreground block text-xs">
             Sort by
           </label>
@@ -127,6 +150,16 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
         </Link>
       </form>
 
+      {page.segmentMissing ? (
+        <p role="alert" className="text-destructive text-sm">
+          That segment doesn&apos;t exist in this workspace, so it was ignored.
+        </p>
+      ) : null}
+      {hasListFilters && can(ctx, "accounts:edit") ? (
+        <SaveSegment
+          filters={{ q: query.q, tier: query.tier, stage: query.stage, owner: query.owner }}
+        />
+      ) : null}
       {!parsed.success ? (
         <p role="alert" className="text-destructive text-sm">
           Some filters were not valid and were ignored.

@@ -6,6 +6,7 @@ import { scopedDb } from "@/lib/db/scoped";
 import { getOwnWorkspace } from "@/lib/db/workspace";
 import { minorDigits } from "@/lib/money";
 import { getSettingsData } from "@/modules/settings/service";
+import { segmentWhere } from "@/modules/segments/service";
 import { deriveTier } from "./tier";
 import { accountPatch, PAGE_SIZE, type AccountListQuery } from "./schemas";
 
@@ -56,6 +57,9 @@ export interface AccountListPage {
   arrVisible: boolean;
   /** Owner changes need workspace-wide edit rights. */
   canChangeOwner: boolean;
+  segmentName: string | null;
+  /** A segment id was given but it does not exist here (or no longer validates). */
+  segmentMissing: boolean;
 }
 
 function orderBy(
@@ -110,7 +114,18 @@ export async function listAccounts(
   const grant = requirePermission(actor, "accounts:view");
   const arrVisible = can(actor, "revenue:view") !== null;
   const offset = Number(query.cursor ?? 0);
-  const where = listWhere(actor, grant, query);
+  let where = listWhere(actor, grant, query);
+  let segmentName: string | null = null;
+  let segmentMissing = false;
+  if (query.segment) {
+    const seg = await segmentWhere(actor, query.segment);
+    if (seg) {
+      where = { AND: [where, seg.where] };
+      segmentName = seg.name;
+    } else {
+      segmentMissing = true;
+    }
+  }
   const db = scopedDb(actor);
   const [total, accounts] = await Promise.all([
     db.account.count({ where }),
@@ -164,6 +179,8 @@ export async function listAccounts(
     prevCursor: offset > 0 ? String(Math.max(0, offset - PAGE_SIZE)) : null,
     arrVisible,
     canChangeOwner: can(actor, "accounts:edit")?.scope === "ALL",
+    segmentName,
+    segmentMissing,
   };
 }
 
