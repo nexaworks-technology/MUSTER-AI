@@ -389,20 +389,22 @@ model Account {
 
 /// [W] A person at an account (spec §6A2).
 model Contact {
-  id             String        @id @default(cuid())
-  workspaceId    String
-  accountId      String
-  name           String
-  email          String?
-  title          String?
-  timezone       String?
-  status         ContactStatus @default(ACTIVE)
+  id              String        @id @default(cuid())
+  workspaceId     String
+  accountId       String
+  name            String
+  email           String?
+  title           String?
+  timezone        String?
+  status          ContactStatus @default(ACTIVE)
+  /// When `status` last changed (D-56). Set by the database on a real change unless given.
+  statusChangedAt DateTime?
   /// The customer's own id for this person in product usage data (links UserUsageDaily rows).
-  externalUserId String?
-  lastContactAt  DateTime?
-  source         RecordSource  @default(MANUAL)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  externalUserId  String?
+  lastContactAt   DateTime?
+  source          RecordSource  @default(MANUAL)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   workspace Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   account   Account           @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
@@ -777,6 +779,8 @@ model Ticket {
   status          TicketStatus   @default(OPEN)
   priority        TicketPriority @default(NORMAL)
   isEscalated     Boolean        @default(false)
+  /// When the ticket was escalated (D-56). Set by the database on escalation unless given.
+  escalatedAt     DateTime?
   openedAt        DateTime
   firstResponseAt DateTime?
   closedAt        DateTime?

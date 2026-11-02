@@ -44,6 +44,7 @@ export async function seedAccounts(db: ScopedDb, workspaceId: string): Promise<v
         email: p.email ?? contactEmail(a, p.name),
         title: p.title,
         status: p.status ?? "ACTIVE",
+        statusChangedAt: p.statusDaysAgo !== undefined ? daysAgo(p.statusDaysAgo) : null,
         externalUserId: `${a.key}:${p.key}`,
         lastContactAt: p.key === "maya" ? daysAgo(44) : daysAgo(rng.int(2, 40)),
         source: "SEED" as const,

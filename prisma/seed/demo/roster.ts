@@ -16,6 +16,8 @@ export interface ContactSpec {
   name: string;
   title: string;
   status?: "ACTIVE" | "BOUNCED" | "LEFT";
+  /** Days ago the status became true (D-56), so history is point-in-time correct. */
+  statusDaysAgo?: number;
   roles: Array<{ role: Role; fromDaysAgo: number; toDaysAgo?: number }>;
   /** Overrides the default first.last@domain address (used for planted duplicates). */
   email?: string;
@@ -83,6 +85,7 @@ const STORY: AccountSpec[] = [
     contacts: [
       c("maya", "Maya Ortiz", "Former employee", [{ role: "CHAMPION", fromDaysAgo: 420 }], {
         status: "BOUNCED",
+        statusDaysAgo: 6, // the bounce (SEED_DATA §3)
       }),
       c("ben", "Ben Okafor", "Director of Finance", [{ role: "DECISION_MAKER", fromDaysAgo: 30 }]),
       c("lena", "Lena Brooks", "VP Operations", [{ role: "EXEC_SPONSOR", fromDaysAgo: 400 }]),
@@ -157,7 +160,7 @@ const STORY: AccountSpec[] = [
         "Ed Morton",
         "Former VP Operations",
         [{ role: "DECISION_MAKER", fromDaysAgo: 700, toDaysAgo: 25 }],
-        { status: "LEFT" },
+        { status: "LEFT", statusDaysAgo: 25 }, // left when his role ended
       ),
     ],
   },

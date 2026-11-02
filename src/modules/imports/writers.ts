@@ -227,6 +227,8 @@ async function planContacts(
       name: s(v.name),
       title: s(v.title),
       status: s(v.status) as "ACTIVE" | undefined,
+      // Explicit only; otherwise the database stamps a real status change (D-56).
+      statusChangedAt: v.status_changed_at as Date | undefined,
     };
     const role = s(v.role) as Prisma.StakeholderRoleUncheckedCreateInput["role"] | undefined;
     const addRole = async (tx: Tx, contactId: string) => {
@@ -524,6 +526,7 @@ export async function planRecords(
           status: v.status,
           priority: v.priority,
           isEscalated: v.escalated,
+          escalatedAt: v.escalated_at,
           contactId: v.contact_email ? contacts.get(String(v.contact_email))?.id : undefined,
         }),
         create: async (tx, data) => {

@@ -133,6 +133,8 @@ export const TEMPLATES: Record<ImportKind, ImportTemplate> = {
         { type: "enum", values: { active: "ACTIVE", bounced: "BOUNCED", left: "LEFT" } },
         "Active",
       ),
+      // D-56: when the status became true, so history stays point-in-time correct.
+      f("status_changed_at", "Status changed on", false, { type: "date" }, ""),
     ],
   },
   CONTRACTS: {
@@ -273,6 +275,7 @@ export const TEMPLATES: Record<ImportKind, ImportTemplate> = {
         "High",
       ),
       f("escalated", "Escalated", false, { type: "bool" }, "no"),
+      f("escalated_at", "Escalated at", false, { type: "datetime" }, ""),
       f("contact_email", "Requester email", false, { type: "email" }, "pat@acme-freight.test"),
     ],
   },

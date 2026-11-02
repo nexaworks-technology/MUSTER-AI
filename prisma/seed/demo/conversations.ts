@@ -317,6 +317,8 @@ export async function seedConversations(db: ScopedDb, workspaceId: string): Prom
       status: o.open ? "OPEN" : "CLOSED",
       priority: o.priority ?? "NORMAL",
       isEscalated: o.escalated ?? false,
+      // Escalated two hours after opening: a dated fact for point-in-time scoring (D-56).
+      escalatedAt: o.escalated ? new Date(opened.getTime() + 2 * 3_600_000) : null,
       openedAt: opened,
       firstResponseAt: reply,
       closedAt: closed,
