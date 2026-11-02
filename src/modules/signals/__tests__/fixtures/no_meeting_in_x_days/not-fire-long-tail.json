@@ -1,0 +1,13 @@
+{
+  "name": "long-tail accounts have no meeting expectation",
+  "bundle": {
+    "tier": "LONG_TAIL",
+    "meetings": [
+      {
+        "id": "mt1",
+        "date": "2026-04-16"
+      }
+    ]
+  },
+  "expect": []
+}

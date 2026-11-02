@@ -1,0 +1,8 @@
+{
+  "name": "no meeting data source connected: never fires",
+  "bundle": {
+    "tier": "HIGH_TOUCH",
+    "meetings": null
+  },
+  "expect": []
+}

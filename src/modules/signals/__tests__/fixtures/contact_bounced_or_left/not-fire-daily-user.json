@@ -1,0 +1,23 @@
+{
+  "name": "a daily user bounced: not a key contact",
+  "bundle": {
+    "contacts": [
+      {
+        "id": "u",
+        "name": "U",
+        "status": "BOUNCED",
+        "statusDate": "2026-10-30"
+      }
+    ],
+    "roles": [
+      {
+        "id": "r3",
+        "contactId": "u",
+        "role": "DAILY_USER",
+        "validFrom": "2025-01-01",
+        "validTo": null
+      }
+    ]
+  },
+  "expect": []
+}

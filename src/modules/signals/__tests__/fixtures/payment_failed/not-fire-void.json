@@ -1,0 +1,20 @@
+{
+  "name": "a failed invoice that was voided",
+  "bundle": {
+    "invoices": [
+      {
+        "id": "i1",
+        "number": "INV-i1",
+        "issuedDate": "2026-09-13",
+        "dueDate": "2026-10-13",
+        "paidDate": null,
+        "failedDate": "2026-10-15",
+        "isVoid": true
+      }
+    ],
+    "invoiceFailureCounts": {
+      "i1": 1
+    }
+  },
+  "expect": []
+}

@@ -1,0 +1,30 @@
+{
+  "name": "a weekly key feature unused for 19 days",
+  "bundle": {
+    "keyFeatures": [
+      {
+        "featureKey": "scheduled_reports",
+        "label": "Scheduled reports"
+      }
+    ],
+    "featureUsage": [
+      {
+        "featureKey": "scheduled_reports",
+        "series": [
+          {
+            "fromDaysAgo": 70,
+            "toDaysAgo": 19,
+            "value": 4
+          }
+        ]
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "key_feature_stopped:a1:scheduled_reports",
+      "severity": "WARN",
+      "title": "Scheduled reports not used for 19 days"
+    }
+  ]
+}

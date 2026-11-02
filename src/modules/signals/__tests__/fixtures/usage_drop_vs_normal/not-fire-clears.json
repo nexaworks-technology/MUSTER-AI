@@ -1,0 +1,21 @@
+{
+  "name": "back above 80% of normal clears an open signal",
+  "open": ["usage_drop_vs_normal:a1"],
+  "bundle": {
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 120,
+          "toDaysAgo": 15,
+          "value": 40
+        },
+        {
+          "fromDaysAgo": 14,
+          "toDaysAgo": 1,
+          "value": 34
+        }
+      ]
+    }
+  },
+  "expect": []
+}

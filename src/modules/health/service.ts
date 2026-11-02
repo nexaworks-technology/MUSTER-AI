@@ -350,3 +350,12 @@ export async function recomputeAccounts(
 }
 
 export { DEFAULT_MODEL, modelConfigSchema, type ModelConfig };
+
+// The point-in-time bundle and helpers the signal rules share with the health engine (one
+// definition of "typical weekday", "current champion", "status as of", …).
+export type { AccountBundle, SourceRef } from "./engine/types";
+export { ownBaseline } from "./engine/baselines";
+export { currentUsage, typicalWeekday, inRange } from "./engine/windows";
+export { rolesKnown, statusAsOf, validOn, currentHolder } from "./engine/components/people";
+export { day as formatDay } from "./engine/format";
+export { loadBundles } from "./loader";

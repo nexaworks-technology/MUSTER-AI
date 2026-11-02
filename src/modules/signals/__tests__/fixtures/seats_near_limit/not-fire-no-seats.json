@@ -1,0 +1,22 @@
+{
+  "name": "a contract without a seat count",
+  "bundle": {
+    "contract": {
+      "id": "k1",
+      "seatsPurchased": null,
+      "startDate": "2026-01-06",
+      "renewalDate": null
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 40,
+          "toDaysAgo": 1,
+          "value": 30
+        }
+      ],
+      "seatsUsed": 52
+    }
+  },
+  "expect": []
+}

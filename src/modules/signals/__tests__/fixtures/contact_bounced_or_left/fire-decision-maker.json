@@ -1,0 +1,29 @@
+{
+  "name": "a decision maker left: warning",
+  "bundle": {
+    "contacts": [
+      {
+        "id": "dan",
+        "name": "Dan Lee",
+        "status": "LEFT",
+        "statusDate": "2026-10-30"
+      }
+    ],
+    "roles": [
+      {
+        "id": "r2",
+        "contactId": "dan",
+        "role": "DECISION_MAKER",
+        "validFrom": "2025-01-01",
+        "validTo": null
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "contact_bounced_or_left:a1:dan:LEFT",
+      "severity": "WARN",
+      "title": "Decision maker Dan Lee has left"
+    }
+  ]
+}

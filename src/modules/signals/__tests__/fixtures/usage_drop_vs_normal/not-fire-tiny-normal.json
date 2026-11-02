@@ -1,0 +1,20 @@
+{
+  "name": "an account whose normal is under 3 users is too small to judge",
+  "bundle": {
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 120,
+          "toDaysAgo": 15,
+          "value": 2
+        },
+        {
+          "fromDaysAgo": 14,
+          "toDaysAgo": 1,
+          "value": 0
+        }
+      ]
+    }
+  },
+  "expect": []
+}

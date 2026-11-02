@@ -1,0 +1,22 @@
+{
+  "name": "an open urgent escalated ticket: critical",
+  "bundle": {
+    "tickets": [
+      {
+        "id": "t2",
+        "subject": "Ticket t2",
+        "priority": "URGENT",
+        "openedDate": "2026-10-30",
+        "closedDate": null,
+        "escalatedDate": "2026-10-30"
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "ticket_escalated:a1:t2",
+      "severity": "CRITICAL",
+      "title": "Escalated ticket: Ticket t2"
+    }
+  ]
+}

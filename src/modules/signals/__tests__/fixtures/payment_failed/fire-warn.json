@@ -1,0 +1,25 @@
+{
+  "name": "failed once and unpaid (Orchard Lane): warning",
+  "bundle": {
+    "invoices": [
+      {
+        "id": "i1",
+        "number": "INV-i1",
+        "issuedDate": "2026-10-01",
+        "dueDate": "2026-10-31",
+        "paidDate": null,
+        "failedDate": "2026-11-01",
+        "isVoid": false
+      }
+    ],
+    "invoiceFailureCounts": {
+      "i1": 1
+    }
+  },
+  "expect": [
+    {
+      "dedupeKey": "payment_failed:a1:i1",
+      "severity": "WARN"
+    }
+  ]
+}

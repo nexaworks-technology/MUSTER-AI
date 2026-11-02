@@ -1,0 +1,23 @@
+{
+  "name": "a status dated after the as-of date was not known yet",
+  "bundle": {
+    "contacts": [
+      {
+        "id": "maya",
+        "name": "Maya Ortiz",
+        "status": "BOUNCED",
+        "statusDate": "2026-11-05"
+      }
+    ],
+    "roles": [
+      {
+        "id": "r1",
+        "contactId": "maya",
+        "role": "CHAMPION",
+        "validFrom": "2025-01-01",
+        "validTo": null
+      }
+    ]
+  },
+  "expect": []
+}

@@ -1,0 +1,23 @@
+{
+  "name": "an invoice unpaid 12 days after its due date",
+  "bundle": {
+    "invoices": [
+      {
+        "id": "i3",
+        "number": "INV-i3",
+        "issuedDate": "2026-09-21",
+        "dueDate": "2026-10-21",
+        "paidDate": null,
+        "failedDate": null,
+        "isVoid": false
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "invoice_late:a1:i3",
+      "severity": "WARN",
+      "title": "Invoice INV-i3 is 12 days late"
+    }
+  ]
+}

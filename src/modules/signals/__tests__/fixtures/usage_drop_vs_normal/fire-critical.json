@@ -1,0 +1,26 @@
+{
+  "name": "Brightwell-shaped drop to 40% of normal is critical",
+  "bundle": {
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 120,
+          "toDaysAgo": 15,
+          "value": 40
+        },
+        {
+          "fromDaysAgo": 14,
+          "toDaysAgo": 1,
+          "value": 16
+        }
+      ]
+    }
+  },
+  "expect": [
+    {
+      "dedupeKey": "usage_drop_vs_normal:a1",
+      "severity": "CRITICAL",
+      "title": "Usage fell to 40% of normal"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "under 28 days of history: no normal to compare with",
+  "bundle": {
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 30,
+          "toDaysAgo": 15,
+          "value": 40
+        },
+        {
+          "fromDaysAgo": 14,
+          "toDaysAgo": 1,
+          "value": 5
+        }
+      ]
+    }
+  },
+  "expect": []
+}

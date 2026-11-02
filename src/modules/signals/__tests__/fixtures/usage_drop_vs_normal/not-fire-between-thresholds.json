@@ -1,0 +1,20 @@
+{
+  "name": "75% of normal does not open a new signal",
+  "bundle": {
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 120,
+          "toDaysAgo": 15,
+          "value": 40
+        },
+        {
+          "fromDaysAgo": 14,
+          "toDaysAgo": 1,
+          "value": 30
+        }
+      ]
+    }
+  },
+  "expect": []
+}

@@ -1,0 +1,22 @@
+{
+  "name": "a high ticket open 9 days (target 5): Northgate",
+  "bundle": {
+    "tickets": [
+      {
+        "id": "t1",
+        "subject": "Ticket t1",
+        "priority": "HIGH",
+        "openedDate": "2026-10-24",
+        "closedDate": null,
+        "escalatedDate": null
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "ticket_open_too_long:a1:t1",
+      "severity": "WARN",
+      "title": "Ticket open 9 days: Ticket t1"
+    }
+  ]
+}

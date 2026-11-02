@@ -1,0 +1,13 @@
+{
+  "name": "no per-feature data at all",
+  "bundle": {
+    "keyFeatures": [
+      {
+        "featureKey": "scheduled_reports",
+        "label": "Scheduled reports"
+      }
+    ],
+    "featureUsage": null
+  },
+  "expect": []
+}

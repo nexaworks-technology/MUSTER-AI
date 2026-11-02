@@ -1,0 +1,23 @@
+{
+  "name": "the champion role already ended",
+  "bundle": {
+    "contacts": [
+      {
+        "id": "ed",
+        "name": "Ed",
+        "status": "LEFT",
+        "statusDate": "2026-10-08"
+      }
+    ],
+    "roles": [
+      {
+        "id": "r4",
+        "contactId": "ed",
+        "role": "CHAMPION",
+        "validFrom": "2025-01-01",
+        "validTo": "2026-10-08"
+      }
+    ]
+  },
+  "expect": []
+}

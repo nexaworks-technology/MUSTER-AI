@@ -1,0 +1,19 @@
+{
+  "name": "high-touch, last meeting 50 days ago (limit 45), once meeting data exists",
+  "bundle": {
+    "tier": "HIGH_TOUCH",
+    "meetings": [
+      {
+        "id": "mt1",
+        "date": "2026-09-13"
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "no_meeting_in_x_days:a1",
+      "severity": "WARN",
+      "title": "No meeting for 50 days"
+    }
+  ]
+}

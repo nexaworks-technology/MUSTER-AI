@@ -1,0 +1,5 @@
+{
+  "name": "the evaluator never raises outside events: people enter them with a dated source",
+  "bundle": {},
+  "expect": []
+}

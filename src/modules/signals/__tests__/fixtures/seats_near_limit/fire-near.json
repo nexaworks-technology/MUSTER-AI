@@ -1,0 +1,27 @@
+{
+  "name": "37 of 40 seats: info",
+  "bundle": {
+    "contract": {
+      "id": "k1",
+      "seatsPurchased": 40,
+      "startDate": "2026-01-06",
+      "renewalDate": null
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 40,
+          "toDaysAgo": 1,
+          "value": 30
+        }
+      ],
+      "seatsUsed": 37
+    }
+  },
+  "expect": [
+    {
+      "dedupeKey": "seats_near_limit:a1:k1",
+      "severity": "INFO"
+    }
+  ]
+}

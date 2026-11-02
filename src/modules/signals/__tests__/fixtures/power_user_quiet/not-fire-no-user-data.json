@@ -1,0 +1,7 @@
+{
+  "name": "no per-user data",
+  "bundle": {
+    "userUsage": null
+  },
+  "expect": []
+}

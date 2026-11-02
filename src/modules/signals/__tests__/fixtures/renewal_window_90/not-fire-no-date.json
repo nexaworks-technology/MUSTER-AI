@@ -1,0 +1,12 @@
+{
+  "name": "no renewal date on file (Kestrel) never fires",
+  "bundle": {
+    "contract": {
+      "id": "k1",
+      "seatsPurchased": 10,
+      "startDate": "2026-01-06",
+      "renewalDate": null
+    }
+  },
+  "expect": []
+}

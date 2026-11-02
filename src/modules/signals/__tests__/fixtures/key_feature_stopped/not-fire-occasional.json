@@ -1,0 +1,34 @@
+{
+  "name": "a feature used in only 3 of 8 weeks was never a habit",
+  "bundle": {
+    "keyFeatures": [
+      {
+        "featureKey": "scheduled_reports",
+        "label": "Scheduled reports"
+      }
+    ],
+    "featureUsage": [
+      {
+        "featureKey": "scheduled_reports",
+        "series": [
+          {
+            "fromDaysAgo": 70,
+            "toDaysAgo": 64,
+            "value": 4
+          },
+          {
+            "fromDaysAgo": 42,
+            "toDaysAgo": 36,
+            "value": 4
+          },
+          {
+            "fromDaysAgo": 28,
+            "toDaysAgo": 22,
+            "value": 4
+          }
+        ]
+      }
+    ]
+  },
+  "expect": []
+}

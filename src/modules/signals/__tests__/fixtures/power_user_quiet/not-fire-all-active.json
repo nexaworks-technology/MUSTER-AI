@@ -1,0 +1,212 @@
+{
+  "name": "every power user still active",
+  "bundle": {
+    "userUsage": [
+      {
+        "externalUserId": "maya",
+        "contactId": "c-maya",
+        "name": "Maya Ortiz",
+        "series": [
+          {
+            "fromDaysAgo": 90,
+            "toDaysAgo": 1,
+            "value": 50
+          }
+        ]
+      },
+      {
+        "externalUserId": "raj",
+        "contactId": "c-raj",
+        "name": "Raj Patel",
+        "series": [
+          {
+            "fromDaysAgo": 90,
+            "toDaysAgo": 1,
+            "value": 40
+          }
+        ]
+      },
+      {
+        "externalUserId": "x0",
+        "series": [
+          {
+            "fromDaysAgo": 90,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "externalUserId": "x1",
+        "series": [
+          {
+            "fromDaysAgo": 90,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "externalUserId": "x2",
+        "series": [
+          {
+            "fromDaysAgo": 90,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "externalUserId": "x3",
+        "series": [
+          {
+            "fromDaysAgo": 90,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "externalUserId": "x4",
+        "series": [
+          {
+            "fromDaysAgo": 90,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "externalUserId": "x5",
+        "series": [
+          {
+            "fromDaysAgo": 90,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "externalUserId": "x6",
+        "series": [
+          {
+            "fromDaysAgo": 90,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "externalUserId": "x7",
+        "series": [
+          {
+            "fromDaysAgo": 90,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "externalUserId": "x8",
+        "series": [
+          {
+            "fromDaysAgo": 90,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "externalUserId": "x9",
+        "series": [
+          {
+            "fromDaysAgo": 90,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "externalUserId": "x10",
+        "series": [
+          {
+            "fromDaysAgo": 90,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "externalUserId": "x11",
+        "series": [
+          {
+            "fromDaysAgo": 90,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "externalUserId": "x12",
+        "series": [
+          {
+            "fromDaysAgo": 90,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "externalUserId": "x13",
+        "series": [
+          {
+            "fromDaysAgo": 90,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "externalUserId": "x14",
+        "series": [
+          {
+            "fromDaysAgo": 90,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "externalUserId": "x15",
+        "series": [
+          {
+            "fromDaysAgo": 90,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "externalUserId": "x16",
+        "series": [
+          {
+            "fromDaysAgo": 90,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "externalUserId": "x17",
+        "series": [
+          {
+            "fromDaysAgo": 90,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      }
+    ]
+  },
+  "expect": []
+}

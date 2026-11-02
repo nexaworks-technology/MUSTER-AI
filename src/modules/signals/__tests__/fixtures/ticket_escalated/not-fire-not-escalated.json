@@ -1,0 +1,16 @@
+{
+  "name": "an open ticket that was never escalated",
+  "bundle": {
+    "tickets": [
+      {
+        "id": "t2",
+        "subject": "Ticket t2",
+        "priority": "URGENT",
+        "openedDate": "2026-10-30",
+        "closedDate": null,
+        "escalatedDate": null
+      }
+    ]
+  },
+  "expect": []
+}

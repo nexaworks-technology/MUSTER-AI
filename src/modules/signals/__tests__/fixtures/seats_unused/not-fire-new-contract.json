@@ -1,0 +1,22 @@
+{
+  "name": "a 30-day-old contract is still rolling out",
+  "bundle": {
+    "contract": {
+      "id": "k2",
+      "seatsPurchased": 50,
+      "startDate": "2026-10-03",
+      "renewalDate": null
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 30,
+          "toDaysAgo": 1,
+          "value": 10
+        }
+      ],
+      "seatsUsed": 15
+    }
+  },
+  "expect": []
+}

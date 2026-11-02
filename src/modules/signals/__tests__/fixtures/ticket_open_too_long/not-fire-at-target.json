@@ -1,0 +1,16 @@
+{
+  "name": "a high ticket open exactly 5 days is on target",
+  "bundle": {
+    "tickets": [
+      {
+        "id": "t1",
+        "subject": "Ticket t1",
+        "priority": "HIGH",
+        "openedDate": "2026-10-28",
+        "closedDate": null,
+        "escalatedDate": null
+      }
+    ]
+  },
+  "expect": []
+}

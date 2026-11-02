@@ -1,0 +1,18 @@
+{
+  "name": "renewal in 60 days",
+  "bundle": {
+    "contract": {
+      "id": "k1",
+      "seatsPurchased": 10,
+      "startDate": "2026-01-06",
+      "renewalDate": "2027-01-01"
+    }
+  },
+  "expect": [
+    {
+      "dedupeKey": "renewal_window_60:a1:k1:2027-01-01",
+      "severity": "INFO",
+      "title": "Renewal in 60 days"
+    }
+  ]
+}

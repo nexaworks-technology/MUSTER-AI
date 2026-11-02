@@ -1,0 +1,12 @@
+{
+  "name": "renewal in 91 days is outside this window",
+  "bundle": {
+    "contract": {
+      "id": "k1",
+      "seatsPurchased": 10,
+      "startDate": "2026-01-06",
+      "renewalDate": "2027-02-01"
+    }
+  },
+  "expect": []
+}

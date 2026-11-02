@@ -1,0 +1,7 @@
+{
+  "name": "no usage data at all",
+  "bundle": {
+    "usage": null
+  },
+  "expect": []
+}

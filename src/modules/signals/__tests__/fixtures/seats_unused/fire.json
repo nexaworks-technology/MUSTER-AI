@@ -1,0 +1,28 @@
+{
+  "name": "15 of 50 seats used on a 200-day-old contract",
+  "bundle": {
+    "contract": {
+      "id": "k2",
+      "seatsPurchased": 50,
+      "startDate": "2026-04-16",
+      "renewalDate": null
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 40,
+          "toDaysAgo": 1,
+          "value": 10
+        }
+      ],
+      "seatsUsed": 15
+    }
+  },
+  "expect": [
+    {
+      "dedupeKey": "seats_unused:a1:k2",
+      "severity": "WARN",
+      "title": "Only 15 of 50 seats in use"
+    }
+  ]
+}

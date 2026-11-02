@@ -1,0 +1,26 @@
+{
+  "name": "75% of normal keeps an open signal open (clears only above 80%)",
+  "open": ["usage_drop_vs_normal:a1"],
+  "bundle": {
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 120,
+          "toDaysAgo": 15,
+          "value": 40
+        },
+        {
+          "fromDaysAgo": 14,
+          "toDaysAgo": 1,
+          "value": 30
+        }
+      ]
+    }
+  },
+  "expect": [
+    {
+      "dedupeKey": "usage_drop_vs_normal:a1",
+      "severity": "WARN"
+    }
+  ]
+}

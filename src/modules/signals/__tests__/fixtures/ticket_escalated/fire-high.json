@@ -1,0 +1,21 @@
+{
+  "name": "an open high escalated ticket (Halden): warning",
+  "bundle": {
+    "tickets": [
+      {
+        "id": "t2",
+        "subject": "Ticket t2",
+        "priority": "HIGH",
+        "openedDate": "2026-10-29",
+        "closedDate": null,
+        "escalatedDate": "2026-10-29"
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "ticket_escalated:a1:t2",
+      "severity": "WARN"
+    }
+  ]
+}

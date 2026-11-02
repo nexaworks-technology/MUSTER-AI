@@ -1,0 +1,15 @@
+{
+  "name": "steady usage does not fire",
+  "bundle": {
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 120,
+          "toDaysAgo": 1,
+          "value": 40
+        }
+      ]
+    }
+  },
+  "expect": []
+}

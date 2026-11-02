@@ -1,0 +1,25 @@
+{
+  "name": "a drop to 65% of normal is a warning",
+  "bundle": {
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 120,
+          "toDaysAgo": 15,
+          "value": 40
+        },
+        {
+          "fromDaysAgo": 14,
+          "toDaysAgo": 1,
+          "value": 26
+        }
+      ]
+    }
+  },
+  "expect": [
+    {
+      "dedupeKey": "usage_drop_vs_normal:a1",
+      "severity": "WARN"
+    }
+  ]
+}

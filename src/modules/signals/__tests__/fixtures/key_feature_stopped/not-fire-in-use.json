@@ -1,0 +1,24 @@
+{
+  "name": "a key feature used this week",
+  "bundle": {
+    "keyFeatures": [
+      {
+        "featureKey": "scheduled_reports",
+        "label": "Scheduled reports"
+      }
+    ],
+    "featureUsage": [
+      {
+        "featureKey": "scheduled_reports",
+        "series": [
+          {
+            "fromDaysAgo": 70,
+            "toDaysAgo": 1,
+            "value": 4
+          }
+        ]
+      }
+    ]
+  },
+  "expect": []
+}
