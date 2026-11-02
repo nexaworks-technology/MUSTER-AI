@@ -1,9 +1,9 @@
 import { hash, verify } from "@node-rs/argon2";
 
+export { MIN_PASSWORD_LENGTH } from "./constants";
+
 /** argon2id (the library default algorithm) with OWASP-recommended cost parameters. */
 const OPTIONS = { memoryCost: 19_456, timeCost: 2, parallelism: 1 } as const;
-
-export const MIN_PASSWORD_LENGTH = 12;
 
 export function hashPassword(password: string): Promise<string> {
   return hash(password, OPTIONS);

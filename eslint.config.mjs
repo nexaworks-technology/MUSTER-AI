@@ -21,6 +21,12 @@ const MODULE_INTERNALS = {
   group: ["@/modules/*/*", "!@/modules/*/service", "!@/modules/*/schemas"],
   message: "Modules talk to each other only through their service.ts / schemas.ts exports.",
 };
+/** The app layer (routes, shared UI) may also call a module's Server Actions. */
+const APP_MODULE_INTERNALS = {
+  ...MODULE_INTERNALS,
+  group: [...MODULE_INTERNALS.group, "!@/modules/*/actions", "!@/modules/*/actions/*"],
+  message: "App code may import a module's service.ts, schemas.ts or actions/ only.",
+};
 const PRISMA_CLIENT_CTOR = {
   name: "@prisma/client",
   importNames: ["PrismaClient"],
@@ -69,6 +75,10 @@ export default defineConfig([
       "scripts/**",
     ],
     rules: restricted([CUSTOMER_TRANSPORT, MODULE_INTERNALS], []),
+  },
+  {
+    files: ["src/app/**", "src/components/**"],
+    rules: restricted([RAW_DB, CUSTOMER_TRANSPORT, APP_MODULE_INTERNALS]),
   },
   {
     // The single customer-send choke point (arrives in M4).

@@ -1,5 +1,6 @@
 import type { BookScope, Role } from "@prisma/client";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { rawDb } from "@/lib/db/raw";
 import { readOwnMemberships, type MembershipWithWorkspace } from "./identity";
 
@@ -120,4 +121,11 @@ export async function setActiveWorkspace(
     data: { activeWorkspaceId: workspaceId },
   });
   return true;
+}
+
+/** For pages and actions inside the app: a signed-in user, or a redirect to sign in. */
+export async function requireSession(): Promise<SessionInfo> {
+  const session = await getSession();
+  if (!session) redirect("/sign-in");
+  return session;
 }

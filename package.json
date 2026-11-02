@@ -12,7 +12,7 @@
     "dev:web": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "lint": "eslint --max-warnings=0 . && tsx scripts/check-secrets.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -36,6 +36,7 @@
     "radix-ui": "1.8.1",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "server-only": "0.0.1",
     "tailwind-merge": "3.7.0",
     "zod": "4.6.7"
   },
