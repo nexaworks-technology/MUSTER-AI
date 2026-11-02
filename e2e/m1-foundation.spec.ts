@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { visibleNav } from "../src/config/features";
 import { PRODUCT_NAME } from "../src/config/product";
 import { auditActions, tryToEditAuditLog } from "./support/db";
 import { DEMO_PASSWORD, inviteLinkFor, signIn } from "./support/app";
@@ -29,7 +30,11 @@ test.describe("M1 foundation", () => {
     await expect(page.getByRole("heading", { name: "Larkspur Analytics" })).toBeVisible();
     await expect(page.getByTestId("role")).toHaveText("Admin");
     const nav = page.getByRole("navigation", { name: "Main" });
-    await expect(nav.getByRole("link")).toHaveText(["Home", "Settings"]);
+    // Approved C1 change (M2): exact match against the nav that features.ts declares for this
+    // role, so the test keeps proving nav == features.ts as screens ship. Still an exact list.
+    const navFor = (role: "ADMIN" | "CSM") =>
+      visibleNav({ role, canViewRevenue: role === "ADMIN", bookScope: "OWN" }).map((n) => n.label);
+    await expect(nav.getByRole("link")).toHaveText(navFor("ADMIN"));
 
     // 4. Five seeded members; revenue access only for Priya and Dana.
     await nav.getByRole("link", { name: "Settings" }).click();
@@ -68,9 +73,10 @@ test.describe("M1 foundation", () => {
     await guest.getByLabel("Choose a password").fill(`${DEMO_PASSWORD}-nina`);
     await guest.getByRole("button", { name: "Join workspace" }).click();
     await expect(guest.getByTestId("role")).toHaveText("CSM");
-    await expect(guest.getByRole("navigation", { name: "Main" }).getByRole("link")).toHaveText([
-      "Home",
-    ]);
+    await expect(guest.getByRole("navigation", { name: "Main" }).getByRole("link")).toHaveText(
+      navFor("CSM"),
+    );
+    expect(navFor("CSM")).not.toContain("Settings");
     const blocked = await guest.goto("/settings/users");
     expect(blocked?.status()).toBe(404);
     await privateWindow.close();

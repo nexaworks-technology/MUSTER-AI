@@ -7,7 +7,16 @@ import { PrismaClient } from "@prisma/client";
  */
 const globalForDb = globalThis as typeof globalThis & { __nexaworksRawDb?: PrismaClient };
 
-export const rawDb: PrismaClient =
-  globalForDb.__nexaworksRawDb ?? new PrismaClient({ log: ["warn", "error"] });
+/** Query events are emitted only in tests, for the query-budget (no N+1) checks. */
+function createClient(): PrismaClient {
+  if (process.env.NODE_ENV === "test") {
+    return new PrismaClient({
+      log: [{ emit: "event", level: "query" }, "warn", "error"],
+    }) as unknown as PrismaClient;
+  }
+  return new PrismaClient({ log: ["warn", "error"] });
+}
+
+export const rawDb: PrismaClient = globalForDb.__nexaworksRawDb ?? createClient();
 
 if (process.env.NODE_ENV !== "production") globalForDb.__nexaworksRawDb = rawDb;

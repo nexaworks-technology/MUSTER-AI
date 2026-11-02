@@ -23,10 +23,21 @@ describe("navigation gating (Rule 6: no coming-soon screens)", () => {
     );
   });
 
-  it("shows only shipped screens in M1: Home for everyone, Settings for admins", () => {
-    expect(visibleNav(member("ADMIN")).map((n) => n.label)).toEqual(["Home", "Settings"]);
-    expect(visibleNav(member("CSM")).map((n) => n.label)).toEqual(["Home"]);
-    expect(visibleNav(member("VIEWER")).map((n) => n.label)).toEqual(["Home"]);
+  // Approved change (M2, founder decision C1): the exact list grows as screens ship. These
+  // assertions stay exact-list matches, updated per milestone, never loosened to "contains".
+  it("shows exactly the shipped screens: M2 adds Accounts (Tasks joins with its screen)", () => {
+    expect(visibleNav(member("ADMIN")).map((n) => n.label)).toEqual([
+      "Home",
+      "Accounts",
+      "Settings",
+    ]);
+    expect(visibleNav(member("CSM")).map((n) => n.label)).toEqual(["Home", "Accounts"]);
+    expect(visibleNav(member("VIEWER")).map((n) => n.label)).toEqual(["Home", "Accounts"]);
+  });
+
+  it("M1 screens stay exactly as they were when only M1 has shipped", () => {
+    expect(visibleNav(member("ADMIN"), 1).map((n) => n.label)).toEqual(["Home", "Settings"]);
+    expect(visibleNav(member("CSM"), 1).map((n) => n.label)).toEqual(["Home"]);
   });
 
   it("never shows an item without a real route, even if its milestone number has passed", () => {
