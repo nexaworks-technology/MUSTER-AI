@@ -19,6 +19,7 @@ export default async function AccountLayout({
   const tabs = [
     { label: "Overview", href: base },
     { label: "Health", href: `${base}/health` },
+    { label: "Signals", href: `${base}/signals` },
     { label: "People", href: `${base}/people` },
     { label: "Usage", href: `${base}/usage` },
     { label: "Tickets", href: `${base}/tickets` },

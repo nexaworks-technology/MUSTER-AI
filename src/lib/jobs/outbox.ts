@@ -59,6 +59,7 @@ export async function dispatchOutbox(
     >`
       SELECT id, "workspaceId", type, payload FROM "OutboxEvent"
       WHERE "processedAt" IS NULL AND "availableAt" <= now() AND attempts < 10
+        AND NOT (type = ANY(${AWAITING_CONSUMER}))
       ORDER BY "availableAt" ASC
       LIMIT ${batchSize}
       FOR UPDATE SKIP LOCKED`;
@@ -95,3 +96,15 @@ export async function dispatchOutbox(
 
 /** Routes registered so far. M1 introduces no domain events; later milestones add theirs here. */
 export const OUTBOX_ROUTES: OutboxRoutes = {};
+
+/**
+ * Event types written before anything consumes them (D-66): kept as records, not claimed by the
+ * dispatcher (no retries, no warnings) until the milestone that consumes them registers a route
+ * and removes them from this list. M3: signal.opened / signal.resolved / health.bandChanged
+ * (consumed by the Health Analyst and play triggers, M4/M8).
+ */
+export const AWAITING_CONSUMER: string[] = [
+  "signal.opened",
+  "signal.resolved",
+  "health.bandChanged",
+];

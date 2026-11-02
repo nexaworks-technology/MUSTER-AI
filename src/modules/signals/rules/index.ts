@@ -213,7 +213,7 @@ const EVALUATORS: { [K in RuleKey]: Evaluator<K> } = {
         dedupeKey: `power_user_quiet:${b.accountId}:${id}`,
         severity: isChampion ? "CRITICAL" : "WARN",
         title: `${name} has gone quiet`,
-        explanation: `${name} was one of this account's most active people (active in ${Math.round(share * 10)} of 10 weeks) and has had no activity for ${p.quietDays} days${last ? `; last active ${formatDay(last)}` : ""}.${isChampion ? " They are the account's champion." : ""}`,
+        explanation: `${name} was one of this account's most active people (active in ${Math.round(share * 10)} of 10 weeks) and ${last ? `has not used the product since ${formatDay(last)} (${daysBetween(last, b.asOf)} days)` : `has had no activity for ${p.quietDays} days`}.${isChampion ? " They are the account's champion." : ""}`,
         evidence: [
           {
             sourceType: "UserUsageDaily",
