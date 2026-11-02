@@ -10,5 +10,7 @@ export default defineConfig({
     exclude: ["**/node_modules/**", "**/lint-fixtures/**"],
     environment: "node",
     testTimeout: 30_000,
+    globalSetup: ["src/test/global-setup.ts"],
+    setupFiles: ["src/test/setup.ts"],
   },
 });

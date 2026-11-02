@@ -62,6 +62,7 @@ export default defineConfig([
       "src/lib/db/**",
       "src/lib/auth/**",
       "prisma/**",
+      "src/test/**",
       "src/lib/jobs/outbox.ts",
       "scripts/**",
     ],

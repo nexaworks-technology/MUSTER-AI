@@ -25,6 +25,9 @@ Read with `docs/ARCHITECTURE.md` §3.1 and §7.1. Every rule below is enforced b
 6. Add the model name to `TENANT_MODELS` in `src/lib/db/tenantModels.ts`, and add it to the tenant
    isolation suite.
 
+Creates through `scopedDb(ctx)` pass `workspaceId: ctx.workspaceId` (Prisma's types require it). The
+client rejects any other value, and reads, updates and deletes are scoped automatically.
+
 Global [G] models (identity tables, `Workspace`, `OutboxEvent`) are listed in `GLOBAL_MODELS`.
 Adding one needs a DECISIONS entry.
 
