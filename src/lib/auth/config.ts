@@ -6,6 +6,7 @@ import { z } from "zod";
 import { env } from "@/lib/config/env";
 import { rawDb } from "@/lib/db/raw";
 import { createAuthAdapter } from "./adapter";
+import { auditAuthEvent } from "./audit-events";
 import { burnPasswordCheck, verifyPassword } from "./password";
 
 /**
@@ -52,9 +53,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => {
           const user = await rawDb.user.findUnique({ where: { email } });
           if (!user?.passwordHash) {
             await burnPasswordCheck(password);
+            return null; // unknown email: no tenant to attribute it to, so nothing is audited
+          }
+          if (!(await verifyPassword(user.passwordHash, password))) {
+            await auditAuthEvent("auth.failed", user.id, { provider: "password" });
             return null;
           }
-          if (!(await verifyPassword(user.passwordHash, password))) return null;
           return { id: user.id, email: user.email, name: user.name };
         },
       }),
@@ -79,6 +83,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => {
       },
       session({ session, user }) {
         return { ...session, user: { ...session.user, id: user.id } };
+      },
+    },
+    events: {
+      async signIn({ user, account }) {
+        if (user.id)
+          await auditAuthEvent("auth.signed_in", user.id, { provider: account?.provider });
+      },
+      async signOut(message) {
+        const userId = "session" in message ? message.session?.userId : undefined;
+        if (userId) await auditAuthEvent("auth.signed_out", userId);
       },
     },
     jwt: {

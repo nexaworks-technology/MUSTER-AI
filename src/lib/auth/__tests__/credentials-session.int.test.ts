@@ -91,12 +91,42 @@ describe("credentials sign-in with database sessions (D-07)", () => {
     expect(await res.json()).toBeNull();
   });
 
-  it("a wrong password creates no Session row and no session cookie", async () => {
+  it("a wrong password creates no Session row and writes auth.failed without the password", async () => {
     const before = await rawDb.session.count({ where: { userId } });
-    const { res, cookies } = await signInWith("wrong password entirely");
+    const wrong = "wrong password entirely";
+    const { res, cookies } = await signInWith(wrong);
     expect(cookies.get("authjs.session-token") ?? "").toBe("");
     expect(res.headers.get("location") ?? "").toMatch(/error=CredentialsSignin/);
     expect(await rawDb.session.count({ where: { userId } })).toBe(before);
+
+    const failed = await scopedDb({ workspaceId }).auditLog.findMany({
+      where: { action: "auth.failed", targetId: userId },
+    });
+    expect(failed.length).toBeGreaterThan(0);
+    expect(JSON.stringify(failed)).not.toContain(wrong);
+  });
+
+  it("successful sign-in and sign-out are audited in the user's workspace", async () => {
+    const { cookies } = await signInWith(PASSWORD);
+    const token = cookies.get("authjs.session-token")!;
+    const csrfRes = await handlers.GET(new NextRequest(`${BASE}/csrf`));
+    const { csrfToken } = (await csrfRes.json()) as { csrfToken: string };
+    const csrfCookie = [...cookiesFrom(csrfRes)].map(([k, v]) => `${k}=${v}`).join("; ");
+    await handlers.POST(
+      new NextRequest(`${BASE}/signout`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/x-www-form-urlencoded",
+          cookie: `${csrfCookie}; authjs.session-token=${token}`,
+        },
+        body: new URLSearchParams({ csrfToken }),
+      }),
+    );
+    expect(await rawDb.session.findUnique({ where: { sessionToken: token } })).toBeNull();
+    const actions = (
+      await scopedDb({ workspaceId }).auditLog.findMany({ where: { actorId: userId } })
+    ).map((r) => r.action);
+    expect(actions).toEqual(expect.arrayContaining(["auth.signed_in", "auth.signed_out"]));
   });
 
   it("the session endpoint reads the session from the database", async () => {

@@ -57,12 +57,14 @@ export default defineConfig([
   },
   {
     // Allowed users of the raw client: the db layer itself, global identity tables (auth),
-    // the seed, and the outbox dispatcher (it re-scopes per event payload).
+    // the seed, the outbox dispatcher (it re-scopes per event payload), and tests, which use it
+    // to attack the isolation and append-only guarantees.
     files: [
       "src/lib/db/**",
       "src/lib/auth/**",
       "prisma/**",
       "src/test/**",
+      "**/*.test.ts",
       "src/lib/jobs/outbox.ts",
       "scripts/**",
     ],
