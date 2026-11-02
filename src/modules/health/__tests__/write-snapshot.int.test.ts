@@ -3,6 +3,9 @@ import type { Prisma } from "@prisma/client";
 import { beforeAll, describe, expect, it } from "vitest";
 import { scopedDb } from "@/lib/db/scoped";
 import { createTestAdmin } from "@/test/fixtures";
+import { aggregate, type ComponentResults } from "../engine/aggregate";
+import { DEFAULT_MODEL, PILLARS } from "../engine/model";
+import { writeSnapshot, type SnapshotDraft } from "../snapshots";
 
 /**
  * M3 rule 2 at the database level: a score carries its proof or it cannot be stored. These
@@ -232,5 +235,148 @@ describe("health model versions (M3 rule 5)", () => {
     await expect(
       db.healthModel.update({ where: { id: draft.id }, data: { status: "ACTIVE" } }),
     ).rejects.toThrow(/reactivated/);
+  });
+});
+
+describe("health.writeSnapshot(): the only insert path (M3 rule 2, condition B)", () => {
+  const ev = (
+    pillar: string,
+    score: number,
+    sources = [{ sourceType: "Test", sourceId: pillar }],
+  ) => ({
+    score,
+    reason: {
+      component: "main",
+      kind: "EVIDENCE" as const,
+      input: "x",
+      message: `${pillar} ${score}`,
+      sources,
+    },
+  });
+  const ONE = {
+    ...DEFAULT_MODEL,
+    componentConfig: Object.fromEntries(PILLARS.map((p) => [p, { main: { weight: 1 } }])),
+  };
+  const agg = (adoption: number) =>
+    aggregate(
+      Object.fromEntries(
+        PILLARS.map((p) => [
+          p,
+          {
+            main:
+              p === "ADOPTION"
+                ? ev(p, adoption)
+                : p === "SUPPORT"
+                  ? ev(p, 50)
+                  : {
+                      score: null,
+                      reason: {
+                        component: "main",
+                        kind: "MISSING_DATA" as const,
+                        input: "x",
+                        message: "none",
+                        sources: [],
+                      },
+                    },
+          },
+        ]),
+      ) as unknown as ComponentResults,
+      ONE,
+      "MID_TOUCH",
+    );
+  const draft = (
+    asOf: string,
+    a = agg(10),
+    hash = "h1",
+    healthModelId = modelId,
+  ): SnapshotDraft => ({
+    accountId,
+    healthModelId,
+    asOf,
+    isBacktest: false,
+    inputsHash: hash,
+    score: a,
+  });
+
+  it("refuses (Zod) a pillar score with no evidence reason, before touching the database", async () => {
+    const a = agg(10);
+    const bad = { ...a, reasons: a.reasons.filter((r) => r.pillar !== "SUPPORT") };
+    await expect(writeSnapshot(db, ws, { ...draft("2026-03-01"), score: bad })).rejects.toThrow(
+      /SUPPORT has a score but no evidence reason/,
+    );
+    expect(await db.healthScoreSnapshot.count({ where: { asOf: new Date("2026-03-01") } })).toBe(0);
+  });
+
+  it("refuses (Zod) an evidence reason with no source", async () => {
+    const a = agg(10);
+    const bad = {
+      ...a,
+      reasons: a.reasons.map((r) => (r.pillar === "ADOPTION" ? { ...r, sources: [] } : r)),
+    };
+    await expect(writeSnapshot(db, ws, { ...draft("2026-03-02"), score: bad })).rejects.toThrow(
+      /needs at least one source/,
+    );
+  });
+
+  it("writes an At Risk snapshot whose risk reason is its own evidence, and points the account at it", async () => {
+    const before = await db.account.findUniqueOrThrow({ where: { id: accountId } });
+    const r = await writeSnapshot(db, ws, draft("2026-03-03"), { makeCurrent: true });
+    expect(r.outcome).toBe("CREATED");
+    const s = await db.healthScoreSnapshot.findUniqueOrThrow({
+      where: { id: r.id },
+      include: { reasons: true, riskReason: true },
+    });
+    expect(s.riskLevel).toBe("AT_RISK");
+    expect(s.riskReason).toMatchObject({ snapshotId: s.id, pillar: "ADOPTION", kind: "EVIDENCE" });
+    expect(s.reasons.length).toBe(agg(10).reasons.length);
+    const after = await db.account.findUniqueOrThrow({ where: { id: accountId } });
+    expect(after.currentHealthSnapshotId).toBe(r.id);
+    // The pointer is a cache: it must not make the account look "updated" (data-quality staleness).
+    expect(after.updatedAt).toEqual(before.updatedAt);
+  });
+
+  it("re-running with the same inputs changes nothing", async () => {
+    const first = await writeSnapshot(db, ws, draft("2026-03-04"));
+    const again = await writeSnapshot(db, ws, draft("2026-03-04"));
+    expect(again).toEqual({ id: first.id, outcome: "UNCHANGED" });
+    expect(await db.healthScoreSnapshot.count({ where: { asOf: new Date("2026-03-04") } })).toBe(1);
+  });
+
+  it("new inputs on the same day under the same model replace that day's snapshot", async () => {
+    const first = await writeSnapshot(db, ws, draft("2026-03-05", agg(10), "h1"), {
+      makeCurrent: true,
+    });
+    const second = await writeSnapshot(db, ws, draft("2026-03-05", agg(95), "h2"), {
+      makeCurrent: true,
+    });
+    expect(second.outcome).toBe("REPLACED");
+    expect(await db.healthScoreSnapshot.count({ where: { asOf: new Date("2026-03-05") } })).toBe(1);
+    expect(await db.healthScoreSnapshot.findUnique({ where: { id: first.id } })).toBeNull();
+    expect(
+      (await db.account.findUniqueOrThrow({ where: { id: accountId } })).currentHealthSnapshotId,
+    ).toBe(second.id);
+  });
+
+  it("another model version writes its own row; the old version's snapshot is untouched", async () => {
+    const v1 = await writeSnapshot(db, ws, draft("2026-03-06"));
+    const v2Model = await db.healthModel.create({
+      data: {
+        workspaceId: ws,
+        version: 10,
+        proposedBy: "HUMAN",
+        pillarWeights: {},
+        componentConfig: {},
+        thresholds: {},
+      },
+    });
+    const v2 = await writeSnapshot(db, ws, draft("2026-03-06", agg(95), "h9", v2Model.id));
+    expect(v2.outcome).toBe("CREATED");
+    const rows = await db.healthScoreSnapshot.findMany({
+      where: { asOf: new Date("2026-03-06") },
+      orderBy: { createdAt: "asc" },
+    });
+    expect(rows.map((r) => r.healthModelId)).toEqual([modelId, v2Model.id]);
+    expect(rows[0]!.id).toBe(v1.id);
+    expect(Number(rows[0]!.overall)).toBe(agg(10).overall);
   });
 });

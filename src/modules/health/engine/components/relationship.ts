@@ -166,6 +166,7 @@ function pulse(b: AccountBundle, env: ComponentEnv): ComponentResult {
       periodStart: p.createdDate,
       periodEnd: p.expiresDate,
       sources: [{ sourceType: "CsmPulse", sourceId: p.id }],
+      pulseValue: p.value,
     },
   };
 }

@@ -35,6 +35,8 @@ export interface ReasonDraft {
   periodStart?: CalendarDate | null;
   periodEnd?: CalendarDate | null;
   sources: SourceRef[];
+  /** Set by the Pulse component only. */
+  pulseValue?: "FINE" | "WORRIED";
 }
 
 export interface ComponentResult {
