@@ -97,6 +97,9 @@ model Workspace {
   healthReasons    HealthReason[]
   pulses           CsmPulse[]
   usageBaselines   UsageBaseline[]
+  signalRules      SignalRule[]
+  signals          Signal[]
+  outcomes         OutcomeRecord[]
 }
 
 // ─── Global identity (Auth.js) ───────────────────────────────────────────────
@@ -194,6 +197,10 @@ model Membership {
   healthModelsMade   HealthModel[]       @relation("HealthModelCreator")
   healthModelsOked   HealthModel[]       @relation("HealthModelApprover")
   pulses             CsmPulse[]          @relation("PulseAuthor")
+  signalRulesEdited  SignalRule[]        @relation("SignalRuleEditor")
+  signalsAcked       Signal[]            @relation("SignalAcknowledger")
+  signalsFalse       Signal[]            @relation("SignalFalseAlarm")
+  signalsCreated     Signal[]            @relation("SignalCreator")
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, userId])
@@ -389,6 +396,8 @@ model Account {
   currentHealth    HealthScoreSnapshot?  @relation("AccountCurrentSnapshot", fields: [workspaceId, currentHealthSnapshotId], references: [workspaceId, id], onDelete: NoAction)
   pulses           CsmPulse[]
   usageBaselines   UsageBaseline[]
+  signals          Signal[]
+  outcomes         OutcomeRecord[]
 
   @@unique([workspaceId, id])
   @@index([workspaceId, renewalDate])
@@ -1362,4 +1371,158 @@ model UsageBaseline {
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, accountId, metric, windowEnd])
+}
+
+// ─── M3: Signals ─────────────────────────────────────────────────────────────
+
+enum SignalCategory {
+  USAGE
+  PEOPLE
+  SUPPORT
+  CALLS_EMAIL
+  MONEY
+  PROMISES
+  OUTSIDE
+}
+
+enum SignalSeverity {
+  INFO
+  WARN
+  CRITICAL
+}
+
+enum SignalPolarity {
+  RISK
+  OPPORTUNITY
+}
+
+enum SignalStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+  FALSE_ALARM
+}
+
+enum OutcomeAction {
+  ACTED
+  IGNORED
+  PENDING
+}
+
+/// [W] One rule from the code library per workspace (ARCHITECTURE §5.2), with the four spec §6D
+/// fields and its thresholds. Editing params bumps `version` (audited); signals keep the version
+/// that raised them. A dormant rule (no data source yet, D-61) cannot be enabled.
+model SignalRule {
+  id                    String         @id @default(cuid())
+  workspaceId           String
+  ruleKey               String
+  category              SignalCategory
+  polarity              SignalPolarity
+  enabled               Boolean        @default(true)
+  params                Json
+  version               Int            @default(1)
+  meaning               String
+  howDetected           String
+  typicalLeadTime       String
+  falseAlarmCauses      String
+  /// Why the rule cannot run yet, e.g. "Needs meeting data (arrives in M10)". Null = live.
+  dormantReason         String?
+  updatedByMembershipId String?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  updatedBy Membership? @relation("SignalRuleEditor", fields: [workspaceId, updatedByMembershipId], references: [workspaceId, id], onDelete: Restrict)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, ruleKey])
+}
+
+/// [W] A signal with a lifecycle (M3 rule 8). Unique per (dedupeKey, episode) (D-57); the database
+/// also allows at most one OPEN/ACKNOWLEDGED episode per dedupeKey, so re-runs cannot duplicate.
+model Signal {
+  id                    String         @id @default(cuid())
+  workspaceId           String
+  accountId             String
+  ruleKey               String
+  ruleVersion           Int
+  category              SignalCategory
+  severity              SignalSeverity
+  polarity              SignalPolarity
+  status                SignalStatus   @default(OPEN)
+  title                 String
+  explanation           String
+  /// [{ sourceType, sourceId?, accountId?, from?, to?, value, date }] — ≥ 1 (DB CHECK).
+  evidence              Json
+  /// The numbers that fired it, and the thresholds used.
+  values                Json
+  params                Json
+  dedupeKey             String
+  episode               Int            @default(1)
+  firstSeenAt           DateTime       @db.Date
+  lastSeenAt            DateTime       @db.Date
+  resolvedAt            DateTime?
+  resolvedReason        String?
+  acknowledgedById      String?
+  acknowledgedAt        DateTime?
+  markedFalseById       String?
+  markedFalseAt         DateTime?
+  falseAlarmReason      String?
+  /// Values when marked false alarm: "materially worse" is measured against these (D-53).
+  falseAlarmValues      Json?
+  origin                RecordOrigin   @default(SYSTEM)
+  /// AgentRun id; FK added in M4 (CHECK origin <> AI OR agentRunId IS NOT NULL).
+  agentRunId            String?
+  publicSourceUrl       String?
+  publicSourceDate      DateTime?      @db.Date
+  createdByMembershipId String?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  workspace      Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account        Account        @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  acknowledgedBy Membership?    @relation("SignalAcknowledger", fields: [workspaceId, acknowledgedById], references: [workspaceId, id], onDelete: Restrict)
+  markedFalseBy  Membership?    @relation("SignalFalseAlarm", fields: [workspaceId, markedFalseById], references: [workspaceId, id], onDelete: Restrict)
+  createdBy      Membership?    @relation("SignalCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  outcome        OutcomeRecord?
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, dedupeKey, episode])
+  @@index([workspaceId, status, severity])
+  @@index([workspaceId, accountId, firstSeenAt])
+}
+
+/// [W] "Did it work?" ledger row (spec §6L3, ARCHITECTURE §6.5). M3 creates it when a RISK or
+/// OPPORTUNITY signal of WARN or above opens (one per episode); checkpoints arrive in M4/M7/M11.
+model OutcomeRecord {
+  id                 String         @id @default(cuid())
+  workspaceId        String
+  accountId          String
+  signalId           String?
+  agentRunId         String?
+  flagType           SignalPolarity
+  flaggedAt          DateTime
+  /// ARR at the moment of the flag; null when the account has no ARR (never 0, Rule 4).
+  arrAtFlagMinor     BigInt?
+  arrCurrency        String?        @db.Char(3)
+  actionTaken        OutcomeAction  @default(PENDING)
+  actionRefs         Json           @default("[]")
+  firstActionAt      DateTime?
+  d7Outcome          Json?
+  d30Outcome         Json?
+  d90Outcome         Json?
+  valueSavedMinor    BigInt?
+  valueExpandedMinor BigInt?
+  isTrueAlarm        Boolean?
+  csmAgreed          Boolean?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account   @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  signal    Signal?   @relation(fields: [workspaceId, signalId], references: [workspaceId, id], onDelete: Restrict)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, signalId])
+  @@index([workspaceId, flaggedAt])
 }

@@ -39,6 +39,9 @@ export const TENANT_MODELS = [
   "HealthReason",
   "CsmPulse",
   "UsageBaseline",
+  "SignalRule",
+  "Signal",
+  "OutcomeRecord",
 ] as const;
 
 /** Models without tenant scope: identity tables, the tenant root and the outbox (D-22). */

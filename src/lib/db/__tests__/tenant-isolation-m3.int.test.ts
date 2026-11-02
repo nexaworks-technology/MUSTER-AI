@@ -86,7 +86,61 @@ async function setup(label: string) {
       historyDays: 90,
     },
   });
-  return { actor, workspaceId, db, account, model, pulse, snapshot, reason, baseline };
+  const rule = await db.signalRule.create({
+    data: {
+      workspaceId,
+      ruleKey: "usage_drop_vs_normal",
+      category: "USAGE",
+      polarity: "RISK",
+      params: {},
+      meaning: "m",
+      howDetected: "h",
+      typicalLeadTime: "t",
+      falseAlarmCauses: "f",
+    },
+  });
+  const signal = await db.signal.create({
+    data: {
+      workspaceId,
+      accountId: account.id,
+      ruleKey: "usage_drop_vs_normal",
+      ruleVersion: 1,
+      category: "USAGE",
+      severity: "WARN",
+      polarity: "RISK",
+      title: "t",
+      explanation: "e",
+      evidence: [{ sourceType: "Account", sourceId: account.id }],
+      values: {},
+      params: {},
+      dedupeKey: `usage:${account.id}`,
+      firstSeenAt: new Date("2026-11-02"),
+      lastSeenAt: new Date("2026-11-02"),
+    },
+  });
+  const outcome = await db.outcomeRecord.create({
+    data: {
+      workspaceId,
+      accountId: account.id,
+      signalId: signal.id,
+      flagType: "RISK",
+      flaggedAt: new Date(),
+    },
+  });
+  return {
+    actor,
+    workspaceId,
+    db,
+    account,
+    model,
+    pulse,
+    snapshot,
+    reason,
+    baseline,
+    rule,
+    signal,
+    outcome,
+  };
 }
 
 beforeAll(async () => {
@@ -100,11 +154,14 @@ const CASES = [
   { model: "HealthReason", delegate: "healthReason", row: (s: Side) => s.reason },
   { model: "CsmPulse", delegate: "csmPulse", row: (s: Side) => s.pulse },
   { model: "UsageBaseline", delegate: "usageBaseline", row: (s: Side) => s.baseline },
+  { model: "SignalRule", delegate: "signalRule", row: (s: Side) => s.rule },
+  { model: "Signal", delegate: "signal", row: (s: Side) => s.signal },
+  { model: "OutcomeRecord", delegate: "outcomeRecord", row: (s: Side) => s.outcome },
 ] as const;
 
 const fk = (e: unknown) => e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2003";
 
-describe("tenant isolation — M3 health models (Rule 2)", () => {
+describe("tenant isolation — M3 health and signal models (Rule 2)", () => {
   for (const c of CASES) {
     it(`${c.model}: A cannot read, update or delete B's row`, async () => {
       // Delegates differ per model; only the shared id/workspaceId surface is used here.
@@ -197,6 +254,44 @@ describe("tenant isolation — M3 health models (Rule 2)", () => {
           metric: "m",
           windowEnd: new Date("2026-10-01"),
           historyDays: 0,
+        },
+      }),
+    ).rejects.toSatisfy(fk);
+  });
+
+  it("a signal cannot be raised on another workspace's account (composite FK)", async () => {
+    await expect(
+      A.db.signal.create({
+        data: {
+          workspaceId: A.workspaceId,
+          accountId: B.account.id,
+          ruleKey: "x",
+          ruleVersion: 1,
+          category: "USAGE",
+          severity: "INFO",
+          polarity: "RISK",
+          title: "t",
+          explanation: "e",
+          evidence: [{ sourceType: "Account", sourceId: B.account.id }],
+          values: {},
+          params: {},
+          dedupeKey: "cross",
+          firstSeenAt: new Date(),
+          lastSeenAt: new Date(),
+        },
+      }),
+    ).rejects.toSatisfy(fk);
+  });
+
+  it("an outcome cannot point at another workspace's signal (composite FK)", async () => {
+    await expect(
+      A.db.outcomeRecord.create({
+        data: {
+          workspaceId: A.workspaceId,
+          accountId: A.account.id,
+          signalId: B.signal.id,
+          flagType: "RISK",
+          flaggedAt: new Date(),
         },
       }),
     ).rejects.toSatisfy(fk);
