@@ -7,6 +7,7 @@ import { getQueue, type QueueName } from "@/lib/jobs/queues";
 import {
   getActiveModel,
   loadContext,
+  runBacktestProposal,
   scoreAndStore,
   storeUsageBaselines,
 } from "@/modules/health/service";
@@ -144,6 +145,12 @@ export function createPipelineProcessors(deps: PipelineDeps): {
     },
     health: {
       "health.scoreChunk": (job) => scoreChunk(job.data, deps),
+      /** Back-test + proposal (seconds, not a page request): stores a DRAFT, never activates. */
+      "health.backtest": async (job) => {
+        const { workspaceId } = z.object({ workspaceId: z.string().min(1) }).parse(job.data);
+        const draft = await runBacktestProposal({ workspaceId }, deps.clock);
+        return { draftId: draft.id, version: draft.version };
+      },
     },
   };
 }
@@ -186,4 +193,25 @@ export async function enqueueWorkspaceRun(ctx: TenantContext, clock: Clock = sys
     `${ctx.workspaceId}.kickoff.${run}`,
   );
   return { runId: run };
+}
+
+/** Queue a back-test + proposal run for the workspace. */
+export async function enqueueBacktest(ctx: TenantContext, clock: Clock = systemClock) {
+  const id = `${ctx.workspaceId}.backtest.${clock().getTime()}`;
+  await getQueue("health").add(
+    "health.backtest",
+    { workspaceId: ctx.workspaceId },
+    { jobId: id, attempts: 1 },
+  );
+  return { jobId: id };
+}
+
+/** Whether a back-test is queued or running for the workspace (for the Settings screen). */
+export async function backtestRunning(ctx: TenantContext): Promise<boolean> {
+  const jobs = await getQueue("health").getJobs(
+    ["waiting", "active", "delayed", "prioritized"],
+    0,
+    200,
+  );
+  return jobs.some((j) => j?.name === "health.backtest" && j.data?.workspaceId === ctx.workspaceId);
 }

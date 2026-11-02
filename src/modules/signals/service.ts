@@ -329,5 +329,7 @@ export {
   createPipelineProcessors,
   enqueueAccountEvaluation,
   enqueueWorkspaceRun,
+  enqueueBacktest,
+  backtestRunning,
   type PipelineDeps,
 } from "./pipeline";

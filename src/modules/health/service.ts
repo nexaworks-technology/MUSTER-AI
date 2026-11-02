@@ -627,3 +627,17 @@ export async function healthOverview(actor: Actor) {
     disagreements,
   };
 }
+
+// ─── Back-test, proposal and versions (implemented in backtest-service.ts) ───
+export {
+  activateModel,
+  listModels,
+  ModelActivationError,
+  OUTCOME_WINDOW_MONTHS,
+  PILLAR_MEANING,
+  previewModelEdit,
+  runBacktestProposal,
+  saveModelEdit,
+  type StoredBacktest,
+} from "./backtest-service";
+export { sentence as backtestSentence } from "./engine/backtest";
