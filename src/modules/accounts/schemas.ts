@@ -82,3 +82,5 @@ export const accountPatch = z
     lifecycleStage: z.enum(STAGES).optional(),
   })
   .refine((p) => Object.keys(p).length > 0, "Nothing to change");
+
+export { QUESTIONS as MISSING_DATA_QUESTIONS, type MissingField } from "./missing-data";

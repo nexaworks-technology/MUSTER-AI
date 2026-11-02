@@ -4,6 +4,8 @@ import { formatArr, formatDate, RESTRICTED } from "@/lib/format";
 import { STAGE_LABELS, TIER_LABELS } from "@/modules/accounts/schemas";
 import { CONTACT_STATUS_LABELS, ROLE_LABELS } from "@/modules/contacts/schemas";
 import { listPeople } from "@/modules/contacts/service";
+import { getMissingDataQuestion, listOwners } from "@/modules/accounts/service";
+import { MissingDataCard } from "@/components/app/missing-data-card";
 import { loadAccount } from "./data";
 
 export const metadata: Metadata = { title: "Account" };
@@ -12,7 +14,11 @@ export default async function AccountOverviewPage({ params }: { params: Promise<
   const { id } = await params;
   const { ctx, account } = await loadAccount(id);
   const tz = ctx.workspace.timezone;
-  const people = await listPeople(ctx, account.id);
+  const [people, missing, owners] = await Promise.all([
+    listPeople(ctx, account.id),
+    getMissingDataQuestion(ctx, account.id),
+    listOwners(ctx),
+  ]);
   const keyPeople = people.filter((p) =>
     p.currentRoles.some((r) => r === "CHAMPION" || r === "DECISION_MAKER"),
   );
@@ -45,8 +51,26 @@ export default async function AccountOverviewPage({ params }: { params: Promise<
     facts.push(["Onboarding started", formatDate(account.onboardingStartedAt, tz)]);
   if (account.churnedAt) facts.push(["Churned", formatDate(account.churnedAt, tz)]);
 
+  const missingOptions =
+    missing?.field === "OWNER"
+      ? owners.map((o) => ({ value: o.membershipId, label: o.name }))
+      : missing?.field === "KEY_CONTACT"
+        ? people.map((p) => ({ value: p.id, label: p.name }))
+        : [];
+
   return (
     <div className="grid gap-4 lg:grid-cols-2">
+      {missing ? (
+        <div className="lg:col-span-2">
+          <MissingDataCard
+            accountId={account.id}
+            field={missing.field}
+            question={missing.question}
+            snoozeDays={missing.snoozeDays}
+            options={missingOptions}
+          />
+        </div>
+      ) : null}
       <Card>
         <CardHeader>
           <CardTitle>

@@ -8,6 +8,7 @@ import { minorDigits } from "@/lib/money";
 import { getSettingsData } from "@/modules/settings/service";
 import { segmentWhere } from "@/modules/segments/service";
 import { deriveTier } from "./tier";
+import { nextMissingQuestion, type MissingField } from "./missing-data";
 import { accountPatch, PAGE_SIZE, type AccountListQuery } from "./schemas";
 
 /**
@@ -391,5 +392,115 @@ export async function updateAccountFields(actor: Actor, accountId: string, raw: 
       tx,
     );
     return after;
+  });
+}
+
+// ─── Missing-data helper (spec §6A5) ─────────────────────────────────────────
+
+/**
+ * The one missing-data question for this viewer on this account, or null. Showing it records
+ * who was asked and when (that is what the daily limit counts). Never blocks anything.
+ */
+export async function getMissingDataQuestion(actor: Actor, accountId: string, now = new Date()) {
+  const account = await getAccount(actor, accountId);
+  if (!account || !account.canEdit) return null;
+  const db = scopedDb(actor);
+  const dayStart = new Date(now);
+  dayStart.setUTCHours(0, 0, 0, 0);
+  const [settings, contract, contacts, keyRole, prompts, askedToday] = await Promise.all([
+    getSettingsData(actor.workspaceId),
+    db.contract.findFirst({
+      where: { accountId, status: "ACTIVE", startDate: { lte: now } },
+      orderBy: { startDate: "desc" },
+      select: { renewalDate: true },
+    }),
+    db.contact.count({ where: { accountId } }),
+    db.stakeholderRole.count({ where: { accountId, role: "CHAMPION", validTo: null } }),
+    db.missingDataPrompt.findMany({ where: { accountId } }),
+    db.missingDataPrompt.count({
+      where: { askedMembershipId: actor.membershipId, askedAt: { gte: dayStart } },
+    }),
+  ]);
+  const next = nextMissingQuestion({
+    facts: {
+      accountId,
+      tier: account.tier,
+      ownerMembershipId: account.ownerMembershipId,
+      hasCurrentContract: contract !== null,
+      renewalDateMissing: contract !== null && contract.renewalDate === null,
+      hasContacts: contacts > 0,
+      hasKeyContact: keyRole > 0,
+    },
+    viewer: actor,
+    prompts: prompts.map((p) => ({
+      field: p.field,
+      answeredAt: p.answeredAt,
+      snoozeUntil: p.snoozeUntil,
+      askedToday:
+        p.askedMembershipId === actor.membershipId && p.askedAt !== null && p.askedAt >= dayStart,
+    })),
+    askedTodayByViewer: askedToday,
+    settings: settings.missingData,
+    now,
+  });
+  if (!next) return null;
+  await db.missingDataPrompt.upsert({
+    where: {
+      workspaceId_accountId_field: { workspaceId: actor.workspaceId, accountId, field: next.field },
+    },
+    create: {
+      workspaceId: actor.workspaceId,
+      accountId,
+      field: next.field,
+      askedMembershipId: actor.membershipId,
+      askedAt: now,
+    },
+    update: { askedMembershipId: actor.membershipId, askedAt: now },
+  });
+  return { ...next, snoozeDays: settings.missingData.snoozeDays };
+}
+
+/** Skip: the same question is not asked again on this account until the snooze ends. */
+export async function skipMissingData(
+  actor: Actor,
+  accountId: string,
+  field: MissingField,
+  now = new Date(),
+) {
+  await requireEditableAccount(actor, accountId);
+  const settings = await getSettingsData(actor.workspaceId);
+  const snoozeUntil = new Date(now.getTime() + settings.missingData.snoozeDays * 86_400_000);
+  await scopedDb(actor).missingDataPrompt.upsert({
+    where: { workspaceId_accountId_field: { workspaceId: actor.workspaceId, accountId, field } },
+    create: {
+      workspaceId: actor.workspaceId,
+      accountId,
+      field,
+      askedMembershipId: actor.membershipId,
+      askedAt: now,
+      skippedAt: now,
+      snoozeUntil,
+    },
+    update: { skippedAt: now, snoozeUntil },
+  });
+}
+
+/** Marks the question answered (the caller has already saved the answer through its service). */
+export async function markMissingDataAnswered(
+  actor: Actor,
+  accountId: string,
+  field: MissingField,
+  now = new Date(),
+) {
+  await scopedDb(actor).missingDataPrompt.upsert({
+    where: { workspaceId_accountId_field: { workspaceId: actor.workspaceId, accountId, field } },
+    create: {
+      workspaceId: actor.workspaceId,
+      accountId,
+      field,
+      answeredAt: now,
+      answeredByMembershipId: actor.membershipId,
+    },
+    update: { answeredAt: now, answeredByMembershipId: actor.membershipId, snoozeUntil: null },
   });
 }

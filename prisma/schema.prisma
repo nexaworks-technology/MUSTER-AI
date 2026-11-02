@@ -90,6 +90,7 @@ model Workspace {
   files            FileObject[]
   externalRefs     ExternalRef[]
   importJobs       ImportJob[]
+  missingPrompts   MissingDataPrompt[]
 }
 
 // ─── Global identity (Auth.js) ───────────────────────────────────────────────
@@ -171,18 +172,19 @@ model Membership {
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 
-  workspace          Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user               User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  invitationsCreated Invitation[]   @relation("InvitedBy")
-  ownedAccounts      Account[]      @relation("AccountOwner")
-  sentMessages       Message[]      @relation("MessageFromMember")
-  ownedTasks         Task[]         @relation("TaskOwner")
-  createdTasks       Task[]         @relation("TaskCreator")
-  notes              Note[]         @relation("NoteAuthor")
-  notifications      Notification[] @relation("NotificationRecipient")
-  segments           Segment[]      @relation("SegmentCreator")
-  uploadedFiles      FileObject[]   @relation("FileUploader")
-  importJobs         ImportJob[]    @relation("ImportCreator")
+  workspace          Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invitationsCreated Invitation[]        @relation("InvitedBy")
+  ownedAccounts      Account[]           @relation("AccountOwner")
+  sentMessages       Message[]           @relation("MessageFromMember")
+  ownedTasks         Task[]              @relation("TaskOwner")
+  createdTasks       Task[]              @relation("TaskCreator")
+  notes              Note[]              @relation("NoteAuthor")
+  notifications      Notification[]      @relation("NotificationRecipient")
+  segments           Segment[]           @relation("SegmentCreator")
+  uploadedFiles      FileObject[]        @relation("FileUploader")
+  importJobs         ImportJob[]         @relation("ImportCreator")
+  missingPrompts     MissingDataPrompt[] @relation("PromptAskedTo")
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, userId])
@@ -370,6 +372,7 @@ model Account {
   tasks            Task[]
   notes            Note[]
   files            FileObject[]
+  missingPrompts   MissingDataPrompt[]
 
   @@unique([workspaceId, id])
   @@index([workspaceId, renewalDate])
@@ -1058,4 +1061,35 @@ model ImportJob {
 
   @@unique([workspaceId, id])
   @@index([workspaceId, createdAt])
+}
+
+enum MissingDataField {
+  OWNER
+  RENEWAL_DATE
+  KEY_CONTACT
+}
+
+/// [W] The missing-data helper's memory per account + field: when it was last shown, to whom,
+/// and whether it was answered or snoozed (spec §6A5).
+model MissingDataPrompt {
+  id                     String           @id @default(cuid())
+  workspaceId            String
+  accountId              String
+  field                  MissingDataField
+  askedMembershipId      String?
+  askedAt                DateTime?
+  answeredAt             DateTime?
+  answeredByMembershipId String?
+  skippedAt              DateTime?
+  snoozeUntil            DateTime?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+
+  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account     @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  askedTo   Membership? @relation("PromptAskedTo", fields: [workspaceId, askedMembershipId], references: [workspaceId, id], onDelete: SetNull)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, accountId, field])
+  @@index([workspaceId, askedMembershipId, askedAt])
 }

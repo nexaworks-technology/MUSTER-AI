@@ -405,6 +405,15 @@ async function setupM2(base: typeof A) {
         mapping: {},
       },
     }),
+    missingPrompt: await db.missingDataPrompt.create({
+      data: {
+        workspaceId,
+        accountId: account.id,
+        field: "RENEWAL_DATE",
+        askedMembershipId: base.membership.id,
+        askedAt: new Date(),
+      },
+    }),
     segment: await db.segment.create({
       data: {
         workspaceId,
@@ -439,6 +448,7 @@ const M2_CASES = [
   { model: "Segment", delegate: "segment", row: (s: Side) => s.segment },
   { model: "ExternalRef", delegate: "externalRef", row: (s: Side) => s.externalRef },
   { model: "ImportJob", delegate: "importJob", row: (s: Side) => s.importJob },
+  { model: "MissingDataPrompt", delegate: "missingDataPrompt", row: (s: Side) => s.missingPrompt },
 ] as const;
 
 describe("tenant isolation — M2 models (Rule 2)", () => {
