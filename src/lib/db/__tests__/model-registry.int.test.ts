@@ -49,4 +49,17 @@ describe("model registry", () => {
       SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user`;
     expect(role).toEqual({ rolsuper: false, rolbypassrls: false });
   });
+
+  it("every model that can hold AI output enforces origin = AI ⇒ agentRunId (Rule 5)", async () => {
+    const aiCapable = models.filter((m) =>
+      ["origin", "agentRunId"].every((f) => m.fields.some((x) => x.name === f)),
+    );
+    expect(aiCapable.length).toBeGreaterThan(0);
+    for (const m of aiCapable) {
+      const rows = await rawDb.$queryRaw<{ conname: string }[]>`
+        SELECT conname FROM pg_constraint
+        WHERE conrelid = ${`"${m.name}"`}::regclass AND contype = 'c' AND conname LIKE '%agent_run_required'`;
+      expect({ model: m.name, checks: rows.length }).toEqual({ model: m.name, checks: 1 });
+    }
+  });
 });

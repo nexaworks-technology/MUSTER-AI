@@ -66,6 +66,10 @@ model Workspace {
   auditLogs    AuditLog[]
   outboxEvents OutboxEvent[]
   sessions     Session[]
+
+  accounts         Account[]
+  contacts         Contact[]
+  stakeholderRoles StakeholderRole[]
 }
 
 // ─── Global identity (Auth.js) ───────────────────────────────────────────────
@@ -150,6 +154,7 @@ model Membership {
   workspace          Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user               User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   invitationsCreated Invitation[] @relation("InvitedBy")
+  ownedAccounts      Account[]    @relation("AccountOwner")
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, userId])
@@ -235,4 +240,149 @@ model OutboxEvent {
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@index([processedAt, availableAt])
+}
+
+// ─── M2: Accounts & people ───────────────────────────────────────────────────
+
+enum AccountTier {
+  HIGH_TOUCH
+  MID_TOUCH
+  LONG_TAIL
+}
+
+enum TierSource {
+  RULE
+  MANUAL
+}
+
+enum LifecycleStage {
+  ONBOARDING
+  ADOPTING
+  MATURE
+  RENEWING
+  LOST
+}
+
+/// Where a record came from (ARCHITECTURE §3.1). Connector values are added with their milestone.
+enum RecordSource {
+  CSV
+  MANUAL
+  SEED
+  SYSTEM
+}
+
+/// Who wrote a record. origin = AI requires agentRunId (Rule 5, DB CHECK).
+enum RecordOrigin {
+  HUMAN
+  SYSTEM
+  AI
+  IMPORT
+}
+
+enum ContactStatus {
+  ACTIVE
+  BOUNCED
+  LEFT
+  UNKNOWN
+}
+
+enum StakeholderRoleType {
+  CHAMPION
+  DECISION_MAKER
+  DAILY_USER
+  EXEC_SPONSOR
+  BILLING
+  OTHER
+}
+
+/// [W] One of our customer's customers — the centre of the Account Graph (spec §6A1).
+model Account {
+  id                  String         @id @default(cuid())
+  workspaceId         String
+  name                String
+  domain              String?
+  tier                AccountTier
+  tierSource          TierSource     @default(RULE)
+  lifecycleStage      LifecycleStage @default(ADOPTING)
+  stageChangedAt      DateTime?
+  onboardingStartedAt DateTime?
+  churnedAt           DateTime?
+  ownerMembershipId   String?
+  plan                String?
+  industry            String?
+  employeeBand        String?
+  useCase             String?
+  timezone            String?
+  /// Derived from the active contract (billing service). Null = no contract on file, never 0.
+  arrMinor            BigInt?
+  arrCurrency         String?        @db.Char(3)
+  lastTouchAt         DateTime?
+  source              RecordSource   @default(MANUAL)
+  archivedAt          DateTime?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  workspace        Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  owner            Membership?       @relation("AccountOwner", fields: [workspaceId, ownerMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  contacts         Contact[]
+  stakeholderRoles StakeholderRole[]
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, ownerMembershipId])
+  @@index([workspaceId, tier])
+  @@index([workspaceId, lifecycleStage])
+  @@index([workspaceId, name])
+  @@index([workspaceId, domain])
+  @@index([workspaceId, arrMinor])
+  @@index([workspaceId, lastTouchAt])
+}
+
+/// [W] A person at an account (spec §6A2).
+model Contact {
+  id             String        @id @default(cuid())
+  workspaceId    String
+  accountId      String
+  name           String
+  email          String?
+  title          String?
+  timezone       String?
+  status         ContactStatus @default(ACTIVE)
+  /// The customer's own id for this person in product usage data (links UserUsageDaily rows).
+  externalUserId String?
+  lastContactAt  DateTime?
+  source         RecordSource  @default(MANUAL)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  workspace Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account           @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  roles     StakeholderRole[]
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, accountId])
+  @@index([workspaceId, email])
+}
+
+/// [W] A contact's role over time (champion, decision maker…). History is kept for back-tests.
+model StakeholderRole {
+  id                String              @id @default(cuid())
+  workspaceId       String
+  accountId         String
+  contactId         String
+  role              StakeholderRoleType
+  validFrom         DateTime
+  validTo           DateTime?
+  setByMembershipId String?
+  origin            RecordOrigin        @default(HUMAN)
+  /// AgentRun id; FK added in M4 (CHECK origin <> AI OR agentRunId IS NOT NULL).
+  agentRunId        String?
+  createdAt         DateTime            @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account   @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  contact   Contact   @relation(fields: [workspaceId, contactId], references: [workspaceId, id], onDelete: Cascade)
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, accountId, role, validTo])
+  @@index([workspaceId, contactId])
 }

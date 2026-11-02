@@ -18,11 +18,27 @@ export function tenantRlsSql(table: string): string {
   ].join("\n");
 }
 
+/**
+ * Rule 5 at the database level: a row written by AI must name its AgentRun. Add to every table
+ * with `origin` + `agentRunId` columns.
+ */
+export function agentRunCheckSql(table: string): string {
+  const t = `"${table.replaceAll('"', "")}"`;
+  return `ALTER TABLE ${t} ADD CONSTRAINT ${table.toLowerCase()}_agent_run_required\n  CHECK ("origin" <> 'AI' OR "agentRunId" IS NOT NULL);`;
+}
+
 if (process.argv[1]?.endsWith("rls.ts")) {
   const tables = process.argv.slice(2);
   if (tables.length === 0) {
     console.error("usage: pnpm exec tsx prisma/sql/rls.ts <Table> [<Table> ...]");
     process.exit(1);
   }
-  console.log(tables.map(tenantRlsSql).join("\n\n"));
+  const withCheck = new Set((process.env.AGENT_RUN_CHECK ?? "").split(",").filter(Boolean));
+  console.log(
+    tables
+      .map((t) =>
+        withCheck.has(t) ? `${tenantRlsSql(t)}\n${agentRunCheckSql(t)}` : tenantRlsSql(t),
+      )
+      .join("\n\n"),
+  );
 }

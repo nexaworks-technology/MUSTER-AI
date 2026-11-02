@@ -1,8 +1,9 @@
-import { createHash } from "node:crypto";
 import { writeAudit } from "@/lib/audit";
 import { hashPassword } from "@/lib/auth/password";
 import { rawDb } from "@/lib/db/raw";
 import { scopedDb } from "@/lib/db/scoped";
+import { seedAccounts } from "./demo/accounts";
+import { seedId } from "./demo/ids";
 import {
   DEMO_PASSWORD,
   DEMO_USERS,
@@ -19,9 +20,7 @@ import {
  */
 export const SEED_TODAY = process.env.SEED_TODAY ?? "2026-11-02";
 
-export function seedId(key: string): string {
-  return `seed${createHash("sha1").update(key).digest("hex").slice(0, 21)}`;
-}
+export { seedId };
 
 async function seedWorkspace(
   ws: typeof DEMO_WORKSPACE | typeof TEST_TENANT,
@@ -78,13 +77,21 @@ async function seedWorkspace(
   return workspace;
 }
 
+async function seedDemoData(workspaceId: string): Promise<void> {
+  const db = scopedDb({ workspaceId });
+  await seedAccounts(db, workspaceId);
+}
+
 export async function runSeed({ includeTestTenant }: { includeTestTenant: boolean }) {
   if (process.env.NODE_ENV === "production" && process.env.ALLOW_DEMO_SEED !== "true") {
     throw new Error(
       "Refusing to seed demo data in production (set ALLOW_DEMO_SEED=true for a demo environment)",
     );
   }
-  const seeded = [await seedWorkspace(DEMO_WORKSPACE, DEMO_USERS)];
+  const larkspur = await seedWorkspace(DEMO_WORKSPACE, DEMO_USERS);
+  // Demo data goes to Larkspur only; Ferngrove stays an empty second tenant (SEED_DATA §2).
+  await seedDemoData(larkspur.id);
+  const seeded = [larkspur];
   if (includeTestTenant) seeded.push(await seedWorkspace(TEST_TENANT, TEST_TENANT_USERS));
   return seeded;
 }

@@ -165,3 +165,139 @@ describe("tenant isolation (Rule 2)", () => {
     ).rejects.toBeInstanceOf(TenantViolationError);
   });
 });
+
+// ─── M2 models ───────────────────────────────────────────────────────────────
+// Every [W] model added from M2 on gets: a row in each workspace, then the same read/write/raw
+// attacks as above. `M2_CASES` grows slice by slice; the model registry test guarantees no
+// [W] model is forgotten in the schema-level checks.
+
+type Side = Awaited<ReturnType<typeof setupM2>>;
+
+async function setupM2(base: typeof A) {
+  const workspaceId = base.workspace.id;
+  const db = base.db;
+  const account = await db.account.create({
+    data: {
+      workspaceId,
+      name: `Acme ${workspaceId}`,
+      tier: "MID_TOUCH",
+      ownerMembershipId: base.membership.id,
+    },
+  });
+  const contact = await db.contact.create({
+    data: {
+      workspaceId,
+      accountId: account.id,
+      name: "Pat Example",
+      email: `pat-${workspaceId}@example.test`,
+    },
+  });
+  const role = await db.stakeholderRole.create({
+    data: {
+      workspaceId,
+      accountId: account.id,
+      contactId: contact.id,
+      role: "CHAMPION",
+      validFrom: new Date(),
+    },
+  });
+  return { account, contact, role };
+}
+
+const M2_CASES = [
+  { model: "Account", delegate: "account", row: (s: Side) => s.account },
+  { model: "Contact", delegate: "contact", row: (s: Side) => s.contact },
+  { model: "StakeholderRole", delegate: "stakeholderRole", row: (s: Side) => s.role },
+] as const;
+
+describe("tenant isolation — M2 models (Rule 2)", () => {
+  let a2: Side;
+  let b2: Side;
+  beforeAll(async () => {
+    a2 = await setupM2(A);
+    b2 = await setupM2(B);
+  });
+
+  for (const c of M2_CASES) {
+    it(`${c.model}: A cannot read, update or delete B's row`, async () => {
+      // Delegates differ per model; only the shared id/workspaceId surface is used here.
+      const d = A.db[c.delegate] as unknown as {
+        findMany: () => Promise<Array<{ workspaceId: string }>>;
+        findUnique: (a: { where: { id: string } }) => Promise<unknown>;
+        updateMany: (a: {
+          where: { id: string };
+          data: Record<string, unknown>;
+        }) => Promise<{ count: number }>;
+        deleteMany: (a: { where: { id: string } }) => Promise<{ count: number }>;
+      };
+      const bId = c.row(b2).id;
+      expect((await d.findMany()).every((r) => r.workspaceId === A.workspace.id)).toBe(true);
+      expect(await d.findUnique({ where: { id: bId } })).toBeNull();
+      expect((await d.updateMany({ where: { id: bId }, data: {} })).count).toBe(0);
+      expect((await d.deleteMany({ where: { id: bId } })).count).toBe(0);
+    });
+
+    it(`${c.model}: raw SQL without the workspace setting sees nothing`, async () => {
+      const rows = await rawDb.$queryRawUnsafe<{ n: bigint }[]>(
+        `SELECT count(*) AS n FROM "${c.model}"`,
+      );
+      expect(Number(rows[0]?.n)).toBe(0);
+    });
+  }
+
+  it("a Contact cannot point at another workspace's Account (composite FK)", async () => {
+    await expect(
+      A.db.contact.create({
+        data: { workspaceId: A.workspace.id, accountId: b2.account.id, name: "Cross" },
+      }),
+    ).rejects.toSatisfy(
+      (e) => e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2003",
+    );
+  });
+
+  it("an Account cannot be owned by another workspace's member (composite FK)", async () => {
+    await expect(
+      A.db.account.create({
+        data: {
+          workspaceId: A.workspace.id,
+          name: "Cross-owned",
+          tier: "LONG_TAIL",
+          ownerMembershipId: B.membership.id,
+        },
+      }),
+    ).rejects.toSatisfy(
+      (e) => e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2003",
+    );
+  });
+
+  it("a StakeholderRole cannot join A's account to B's contact (composite FK)", async () => {
+    await expect(
+      A.db.stakeholderRole.create({
+        data: {
+          workspaceId: A.workspace.id,
+          accountId: a2.account.id,
+          contactId: b2.contact.id,
+          role: "CHAMPION",
+          validFrom: new Date(),
+        },
+      }),
+    ).rejects.toSatisfy(
+      (e) => e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2003",
+    );
+  });
+
+  it("an AI-origin StakeholderRole without an agent run is rejected by the database (Rule 5)", async () => {
+    await expect(
+      A.db.stakeholderRole.create({
+        data: {
+          workspaceId: A.workspace.id,
+          accountId: a2.account.id,
+          contactId: a2.contact.id,
+          role: "CHAMPION",
+          validFrom: new Date(),
+          origin: "AI",
+        },
+      }),
+    ).rejects.toThrow(/agent_run_required|check constraint/i);
+  });
+});

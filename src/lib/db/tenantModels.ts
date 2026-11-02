@@ -4,7 +4,15 @@
  * with a `tenant_isolation` policy, and is auto-scoped by scopedDb(). The model-registry test
  * fails if a Prisma model is neither here nor in GLOBAL_MODELS.
  */
-export const TENANT_MODELS = ["Membership", "Invitation", "WorkspaceSettings", "AuditLog"] as const;
+export const TENANT_MODELS = [
+  "Membership",
+  "Invitation",
+  "WorkspaceSettings",
+  "AuditLog",
+  "Account",
+  "Contact",
+  "StakeholderRole",
+] as const;
 
 /** Models without tenant scope: identity tables, the tenant root and the outbox (D-22). */
 export const GLOBAL_MODELS = [
