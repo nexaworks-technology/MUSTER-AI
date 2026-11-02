@@ -4,6 +4,7 @@ import { rawDb } from "@/lib/db/raw";
 import { scopedDb } from "@/lib/db/scoped";
 import { seedAccounts } from "./demo/accounts";
 import { seedCommercial } from "./demo/commercial";
+import { seedUsage } from "./demo/usage";
 import { seedId } from "./demo/ids";
 import {
   DEMO_PASSWORD,
@@ -82,6 +83,7 @@ async function seedDemoData(workspaceId: string): Promise<void> {
   const db = scopedDb({ workspaceId });
   await seedAccounts(db, workspaceId);
   await seedCommercial(db, workspaceId);
+  await seedUsage(db, workspaceId);
 }
 
 export async function runSeed({ includeTestTenant }: { includeTestTenant: boolean }) {

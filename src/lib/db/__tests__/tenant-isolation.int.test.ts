@@ -201,13 +201,114 @@ async function setupM2(base: typeof A) {
       validFrom: new Date(),
     },
   });
-  return { account, contact, role };
+  const contract = await db.contract.create({
+    data: {
+      workspaceId,
+      accountId: account.id,
+      startDate: new Date("2026-01-01"),
+      valueMinor: 100n,
+    },
+  });
+  const subscription = await db.subscription.create({
+    data: {
+      workspaceId,
+      accountId: account.id,
+      contractId: contract.id,
+      plan: "Growth",
+      interval: "YEAR",
+      amountMinor: 100n,
+    },
+  });
+  const invoice = await db.invoice.create({
+    data: {
+      workspaceId,
+      accountId: account.id,
+      subscriptionId: subscription.id,
+      number: "INV-T",
+      amountMinor: 100n,
+      issuedAt: new Date(),
+      dueAt: new Date(),
+    },
+  });
+  const revenueEvent = await db.revenueEvent.create({
+    data: {
+      workspaceId,
+      accountId: account.id,
+      type: "NEW",
+      deltaArrMinor: 100n,
+      currency: "USD",
+      effectiveDate: new Date(),
+      sourceType: "Contract",
+      sourceId: contract.id,
+    },
+  });
+  const day = new Date("2026-10-01");
+  const usageDaily = await db.usageDaily.create({
+    data: {
+      workspaceId,
+      accountId: account.id,
+      date: day,
+      activeUsers: 3,
+      sessions: 4,
+      events: 50,
+    },
+  });
+  const userUsage = await db.userUsageDaily.create({
+    data: {
+      workspaceId,
+      accountId: account.id,
+      contactId: contact.id,
+      externalUserId: "u1",
+      date: day,
+      events: 5,
+      sessions: 1,
+    },
+  });
+  const featureUsage = await db.featureUsageDaily.create({
+    data: {
+      workspaceId,
+      accountId: account.id,
+      featureKey: "dashboards",
+      date: day,
+      users: 2,
+      events: 9,
+    },
+  });
+  const feature = await db.featureCatalog.create({
+    data: {
+      workspaceId,
+      featureKey: "dashboards",
+      label: "Dashboards",
+      includedInPlans: ["Growth"],
+    },
+  });
+  return {
+    account,
+    contact,
+    role,
+    contract,
+    subscription,
+    invoice,
+    revenueEvent,
+    usageDaily,
+    userUsage,
+    featureUsage,
+    feature,
+  };
 }
 
 const M2_CASES = [
   { model: "Account", delegate: "account", row: (s: Side) => s.account },
   { model: "Contact", delegate: "contact", row: (s: Side) => s.contact },
   { model: "StakeholderRole", delegate: "stakeholderRole", row: (s: Side) => s.role },
+  { model: "Contract", delegate: "contract", row: (s: Side) => s.contract },
+  { model: "Subscription", delegate: "subscription", row: (s: Side) => s.subscription },
+  { model: "Invoice", delegate: "invoice", row: (s: Side) => s.invoice },
+  { model: "RevenueEvent", delegate: "revenueEvent", row: (s: Side) => s.revenueEvent },
+  { model: "UsageDaily", delegate: "usageDaily", row: (s: Side) => s.usageDaily },
+  { model: "UserUsageDaily", delegate: "userUsageDaily", row: (s: Side) => s.userUsage },
+  { model: "FeatureUsageDaily", delegate: "featureUsageDaily", row: (s: Side) => s.featureUsage },
+  { model: "FeatureCatalog", delegate: "featureCatalog", row: (s: Side) => s.feature },
 ] as const;
 
 describe("tenant isolation — M2 models (Rule 2)", () => {
@@ -268,6 +369,53 @@ describe("tenant isolation — M2 models (Rule 2)", () => {
     ).rejects.toSatisfy(
       (e) => e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2003",
     );
+  });
+
+  it("billing and usage rows cannot point at another workspace's account or contract", async () => {
+    const fk = (e: unknown) =>
+      e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2003";
+    await expect(
+      A.db.contract.create({
+        data: { workspaceId: A.workspace.id, accountId: b2.account.id, startDate: new Date() },
+      }),
+    ).rejects.toSatisfy(fk);
+    await expect(
+      A.db.subscription.create({
+        data: {
+          workspaceId: A.workspace.id,
+          accountId: a2.account.id,
+          contractId: b2.contract.id,
+          plan: "x",
+          interval: "YEAR",
+          amountMinor: 1n,
+        },
+      }),
+    ).rejects.toSatisfy(fk);
+    await expect(
+      A.db.usageDaily.create({
+        data: {
+          workspaceId: A.workspace.id,
+          accountId: b2.account.id,
+          date: new Date("2026-09-01"),
+          activeUsers: 1,
+          sessions: 1,
+          events: 1,
+        },
+      }),
+    ).rejects.toSatisfy(fk);
+    await expect(
+      A.db.userUsageDaily.create({
+        data: {
+          workspaceId: A.workspace.id,
+          accountId: a2.account.id,
+          contactId: b2.contact.id,
+          externalUserId: "x",
+          date: new Date("2026-09-01"),
+          events: 1,
+          sessions: 1,
+        },
+      }),
+    ).rejects.toSatisfy(fk);
   });
 
   it("a StakeholderRole cannot join A's account to B's contact (composite FK)", async () => {

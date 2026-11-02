@@ -74,6 +74,10 @@ model Workspace {
   subscriptions    Subscription[]
   invoices         Invoice[]
   revenueEvents    RevenueEvent[]
+  usageDaily       UsageDaily[]
+  userUsageDaily   UserUsageDaily[]
+  featureUsage     FeatureUsageDaily[]
+  featureCatalog   FeatureCatalog[]
 }
 
 // ─── Global identity (Auth.js) ───────────────────────────────────────────────
@@ -328,14 +332,17 @@ model Account {
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
 
-  workspace        Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  owner            Membership?       @relation("AccountOwner", fields: [workspaceId, ownerMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  workspace        Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  owner            Membership?         @relation("AccountOwner", fields: [workspaceId, ownerMembershipId], references: [workspaceId, id], onDelete: Restrict)
   contacts         Contact[]
   stakeholderRoles StakeholderRole[]
   contracts        Contract[]
   subscriptions    Subscription[]
   invoices         Invoice[]
   revenueEvents    RevenueEvent[]
+  usageDaily       UsageDaily[]
+  userUsageDaily   UserUsageDaily[]
+  featureUsage     FeatureUsageDaily[]
 
   @@unique([workspaceId, id])
   @@index([workspaceId, renewalDate])
@@ -368,6 +375,7 @@ model Contact {
   workspace Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   account   Account           @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
   roles     StakeholderRole[]
+  usage     UserUsageDaily[]
 
   @@unique([workspaceId, id])
   @@index([workspaceId, accountId])
@@ -547,4 +555,85 @@ model RevenueEvent {
   @@unique([workspaceId, sourceType, sourceId, type])
   @@index([workspaceId, effectiveDate])
   @@index([workspaceId, accountId])
+}
+
+// ─── M2: Usage (daily aggregates only, D-23) ─────────────────────────────────
+
+/// [W] Account-level product usage per day.
+model UsageDaily {
+  id          String       @id @default(cuid())
+  workspaceId String
+  accountId   String
+  date        DateTime     @db.Date
+  activeUsers Int
+  sessions    Int
+  events      Int
+  seatsUsed   Int?
+  creditsUsed Int?
+  source      RecordSource @default(MANUAL)
+  createdAt   DateTime     @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account   @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, accountId, date])
+}
+
+/// [W] Per-user product usage per day. contactId links to a known person when we have one.
+model UserUsageDaily {
+  id             String       @id @default(cuid())
+  workspaceId    String
+  accountId      String
+  contactId      String?
+  externalUserId String
+  date           DateTime     @db.Date
+  events         Int
+  sessions       Int
+  source         RecordSource @default(MANUAL)
+  createdAt      DateTime     @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account   @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  contact   Contact?  @relation(fields: [workspaceId, contactId], references: [workspaceId, id], onDelete: SetNull)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, accountId, externalUserId, date])
+  @@index([workspaceId, accountId, date])
+}
+
+/// [W] Per-feature product usage per day.
+model FeatureUsageDaily {
+  id          String       @id @default(cuid())
+  workspaceId String
+  accountId   String
+  featureKey  String
+  date        DateTime     @db.Date
+  users       Int
+  events      Int
+  source      RecordSource @default(MANUAL)
+  createdAt   DateTime     @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account   @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, accountId, featureKey, date])
+}
+
+/// [W] The customer's product features, which are key, and which plans include them.
+model FeatureCatalog {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  featureKey      String
+  label           String
+  isKeyFeature    Boolean  @default(false)
+  includedInPlans String[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, featureKey])
 }

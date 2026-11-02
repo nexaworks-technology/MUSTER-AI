@@ -149,3 +149,44 @@ describe("seed v1 — commercial (docs/SEED_DATA.md §6)", () => {
     expect(contract.termsEnc).not.toMatch(/Annual subscription/);
   });
 });
+
+describe("seed v1 — usage (docs/SEED_DATA.md §4)", () => {
+  const sumUsers = async (
+    workspaceId: string,
+    name: string,
+    fromDaysAgo: number,
+    toDaysAgo: number,
+  ) => {
+    const db = scopedDb({ workspaceId });
+    const account = await db.account.findFirstOrThrow({ where: { name } });
+    const day = (n: number) => new Date(Date.UTC(2026, 10, 2) - n * 86_400_000);
+    const rows = await db.usageDaily.findMany({
+      where: { accountId: account.id, date: { gte: day(fromDaysAgo), lte: day(toDaysAgo) } },
+    });
+    return rows.reduce((s, r) => s + r.activeUsers, 0);
+  };
+
+  it("Brightwell's active users fell to well under half of their normal in the last week", async () => {
+    const [ws] = await runSeed({ includeTestTenant: false });
+    const lastWeek = await sumUsers(ws!.id, "Brightwell Logistics", 6, 0);
+    const normalWeek = await sumUsers(ws!.id, "Brightwell Logistics", 76, 70);
+    expect(lastWeek / normalWeek).toBeLessThan(0.55);
+  });
+
+  it("Redfern Outdoor has had no logins for 24 days", async () => {
+    const [ws] = await runSeed({ includeTestTenant: false });
+    expect(await sumUsers(ws!.id, "Redfern Outdoor", 23, 0)).toBe(0);
+    expect(await sumUsers(ws!.id, "Redfern Outdoor", 60, 30)).toBeGreaterThan(0);
+  });
+
+  it("Copperleaf Studios has more active people than seats bought (40)", async () => {
+    const [ws] = await runSeed({ includeTestTenant: false });
+    const db = scopedDb({ workspaceId: ws!.id });
+    const account = await db.account.findFirstOrThrow({ where: { name: "Copperleaf Studios" } });
+    const people = await db.userUsageDaily.groupBy({
+      by: ["externalUserId"],
+      where: { accountId: account.id, date: { gte: new Date(Date.UTC(2026, 9, 6)) } },
+    });
+    expect(people.length).toBe(52);
+  });
+});
