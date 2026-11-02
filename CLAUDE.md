@@ -13,7 +13,7 @@ you must flag the disagreement in `docs/QUESTIONS.md` — never silently follow 
 
 ## Commands (keep this section TRUE — update it the moment a command changes)
 - Install: `pnpm install`
-- Dev (web + worker): `pnpm dev`  · Web only: `pnpm dev:web`
+- Dev (web + worker): `pnpm dev`  · Web only: `pnpm dev:web` · Worker only: `pnpm dev:worker`
 - Local services (canonical): `docker compose up -d postgres redis minio`
   · Fallback without Docker (Homebrew Postgres/Redis/MinIO, same role SQL): `pnpm services:native`
   (needs `.env` with the local-services names from `.env.example`; see DECISIONS D-31)
