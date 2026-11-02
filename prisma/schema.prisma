@@ -11,3 +11,228 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DATABASE_URL_MIGRATE")
 }
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum WorkspaceStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum Role {
+  ADMIN
+  CS_LEADER
+  CSM
+  VIEWER
+}
+
+enum BookScope {
+  OWN
+  TEAM
+  ALL
+}
+
+enum MembershipStatus {
+  ACTIVE
+  DEACTIVATED
+}
+
+enum AuditActorType {
+  USER
+  AGENT
+  SYSTEM
+  INTEGRATION
+  PORTAL_CONTACT
+}
+
+// ─── Root (tenant) ───────────────────────────────────────────────────────────
+
+/// The tenant boundary: one of our customers. Root table — not workspace-scoped itself.
+model Workspace {
+  id                  String          @id @default(cuid())
+  name                String
+  slug                String          @unique
+  timezone            String          @default("UTC")
+  baseCurrency        String          @default("USD") @db.Char(3)
+  status              WorkspaceStatus @default(ACTIVE)
+  dataRetentionDays   Int?
+  deletionRequestedAt DateTime?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  memberships  Membership[]
+  invitations  Invitation[]
+  settings     WorkspaceSettings?
+  auditLogs    AuditLog[]
+  outboxEvents OutboxEvent[]
+  sessions     Session[]
+}
+
+// ─── Global identity (Auth.js) ───────────────────────────────────────────────
+
+/// [G] A person who can sign in. Email is stored lower-cased.
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  emailVerified DateTime?
+  /// argon2id hash for credentials sign-in; null for Google-only users.
+  passwordHash  String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  authAccounts AuthAccount[]
+  sessions     Session[]
+  memberships  Membership[]
+}
+
+/// [G] Auth.js linked OAuth account. Named AuthAccount so `Account` stays the customer
+/// account (DECISIONS D-08). Token columns hold ciphertext from src/lib/crypto.
+model AuthAccount {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+/// [G] Database session (DECISIONS D-07). activeWorkspaceId drives workspace context.
+model Session {
+  id                String   @id @default(cuid())
+  sessionToken      String   @unique
+  userId            String
+  expires           DateTime
+  activeWorkspaceId String?
+  createdAt         DateTime @default(now())
+
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activeWorkspace Workspace? @relation(fields: [activeWorkspaceId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+}
+
+/// [G] Auth.js verification tokens (email sign-in flows).
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Workspace-scoped [W] ────────────────────────────────────────────────────
+
+/// [W] A user's role in one workspace (ARCHITECTURE §7.2).
+model Membership {
+  id             String           @id @default(cuid())
+  workspaceId    String
+  userId         String
+  role           Role
+  canViewRevenue Boolean          @default(false)
+  bookScope      BookScope        @default(OWN)
+  status         MembershipStatus @default(ACTIVE)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  workspace          Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user               User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invitationsCreated Invitation[] @relation("InvitedBy")
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, userId])
+  @@index([userId])
+}
+
+/// [W] A pending invitation. Only the SHA-256 of the token is stored.
+model Invitation {
+  id                    String    @id @default(cuid())
+  workspaceId           String
+  email                 String
+  role                  Role
+  canViewRevenue        Boolean   @default(false)
+  bookScope             BookScope @default(OWN)
+  tokenHash             String    @unique
+  expiresAt             DateTime
+  acceptedAt            DateTime?
+  acceptedUserId        String?
+  revokedAt             DateTime?
+  invitedByMembershipId String
+  createdAt             DateTime  @default(now())
+
+  workspace Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  /// Composite FK: the inviter must be a member of the same workspace (ARCHITECTURE §3.1).
+  invitedBy Membership @relation("InvitedBy", fields: [workspaceId, invitedByMembershipId], references: [workspaceId, id], onDelete: Cascade)
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, email])
+}
+
+/// [W] Zod-typed workspace settings (src/modules/settings/schemas.ts).
+model WorkspaceSettings {
+  id          String   @id @default(cuid())
+  workspaceId String   @unique
+  data        Json     @default("{}")
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, id])
+}
+
+/// [W] Append-only audit trail (Rule 5, spec §6N2). UPDATE/DELETE are blocked by a trigger.
+model AuditLog {
+  id          String         @id @default(cuid())
+  workspaceId String
+  actorType   AuditActorType
+  actorId     String?
+  action      String
+  targetType  String?
+  targetId    String?
+  /// AgentRun id once agents exist (M4); plain column until then.
+  agentRunId  String?
+  summary     String
+  before      Json?
+  after       Json?
+  ip          String?
+  createdAt   DateTime       @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, createdAt])
+  @@index([workspaceId, targetType, targetId])
+}
+
+// ─── Global infrastructure ───────────────────────────────────────────────────
+
+/// [G*] Transactional outbox (D-22). Read only by the worker dispatcher, which re-scopes
+/// every handler with the event's workspaceId.
+model OutboxEvent {
+  id          String    @id @default(cuid())
+  workspaceId String
+  type        String
+  payload     Json
+  availableAt DateTime  @default(now())
+  processedAt DateTime?
+  attempts    Int       @default(0)
+  lastError   String?
+  createdAt   DateTime  @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([processedAt, availableAt])
+}
