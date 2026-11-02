@@ -1,0 +1,71 @@
+Title: Kestrel Robotics — workspace review
+Date: 2026-10-20
+Participants: Leo Marsh (Larkspur Analytics), Ola Nilsen, Bea Laurent
+Fictional seed transcript — demo data only.
+
+Leo Marsh: A sandbox view lets analysts try changes without affecting anyone. Our support team handles configuration questions through the help centre.
+Bea Laurent: Can you remind me where the setting for default date ranges is? That makes sense to me.
+Leo Marsh: There is a short guide in the help centre for people who joined recently. How has the team found the new folder structure since you reorganised it?
+Bea Laurent: We're planning to bring the planning team into the workspace next quarter. The morning routine works well now that everyone uses the same view.
+Leo Marsh: Let me make a note of that so we can come back to it next time. Our support team handles configuration questions through the help centre.
+Bea Laurent: We're happy with how the dashboards look after the clean-up. I'd like to understand how the filters work when we combine several sites.
+Leo Marsh: One thing I noticed is that the operations team has built several new views this month. The notes from these calls go into the shared folder as usual.
+Ola Nilsen: That makes sense to me. We had a question about permissions for read-only users.
+Leo Marsh: A sandbox view lets analysts try changes without affecting anyone. Can you walk me through how your team uses the weekly dashboard today?
+Ola Nilsen: The morning routine works well now that everyone uses the same view. The new starters found the training video useful last month.
+Leo Marsh: We have a training session on dashboards every Thursday, and anyone on your team is welcome. Shall we spend the last few minutes on questions from the wider team?
+Ola Nilsen: I think the weekly summary is the view people rely on the most. Thanks for setting this up, the timing works well for us this week.
+Leo Marsh: Thanks for making the time today, it's good to catch up with everyone. Thanks, that's really helpful context for me.
+Ola Nilsen: The analysts asked whether they can schedule a view to go to a shared mailbox. Our analysts mostly work in the detailed tables and export into their own models.
+Leo Marsh: We have a training session on dashboards every Thursday, and anyone on your team is welcome. How has the team found the new folder structure since you reorganised it?
+Ola Nilsen: The alert for late shipments is the one we look at first every day. I think the weekly summary is the view people rely on the most.
+Leo Marsh: Let me make a note of that so we can come back to it next time. Let me make a note of that so we can come back to it next time.
+Ola Nilsen: We're planning to bring the planning team into the workspace next quarter. We changed how we name the folders, which made things easier to find.
+Leo Marsh: Good, then I think we have everything we need for today. Our product team publishes release notes in the help centre each month.
+Ola Nilsen: We added a few people from the regional office, so they're still finding their way around. We had a question about permissions for read-only users.
+Leo Marsh: Shall we spend the last few minutes on questions from the wider team? That workflow looks sensible, and it's similar to how other operations teams do it.
+Ola Nilsen: The new starters found the training video useful last month. We're happy with how the dashboards look after the clean-up.
+Leo Marsh: Our product team publishes release notes in the help centre each month. Let's look at the alert settings, because there are a couple of options you might find useful.
+Bea Laurent: Thanks for setting this up, the timing works well for us this week. We're happy with how the dashboards look after the clean-up.
+Leo Marsh: Let's look at the alert settings, because there are a couple of options you might find useful. Shall we spend the last few minutes on questions from the wider team?
+Ola Nilsen: The analysts asked whether they can schedule a view to go to a shared mailbox. Thanks for setting this up, the timing works well for us this week.
+Leo Marsh: How has the team found the new folder structure since you reorganised it? Before we start, is there anything you'd like to make sure we cover in this call?
+Ola Nilsen: The analysts asked whether they can schedule a view to go to a shared mailbox. The alert for late shipments is the one we look at first every day.
+Leo Marsh: Is the current layout working for the people who read the reports each morning? The notes from these calls go into the shared folder as usual.
+Bea Laurent: I think the weekly summary is the view people rely on the most. We're planning to bring the planning team into the workspace next quarter.
+Leo Marsh: That's a good point, and other teams in your industry set it up the same way. We have a training session on dashboards every Thursday, and anyone on your team is welcome.
+Ola Nilsen: Our analysts mostly work in the detailed tables and export into their own models. Thanks for setting this up, the timing works well for us this week.
+Leo Marsh: That makes sense, and it matches what I saw in the workspace this morning. New team members get access through the invite page in settings.
+Ola Nilsen: Can you remind me where the setting for default date ranges is? Most of the team opens the morning dashboard before the daily stand-up.
+Leo Marsh: A sandbox view lets analysts try changes without affecting anyone. Let me make a note of that so we can come back to it next time.
+Ola Nilsen: I don't have anything else from my side, this was a useful session. We're planning to bring the planning team into the workspace next quarter.
+Leo Marsh: I'd suggest we keep this call monthly, unless you'd prefer a different rhythm. That workflow looks sensible, and it's similar to how other operations teams do it.
+Bea Laurent: Most of the team opens the morning dashboard before the daily stand-up. Can you remind me where the setting for default date ranges is?
+Leo Marsh: Before we start, is there anything you'd like to make sure we cover in this call? Good, then I think we have everything we need for today.
+Bea Laurent: We changed how we name the folders, which made things easier to find. It would help to have a short checklist for setting up a new site.
+Leo Marsh: I'd suggest we keep this call monthly, unless you'd prefer a different rhythm. How has the team found the new folder structure since you reorganised it?
+Bea Laurent: The alert for late shipments is the one we look at first every day. The morning routine works well now that everyone uses the same view.
+Leo Marsh: One thing I noticed is that the operations team has built several new views this month. That's a good point, and other teams in your industry set it up the same way.
+Bea Laurent: Can you remind me where the setting for default date ranges is? We're planning to bring the planning team into the workspace next quarter.
+Leo Marsh: Let me share my screen so we can look at the reporting setup together. Thanks, that's really helpful context for me.
+Bea Laurent: Our analysts mostly work in the detailed tables and export into their own models. We're still deciding how to organise reports by region versus by product line.
+Leo Marsh: That workflow looks sensible, and it's similar to how other operations teams do it. Let's take a quick look at which reports are opened most often.
+Ola Nilsen: The team keeps a list of new people in our shared drive. Our operations lead wants to see the same view on her tablet in the warehouse.
+Leo Marsh: New team members get access through the invite page in settings. Thanks, that's really helpful context for me.
+Ola Nilsen: The morning routine works well now that everyone uses the same view. We added a few people from the regional office, so they're still finding their way around.
+Leo Marsh: How has the team found the new folder structure since you reorganised it? The notes from these calls go into the shared folder as usual.
+Bea Laurent: We're still deciding how to organise reports by region versus by product line. Our operations lead wants to see the same view on her tablet in the warehouse.
+Leo Marsh: New team members get access through the invite page in settings. A sandbox view lets analysts try changes without affecting anyone.
+Bea Laurent: Our analysts mostly work in the detailed tables and export into their own models. The team keeps a list of new people in our shared drive.
+Leo Marsh: Can you walk me through how your team uses the weekly dashboard today? A sandbox view lets analysts try changes without affecting anyone.
+Ola Nilsen: We added a few people from the regional office, so they're still finding their way around. The alert for late shipments is the one we look at first every day.
+Leo Marsh: That's a good point, and other teams in your industry set it up the same way. There is a short guide in the help centre for people who joined recently.
+Bea Laurent: The analysts asked whether they can schedule a view to go to a shared mailbox. It would help to have a short checklist for setting up a new site.
+Leo Marsh: New team members get access through the invite page in settings. New team members get access through the invite page in settings.
+Bea Laurent: We're happy with how the dashboards look after the clean-up. The analysts asked whether they can schedule a view to go to a shared mailbox.
+Leo Marsh: Let me share my screen so we can look at the reporting setup together. Good, then I think we have everything we need for today.
+Ola Nilsen: Can you remind me where the setting for default date ranges is? The morning routine works well now that everyone uses the same view.
+Leo Marsh: Is the current layout working for the people who read the reports each morning? I'd suggest we keep this call monthly, unless you'd prefer a different rhythm.
+Ola Nilsen: Can you remind me where the setting for default date ranges is? The new starters found the training video useful last month.
+Leo Marsh: The help centre has a good article on sharing views. The help centre has a good article on sharing views.
+Ola Nilsen: The alert for late shipments is the one we look at first every day. We're happy with how the dashboards look after the clean-up.

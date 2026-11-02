@@ -282,6 +282,48 @@ async function setupM2(base: typeof A) {
       includedInPlans: ["Growth"],
     },
   });
+  const conversation = await db.conversation.create({
+    data: {
+      workspaceId,
+      accountId: account.id,
+      channel: "EMAIL",
+      subject: "Hi",
+      startedAt: day,
+      lastMessageAt: day,
+    },
+  });
+  const message = await db.message.create({
+    data: {
+      workspaceId,
+      conversationId: conversation.id,
+      accountId: account.id,
+      direction: "INBOUND",
+      fromContactId: contact.id,
+      sentAt: day,
+      bodyText: "Hello",
+    },
+  });
+  const ticket = await db.ticket.create({
+    data: {
+      workspaceId,
+      accountId: account.id,
+      contactId: contact.id,
+      conversationId: conversation.id,
+      subject: "Help",
+      openedAt: day,
+    },
+  });
+  const transcript = await db.callTranscript.create({
+    data: {
+      workspaceId,
+      conversationId: conversation.id,
+      accountId: account.id,
+      title: "Call",
+      provider: "upload",
+      occurredAt: day,
+      text: "Transcript",
+    },
+  });
   return {
     account,
     contact,
@@ -294,6 +336,10 @@ async function setupM2(base: typeof A) {
     userUsage,
     featureUsage,
     feature,
+    conversation,
+    message,
+    ticket,
+    transcript,
   };
 }
 
@@ -309,6 +355,10 @@ const M2_CASES = [
   { model: "UserUsageDaily", delegate: "userUsageDaily", row: (s: Side) => s.userUsage },
   { model: "FeatureUsageDaily", delegate: "featureUsageDaily", row: (s: Side) => s.featureUsage },
   { model: "FeatureCatalog", delegate: "featureCatalog", row: (s: Side) => s.feature },
+  { model: "Conversation", delegate: "conversation", row: (s: Side) => s.conversation },
+  { model: "Message", delegate: "message", row: (s: Side) => s.message },
+  { model: "Ticket", delegate: "ticket", row: (s: Side) => s.ticket },
+  { model: "CallTranscript", delegate: "callTranscript", row: (s: Side) => s.transcript },
 ] as const;
 
 describe("tenant isolation — M2 models (Rule 2)", () => {
@@ -416,6 +466,67 @@ describe("tenant isolation — M2 models (Rule 2)", () => {
         },
       }),
     ).rejects.toSatisfy(fk);
+  });
+
+  it("messages, tickets and transcripts cannot reference another workspace's records", async () => {
+    const fk = (e: unknown) =>
+      e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2003";
+    const ws = A.workspace.id;
+    await expect(
+      A.db.message.create({
+        data: {
+          workspaceId: ws,
+          conversationId: b2.conversation.id,
+          accountId: a2.account.id,
+          direction: "INBOUND",
+          sentAt: new Date(),
+          bodyText: "x",
+        },
+      }),
+    ).rejects.toSatisfy(fk);
+    await expect(
+      A.db.message.create({
+        data: {
+          workspaceId: ws,
+          conversationId: a2.conversation.id,
+          accountId: a2.account.id,
+          fromContactId: b2.contact.id,
+          direction: "INBOUND",
+          sentAt: new Date(),
+          bodyText: "x",
+        },
+      }),
+    ).rejects.toSatisfy(fk);
+    await expect(
+      A.db.ticket.create({
+        data: {
+          workspaceId: ws,
+          accountId: a2.account.id,
+          conversationId: b2.conversation.id,
+          subject: "x",
+          openedAt: new Date(),
+        },
+      }),
+    ).rejects.toSatisfy(fk);
+    await expect(
+      A.db.callTranscript.create({
+        data: {
+          workspaceId: ws,
+          conversationId: b2.conversation.id,
+          accountId: a2.account.id,
+          title: "x",
+          provider: "x",
+          occurredAt: new Date(),
+          text: "x",
+        },
+      }),
+    ).rejects.toSatisfy(fk);
+  });
+
+  it("a sentiment label without the AgentRun that produced it is rejected (Rule 5)", async () => {
+    await expect(
+      A.db.message.update({ where: { id: a2.message.id }, data: { sentimentLabel: "NEGATIVE" } }),
+    ).rejects.toThrow(/sentiment_agent_run_required|check constraint/i);
   });
 
   it("a StakeholderRole cannot join A's account to B's contact (composite FK)", async () => {

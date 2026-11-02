@@ -1,0 +1,55 @@
+Title: Halden Retail — export follow-up
+Date: 2026-10-02
+Participants: Leo Marsh (Larkspur Analytics), Elena Voss, Marcus Hill
+Fictional seed transcript — demo data only.
+
+Leo Marsh: Let me share my screen so we can look at the reporting setup together. There is a short guide in the help centre for people who joined recently.
+Elena Voss: We're still deciding how to organise reports by region versus by product line. We're still deciding how to organise reports by region versus by product line.
+Leo Marsh: Before we start, is there anything you'd like to make sure we cover in this call? We released a small update to filters last week, so let me show you where it lives.
+Elena Voss: The alert for late shipments is the one we look at first every day. It would help to have a short checklist for setting up a new site.
+Leo Marsh: Let's take a quick look at which reports are opened most often. Let me make a note of that so we can come back to it next time.
+Elena Voss: The new starters found the training video useful last month. The shared views have saved us some back and forth on email.
+Leo Marsh: One thing I noticed is that the operations team has built several new views this month. Before we start, is there anything you'd like to make sure we cover in this call?
+Elena Voss: Thanks for setting this up, the timing works well for us this week. We changed how we name the folders, which made things easier to find.
+Leo Marsh: A sandbox view lets analysts try changes without affecting anyone. Our product team publishes release notes in the help centre each month.
+Marcus Hill: We changed how we name the folders, which made things easier to find. Our operations lead wants to see the same view on her tablet in the warehouse.
+Leo Marsh: A sandbox view lets analysts try changes without affecting anyone. That workflow looks sensible, and it's similar to how other operations teams do it.
+Elena Voss: It would help to have a short checklist for setting up a new site. Can you remind me where the setting for default date ranges is?
+Leo Marsh: I'd suggest we keep this call monthly, unless you'd prefer a different rhythm. How has the team found the new folder structure since you reorganised it?
+Elena Voss: I'd like to understand how the filters work when we combine several sites. Our IT colleague manages the access settings on our side.
+Leo Marsh: A sandbox view lets analysts try changes without affecting anyone. Let me make a note of that so we can come back to it next time.
+Marcus Hill: Our operations lead wants to see the same view on her tablet in the warehouse. The morning routine works well now that everyone uses the same view.
+Leo Marsh: The help centre has a good article on sharing views. How has the team found the new folder structure since you reorganised it?
+Elena Voss: We're still deciding how to organise reports by region versus by product line. We added a few people from the regional office, so they're still finding their way around.
+Leo Marsh: Let me share my screen so we can look at the reporting setup together. That workflow looks sensible, and it's similar to how other operations teams do it.
+Marcus Hill: That makes sense to me. The alert for late shipments is the one we look at first every day.
+Leo Marsh: One thing I noticed is that the operations team has built several new views this month. I'd suggest we keep this call monthly, unless you'd prefer a different rhythm.
+Elena Voss: Can you remind me where the setting for default date ranges is? The new starters found the training video useful last month.
+Leo Marsh: Before we start, is there anything you'd like to make sure we cover in this call? Let me make a note of that so we can come back to it next time.
+Marcus Hill: I think the weekly summary is the view people rely on the most. Our IT colleague manages the access settings on our side.
+Leo Marsh: Is the current layout working for the people who read the reports each morning? Let me share my screen so we can look at the reporting setup together.
+Leo Marsh: Engineering will have the CSV export fix to you by October 24.
+Elena Voss: The analysts asked whether they can schedule a view to go to a shared mailbox. We're planning to bring the planning team into the workspace next quarter.
+Leo Marsh: Let's take a quick look at which reports are opened most often. The help centre has a good article on sharing views.
+Marcus Hill: Our operations lead wants to see the same view on her tablet in the warehouse. Can you remind me where the setting for default date ranges is?
+Leo Marsh: Let's look at the alert settings, because there are a couple of options you might find useful. That workflow looks sensible, and it's similar to how other operations teams do it.
+Elena Voss: Our analysts mostly work in the detailed tables and export into their own models. We're still deciding how to organise reports by region versus by product line.
+Leo Marsh: We have a training session on dashboards every Thursday, and anyone on your team is welcome. Good, then I think we have everything we need for today.
+Elena Voss: The shared views have saved us some back and forth on email. I don't have anything else from my side, this was a useful session.
+Leo Marsh: We have a training session on dashboards every Thursday, and anyone on your team is welcome. Thanks for making the time today, it's good to catch up with everyone.
+Elena Voss: Thanks for setting this up, the timing works well for us this week. The alert for late shipments is the one we look at first every day.
+Leo Marsh: Let me make a note of that so we can come back to it next time. That workflow looks sensible, and it's similar to how other operations teams do it.
+Elena Voss: Our analysts mostly work in the detailed tables and export into their own models. The analysts asked whether they can schedule a view to go to a shared mailbox.
+Leo Marsh: The help centre has a good article on sharing views. Let's look at the alert settings, because there are a couple of options you might find useful.
+Elena Voss: Can you remind me where the setting for default date ranges is? We had a question about permissions for read-only users.
+Leo Marsh: How has the team found the new folder structure since you reorganised it? That makes sense, and it matches what I saw in the workspace this morning.
+Marcus Hill: The morning routine works well now that everyone uses the same view. I think the weekly summary is the view people rely on the most.
+Leo Marsh: That's a good point, and other teams in your industry set it up the same way. That makes sense, and it matches what I saw in the workspace this morning.
+Marcus Hill: The team keeps a list of new people in our shared drive. Our analysts mostly work in the detailed tables and export into their own models.
+Leo Marsh: Thanks, that's really helpful context for me. Let's look at the alert settings, because there are a couple of options you might find useful.
+Marcus Hill: Could we get a copy of the slides from the training session? It would help to have a short checklist for setting up a new site.
+Leo Marsh: Our support team handles configuration questions through the help centre. Let's look at the alert settings, because there are a couple of options you might find useful.
+Elena Voss: The team keeps a list of new people in our shared drive. The shared views have saved us some back and forth on email.
+Leo Marsh: New team members get access through the invite page in settings. That workflow looks sensible, and it's similar to how other operations teams do it.
+Elena Voss: I don't have anything else from my side, this was a useful session. The new starters found the training video useful last month.
+Leo Marsh: We released a small update to filters last week, so let me show you where it lives. Thanks for making the time today, it's good to catch up with everyone.

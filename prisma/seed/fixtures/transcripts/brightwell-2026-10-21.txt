@@ -1,0 +1,80 @@
+Title: Brightwell Logistics — monthly check-in
+Date: 2026-10-21
+Participants: Leo Marsh (Larkspur Analytics), Lena Brooks, Ben Okafor, Tariq Haddad
+Fictional seed transcript — demo data only.
+
+Leo Marsh: Our support team handles configuration questions through the help centre. Good, then I think we have everything we need for today.
+Ben Okafor: We're planning to bring the planning team into the workspace next quarter. Our analysts mostly work in the detailed tables and export into their own models.
+Leo Marsh: Let's look at the alert settings, because there are a couple of options you might find useful. Let me share my screen so we can look at the reporting setup together.
+Lena Brooks: I'd like to understand how the filters work when we combine several sites. The alert for late shipments is the one we look at first every day.
+Leo Marsh: Thanks, that's really helpful context for me. The help centre has a good article on sharing views.
+Ben Okafor: We added a few people from the regional office, so they're still finding their way around. The analysts asked whether they can schedule a view to go to a shared mailbox.
+Leo Marsh: Let's look at the alert settings, because there are a couple of options you might find useful. That's a good point, and other teams in your industry set it up the same way.
+Ben Okafor: Could we get a copy of the slides from the training session? Thanks for setting this up, the timing works well for us this week.
+Leo Marsh: Let me make a note of that so we can come back to it next time. Our support team handles configuration questions through the help centre.
+Ben Okafor: We're planning to bring the planning team into the workspace next quarter. The alert for late shipments is the one we look at first every day.
+Leo Marsh: That's a good point, and other teams in your industry set it up the same way. Let's take a quick look at which reports are opened most often.
+Ben Okafor: That makes sense to me. I'd like to understand how the filters work when we combine several sites.
+Leo Marsh: Before we start, is there anything you'd like to make sure we cover in this call? Our product team publishes release notes in the help centre each month.
+Lena Brooks: Our operations lead wants to see the same view on her tablet in the warehouse. It would help to have a short checklist for setting up a new site.
+Leo Marsh: How has the team found the new folder structure since you reorganised it? The notes from these calls go into the shared folder as usual.
+Ben Okafor: Our operations lead wants to see the same view on her tablet in the warehouse. We're happy with how the dashboards look after the clean-up.
+Leo Marsh: One thing I noticed is that the operations team has built several new views this month. Let me make a note of that so we can come back to it next time.
+Lena Brooks: We added a few people from the regional office, so they're still finding their way around. I think the weekly summary is the view people rely on the most.
+Leo Marsh: Is the current layout working for the people who read the reports each morning? Let's look at the alert settings, because there are a couple of options you might find useful.
+Ben Okafor: The morning routine works well now that everyone uses the same view. Our analysts mostly work in the detailed tables and export into their own models.
+Leo Marsh: The help centre has a good article on sharing views. New team members get access through the invite page in settings.
+Ben Okafor: We had a question about permissions for read-only users. We're still deciding how to organise reports by region versus by product line.
+Leo Marsh: Can you walk me through how your team uses the weekly dashboard today? How has the team found the new folder structure since you reorganised it?
+Ben Okafor: Could we get a copy of the slides from the training session? The new starters found the training video useful last month.
+Ben Okafor: Our CFO asked us to look at Tallyfield before renewal.
+Leo Marsh: That makes sense, and it matches what I saw in the workspace this morning. Let me make a note of that so we can come back to it next time.
+Ben Okafor: Most of the team opens the morning dashboard before the daily stand-up. The analysts asked whether they can schedule a view to go to a shared mailbox.
+Leo Marsh: Let's take a quick look at which reports are opened most often. Thanks, that's really helpful context for me.
+Ben Okafor: Could we get a copy of the slides from the training session? It would help to have a short checklist for setting up a new site.
+Leo Marsh: We released a small update to filters last week, so let me show you where it lives. That's a good point, and other teams in your industry set it up the same way.
+Ben Okafor: We changed how we name the folders, which made things easier to find. I don't have anything else from my side, this was a useful session.
+Leo Marsh: Is the current layout working for the people who read the reports each morning? Let's take a quick look at which reports are opened most often.
+Lena Brooks: We had a question about permissions for read-only users. It would help to have a short checklist for setting up a new site.
+Leo Marsh: That's a good point, and other teams in your industry set it up the same way. Before we start, is there anything you'd like to make sure we cover in this call?
+Tariq Haddad: It would help to have a short checklist for setting up a new site. That makes sense to me.
+Leo Marsh: How has the team found the new folder structure since you reorganised it? Shall we spend the last few minutes on questions from the wider team?
+Ben Okafor: Thanks for setting this up, the timing works well for us this week. Our operations lead wants to see the same view on her tablet in the warehouse.
+Leo Marsh: Our product team publishes release notes in the help centre each month. We released a small update to filters last week, so let me show you where it lives.
+Ben Okafor: Could we get a copy of the slides from the training session? The morning routine works well now that everyone uses the same view.
+Leo Marsh: Thanks, that's really helpful context for me. Good, then I think we have everything we need for today.
+Ben Okafor: We had a question about permissions for read-only users. The alert for late shipments is the one we look at first every day.
+Leo Marsh: The notes from these calls go into the shared folder as usual. Good, then I think we have everything we need for today.
+Ben Okafor: The analysts asked whether they can schedule a view to go to a shared mailbox. We had a question about permissions for read-only users.
+Leo Marsh: How has the team found the new folder structure since you reorganised it? Can you walk me through how your team uses the weekly dashboard today?
+Ben Okafor: Thanks for setting this up, the timing works well for us this week. We're still deciding how to organise reports by region versus by product line.
+Leo Marsh: Thanks, that's really helpful context for me. Let me share my screen so we can look at the reporting setup together.
+Ben Okafor: I don't have anything else from my side, this was a useful session. Our IT colleague manages the access settings on our side.
+Leo Marsh: Can you walk me through how your team uses the weekly dashboard today? Our support team handles configuration questions through the help centre.
+Ben Okafor: The alert for late shipments is the one we look at first every day. I'd like to understand how the filters work when we combine several sites.
+Leo Marsh: One thing I noticed is that the operations team has built several new views this month. Let me make a note of that so we can come back to it next time.
+Lena Brooks: The morning routine works well now that everyone uses the same view. We had a question about permissions for read-only users.
+Tariq Haddad: Honestly the scheduled reports have been flaky since September.
+Leo Marsh: Let me share my screen so we can look at the reporting setup together. I'd suggest we keep this call monthly, unless you'd prefer a different rhythm.
+Lena Brooks: Our IT colleague manages the access settings on our side. The team keeps a list of new people in our shared drive.
+Leo Marsh: The help centre has a good article on sharing views. We released a small update to filters last week, so let me show you where it lives.
+Ben Okafor: That makes sense to me. Most of the team opens the morning dashboard before the daily stand-up.
+Leo Marsh: Let's look at the alert settings, because there are a couple of options you might find useful. That makes sense, and it matches what I saw in the workspace this morning.
+Ben Okafor: Thanks for setting this up, the timing works well for us this week. The team keeps a list of new people in our shared drive.
+Leo Marsh: Is the current layout working for the people who read the reports each morning? Good, then I think we have everything we need for today.
+Lena Brooks: I'd like to understand how the filters work when we combine several sites. We're still deciding how to organise reports by region versus by product line.
+Leo Marsh: Good, then I think we have everything we need for today. How has the team found the new folder structure since you reorganised it?
+Ben Okafor: That makes sense to me. Could we get a copy of the slides from the training session?
+Leo Marsh: A sandbox view lets analysts try changes without affecting anyone. We released a small update to filters last week, so let me show you where it lives.
+Lena Brooks: I'd like to understand how the filters work when we combine several sites. Most of the team opens the morning dashboard before the daily stand-up.
+Leo Marsh: That workflow looks sensible, and it's similar to how other operations teams do it. The notes from these calls go into the shared folder as usual.
+Lena Brooks: The team keeps a list of new people in our shared drive. That makes sense to me.
+Leo Marsh: Thanks for making the time today, it's good to catch up with everyone. Let's take a quick look at which reports are opened most often.
+Ben Okafor: We're still deciding how to organise reports by region versus by product line. The team keeps a list of new people in our shared drive.
+Leo Marsh: Thanks for making the time today, it's good to catch up with everyone. Thanks, that's really helpful context for me.
+Lena Brooks: Thanks for setting this up, the timing works well for us this week. I'd like to understand how the filters work when we combine several sites.
+Leo Marsh: Let me make a note of that so we can come back to it next time. Let's look at the alert settings, because there are a couple of options you might find useful.
+Tariq Haddad: Thanks for setting this up, the timing works well for us this week. We changed how we name the folders, which made things easier to find.
+Leo Marsh: Let me share my screen so we can look at the reporting setup together. Our product team publishes release notes in the help centre each month.
+Tariq Haddad: We had a question about permissions for read-only users. We had a question about permissions for read-only users.
+Leo Marsh: Thanks, that's really helpful context for me. One thing I noticed is that the operations team has built several new views this month.

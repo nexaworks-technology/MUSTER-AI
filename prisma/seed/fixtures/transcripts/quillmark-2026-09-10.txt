@@ -1,0 +1,67 @@
+Title: Quillmark Legal — check-in
+Date: 2026-09-10
+Participants: Aisha Bello (Larkspur Analytics), Grace Lin
+Fictional seed transcript — demo data only.
+
+Aisha Bello: How has the team found the new folder structure since you reorganised it? I'd suggest we keep this call monthly, unless you'd prefer a different rhythm.
+Grace Lin: We're happy with how the dashboards look after the clean-up. The team keeps a list of new people in our shared drive.
+Aisha Bello: We have a training session on dashboards every Thursday, and anyone on your team is welcome. Shall we spend the last few minutes on questions from the wider team?
+Grace Lin: Our analysts mostly work in the detailed tables and export into their own models. It would help to have a short checklist for setting up a new site.
+Aisha Bello: There is a short guide in the help centre for people who joined recently. The help centre has a good article on sharing views.
+Grace Lin: Most of the team opens the morning dashboard before the daily stand-up. Most of the team opens the morning dashboard before the daily stand-up.
+Aisha Bello: Thanks for making the time today, it's good to catch up with everyone. Shall we spend the last few minutes on questions from the wider team?
+Grace Lin: Our operations lead wants to see the same view on her tablet in the warehouse. We're still deciding how to organise reports by region versus by product line.
+Aisha Bello: I'd suggest we keep this call monthly, unless you'd prefer a different rhythm. That makes sense, and it matches what I saw in the workspace this morning.
+Grace Lin: The new starters found the training video useful last month. Our IT colleague manages the access settings on our side.
+Aisha Bello: Thanks for making the time today, it's good to catch up with everyone. We have a training session on dashboards every Thursday, and anyone on your team is welcome.
+Grace Lin: The new starters found the training video useful last month. That makes sense to me.
+Aisha Bello: Let's look at the alert settings, because there are a couple of options you might find useful. Can you walk me through how your team uses the weekly dashboard today?
+Grace Lin: We're planning to bring the planning team into the workspace next quarter. Our IT colleague manages the access settings on our side.
+Aisha Bello: New team members get access through the invite page in settings. That workflow looks sensible, and it's similar to how other operations teams do it.
+Grace Lin: The alert for late shipments is the one we look at first every day. We added a few people from the regional office, so they're still finding their way around.
+Aisha Bello: Good, then I think we have everything we need for today. Thanks for making the time today, it's good to catch up with everyone.
+Grace Lin: Can you remind me where the setting for default date ranges is? We're planning to bring the planning team into the workspace next quarter.
+Aisha Bello: Good, then I think we have everything we need for today. Let's look at the alert settings, because there are a couple of options you might find useful.
+Grace Lin: We're still deciding how to organise reports by region versus by product line. The new starters found the training video useful last month.
+Aisha Bello: Our product team publishes release notes in the help centre each month. Thanks, that's really helpful context for me.
+Grace Lin: Our operations lead wants to see the same view on her tablet in the warehouse. Our operations lead wants to see the same view on her tablet in the warehouse.
+Aisha Bello: Let's take a quick look at which reports are opened most often. One thing I noticed is that the operations team has built several new views this month.
+Grace Lin: The team keeps a list of new people in our shared drive. Thanks for setting this up, the timing works well for us this week.
+Aisha Bello: Before we start, is there anything you'd like to make sure we cover in this call? There is a short guide in the help centre for people who joined recently.
+Grace Lin: It would help to have a short checklist for setting up a new site. I don't have anything else from my side, this was a useful session.
+Aisha Bello: The help centre has a good article on sharing views. That's a good point, and other teams in your industry set it up the same way.
+Grace Lin: Our operations lead wants to see the same view on her tablet in the warehouse. The alert for late shipments is the one we look at first every day.
+Aisha Bello: Can you walk me through how your team uses the weekly dashboard today? The notes from these calls go into the shared folder as usual.
+Grace Lin: That makes sense to me. Most of the team opens the morning dashboard before the daily stand-up.
+Aisha Bello: Our support team handles configuration questions through the help centre. The help centre has a good article on sharing views.
+Grace Lin: Our IT colleague manages the access settings on our side. I'd like to understand how the filters work when we combine several sites.
+Aisha Bello: Is the current layout working for the people who read the reports each morning? Shall we spend the last few minutes on questions from the wider team?
+Grace Lin: The alert for late shipments is the one we look at first every day. The new starters found the training video useful last month.
+Aisha Bello: Our product team publishes release notes in the help centre each month. A sandbox view lets analysts try changes without affecting anyone.
+Grace Lin: The team keeps a list of new people in our shared drive. Can you remind me where the setting for default date ranges is?
+Aisha Bello: Is the current layout working for the people who read the reports each morning? That workflow looks sensible, and it's similar to how other operations teams do it.
+Grace Lin: That makes sense to me. Most of the team opens the morning dashboard before the daily stand-up.
+Aisha Bello: Before we start, is there anything you'd like to make sure we cover in this call? Shall we spend the last few minutes on questions from the wider team?
+Grace Lin: The new starters found the training video useful last month. We're planning to bring the planning team into the workspace next quarter.
+Aisha Bello: Can you walk me through how your team uses the weekly dashboard today? Our product team publishes release notes in the help centre each month.
+Grace Lin: Can you remind me where the setting for default date ranges is? That makes sense to me.
+Aisha Bello: I'd suggest we keep this call monthly, unless you'd prefer a different rhythm. I'd suggest we keep this call monthly, unless you'd prefer a different rhythm.
+Grace Lin: We added a few people from the regional office, so they're still finding their way around. The alert for late shipments is the one we look at first every day.
+Aisha Bello: Let's look at the alert settings, because there are a couple of options you might find useful. A sandbox view lets analysts try changes without affecting anyone.
+Grace Lin: The shared views have saved us some back and forth on email. The shared views have saved us some back and forth on email.
+Aisha Bello: Thanks for making the time today, it's good to catch up with everyone. The notes from these calls go into the shared folder as usual.
+Grace Lin: We're planning to bring the planning team into the workspace next quarter. Thanks for setting this up, the timing works well for us this week.
+Aisha Bello: The notes from these calls go into the shared folder as usual. I'd suggest we keep this call monthly, unless you'd prefer a different rhythm.
+Grace Lin: I think the weekly summary is the view people rely on the most. Our IT colleague manages the access settings on our side.
+Aisha Bello: Thanks, that's really helpful context for me. Is the current layout working for the people who read the reports each morning?
+Grace Lin: We had a question about permissions for read-only users. Our operations lead wants to see the same view on her tablet in the warehouse.
+Aisha Bello: That makes sense, and it matches what I saw in the workspace this morning. Good, then I think we have everything we need for today.
+Grace Lin: The alert for late shipments is the one we look at first every day. Can you remind me where the setting for default date ranges is?
+Aisha Bello: One thing I noticed is that the operations team has built several new views this month. We released a small update to filters last week, so let me show you where it lives.
+Grace Lin: The alert for late shipments is the one we look at first every day. I'd like to understand how the filters work when we combine several sites.
+Aisha Bello: Is the current layout working for the people who read the reports each morning? That makes sense, and it matches what I saw in the workspace this morning.
+Grace Lin: We're still deciding how to organise reports by region versus by product line. The new starters found the training video useful last month.
+Aisha Bello: How has the team found the new folder structure since you reorganised it? The notes from these calls go into the shared folder as usual.
+Grace Lin: Can you remind me where the setting for default date ranges is? We're planning to bring the planning team into the workspace next quarter.
+Aisha Bello: Can you walk me through how your team uses the weekly dashboard today? Let's take a quick look at which reports are opened most often.
+Grace Lin: That makes sense to me. I'd like to understand how the filters work when we combine several sites.

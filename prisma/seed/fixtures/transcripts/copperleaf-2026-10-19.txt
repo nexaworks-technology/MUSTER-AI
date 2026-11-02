@@ -1,0 +1,75 @@
+Title: Copperleaf Studios — team rollout
+Date: 2026-10-19
+Participants: Aisha Bello (Larkspur Analytics), Iris Tan, Felix Moreau
+Fictional seed transcript — demo data only.
+
+Aisha Bello: One thing I noticed is that the operations team has built several new views this month. Let's look at the alert settings, because there are a couple of options you might find useful.
+Felix Moreau: Our analysts mostly work in the detailed tables and export into their own models. The team keeps a list of new people in our shared drive.
+Aisha Bello: We have a training session on dashboards every Thursday, and anyone on your team is welcome. There is a short guide in the help centre for people who joined recently.
+Felix Moreau: The morning routine works well now that everyone uses the same view. The morning routine works well now that everyone uses the same view.
+Aisha Bello: Thanks for making the time today, it's good to catch up with everyone. I'd suggest we keep this call monthly, unless you'd prefer a different rhythm.
+Iris Tan: Our IT colleague manages the access settings on our side. We had a question about permissions for read-only users.
+Aisha Bello: Thanks for making the time today, it's good to catch up with everyone. Thanks, that's really helpful context for me.
+Felix Moreau: The analysts asked whether they can schedule a view to go to a shared mailbox. Most of the team opens the morning dashboard before the daily stand-up.
+Aisha Bello: That workflow looks sensible, and it's similar to how other operations teams do it. Thanks for making the time today, it's good to catch up with everyone.
+Iris Tan: The morning routine works well now that everyone uses the same view. We had a question about permissions for read-only users.
+Aisha Bello: The notes from these calls go into the shared folder as usual. That makes sense, and it matches what I saw in the workspace this morning.
+Iris Tan: Most of the team opens the morning dashboard before the daily stand-up. We added a few people from the regional office, so they're still finding their way around.
+Aisha Bello: Our product team publishes release notes in the help centre each month. Let me make a note of that so we can come back to it next time.
+Felix Moreau: The team keeps a list of new people in our shared drive. It would help to have a short checklist for setting up a new site.
+Aisha Bello: Shall we spend the last few minutes on questions from the wider team? Shall we spend the last few minutes on questions from the wider team?
+Iris Tan: The analysts asked whether they can schedule a view to go to a shared mailbox. I'd like to understand how the filters work when we combine several sites.
+Aisha Bello: That's a good point, and other teams in your industry set it up the same way. A sandbox view lets analysts try changes without affecting anyone.
+Felix Moreau: Our IT colleague manages the access settings on our side. The team keeps a list of new people in our shared drive.
+Aisha Bello: Let's look at the alert settings, because there are a couple of options you might find useful. We released a small update to filters last week, so let me show you where it lives.
+Felix Moreau: Thanks for setting this up, the timing works well for us this week. I don't have anything else from my side, this was a useful session.
+Aisha Bello: There is a short guide in the help centre for people who joined recently. The notes from these calls go into the shared folder as usual.
+Felix Moreau: The alert for late shipments is the one we look at first every day. The shared views have saved us some back and forth on email.
+Aisha Bello: One thing I noticed is that the operations team has built several new views this month. There is a short guide in the help centre for people who joined recently.
+Felix Moreau: Our IT colleague manages the access settings on our side. Thanks for setting this up, the timing works well for us this week.
+Aisha Bello: That workflow looks sensible, and it's similar to how other operations teams do it. That's a good point, and other teams in your industry set it up the same way.
+Iris Tan: Thanks for setting this up, the timing works well for us this week. I think the weekly summary is the view people rely on the most.
+Aisha Bello: Thanks for making the time today, it's good to catch up with everyone. Thanks for making the time today, it's good to catch up with everyone.
+Iris Tan: I think the weekly summary is the view people rely on the most. I don't have anything else from my side, this was a useful session.
+Aisha Bello: How has the team found the new folder structure since you reorganised it? I'd suggest we keep this call monthly, unless you'd prefer a different rhythm.
+Iris Tan: We're still deciding how to organise reports by region versus by product line. The new starters found the training video useful last month.
+Aisha Bello: Our product team publishes release notes in the help centre each month. That's a good point, and other teams in your industry set it up the same way.
+Iris Tan: The alert for late shipments is the one we look at first every day. Our analysts mostly work in the detailed tables and export into their own models.
+Aisha Bello: There is a short guide in the help centre for people who joined recently. That's a good point, and other teams in your industry set it up the same way.
+Felix Moreau: I'd like to understand how the filters work when we combine several sites. That makes sense to me.
+Aisha Bello: Our product team publishes release notes in the help centre each month. How has the team found the new folder structure since you reorganised it?
+Felix Moreau: We want every studio lead on Larkspur by Q1.
+Iris Tan: Thanks for setting this up, the timing works well for us this week. The shared views have saved us some back and forth on email.
+Aisha Bello: The help centre has a good article on sharing views. Let me share my screen so we can look at the reporting setup together.
+Felix Moreau: We added a few people from the regional office, so they're still finding their way around. We had a question about permissions for read-only users.
+Aisha Bello: That's a good point, and other teams in your industry set it up the same way. How has the team found the new folder structure since you reorganised it?
+Iris Tan: The morning routine works well now that everyone uses the same view. We're planning to bring the planning team into the workspace next quarter.
+Aisha Bello: Thanks, that's really helpful context for me. New team members get access through the invite page in settings.
+Felix Moreau: The morning routine works well now that everyone uses the same view. Thanks for setting this up, the timing works well for us this week.
+Aisha Bello: That makes sense, and it matches what I saw in the workspace this morning. Let me share my screen so we can look at the reporting setup together.
+Felix Moreau: The alert for late shipments is the one we look at first every day. The team keeps a list of new people in our shared drive.
+Aisha Bello: Let me share my screen so we can look at the reporting setup together. How has the team found the new folder structure since you reorganised it?
+Iris Tan: We're happy with how the dashboards look after the clean-up. We had a question about permissions for read-only users.
+Aisha Bello: Our support team handles configuration questions through the help centre. That makes sense, and it matches what I saw in the workspace this morning.
+Felix Moreau: Thanks for setting this up, the timing works well for us this week. I'd like to understand how the filters work when we combine several sites.
+Aisha Bello: The help centre has a good article on sharing views. Our support team handles configuration questions through the help centre.
+Iris Tan: We're still deciding how to organise reports by region versus by product line. The morning routine works well now that everyone uses the same view.
+Aisha Bello: Our product team publishes release notes in the help centre each month. Can you walk me through how your team uses the weekly dashboard today?
+Iris Tan: I don't have anything else from my side, this was a useful session. Can you remind me where the setting for default date ranges is?
+Aisha Bello: Let me share my screen so we can look at the reporting setup together. That workflow looks sensible, and it's similar to how other operations teams do it.
+Felix Moreau: We're happy with how the dashboards look after the clean-up. I don't have anything else from my side, this was a useful session.
+Aisha Bello: Let me make a note of that so we can come back to it next time. That makes sense, and it matches what I saw in the workspace this morning.
+Felix Moreau: The morning routine works well now that everyone uses the same view. I'd like to understand how the filters work when we combine several sites.
+Aisha Bello: I'd suggest we keep this call monthly, unless you'd prefer a different rhythm. We released a small update to filters last week, so let me show you where it lives.
+Iris Tan: Our operations lead wants to see the same view on her tablet in the warehouse. Could we get a copy of the slides from the training session?
+Aisha Bello: That makes sense, and it matches what I saw in the workspace this morning. We have a training session on dashboards every Thursday, and anyone on your team is welcome.
+Iris Tan: The new starters found the training video useful last month. We had a question about permissions for read-only users.
+Aisha Bello: One thing I noticed is that the operations team has built several new views this month. Our product team publishes release notes in the help centre each month.
+Felix Moreau: We're still deciding how to organise reports by region versus by product line. The shared views have saved us some back and forth on email.
+Aisha Bello: New team members get access through the invite page in settings. A sandbox view lets analysts try changes without affecting anyone.
+Felix Moreau: The shared views have saved us some back and forth on email. We're planning to bring the planning team into the workspace next quarter.
+Aisha Bello: One thing I noticed is that the operations team has built several new views this month. Good, then I think we have everything we need for today.
+Felix Moreau: We changed how we name the folders, which made things easier to find. Our operations lead wants to see the same view on her tablet in the warehouse.
+Aisha Bello: Our product team publishes release notes in the help centre each month. Our support team handles configuration questions through the help centre.
+Iris Tan: Our IT colleague manages the access settings on our side. We're happy with how the dashboards look after the clean-up.
+Aisha Bello: Can you walk me through how your team uses the weekly dashboard today? That workflow looks sensible, and it's similar to how other operations teams do it.

@@ -1,0 +1,68 @@
+Title: Glenmore Foods — check-in
+Date: 2026-08-31
+Participants: Aisha Bello (Larkspur Analytics), Olive Grant
+Fictional seed transcript — demo data only.
+
+Aisha Bello: Thanks for making the time today, it's good to catch up with everyone. Let's take a quick look at which reports are opened most often.
+Olive Grant: Our IT colleague manages the access settings on our side. That makes sense to me.
+Aisha Bello: Shall we spend the last few minutes on questions from the wider team? Thanks, that's really helpful context for me.
+Olive Grant: We're happy with how the dashboards look after the clean-up. Our IT colleague manages the access settings on our side.
+Aisha Bello: Thanks for making the time today, it's good to catch up with everyone. Good, then I think we have everything we need for today.
+Olive Grant: Our operations lead wants to see the same view on her tablet in the warehouse. I'd like to understand how the filters work when we combine several sites.
+Aisha Bello: We have a training session on dashboards every Thursday, and anyone on your team is welcome. Can you walk me through how your team uses the weekly dashboard today?
+Olive Grant: I'd like to understand how the filters work when we combine several sites. The team keeps a list of new people in our shared drive.
+Aisha Bello: Our product team publishes release notes in the help centre each month. Let's look at the alert settings, because there are a couple of options you might find useful.
+Olive Grant: We changed how we name the folders, which made things easier to find. Can you remind me where the setting for default date ranges is?
+Aisha Bello: Let me make a note of that so we can come back to it next time. The notes from these calls go into the shared folder as usual.
+Olive Grant: Our operations lead wants to see the same view on her tablet in the warehouse. We changed how we name the folders, which made things easier to find.
+Aisha Bello: Let me share my screen so we can look at the reporting setup together. Let's look at the alert settings, because there are a couple of options you might find useful.
+Olive Grant: Most of the team opens the morning dashboard before the daily stand-up. We're still deciding how to organise reports by region versus by product line.
+Aisha Bello: How has the team found the new folder structure since you reorganised it? Thanks, that's really helpful context for me.
+Olive Grant: Thanks for setting this up, the timing works well for us this week. That makes sense to me.
+Aisha Bello: There is a short guide in the help centre for people who joined recently. That's a good point, and other teams in your industry set it up the same way.
+Olive Grant: We added a few people from the regional office, so they're still finding their way around. It would help to have a short checklist for setting up a new site.
+Aisha Bello: Thanks for making the time today, it's good to catch up with everyone. Can you walk me through how your team uses the weekly dashboard today?
+Olive Grant: We're still deciding how to organise reports by region versus by product line. The shared views have saved us some back and forth on email.
+Aisha Bello: How has the team found the new folder structure since you reorganised it? Our support team handles configuration questions through the help centre.
+Olive Grant: Our operations lead wants to see the same view on her tablet in the warehouse. That makes sense to me.
+Aisha Bello: Good, then I think we have everything we need for today. New team members get access through the invite page in settings.
+Olive Grant: Most of the team opens the morning dashboard before the daily stand-up. We added a few people from the regional office, so they're still finding their way around.
+Aisha Bello: Thanks for making the time today, it's good to catch up with everyone. That's a good point, and other teams in your industry set it up the same way.
+Olive Grant: We're still deciding how to organise reports by region versus by product line. Could we get a copy of the slides from the training session?
+Aisha Bello: That workflow looks sensible, and it's similar to how other operations teams do it. That workflow looks sensible, and it's similar to how other operations teams do it.
+Olive Grant: The alert for late shipments is the one we look at first every day. The new starters found the training video useful last month.
+Aisha Bello: A sandbox view lets analysts try changes without affecting anyone. Thanks, that's really helpful context for me.
+Olive Grant: I don't have anything else from my side, this was a useful session. The morning routine works well now that everyone uses the same view.
+Aisha Bello: Can you walk me through how your team uses the weekly dashboard today? That workflow looks sensible, and it's similar to how other operations teams do it.
+Olive Grant: The shared views have saved us some back and forth on email. We're happy with how the dashboards look after the clean-up.
+Aisha Bello: Our product team publishes release notes in the help centre each month. Can you walk me through how your team uses the weekly dashboard today?
+Olive Grant: The analysts asked whether they can schedule a view to go to a shared mailbox. We had a question about permissions for read-only users.
+Aisha Bello: Let's take a quick look at which reports are opened most often. That's a good point, and other teams in your industry set it up the same way.
+Olive Grant: I'd like to understand how the filters work when we combine several sites. The alert for late shipments is the one we look at first every day.
+Aisha Bello: Let's take a quick look at which reports are opened most often. I'd suggest we keep this call monthly, unless you'd prefer a different rhythm.
+Olive Grant: The new starters found the training video useful last month. That makes sense to me.
+Aisha Bello: Thanks for making the time today, it's good to catch up with everyone. Let's take a quick look at which reports are opened most often.
+Olive Grant: Most of the team opens the morning dashboard before the daily stand-up. Could we get a copy of the slides from the training session?
+Aisha Bello: The help centre has a good article on sharing views. We have a training session on dashboards every Thursday, and anyone on your team is welcome.
+Olive Grant: We're still deciding how to organise reports by region versus by product line. Our operations lead wants to see the same view on her tablet in the warehouse.
+Aisha Bello: How has the team found the new folder structure since you reorganised it? That makes sense, and it matches what I saw in the workspace this morning.
+Olive Grant: That makes sense to me. The new starters found the training video useful last month.
+Aisha Bello: New team members get access through the invite page in settings. Is the current layout working for the people who read the reports each morning?
+Olive Grant: The analysts asked whether they can schedule a view to go to a shared mailbox. The alert for late shipments is the one we look at first every day.
+Aisha Bello: Thanks, that's really helpful context for me. That's a good point, and other teams in your industry set it up the same way.
+Olive Grant: We changed how we name the folders, which made things easier to find. The new starters found the training video useful last month.
+Aisha Bello: Our product team publishes release notes in the help centre each month. Let me make a note of that so we can come back to it next time.
+Olive Grant: We changed how we name the folders, which made things easier to find. Can you remind me where the setting for default date ranges is?
+Aisha Bello: The help centre has a good article on sharing views. Let's look at the alert settings, because there are a couple of options you might find useful.
+Olive Grant: The team keeps a list of new people in our shared drive. I don't have anything else from my side, this was a useful session.
+Aisha Bello: Thanks, that's really helpful context for me. Our product team publishes release notes in the help centre each month.
+Olive Grant: Our IT colleague manages the access settings on our side. The alert for late shipments is the one we look at first every day.
+Aisha Bello: Let's take a quick look at which reports are opened most often. I'd suggest we keep this call monthly, unless you'd prefer a different rhythm.
+Olive Grant: We're still deciding how to organise reports by region versus by product line. Our operations lead wants to see the same view on her tablet in the warehouse.
+Aisha Bello: Shall we spend the last few minutes on questions from the wider team? How has the team found the new folder structure since you reorganised it?
+Olive Grant: Can you remind me where the setting for default date ranges is? It would help to have a short checklist for setting up a new site.
+Aisha Bello: Good, then I think we have everything we need for today. That's a good point, and other teams in your industry set it up the same way.
+Olive Grant: The team keeps a list of new people in our shared drive. We added a few people from the regional office, so they're still finding their way around.
+Aisha Bello: Can you walk me through how your team uses the weekly dashboard today? Can you walk me through how your team uses the weekly dashboard today?
+Olive Grant: The team keeps a list of new people in our shared drive. We're still deciding how to organise reports by region versus by product line.
+Aisha Bello: That makes sense, and it matches what I saw in the workspace this morning. Shall we spend the last few minutes on questions from the wider team?

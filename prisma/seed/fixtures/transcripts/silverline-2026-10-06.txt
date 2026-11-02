@@ -1,0 +1,58 @@
+Title: Silverline Couriers — dispatch reporting
+Date: 2026-10-06
+Participants: Leo Marsh (Larkspur Analytics), Ken Ward, Amy Stone
+Fictional seed transcript — demo data only.
+
+Leo Marsh: Our product team publishes release notes in the help centre each month. Is the current layout working for the people who read the reports each morning?
+Ken Ward: The morning routine works well now that everyone uses the same view. Thanks for setting this up, the timing works well for us this week.
+Leo Marsh: Is the current layout working for the people who read the reports each morning? Thanks for making the time today, it's good to catch up with everyone.
+Ken Ward: Thanks for setting this up, the timing works well for us this week. Thanks for setting this up, the timing works well for us this week.
+Leo Marsh: Let's look at the alert settings, because there are a couple of options you might find useful. New team members get access through the invite page in settings.
+Amy Stone: We had a question about permissions for read-only users. We're planning to bring the planning team into the workspace next quarter.
+Leo Marsh: That's a good point, and other teams in your industry set it up the same way. Good, then I think we have everything we need for today.
+Ken Ward: Our IT colleague manages the access settings on our side. Thanks for setting this up, the timing works well for us this week.
+Leo Marsh: Thanks, that's really helpful context for me. One thing I noticed is that the operations team has built several new views this month.
+Amy Stone: It would help to have a short checklist for setting up a new site. The morning routine works well now that everyone uses the same view.
+Leo Marsh: New team members get access through the invite page in settings. Let's take a quick look at which reports are opened most often.
+Ken Ward: That makes sense to me. We added a few people from the regional office, so they're still finding their way around.
+Leo Marsh: The notes from these calls go into the shared folder as usual. Let's take a quick look at which reports are opened most often.
+Amy Stone: Our operations lead wants to see the same view on her tablet in the warehouse. The new starters found the training video useful last month.
+Leo Marsh: Thanks, that's really helpful context for me. Our product team publishes release notes in the help centre each month.
+Ken Ward: We're planning to bring the planning team into the workspace next quarter. The new starters found the training video useful last month.
+Leo Marsh: One thing I noticed is that the operations team has built several new views this month. I'd suggest we keep this call monthly, unless you'd prefer a different rhythm.
+Amy Stone: Our analysts mostly work in the detailed tables and export into their own models. That makes sense to me.
+Leo Marsh: Is the current layout working for the people who read the reports each morning? A sandbox view lets analysts try changes without affecting anyone.
+Ken Ward: We're planning to bring the planning team into the workspace next quarter. That makes sense to me.
+Leo Marsh: We have a training session on dashboards every Thursday, and anyone on your team is welcome. Before we start, is there anything you'd like to make sure we cover in this call?
+Ken Ward: Our operations lead wants to see the same view on her tablet in the warehouse. The team keeps a list of new people in our shared drive.
+Leo Marsh: Shall we spend the last few minutes on questions from the wider team? New team members get access through the invite page in settings.
+Ken Ward: The alert for late shipments is the one we look at first every day. Our analysts mostly work in the detailed tables and export into their own models.
+Leo Marsh: Let's take a quick look at which reports are opened most often. Before we start, is there anything you'd like to make sure we cover in this call?
+Amy Stone: Our IT colleague manages the access settings on our side. The analysts asked whether they can schedule a view to go to a shared mailbox.
+Leo Marsh: There is a short guide in the help centre for people who joined recently. Let me make a note of that so we can come back to it next time.
+Amy Stone: We had a question about permissions for read-only users. Can you remind me where the setting for default date ranges is?
+Leo Marsh: Let me share my screen so we can look at the reporting setup together. Thanks for making the time today, it's good to catch up with everyone.
+Ken Ward: Our operations lead wants to see the same view on her tablet in the warehouse. We had a question about permissions for read-only users.
+Leo Marsh: Good, then I think we have everything we need for today. Good, then I think we have everything we need for today.
+Amy Stone: I'd like to understand how the filters work when we combine several sites. Our IT colleague manages the access settings on our side.
+Leo Marsh: That makes sense, and it matches what I saw in the workspace this morning. Good, then I think we have everything we need for today.
+Ken Ward: Could we get a copy of the slides from the training session? We had a question about permissions for read-only users.
+Leo Marsh: Let's look at the alert settings, because there are a couple of options you might find useful. Let me make a note of that so we can come back to it next time.
+Ken Ward: I think the weekly summary is the view people rely on the most. It would help to have a short checklist for setting up a new site.
+Leo Marsh: There is a short guide in the help centre for people who joined recently. A sandbox view lets analysts try changes without affecting anyone.
+Ken Ward: The team keeps a list of new people in our shared drive. The alert for late shipments is the one we look at first every day.
+Leo Marsh: Thanks, that's really helpful context for me. How has the team found the new folder structure since you reorganised it?
+Amy Stone: We added a few people from the regional office, so they're still finding their way around. The new starters found the training video useful last month.
+Leo Marsh: That makes sense, and it matches what I saw in the workspace this morning. Good, then I think we have everything we need for today.
+Amy Stone: Most of the team opens the morning dashboard before the daily stand-up. That makes sense to me.
+Leo Marsh: Let me make a note of that so we can come back to it next time. The help centre has a good article on sharing views.
+Amy Stone: That makes sense to me. Thanks for setting this up, the timing works well for us this week.
+Leo Marsh: Before we start, is there anything you'd like to make sure we cover in this call? Before we start, is there anything you'd like to make sure we cover in this call?
+Amy Stone: Can you remind me where the setting for default date ranges is? The analysts asked whether they can schedule a view to go to a shared mailbox.
+Leo Marsh: Let's take a quick look at which reports are opened most often. Our product team publishes release notes in the help centre each month.
+Amy Stone: Our operations lead wants to see the same view on her tablet in the warehouse. Most of the team opens the morning dashboard before the daily stand-up.
+Leo Marsh: Our support team handles configuration questions through the help centre. Thanks for making the time today, it's good to catch up with everyone.
+Amy Stone: Our IT colleague manages the access settings on our side. Could we get a copy of the slides from the training session?
+Leo Marsh: How has the team found the new folder structure since you reorganised it? Let's take a quick look at which reports are opened most often.
+Amy Stone: The analysts asked whether they can schedule a view to go to a shared mailbox. I'd like to understand how the filters work when we combine several sites.
+Leo Marsh: Shall we spend the last few minutes on questions from the wider team? Can you walk me through how your team uses the weekly dashboard today?

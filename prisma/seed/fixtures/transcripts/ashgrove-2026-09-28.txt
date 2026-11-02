@@ -1,0 +1,80 @@
+Title: Ashgrove Manufacturing — after the migration
+Date: 2026-09-28
+Participants: Aisha Bello (Larkspur Analytics), Victor Kim, Hana Sato
+Fictional seed transcript — demo data only.
+
+Aisha Bello: Let me share my screen so we can look at the reporting setup together. Our support team handles configuration questions through the help centre.
+Hana Sato: That makes sense to me. Our operations lead wants to see the same view on her tablet in the warehouse.
+Aisha Bello: Is the current layout working for the people who read the reports each morning? There is a short guide in the help centre for people who joined recently.
+Hana Sato: Could we get a copy of the slides from the training session? Can you remind me where the setting for default date ranges is?
+Aisha Bello: The help centre has a good article on sharing views. One thing I noticed is that the operations team has built several new views this month.
+Victor Kim: I don't have anything else from my side, this was a useful session. Our operations lead wants to see the same view on her tablet in the warehouse.
+Aisha Bello: The help centre has a good article on sharing views. Is the current layout working for the people who read the reports each morning?
+Hana Sato: I don't have anything else from my side, this was a useful session. Our operations lead wants to see the same view on her tablet in the warehouse.
+Aisha Bello: Let me make a note of that so we can come back to it next time. Shall we spend the last few minutes on questions from the wider team?
+Victor Kim: The shared views have saved us some back and forth on email. I'd like to understand how the filters work when we combine several sites.
+Aisha Bello: We released a small update to filters last week, so let me show you where it lives. Let me make a note of that so we can come back to it next time.
+Hana Sato: I don't have anything else from my side, this was a useful session. We're planning to bring the planning team into the workspace next quarter.
+Aisha Bello: Can you walk me through how your team uses the weekly dashboard today? That's a good point, and other teams in your industry set it up the same way.
+Victor Kim: The shared views have saved us some back and forth on email. I don't have anything else from my side, this was a useful session.
+Aisha Bello: We released a small update to filters last week, so let me show you where it lives. Thanks for making the time today, it's good to catch up with everyone.
+Victor Kim: Could we get a copy of the slides from the training session? The alert for late shipments is the one we look at first every day.
+Aisha Bello: Is the current layout working for the people who read the reports each morning? How has the team found the new folder structure since you reorganised it?
+Victor Kim: The analysts asked whether they can schedule a view to go to a shared mailbox. We're planning to bring the planning team into the workspace next quarter.
+Aisha Bello: Thanks for making the time today, it's good to catch up with everyone. Our support team handles configuration questions through the help centre.
+Victor Kim: We're still deciding how to organise reports by region versus by product line. Most of the team opens the morning dashboard before the daily stand-up.
+Aisha Bello: How has the team found the new folder structure since you reorganised it? Thanks, that's really helpful context for me.
+Hana Sato: Most of the team opens the morning dashboard before the daily stand-up. Thanks for setting this up, the timing works well for us this week.
+Aisha Bello: The help centre has a good article on sharing views. Let me share my screen so we can look at the reporting setup together.
+Hana Sato: The team keeps a list of new people in our shared drive. I don't have anything else from my side, this was a useful session.
+Aisha Bello: How has the team found the new folder structure since you reorganised it? The help centre has a good article on sharing views.
+Hana Sato: Our analysts mostly work in the detailed tables and export into their own models. I'd like to understand how the filters work when we combine several sites.
+Aisha Bello: The notes from these calls go into the shared folder as usual. Is the current layout working for the people who read the reports each morning?
+Victor Kim: Thanks for setting this up, the timing works well for us this week. The shared views have saved us some back and forth on email.
+Aisha Bello: Let's take a quick look at which reports are opened most often. Shall we spend the last few minutes on questions from the wider team?
+Victor Kim: I don't have anything else from my side, this was a useful session. Our IT colleague manages the access settings on our side.
+Aisha Bello: Can you walk me through how your team uses the weekly dashboard today? How has the team found the new folder structure since you reorganised it?
+Hana Sato: We're happy with how the dashboards look after the clean-up. That makes sense to me.
+Aisha Bello: Can you walk me through how your team uses the weekly dashboard today? Before we start, is there anything you'd like to make sure we cover in this call?
+Hana Sato: The alert for late shipments is the one we look at first every day. We're happy with how the dashboards look after the clean-up.
+Aisha Bello: Let's take a quick look at which reports are opened most often. Is the current layout working for the people who read the reports each morning?
+Hana Sato: The analysts asked whether they can schedule a view to go to a shared mailbox. The new starters found the training video useful last month.
+Aisha Bello: That workflow looks sensible, and it's similar to how other operations teams do it. Our product team publishes release notes in the help centre each month.
+Hana Sato: The analysts asked whether they can schedule a view to go to a shared mailbox. The shared views have saved us some back and forth on email.
+Aisha Bello: Let me share my screen so we can look at the reporting setup together. New team members get access through the invite page in settings.
+Victor Kim: I'd like to understand how the filters work when we combine several sites. The morning routine works well now that everyone uses the same view.
+Aisha Bello: The notes from these calls go into the shared folder as usual. The notes from these calls go into the shared folder as usual.
+Hana Sato: The shared views have saved us some back and forth on email. It would help to have a short checklist for setting up a new site.
+Aisha Bello: Let me make a note of that so we can come back to it next time. Our support team handles configuration questions through the help centre.
+Hana Sato: Most of the team opens the morning dashboard before the daily stand-up. The morning routine works well now that everyone uses the same view.
+Aisha Bello: I'd suggest we keep this call monthly, unless you'd prefer a different rhythm. A sandbox view lets analysts try changes without affecting anyone.
+Hana Sato: We had a question about permissions for read-only users. Could we get a copy of the slides from the training session?
+Aisha Bello: Is the current layout working for the people who read the reports each morning? The notes from these calls go into the shared folder as usual.
+Victor Kim: We added a few people from the regional office, so they're still finding their way around. Can you remind me where the setting for default date ranges is?
+Aisha Bello: Let me share my screen so we can look at the reporting setup together. Let's look at the alert settings, because there are a couple of options you might find useful.
+Hana Sato: Thanks for setting this up, the timing works well for us this week. The shared views have saved us some back and forth on email.
+Aisha Bello: Let's look at the alert settings, because there are a couple of options you might find useful. I'd suggest we keep this call monthly, unless you'd prefer a different rhythm.
+Hana Sato: It would help to have a short checklist for setting up a new site. I don't have anything else from my side, this was a useful session.
+Aisha Bello: Is the current layout working for the people who read the reports each morning? New team members get access through the invite page in settings.
+Victor Kim: The morning routine works well now that everyone uses the same view. That makes sense to me.
+Aisha Bello: Thanks for making the time today, it's good to catch up with everyone. That workflow looks sensible, and it's similar to how other operations teams do it.
+Victor Kim: We added a few people from the regional office, so they're still finding their way around. We're still deciding how to organise reports by region versus by product line.
+Aisha Bello: Good, then I think we have everything we need for today. Can you walk me through how your team uses the weekly dashboard today?
+Hana Sato: The analysts asked whether they can schedule a view to go to a shared mailbox. We're planning to bring the planning team into the workspace next quarter.
+Aisha Bello: We released a small update to filters last week, so let me show you where it lives. Good, then I think we have everything we need for today.
+Victor Kim: The shared views have saved us some back and forth on email. I think the weekly summary is the view people rely on the most.
+Aisha Bello: A sandbox view lets analysts try changes without affecting anyone. We have a training session on dashboards every Thursday, and anyone on your team is welcome.
+Victor Kim: We added a few people from the regional office, so they're still finding their way around. We're still deciding how to organise reports by region versus by product line.
+Aisha Bello: I'd suggest we keep this call monthly, unless you'd prefer a different rhythm. Good, then I think we have everything we need for today.
+Victor Kim: I'd like to understand how the filters work when we combine several sites. Our analysts mostly work in the detailed tables and export into their own models.
+Aisha Bello: There is a short guide in the help centre for people who joined recently. That workflow looks sensible, and it's similar to how other operations teams do it.
+Victor Kim: The analysts asked whether they can schedule a view to go to a shared mailbox. We're planning to bring the planning team into the workspace next quarter.
+Aisha Bello: Good, then I think we have everything we need for today. That workflow looks sensible, and it's similar to how other operations teams do it.
+Hana Sato: Our IT colleague manages the access settings on our side. The team keeps a list of new people in our shared drive.
+Aisha Bello: Shall we spend the last few minutes on questions from the wider team? Before we start, is there anything you'd like to make sure we cover in this call?
+Victor Kim: We added a few people from the regional office, so they're still finding their way around. Could we get a copy of the slides from the training session?
+Aisha Bello: Let's take a quick look at which reports are opened most often. Thanks, that's really helpful context for me.
+Victor Kim: I don't have anything else from my side, this was a useful session. The analysts asked whether they can schedule a view to go to a shared mailbox.
+Aisha Bello: Let me share my screen so we can look at the reporting setup together. I'd suggest we keep this call monthly, unless you'd prefer a different rhythm.
+Victor Kim: We changed how we name the folders, which made things easier to find. The shared views have saved us some back and forth on email.
+Aisha Bello: We released a small update to filters last week, so let me show you where it lives. Our product team publishes release notes in the help centre each month.

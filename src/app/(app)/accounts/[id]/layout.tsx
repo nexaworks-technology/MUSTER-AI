@@ -20,6 +20,8 @@ export default async function AccountLayout({
     { label: "Overview", href: base },
     { label: "People", href: `${base}/people` },
     { label: "Usage", href: `${base}/usage` },
+    { label: "Tickets", href: `${base}/tickets` },
+    { label: "Conversations", href: `${base}/conversations` },
     { label: "Contracts & billing", href: `${base}/billing` },
   ] as Array<{ label: string; href: Route }>;
   return (

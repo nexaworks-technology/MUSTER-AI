@@ -190,3 +190,53 @@ describe("seed v1 — usage (docs/SEED_DATA.md §4)", () => {
     expect(people.length).toBe(52);
   });
 });
+
+describe("seed v1 — conversations, tickets, transcripts (docs/SEED_DATA.md §5)", () => {
+  it("stores every planted line verbatim, and no derived AI data", async () => {
+    const [ws] = await runSeed({ includeTestTenant: false });
+    const db = scopedDb({ workspaceId: ws!.id });
+    const transcriptText = (await db.callTranscript.findMany({ select: { text: true } }))
+      .map((t) => t.text)
+      .join("\n");
+    for (const line of [
+      "Our CFO asked us to look at Tallyfield before renewal.",
+      "Engineering will have the CSV export fix to you by October 24.",
+      "We need to see the API limits fixed before we sign again.",
+      "We want every studio lead on Larkspur by Q1.",
+      "Our goal is to cut month-end close to 3 days.",
+    ]) {
+      expect(transcriptText).toContain(line);
+    }
+    // The post-call transcript is an upload fixture for M10, not seeded.
+    expect(transcriptText).not.toContain(
+      "Ben will own the rollout from finance now that Maya has left.",
+    );
+    expect(await db.callTranscript.count({ where: { source: "SEED" } })).toBe(13);
+    const halden = await db.message.findFirst({
+      where: { bodyText: { contains: "We are losing patience." } },
+    });
+    expect(halden).not.toBeNull();
+    const quillmark = await db.message.findFirst({
+      where: { bodyText: "How do I export all our data before we cancel at the end of the term?" },
+    });
+    expect(quillmark).not.toBeNull();
+    expect(await db.message.count({ where: { sentimentLabel: { not: null } } })).toBe(0);
+  });
+
+  it("plants Halden's three repeat tickets and Northgate's open high-priority ticket", async () => {
+    const [ws] = await runSeed({ includeTestTenant: false });
+    const db = scopedDb({ workspaceId: ws!.id });
+    const halden = await db.account.findFirstOrThrow({ where: { name: "Halden Retail" } });
+    const repeats = await db.ticket.findMany({
+      where: { accountId: halden.id, subject: "CSV export fails at month-end" },
+    });
+    expect(repeats).toHaveLength(3);
+    expect(repeats.filter((t) => t.status === "OPEN" && t.isEscalated)).toHaveLength(1);
+    const northgate = await db.account.findFirstOrThrow({ where: { name: "Northgate Freight" } });
+    expect(
+      await db.ticket.count({
+        where: { accountId: northgate.id, status: "OPEN", priority: "HIGH" },
+      }),
+    ).toBe(1);
+  });
+});

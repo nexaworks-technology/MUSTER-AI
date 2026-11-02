@@ -78,6 +78,10 @@ model Workspace {
   userUsageDaily   UserUsageDaily[]
   featureUsage     FeatureUsageDaily[]
   featureCatalog   FeatureCatalog[]
+  conversations    Conversation[]
+  messages         Message[]
+  tickets          Ticket[]
+  transcripts      CallTranscript[]
 }
 
 // ─── Global identity (Auth.js) ───────────────────────────────────────────────
@@ -163,6 +167,7 @@ model Membership {
   user               User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   invitationsCreated Invitation[] @relation("InvitedBy")
   ownedAccounts      Account[]    @relation("AccountOwner")
+  sentMessages       Message[]    @relation("MessageFromMember")
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, userId])
@@ -343,6 +348,10 @@ model Account {
   usageDaily       UsageDaily[]
   userUsageDaily   UserUsageDaily[]
   featureUsage     FeatureUsageDaily[]
+  conversations    Conversation[]
+  messages         Message[]
+  tickets          Ticket[]
+  transcripts      CallTranscript[]
 
   @@unique([workspaceId, id])
   @@index([workspaceId, renewalDate])
@@ -376,6 +385,8 @@ model Contact {
   account   Account           @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
   roles     StakeholderRole[]
   usage     UserUsageDaily[]
+  messages  Message[]
+  tickets   Ticket[]
 
   @@unique([workspaceId, id])
   @@index([workspaceId, accountId])
@@ -636,4 +647,149 @@ model FeatureCatalog {
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, featureKey])
+}
+
+// ─── M2: Support & conversations ─────────────────────────────────────────────
+
+enum TicketStatus {
+  OPEN
+  PENDING
+  SOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum ConversationChannel {
+  EMAIL
+  CALL
+  CHAT
+  TICKET
+  MEETING
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum SentimentLabel {
+  NEGATIVE
+  NEUTRAL
+  POSITIVE
+  MIXED
+}
+
+/// [W] A thread of messages with an account (email thread, call, chat, ticket thread).
+model Conversation {
+  id               String              @id @default(cuid())
+  workspaceId      String
+  accountId        String
+  channel          ConversationChannel
+  subject          String?
+  startedAt        DateTime
+  lastMessageAt    DateTime
+  externalThreadId String?
+  source           RecordSource        @default(MANUAL)
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  workspace   Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account     Account          @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  messages    Message[]
+  tickets     Ticket[]
+  transcripts CallTranscript[]
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, accountId, lastMessageAt])
+}
+
+/// [W] One message. The text is a source record that extraction (M4/M9) will read.
+model Message {
+  id                  String           @id @default(cuid())
+  workspaceId         String
+  conversationId      String
+  accountId           String
+  direction           MessageDirection
+  fromContactId       String?
+  fromMembershipId    String?
+  fromAddress         String?
+  toAddresses         String[]
+  sentAt              DateTime
+  subject             String?
+  bodyText            String
+  bodyStorageKey      String?
+  /// Written only by an AI run (M4/M9): a label without its AgentRun is rejected (DB CHECK).
+  sentimentLabel      SentimentLabel?
+  sentimentAgentRunId String?
+  source              RecordSource     @default(MANUAL)
+  createdAt           DateTime         @default(now())
+
+  workspace    Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [workspaceId, conversationId], references: [workspaceId, id], onDelete: Cascade)
+  account      Account      @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  fromContact  Contact?     @relation(fields: [workspaceId, fromContactId], references: [workspaceId, id], onDelete: SetNull)
+  fromMember   Membership?  @relation("MessageFromMember", fields: [workspaceId, fromMembershipId], references: [workspaceId, id], onDelete: SetNull)
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, accountId, sentAt])
+  @@index([workspaceId, conversationId, sentAt])
+}
+
+/// [W] A support ticket (Zendesk/Freshdesk in M9; CSV/seed now). Its thread is a Conversation.
+model Ticket {
+  id              String         @id @default(cuid())
+  workspaceId     String
+  accountId       String
+  contactId       String?
+  conversationId  String?
+  externalId      String?
+  subject         String
+  status          TicketStatus   @default(OPEN)
+  priority        TicketPriority @default(NORMAL)
+  isEscalated     Boolean        @default(false)
+  openedAt        DateTime
+  firstResponseAt DateTime?
+  closedAt        DateTime?
+  source          RecordSource   @default(MANUAL)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account      Account       @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  contact      Contact?      @relation(fields: [workspaceId, contactId], references: [workspaceId, id], onDelete: SetNull)
+  conversation Conversation? @relation(fields: [workspaceId, conversationId], references: [workspaceId, id], onDelete: SetNull)
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, accountId, status])
+  @@index([workspaceId, openedAt])
+}
+
+/// [W] A call transcript (Fireflies/Gong/Zoom in M10; seed/upload now). Read-only in M2.
+model CallTranscript {
+  id             String       @id @default(cuid())
+  workspaceId    String
+  conversationId String
+  accountId      String
+  title          String
+  provider       String
+  language       String       @default("en")
+  occurredAt     DateTime
+  text           String
+  segments       Json?
+  durationSec    Int?
+  source         RecordSource @default(MANUAL)
+  createdAt      DateTime     @default(now())
+
+  workspace    Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [workspaceId, conversationId], references: [workspaceId, id], onDelete: Cascade)
+  account      Account      @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, accountId, occurredAt])
 }

@@ -1,0 +1,73 @@
+Title: Marlow & Finch — month-end reporting
+Date: 2026-10-08
+Participants: Leo Marsh (Larkspur Analytics), Hugo Marlow, Anya Finch
+Fictional seed transcript — demo data only.
+
+Leo Marsh: A sandbox view lets analysts try changes without affecting anyone. Thanks for making the time today, it's good to catch up with everyone.
+Anya Finch: I'd like to understand how the filters work when we combine several sites. Most of the team opens the morning dashboard before the daily stand-up.
+Leo Marsh: Let's take a quick look at which reports are opened most often. Is the current layout working for the people who read the reports each morning?
+Hugo Marlow: Thanks for setting this up, the timing works well for us this week. I think the weekly summary is the view people rely on the most.
+Leo Marsh: Thanks, that's really helpful context for me. Before we start, is there anything you'd like to make sure we cover in this call?
+Anya Finch: We're planning to bring the planning team into the workspace next quarter. The new starters found the training video useful last month.
+Leo Marsh: Can you walk me through how your team uses the weekly dashboard today? Our support team handles configuration questions through the help centre.
+Hugo Marlow: The analysts asked whether they can schedule a view to go to a shared mailbox. Most of the team opens the morning dashboard before the daily stand-up.
+Leo Marsh: That makes sense, and it matches what I saw in the workspace this morning. Can you walk me through how your team uses the weekly dashboard today?
+Hugo Marlow: We had a question about permissions for read-only users. Could we get a copy of the slides from the training session?
+Leo Marsh: Let's take a quick look at which reports are opened most often. New team members get access through the invite page in settings.
+Anya Finch: Thanks for setting this up, the timing works well for us this week. We had a question about permissions for read-only users.
+Leo Marsh: Can you walk me through how your team uses the weekly dashboard today? A sandbox view lets analysts try changes without affecting anyone.
+Anya Finch: We had a question about permissions for read-only users. Our IT colleague manages the access settings on our side.
+Leo Marsh: Thanks for making the time today, it's good to catch up with everyone. Can you walk me through how your team uses the weekly dashboard today?
+Anya Finch: We had a question about permissions for read-only users. Thanks for setting this up, the timing works well for us this week.
+Leo Marsh: The notes from these calls go into the shared folder as usual. Shall we spend the last few minutes on questions from the wider team?
+Hugo Marlow: The shared views have saved us some back and forth on email. Can you remind me where the setting for default date ranges is?
+Leo Marsh: Good, then I think we have everything we need for today. That workflow looks sensible, and it's similar to how other operations teams do it.
+Hugo Marlow: Can you remind me where the setting for default date ranges is? Most of the team opens the morning dashboard before the daily stand-up.
+Leo Marsh: Thanks for making the time today, it's good to catch up with everyone. How has the team found the new folder structure since you reorganised it?
+Anya Finch: We're happy with how the dashboards look after the clean-up. The analysts asked whether they can schedule a view to go to a shared mailbox.
+Leo Marsh: Let's take a quick look at which reports are opened most often. Is the current layout working for the people who read the reports each morning?
+Hugo Marlow: I'd like to understand how the filters work when we combine several sites. I don't have anything else from my side, this was a useful session.
+Leo Marsh: Good, then I think we have everything we need for today. A sandbox view lets analysts try changes without affecting anyone.
+Hugo Marlow: Most of the team opens the morning dashboard before the daily stand-up. Our analysts mostly work in the detailed tables and export into their own models.
+Leo Marsh: Shall we spend the last few minutes on questions from the wider team? Let's look at the alert settings, because there are a couple of options you might find useful.
+Hugo Marlow: The new starters found the training video useful last month. We changed how we name the folders, which made things easier to find.
+Leo Marsh: We have a training session on dashboards every Thursday, and anyone on your team is welcome. Our support team handles configuration questions through the help centre.
+Hugo Marlow: Could we get a copy of the slides from the training session? We had a question about permissions for read-only users.
+Leo Marsh: Let me share my screen so we can look at the reporting setup together. Let's take a quick look at which reports are opened most often.
+Hugo Marlow: Our operations lead wants to see the same view on her tablet in the warehouse. That makes sense to me.
+Leo Marsh: Our product team publishes release notes in the help centre each month. We have a training session on dashboards every Thursday, and anyone on your team is welcome.
+Anya Finch: We changed how we name the folders, which made things easier to find. Thanks for setting this up, the timing works well for us this week.
+Anya Finch: Our goal is to cut month-end close to 3 days.
+Leo Marsh: Let me share my screen so we can look at the reporting setup together. Let's look at the alert settings, because there are a couple of options you might find useful.
+Hugo Marlow: I'd like to understand how the filters work when we combine several sites. We changed how we name the folders, which made things easier to find.
+Leo Marsh: The help centre has a good article on sharing views. Let me make a note of that so we can come back to it next time.
+Anya Finch: The alert for late shipments is the one we look at first every day. Could we get a copy of the slides from the training session?
+Leo Marsh: Our product team publishes release notes in the help centre each month. I'd suggest we keep this call monthly, unless you'd prefer a different rhythm.
+Hugo Marlow: I'd like to understand how the filters work when we combine several sites. The analysts asked whether they can schedule a view to go to a shared mailbox.
+Leo Marsh: That workflow looks sensible, and it's similar to how other operations teams do it. How has the team found the new folder structure since you reorganised it?
+Hugo Marlow: We're planning to bring the planning team into the workspace next quarter. We had a question about permissions for read-only users.
+Leo Marsh: Before we start, is there anything you'd like to make sure we cover in this call? Before we start, is there anything you'd like to make sure we cover in this call?
+Hugo Marlow: The shared views have saved us some back and forth on email. We added a few people from the regional office, so they're still finding their way around.
+Leo Marsh: A sandbox view lets analysts try changes without affecting anyone. Let's take a quick look at which reports are opened most often.
+Hugo Marlow: Our IT colleague manages the access settings on our side. Could we get a copy of the slides from the training session?
+Leo Marsh: Our product team publishes release notes in the help centre each month. A sandbox view lets analysts try changes without affecting anyone.
+Anya Finch: Our operations lead wants to see the same view on her tablet in the warehouse. We changed how we name the folders, which made things easier to find.
+Leo Marsh: There is a short guide in the help centre for people who joined recently. We have a training session on dashboards every Thursday, and anyone on your team is welcome.
+Anya Finch: I think the weekly summary is the view people rely on the most. The morning routine works well now that everyone uses the same view.
+Leo Marsh: Thanks, that's really helpful context for me. Thanks, that's really helpful context for me.
+Anya Finch: The alert for late shipments is the one we look at first every day. The morning routine works well now that everyone uses the same view.
+Leo Marsh: Let's take a quick look at which reports are opened most often. New team members get access through the invite page in settings.
+Anya Finch: The shared views have saved us some back and forth on email. The team keeps a list of new people in our shared drive.
+Leo Marsh: Good, then I think we have everything we need for today. Our support team handles configuration questions through the help centre.
+Hugo Marlow: The team keeps a list of new people in our shared drive. That makes sense to me.
+Leo Marsh: Is the current layout working for the people who read the reports each morning? Thanks, that's really helpful context for me.
+Hugo Marlow: That makes sense to me. We had a question about permissions for read-only users.
+Leo Marsh: Let's look at the alert settings, because there are a couple of options you might find useful. One thing I noticed is that the operations team has built several new views this month.
+Anya Finch: The morning routine works well now that everyone uses the same view. Our IT colleague manages the access settings on our side.
+Leo Marsh: I'd suggest we keep this call monthly, unless you'd prefer a different rhythm. Thanks for making the time today, it's good to catch up with everyone.
+Anya Finch: Thanks for setting this up, the timing works well for us this week. The new starters found the training video useful last month.
+Leo Marsh: Good, then I think we have everything we need for today. Let's look at the alert settings, because there are a couple of options you might find useful.
+Hugo Marlow: The morning routine works well now that everyone uses the same view. Thanks for setting this up, the timing works well for us this week.
+Leo Marsh: Let's look at the alert settings, because there are a couple of options you might find useful. That's a good point, and other teams in your industry set it up the same way.
+Anya Finch: The alert for late shipments is the one we look at first every day. It would help to have a short checklist for setting up a new site.
+Leo Marsh: One thing I noticed is that the operations team has built several new views this month. We have a training session on dashboards every Thursday, and anyone on your team is welcome.

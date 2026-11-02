@@ -1,0 +1,79 @@
+Title: Fairhaven Dental Group — check-in
+Date: 2026-10-14
+Participants: Aisha Bello (Larkspur Analytics), Sofia Russo
+Fictional seed transcript — demo data only.
+
+Aisha Bello: We have a training session on dashboards every Thursday, and anyone on your team is welcome. Thanks for making the time today, it's good to catch up with everyone.
+Sofia Russo: I'd like to understand how the filters work when we combine several sites. I think the weekly summary is the view people rely on the most.
+Aisha Bello: Shall we spend the last few minutes on questions from the wider team? I'd suggest we keep this call monthly, unless you'd prefer a different rhythm.
+Sofia Russo: We're planning to bring the planning team into the workspace next quarter. We're still deciding how to organise reports by region versus by product line.
+Aisha Bello: Our product team publishes release notes in the help centre each month. Is the current layout working for the people who read the reports each morning?
+Sofia Russo: We're planning to bring the planning team into the workspace next quarter. I don't have anything else from my side, this was a useful session.
+Aisha Bello: That workflow looks sensible, and it's similar to how other operations teams do it. We have a training session on dashboards every Thursday, and anyone on your team is welcome.
+Sofia Russo: The analysts asked whether they can schedule a view to go to a shared mailbox. The morning routine works well now that everyone uses the same view.
+Aisha Bello: New team members get access through the invite page in settings. Our support team handles configuration questions through the help centre.
+Sofia Russo: Our operations lead wants to see the same view on her tablet in the warehouse. We're happy with how the dashboards look after the clean-up.
+Aisha Bello: Our product team publishes release notes in the help centre each month. How has the team found the new folder structure since you reorganised it?
+Sofia Russo: We're planning to bring the planning team into the workspace next quarter. Our analysts mostly work in the detailed tables and export into their own models.
+Aisha Bello: Let's look at the alert settings, because there are a couple of options you might find useful. We have a training session on dashboards every Thursday, and anyone on your team is welcome.
+Sofia Russo: The alert for late shipments is the one we look at first every day. I don't have anything else from my side, this was a useful session.
+Aisha Bello: That's a good point, and other teams in your industry set it up the same way. I'd suggest we keep this call monthly, unless you'd prefer a different rhythm.
+Sofia Russo: We had a question about permissions for read-only users. I don't have anything else from my side, this was a useful session.
+Aisha Bello: Good, then I think we have everything we need for today. Let's take a quick look at which reports are opened most often.
+Sofia Russo: We're happy with how the dashboards look after the clean-up. The team keeps a list of new people in our shared drive.
+Aisha Bello: Good, then I think we have everything we need for today. Let me make a note of that so we can come back to it next time.
+Sofia Russo: I think the weekly summary is the view people rely on the most. Our IT colleague manages the access settings on our side.
+Aisha Bello: Let's take a quick look at which reports are opened most often. Our product team publishes release notes in the help centre each month.
+Sofia Russo: I think the weekly summary is the view people rely on the most. We're happy with how the dashboards look after the clean-up.
+Aisha Bello: That workflow looks sensible, and it's similar to how other operations teams do it. How has the team found the new folder structure since you reorganised it?
+Sofia Russo: The alert for late shipments is the one we look at first every day. The alert for late shipments is the one we look at first every day.
+Aisha Bello: Let's look at the alert settings, because there are a couple of options you might find useful. The help centre has a good article on sharing views.
+Sofia Russo: We added a few people from the regional office, so they're still finding their way around. We're happy with how the dashboards look after the clean-up.
+Aisha Bello: The notes from these calls go into the shared folder as usual. The help centre has a good article on sharing views.
+Sofia Russo: The morning routine works well now that everyone uses the same view. The team keeps a list of new people in our shared drive.
+Aisha Bello: I'd suggest we keep this call monthly, unless you'd prefer a different rhythm. Let's take a quick look at which reports are opened most often.
+Sofia Russo: Most of the team opens the morning dashboard before the daily stand-up. Thanks for setting this up, the timing works well for us this week.
+Aisha Bello: Before we start, is there anything you'd like to make sure we cover in this call? Is the current layout working for the people who read the reports each morning?
+Sofia Russo: That makes sense to me. Our IT colleague manages the access settings on our side.
+Aisha Bello: The help centre has a good article on sharing views. Is the current layout working for the people who read the reports each morning?
+Sofia Russo: The team keeps a list of new people in our shared drive. We added a few people from the regional office, so they're still finding their way around.
+Aisha Bello: Our product team publishes release notes in the help centre each month. Our product team publishes release notes in the help centre each month.
+Sofia Russo: The alert for late shipments is the one we look at first every day. We're still deciding how to organise reports by region versus by product line.
+Aisha Bello: We released a small update to filters last week, so let me show you where it lives. The notes from these calls go into the shared folder as usual.
+Sofia Russo: Most of the team opens the morning dashboard before the daily stand-up. We're still deciding how to organise reports by region versus by product line.
+Aisha Bello: Our support team handles configuration questions through the help centre. How has the team found the new folder structure since you reorganised it?
+Sofia Russo: I don't have anything else from my side, this was a useful session. I'd like to understand how the filters work when we combine several sites.
+Aisha Bello: We released a small update to filters last week, so let me show you where it lives. Before we start, is there anything you'd like to make sure we cover in this call?
+Sofia Russo: We had a question about permissions for read-only users. We're planning to bring the planning team into the workspace next quarter.
+Aisha Bello: I'd suggest we keep this call monthly, unless you'd prefer a different rhythm. Our support team handles configuration questions through the help centre.
+Sofia Russo: I'd like to understand how the filters work when we combine several sites. The alert for late shipments is the one we look at first every day.
+Aisha Bello: Our product team publishes release notes in the help centre each month. Thanks for making the time today, it's good to catch up with everyone.
+Sofia Russo: The morning routine works well now that everyone uses the same view. Thanks for setting this up, the timing works well for us this week.
+Aisha Bello: How has the team found the new folder structure since you reorganised it? Our support team handles configuration questions through the help centre.
+Sofia Russo: We're happy with how the dashboards look after the clean-up. We're still deciding how to organise reports by region versus by product line.
+Aisha Bello: I'd suggest we keep this call monthly, unless you'd prefer a different rhythm. Our product team publishes release notes in the help centre each month.
+Sofia Russo: We changed how we name the folders, which made things easier to find. Our analysts mostly work in the detailed tables and export into their own models.
+Aisha Bello: The notes from these calls go into the shared folder as usual. Good, then I think we have everything we need for today.
+Sofia Russo: Can you remind me where the setting for default date ranges is? We're happy with how the dashboards look after the clean-up.
+Aisha Bello: How has the team found the new folder structure since you reorganised it? That's a good point, and other teams in your industry set it up the same way.
+Sofia Russo: That makes sense to me. Thanks for setting this up, the timing works well for us this week.
+Aisha Bello: We released a small update to filters last week, so let me show you where it lives. There is a short guide in the help centre for people who joined recently.
+Sofia Russo: That makes sense to me. I'd like to understand how the filters work when we combine several sites.
+Aisha Bello: Let me make a note of that so we can come back to it next time. Thanks, that's really helpful context for me.
+Sofia Russo: Could we get a copy of the slides from the training session? We changed how we name the folders, which made things easier to find.
+Aisha Bello: New team members get access through the invite page in settings. Let me make a note of that so we can come back to it next time.
+Sofia Russo: The new starters found the training video useful last month. The alert for late shipments is the one we look at first every day.
+Aisha Bello: Let's look at the alert settings, because there are a couple of options you might find useful. There is a short guide in the help centre for people who joined recently.
+Sofia Russo: The alert for late shipments is the one we look at first every day. That makes sense to me.
+Aisha Bello: We have a training session on dashboards every Thursday, and anyone on your team is welcome. Shall we spend the last few minutes on questions from the wider team?
+Sofia Russo: We added a few people from the regional office, so they're still finding their way around. Can you remind me where the setting for default date ranges is?
+Aisha Bello: Let's look at the alert settings, because there are a couple of options you might find useful. Can you walk me through how your team uses the weekly dashboard today?
+Sofia Russo: Our IT colleague manages the access settings on our side. Our operations lead wants to see the same view on her tablet in the warehouse.
+Aisha Bello: Good, then I think we have everything we need for today. Let's look at the alert settings, because there are a couple of options you might find useful.
+Sofia Russo: It would help to have a short checklist for setting up a new site. We had a question about permissions for read-only users.
+Aisha Bello: That makes sense, and it matches what I saw in the workspace this morning. Our support team handles configuration questions through the help centre.
+Sofia Russo: Thanks for setting this up, the timing works well for us this week. I think the weekly summary is the view people rely on the most.
+Aisha Bello: Let's take a quick look at which reports are opened most often. One thing I noticed is that the operations team has built several new views this month.
+Sofia Russo: Can you remind me where the setting for default date ranges is? Most of the team opens the morning dashboard before the daily stand-up.
+Aisha Bello: Thanks for making the time today, it's good to catch up with everyone. Before we start, is there anything you'd like to make sure we cover in this call?
+Sofia Russo: Most of the team opens the morning dashboard before the daily stand-up. I'd like to understand how the filters work when we combine several sites.

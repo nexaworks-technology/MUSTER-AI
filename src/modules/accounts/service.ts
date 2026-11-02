@@ -234,3 +234,32 @@ export async function requireEditableAccount(actor: Actor, accountId: string) {
   if (!account.canEdit) throw new ForbiddenError("accounts:edit");
   return account;
 }
+
+/**
+ * Last touch = the latest two-way interaction between our customer's team and the account:
+ * email/chat/call/meeting messages and call transcripts. Support tickets are not a CSM touch.
+ * Derived, never typed in; no interaction on record = null (shown as "No contact recorded").
+ */
+export async function recomputeLastTouch(
+  db: Pick<ReturnType<typeof scopedDb>, "$executeRaw">,
+  workspaceId: string,
+): Promise<number> {
+  return db.$executeRaw`
+    UPDATE "Account" a SET "lastTouchAt" = t.last
+    FROM (
+      SELECT acc.id AS "accountId", max(x.at) AS last
+      FROM "Account" acc
+      LEFT JOIN (
+        SELECT m."accountId", m."sentAt" AS at
+        FROM "Message" m
+        JOIN "Conversation" c ON c."workspaceId" = m."workspaceId" AND c.id = m."conversationId"
+        WHERE m."workspaceId" = ${workspaceId} AND c.channel IN ('EMAIL', 'CHAT', 'CALL', 'MEETING')
+        UNION ALL
+        SELECT ct."accountId", ct."occurredAt" AS at FROM "CallTranscript" ct WHERE ct."workspaceId" = ${workspaceId}
+      ) x ON x."accountId" = acc.id
+      WHERE acc."workspaceId" = ${workspaceId}
+      GROUP BY acc.id
+    ) t
+    WHERE a.id = t."accountId" AND a."workspaceId" = ${workspaceId}
+      AND a."lastTouchAt" IS DISTINCT FROM t.last`;
+}

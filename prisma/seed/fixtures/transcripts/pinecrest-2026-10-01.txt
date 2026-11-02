@@ -1,0 +1,82 @@
+Title: Pinecrest Health — onboarding kickoff
+Date: 2026-10-01
+Participants: Aisha Bello (Larkspur Analytics), Mei Chen, Will Grant
+Fictional seed transcript — demo data only.
+
+Aisha Bello: Let me share my screen so we can look at the reporting setup together. Thanks for making the time today, it's good to catch up with everyone.
+Mei Chen: I'd like to understand how the filters work when we combine several sites. We're still deciding how to organise reports by region versus by product line.
+Aisha Bello: Can you walk me through how your team uses the weekly dashboard today? That's a good point, and other teams in your industry set it up the same way.
+Mei Chen: That makes sense to me. I'd like to understand how the filters work when we combine several sites.
+Aisha Bello: New team members get access through the invite page in settings. The notes from these calls go into the shared folder as usual.
+Will Grant: We changed how we name the folders, which made things easier to find. The new starters found the training video useful last month.
+Aisha Bello: The notes from these calls go into the shared folder as usual. One thing I noticed is that the operations team has built several new views this month.
+Will Grant: The team keeps a list of new people in our shared drive. We're happy with how the dashboards look after the clean-up.
+Aisha Bello: Our product team publishes release notes in the help centre each month. One thing I noticed is that the operations team has built several new views this month.
+Mei Chen: I think the weekly summary is the view people rely on the most. We changed how we name the folders, which made things easier to find.
+Aisha Bello: We have a training session on dashboards every Thursday, and anyone on your team is welcome. One thing I noticed is that the operations team has built several new views this month.
+Mei Chen: The analysts asked whether they can schedule a view to go to a shared mailbox. We're happy with how the dashboards look after the clean-up.
+Aisha Bello: That's a good point, and other teams in your industry set it up the same way. That makes sense, and it matches what I saw in the workspace this morning.
+Will Grant: Our analysts mostly work in the detailed tables and export into their own models. Our operations lead wants to see the same view on her tablet in the warehouse.
+Aisha Bello: How has the team found the new folder structure since you reorganised it? New team members get access through the invite page in settings.
+Mei Chen: Could we get a copy of the slides from the training session? I don't have anything else from my side, this was a useful session.
+Aisha Bello: The help centre has a good article on sharing views. Before we start, is there anything you'd like to make sure we cover in this call?
+Will Grant: Most of the team opens the morning dashboard before the daily stand-up. I'd like to understand how the filters work when we combine several sites.
+Aisha Bello: Let's take a quick look at which reports are opened most often. Let's take a quick look at which reports are opened most often.
+Mei Chen: I don't have anything else from my side, this was a useful session. We added a few people from the regional office, so they're still finding their way around.
+Aisha Bello: There is a short guide in the help centre for people who joined recently. The notes from these calls go into the shared folder as usual.
+Mei Chen: I'd like to understand how the filters work when we combine several sites. I think the weekly summary is the view people rely on the most.
+Aisha Bello: Let me share my screen so we can look at the reporting setup together. New team members get access through the invite page in settings.
+Will Grant: Most of the team opens the morning dashboard before the daily stand-up. I'd like to understand how the filters work when we combine several sites.
+Aisha Bello: That's a good point, and other teams in your industry set it up the same way. Shall we spend the last few minutes on questions from the wider team?
+Mei Chen: We changed how we name the folders, which made things easier to find. Thanks for setting this up, the timing works well for us this week.
+Aisha Bello: The help centre has a good article on sharing views. Let's take a quick look at which reports are opened most often.
+Mei Chen: The new starters found the training video useful last month. Can you remind me where the setting for default date ranges is?
+Aisha Bello: Let me make a note of that so we can come back to it next time. A sandbox view lets analysts try changes without affecting anyone.
+Will Grant: The morning routine works well now that everyone uses the same view. We added a few people from the regional office, so they're still finding their way around.
+Aisha Bello: The notes from these calls go into the shared folder as usual. Thanks for making the time today, it's good to catch up with everyone.
+Will Grant: The shared views have saved us some back and forth on email. I don't have anything else from my side, this was a useful session.
+Aisha Bello: That workflow looks sensible, and it's similar to how other operations teams do it. Thanks for making the time today, it's good to catch up with everyone.
+Will Grant: Could we get a copy of the slides from the training session? We're planning to bring the planning team into the workspace next quarter.
+Aisha Bello: Let's take a quick look at which reports are opened most often. How has the team found the new folder structure since you reorganised it?
+Mei Chen: Our analysts mostly work in the detailed tables and export into their own models. The morning routine works well now that everyone uses the same view.
+Aisha Bello: Good, then I think we have everything we need for today. Let's take a quick look at which reports are opened most often.
+Mei Chen: Our IT colleague manages the access settings on our side. Thanks for setting this up, the timing works well for us this week.
+Aisha Bello: How has the team found the new folder structure since you reorganised it? We have a training session on dashboards every Thursday, and anyone on your team is welcome.
+Will Grant: Our operations lead wants to see the same view on her tablet in the warehouse. Most of the team opens the morning dashboard before the daily stand-up.
+Aisha Bello: Before we start, is there anything you'd like to make sure we cover in this call? Is the current layout working for the people who read the reports each morning?
+Mei Chen: Can you remind me where the setting for default date ranges is? We changed how we name the folders, which made things easier to find.
+Aisha Bello: Let me make a note of that so we can come back to it next time. Good, then I think we have everything we need for today.
+Will Grant: I'd like to understand how the filters work when we combine several sites. I think the weekly summary is the view people rely on the most.
+Aisha Bello: Our support team handles configuration questions through the help centre. Let's look at the alert settings, because there are a couple of options you might find useful.
+Will Grant: The shared views have saved us some back and forth on email. We changed how we name the folders, which made things easier to find.
+Aisha Bello: I'd suggest we keep this call monthly, unless you'd prefer a different rhythm. One thing I noticed is that the operations team has built several new views this month.
+Mei Chen: I think the weekly summary is the view people rely on the most. The alert for late shipments is the one we look at first every day.
+Aisha Bello: I'd suggest we keep this call monthly, unless you'd prefer a different rhythm. Thanks, that's really helpful context for me.
+Will Grant: The new starters found the training video useful last month. Could we get a copy of the slides from the training session?
+Aisha Bello: New team members get access through the invite page in settings. That's a good point, and other teams in your industry set it up the same way.
+Mei Chen: We changed how we name the folders, which made things easier to find. The team keeps a list of new people in our shared drive.
+Aisha Bello: Let's look at the alert settings, because there are a couple of options you might find useful. That's a good point, and other teams in your industry set it up the same way.
+Will Grant: The alert for late shipments is the one we look at first every day. Our IT colleague manages the access settings on our side.
+Aisha Bello: Is the current layout working for the people who read the reports each morning? Is the current layout working for the people who read the reports each morning?
+Will Grant: The team keeps a list of new people in our shared drive. Could we get a copy of the slides from the training session?
+Aisha Bello: Shall we spend the last few minutes on questions from the wider team? Thanks, that's really helpful context for me.
+Mei Chen: It would help to have a short checklist for setting up a new site. I think the weekly summary is the view people rely on the most.
+Aisha Bello: A sandbox view lets analysts try changes without affecting anyone. That's a good point, and other teams in your industry set it up the same way.
+Will Grant: Our operations lead wants to see the same view on her tablet in the warehouse. It would help to have a short checklist for setting up a new site.
+Aisha Bello: A sandbox view lets analysts try changes without affecting anyone. Let's look at the alert settings, because there are a couple of options you might find useful.
+Mei Chen: Our analysts mostly work in the detailed tables and export into their own models. The team keeps a list of new people in our shared drive.
+Aisha Bello: Our product team publishes release notes in the help centre each month. Let's take a quick look at which reports are opened most often.
+Will Grant: The shared views have saved us some back and forth on email. The shared views have saved us some back and forth on email.
+Aisha Bello: Our product team publishes release notes in the help centre each month. Thanks, that's really helpful context for me.
+Will Grant: Most of the team opens the morning dashboard before the daily stand-up. It would help to have a short checklist for setting up a new site.
+Aisha Bello: Let's take a quick look at which reports are opened most often. Can you walk me through how your team uses the weekly dashboard today?
+Will Grant: I don't have anything else from my side, this was a useful session. We added a few people from the regional office, so they're still finding their way around.
+Aisha Bello: Let me share my screen so we can look at the reporting setup together. That workflow looks sensible, and it's similar to how other operations teams do it.
+Will Grant: That makes sense to me. That makes sense to me.
+Aisha Bello: Let me make a note of that so we can come back to it next time. Let's look at the alert settings, because there are a couple of options you might find useful.
+Will Grant: Most of the team opens the morning dashboard before the daily stand-up. I think the weekly summary is the view people rely on the most.
+Aisha Bello: A sandbox view lets analysts try changes without affecting anyone. Good, then I think we have everything we need for today.
+Mei Chen: I don't have anything else from my side, this was a useful session. The alert for late shipments is the one we look at first every day.
+Aisha Bello: Thanks, that's really helpful context for me. I'd suggest we keep this call monthly, unless you'd prefer a different rhythm.
+Mei Chen: The morning routine works well now that everyone uses the same view. The analysts asked whether they can schedule a view to go to a shared mailbox.
+Aisha Bello: I'd suggest we keep this call monthly, unless you'd prefer a different rhythm. That workflow looks sensible, and it's similar to how other operations teams do it.
