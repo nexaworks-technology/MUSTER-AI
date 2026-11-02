@@ -19,7 +19,7 @@ Scope discipline:
 
 - [x] M1: Foundation, Auth & Tenancy (2026-11-02, see `docs/milestones/M1-LOG.md`)
   - ⚠ **Open follow-up, acceptance #16 PARTIAL:** `docker compose up -d postgres redis minio` has not been run, because Docker is not installed on the build machine. M1 was built and verified on the documented fallback `pnpm services:native` (D-31). Close this only by installing Docker (OrbStack or Docker Desktop), running that command successfully and recording the output in `M1-LOG.md`. It must not silently become PASS.
-- [ ] M2: Data, CSV Import & Account 360
+- [x] M2: Data, CSV Import & Account 360 (2026-11-02, see `docs/milestones/M2-LOG.md`)
 - [ ] M3: Health & Signals
 - [ ] M4: Agent Framework, Today & Approvals
 - [ ] M5: Integrations Core
