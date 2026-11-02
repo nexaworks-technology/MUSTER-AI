@@ -18,9 +18,12 @@ export const QUEUE_NAMES = [
 
 export type QueueName = (typeof QUEUE_NAMES)[number];
 
-/** Key prefix keeps dev, test and e2e runs from sharing queues on one Redis. */
+/**
+ * Key prefix keeps dev, test and e2e runs from sharing queues on one Redis. e2e sets
+ * QUEUE_PREFIX for both the app and the worker, because `next dev` always runs as development.
+ */
 export function queuePrefix(): string {
-  return process.env.NODE_ENV === "test" ? "nexaworks-test" : "nexaworks";
+  return env().QUEUE_PREFIX ?? (env().NODE_ENV === "test" ? "nexaworks-test" : "nexaworks");
 }
 
 export function redisConnection(): ConnectionOptions {

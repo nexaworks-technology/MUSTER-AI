@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatArr, formatDate, RESTRICTED } from "@/lib/format";
+import { formatArr, formatCalendarDate, formatDate, RESTRICTED } from "@/lib/format";
 import { STAGE_LABELS, TIER_LABELS } from "@/modules/accounts/schemas";
 import { CONTACT_STATUS_LABELS, ROLE_LABELS } from "@/modules/contacts/schemas";
 import { listPeople } from "@/modules/contacts/service";
@@ -48,8 +48,8 @@ export default async function AccountOverviewPage({ params }: { params: Promise<
     ],
   ];
   if (account.onboardingStartedAt)
-    facts.push(["Onboarding started", formatDate(account.onboardingStartedAt, tz)]);
-  if (account.churnedAt) facts.push(["Churned", formatDate(account.churnedAt, tz)]);
+    facts.push(["Onboarding started", formatCalendarDate(account.onboardingStartedAt)]);
+  if (account.churnedAt) facts.push(["Churned", formatCalendarDate(account.churnedAt)]);
 
   const missingOptions =
     missing?.field === "OWNER"

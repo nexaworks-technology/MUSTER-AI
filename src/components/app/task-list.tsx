@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CompleteTask } from "@/components/app/task-forms";
-import { formatDate } from "@/lib/format";
+import { formatCalendarDate, formatDate } from "@/lib/format";
 
 export interface TaskRow {
   id: string;
@@ -56,7 +56,7 @@ export function TaskList({
                 {t.status === "DONE"
                   ? `done ${formatDate(t.completedAt, tz)}`
                   : t.dueAt
-                    ? `due ${formatDate(t.dueAt, tz)}`
+                    ? `due ${formatCalendarDate(t.dueAt)}`
                     : "no due date"}
                 {overdue ? (
                   <span className="ml-1 text-[var(--risk-at-risk)]">· overdue</span>

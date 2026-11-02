@@ -15,13 +15,24 @@ import {
   type ImportKind,
 } from "../service";
 
-const fixture = (name: string) =>
-  new Uint8Array(readFileSync(path.join(process.cwd(), "fixtures/csv", name)));
+/**
+ * The fixtures name the demo owners (leo@, aisha@larkspur.test). Tests must never make the real
+ * seeded users members of throwaway workspaces, so each workspace gets its own owner users and
+ * the fixture's owner emails are rewritten to them.
+ */
+const OWNERS = ["leo", "aisha"] as const;
+const ownerEmail = (actor: Actor, who: (typeof OWNERS)[number]) =>
+  `${who}-${actor.workspaceId}@example.test`;
+const fixture = (actor: Actor, name: string) => {
+  let text = readFileSync(path.join(process.cwd(), "fixtures/csv", name), "utf8");
+  for (const who of OWNERS) text = text.replaceAll(`${who}@larkspur.test`, ownerEmail(actor, who));
+  return new TextEncoder().encode(text);
+};
 
-/** Adds the fixture owners (leo@, aisha@larkspur.test) as CSMs of a test workspace. */
+/** Adds this workspace's stand-ins for the fixture owners as CSMs. */
 async function withOwners(actor: Actor) {
   const db = scopedDb(actor);
-  for (const email of ["leo@larkspur.test", "aisha@larkspur.test"]) {
+  for (const email of OWNERS.map((who) => ownerEmail(actor, who))) {
     const user = await rawDb.user.upsert({
       where: { email },
       create: { email, name: email.split("@")[0] },
@@ -36,7 +47,7 @@ async function withOwners(actor: Actor) {
 }
 
 async function importFile(actor: Actor, kind: ImportKind, file: string) {
-  const job = await startImport(actor, kind, { filename: file, bytes: fixture(file) });
+  const job = await startImport(actor, kind, { filename: file, bytes: fixture(actor, file) });
   const preview = await previewImport(actor, job.id);
   await confirmImport(actor, job.id);
   await runImportJob(actor.workspaceId, job.id);
@@ -98,7 +109,7 @@ describe("CSV import", () => {
     await withOwners(fresh);
     const job = await startImport(fresh, "ACCOUNTS", {
       filename: "accounts-clean.csv",
-      bytes: fixture("accounts-clean.csv"),
+      bytes: fixture(fresh, "accounts-clean.csv"),
     });
     const preview = await previewImport(fresh, job.id);
     expect(preview.preview).toMatchObject({ create: 3, update: 0, unchanged: 0, fail: 0 });
@@ -165,7 +176,7 @@ describe("CSV import", () => {
     await expect(
       startImport({ ...a, role: "CSM" }, "ACCOUNTS", {
         filename: "a.csv",
-        bytes: fixture("accounts-clean.csv"),
+        bytes: fixture(a, "accounts-clean.csv"),
       }),
     ).rejects.toBeInstanceOf(ForbiddenError);
   });

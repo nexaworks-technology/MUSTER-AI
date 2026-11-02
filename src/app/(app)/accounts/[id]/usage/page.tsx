@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { LineChart } from "@/components/app/line-chart";
-import { formatDate } from "@/lib/format";
+import { formatCalendarDate } from "@/lib/format";
 import { getUsage } from "@/modules/usage/service";
 import { loadAccount } from "../data";
 
@@ -64,7 +64,7 @@ export default async function UsagePage({ params }: { params: Promise<{ id: stri
             <tbody>
               {usage.weekly.map((w, i) => (
                 <tr key={i} className="border-border border-t">
-                  <td className="py-1">{formatDate(w.weekStart, "UTC")}</td>
+                  <td className="py-1">{formatCalendarDate(w.weekStart)}</td>
                   <td className="py-1 text-right tabular-nums">{w.activeUsers}</td>
                 </tr>
               ))}
@@ -73,7 +73,7 @@ export default async function UsagePage({ params }: { params: Promise<{ id: stri
         </details>
         <p className="text-muted-foreground text-sm">
           Last activity:{" "}
-          {usage.lastActiveDate ? formatDate(usage.lastActiveDate, "UTC") : "none recorded"}
+          {usage.lastActiveDate ? formatCalendarDate(usage.lastActiveDate) : "none recorded"}
         </p>
       </section>
 
@@ -122,7 +122,7 @@ export default async function UsagePage({ params }: { params: Promise<{ id: stri
                 {f.daysUsed28d === 0
                   ? "not used"
                   : `used on ${f.daysUsed28d} day${f.daysUsed28d > 1 ? "s" : ""}`}
-                {f.lastUsed ? ` · last ${formatDate(f.lastUsed, "UTC")}` : ""}
+                {f.lastUsed ? ` · last ${formatCalendarDate(f.lastUsed)}` : ""}
               </span>
             </li>
           ))}

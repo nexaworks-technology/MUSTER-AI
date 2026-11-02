@@ -8,6 +8,9 @@ import { applyTestDatabaseEnv } from "./src/test/db-env";
  */
 applyTestDatabaseEnv();
 const PORT = Number(process.env.E2E_PORT ?? 3100);
+// The app (`next dev`, always NODE_ENV=development) and the worker must share one queue prefix,
+// distinct from dev's, so a running dev worker can never take e2e jobs.
+const E2E_QUEUE_PREFIX = "nexaworks-e2e";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -31,16 +34,32 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"], viewport: { width: 375, height: 812 } },
     },
   ],
-  webServer: {
-    command: `pnpm exec next dev -p ${PORT}`,
-    url: `http://localhost:${PORT}/sign-in`,
-    reuseExistingServer: false,
-    timeout: 180_000,
-    env: {
-      DATABASE_URL: process.env.DATABASE_URL!,
-      DATABASE_URL_MIGRATE: process.env.DATABASE_URL_MIGRATE!,
-      APP_URL: `http://localhost:${PORT}`,
-      EMAIL_TRANSPORT: "log",
+  webServer: [
+    {
+      command: `pnpm exec next dev -p ${PORT}`,
+      url: `http://localhost:${PORT}/sign-in`,
+      reuseExistingServer: false,
+      timeout: 180_000,
+      env: {
+        DATABASE_URL: process.env.DATABASE_URL!,
+        DATABASE_URL_MIGRATE: process.env.DATABASE_URL_MIGRATE!,
+        APP_URL: `http://localhost:${PORT}`,
+        EMAIL_TRANSPORT: "log",
+        QUEUE_PREFIX: E2E_QUEUE_PREFIX,
+      },
     },
-  },
+    // CSV imports run on the worker (D-47), so e2e starts it too, against the same database.
+    {
+      command: "pnpm exec tsx src/worker/index.ts",
+      wait: { stdout: /worker started/ },
+      stdout: "pipe",
+      reuseExistingServer: false,
+      timeout: 60_000,
+      env: {
+        DATABASE_URL: process.env.DATABASE_URL!,
+        DATABASE_URL_MIGRATE: process.env.DATABASE_URL_MIGRATE!,
+        QUEUE_PREFIX: E2E_QUEUE_PREFIX,
+      },
+    },
+  ],
 });

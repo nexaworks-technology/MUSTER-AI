@@ -24,6 +24,8 @@ export const envSchema = z
     DATABASE_URL: z.url(),
     DATABASE_URL_MIGRATE: optionalString,
     REDIS_URL: z.url(),
+    /** BullMQ key prefix. Default: "nexaworks", or "nexaworks-test" under NODE_ENV=test. */
+    QUEUE_PREFIX: optionalString,
 
     AUTH_SECRET: z.string().min(32, "must be at least 32 characters"),
     AUTH_GOOGLE_ID: optionalString,

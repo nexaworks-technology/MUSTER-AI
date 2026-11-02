@@ -5,7 +5,7 @@ import { NativeSelect } from "@/components/app/native-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
-import { formatArr, formatDate, RESTRICTED } from "@/lib/format";
+import { formatArr, formatCalendarDate, formatDate, RESTRICTED } from "@/lib/format";
 import {
   accountListQuery,
   STAGE_LABELS,
@@ -173,7 +173,12 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
       </p>
 
       {page.rows.length > 0 ? (
-        <div className="border-border overflow-x-auto rounded-md border">
+        <div
+          className="border-border overflow-x-auto rounded-md border"
+          role="region"
+          aria-label="Accounts table"
+          tabIndex={0}
+        >
           <table className="w-full min-w-[44rem] text-sm">
             <caption className="sr-only">Accounts</caption>
             <thead className="bg-muted text-muted-foreground text-left text-xs">
@@ -274,7 +279,7 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
                         value={a.renewalDate ? a.renewalDate.toISOString().slice(0, 10) : ""}
                       />
                     ) : a.renewalDate ? (
-                      formatDate(a.renewalDate, tz)
+                      formatCalendarDate(a.renewalDate)
                     ) : (
                       <span className="text-muted-foreground">
                         {a.hasContract ? "Not on file" : "No contract"}

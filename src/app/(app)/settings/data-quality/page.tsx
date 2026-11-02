@@ -177,10 +177,7 @@ export default async function DataQualityPage({ searchParams }: { searchParams: 
                     type="submit"
                     variant="ghost"
                     size="sm"
-                    formAction={dismissAction}
-                    formMethod="post"
-                    name="dismiss"
-                    value={i.id}
+                    formAction={dismissAction.bind(null, i.id)}
                     aria-label={`Dismiss: ${i.detail}`}
                   >
                     Dismiss

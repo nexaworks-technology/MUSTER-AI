@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatArr, formatDate, RESTRICTED } from "@/lib/format";
+import { formatArr, formatCalendarDate, formatDate, RESTRICTED } from "@/lib/format";
 import { formatMoney } from "@/lib/money";
 import { getBilling } from "@/modules/billing/service";
 import { listContractDocuments } from "@/modules/files/service";
@@ -79,11 +79,11 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
               <dt className="text-muted-foreground">Seats bought</dt>
               <dd>{current.seatsPurchased ?? "Not on file"}</dd>
               <dt className="text-muted-foreground">Start</dt>
-              <dd>{formatDate(current.startDate, tz)}</dd>
+              <dd>{formatCalendarDate(current.startDate)}</dd>
               <dt className="text-muted-foreground">Renewal date</dt>
               <dd>
                 {current.renewalDate
-                  ? formatDate(current.renewalDate, tz)
+                  ? formatCalendarDate(current.renewalDate)
                   : "No renewal date on file"}
               </dd>
               <dt className="text-muted-foreground">Notice period</dt>
@@ -147,7 +147,11 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
                     {formatDate(d.createdAt, tz)}
                   </span>
                   {d.scanStatus === "CLEAN" ? (
-                    <a href={`/api/files/${d.id}/download`} className="underline">
+                    <a
+                      href={`/api/files/${d.id}/download`}
+                      className="underline"
+                      aria-label={`Download ${d.filename}`}
+                    >
                       Download
                     </a>
                   ) : (
@@ -175,8 +179,9 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
           {billing.contracts.map((c) => (
             <li key={c.id} className="flex flex-wrap justify-between gap-2 p-3">
               <span>
-                {formatDate(c.startDate, tz)} –{" "}
-                {c.endDate ? formatDate(c.endDate, tz) : "no end date"} · {c.status.toLowerCase()}
+                {formatCalendarDate(c.startDate)} –{" "}
+                {c.endDate ? formatCalendarDate(c.endDate) : "no end date"} ·{" "}
+                {c.status.toLowerCase()}
               </span>
               <span className="tabular-nums">{money(c.valueMinor, c.currency)}</span>
             </li>
@@ -197,7 +202,7 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
             {billing.revenueEvents.map((e) => (
               <li key={e.id} className="flex justify-between gap-2 p-3">
                 <span>
-                  {EVENT_LABELS[e.type]} · {formatDate(e.effectiveDate, tz)}
+                  {EVENT_LABELS[e.type]} · {formatCalendarDate(e.effectiveDate)}
                 </span>
                 <span className="tabular-nums">{money(e.deltaArrMinor, e.currency)}</span>
               </li>
@@ -213,7 +218,12 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
         {billing.invoices.length === 0 ? (
           <p className="text-muted-foreground text-sm">No invoices on file.</p>
         ) : (
-          <div className="border-border overflow-x-auto rounded-md border">
+          <div
+            className="border-border overflow-x-auto rounded-md border"
+            role="region"
+            aria-label="Invoices"
+            tabIndex={0}
+          >
             <table className="w-full min-w-[36rem] text-sm">
               <caption className="sr-only">Invoices, newest first</caption>
               <thead className="bg-muted text-muted-foreground text-left text-xs">
@@ -239,8 +249,8 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
                 {billing.invoices.map((i) => (
                   <tr key={i.id} className="border-border border-t">
                     <td className="px-3 py-2">{i.number}</td>
-                    <td className="px-3 py-2">{formatDate(i.issuedAt, tz)}</td>
-                    <td className="px-3 py-2">{formatDate(i.dueAt, tz)}</td>
+                    <td className="px-3 py-2">{formatCalendarDate(i.issuedAt)}</td>
+                    <td className="px-3 py-2">{formatCalendarDate(i.dueAt)}</td>
                     <td
                       className={
                         i.status === "FAILED" || i.status === "UNCOLLECTIBLE"

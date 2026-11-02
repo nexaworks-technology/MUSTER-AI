@@ -55,7 +55,10 @@ export default async function ConversationsPage({
                       Transcript · {formatDateTime(t.occurredAt, tz)}
                       {t.durationSec ? ` · ${Math.round(t.durationSec / 60)} min` : ""}
                     </div>
-                    <pre className="max-h-96 overflow-y-auto font-sans text-sm whitespace-pre-wrap">
+                    <pre
+                      className="max-h-96 overflow-y-auto font-sans text-sm whitespace-pre-wrap"
+                      tabIndex={0}
+                    >
                       {t.text}
                     </pre>
                   </li>

@@ -59,6 +59,7 @@ export default async function ImportJobPage({ params }: { params: Promise<{ id: 
           {job.report && job.report.errors.length > 0 ? (
             <ul
               className="border-border max-h-64 space-y-1 overflow-y-auto rounded-md border p-2 text-sm"
+              tabIndex={0}
               aria-label="Rows with problems"
             >
               {job.report.errors.map((e, i) => (
@@ -98,6 +99,7 @@ export default async function ImportJobPage({ params }: { params: Promise<{ id: 
           {job.report && job.report.errors.length > 0 ? (
             <ul
               className="border-border max-h-64 space-y-1 overflow-y-auto rounded-md border p-2 text-sm"
+              tabIndex={0}
               aria-label="Rows that were not imported"
             >
               {job.report.errors.map((e, i) => (

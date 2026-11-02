@@ -91,6 +91,22 @@ describe("seed v1 — accounts and people (docs/SEED_DATA.md §3)", () => {
     expect(await scopedDb({ workspaceId: ferngrove.id }).account.count()).toBe(0);
   });
 
+  it("demo users are active members of Larkspur only (tests must not borrow them)", async () => {
+    const [larkspur] = await runSeed({ includeTestTenant: false });
+    const demo = await rawDb.user.findMany({
+      where: { email: { in: DEMO_USERS.map((u) => u.email) } },
+      select: { id: true },
+    });
+    const elsewhere: string[] = [];
+    for (const ws of await rawDb.workspace.findMany({ where: { id: { not: larkspur!.id } } })) {
+      const n = await scopedDb({ workspaceId: ws.id }).membership.count({
+        where: { userId: { in: demo.map((u) => u.id) }, status: "ACTIVE" },
+      });
+      if (n > 0) elsewhere.push(ws.name);
+    }
+    expect(elsewhere).toEqual([]);
+  });
+
   it("uses only .test email domains", async () => {
     const [ws] = await runSeed({ includeTestTenant: false });
     const emails = await scopedDb({ workspaceId: ws!.id }).contact.findMany({

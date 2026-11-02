@@ -25,8 +25,9 @@ export async function scanAction() {
   redirect(`${PAGE}?scanned=${r.found}` as Route);
 }
 
-export async function dismissAction(formData: FormData) {
-  const id = z.string().min(1).parse(formData.get("dismiss"));
+/** Bound to the issue id on the page (a function formAction cannot carry name/value). */
+export async function dismissAction(issueId: string) {
+  const id = z.string().min(1).parse(issueId);
   await dismissDataQualityIssue(await actor(), id);
   revalidatePath(PAGE);
   redirect(PAGE as Route);

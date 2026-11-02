@@ -24,3 +24,15 @@ export async function tryToEditAuditLog(workspaceSlug: string): Promise<string> 
 }
 
 export { rawDb };
+
+/**
+ * The e2e database is re-seeded, never reset (D-36), so answers from an earlier run would hide
+ * the missing-data question. Clears the demo's prompts so each run starts from the seed's state.
+ */
+export async function resetMissingDataPrompts(workspaceSlug: string): Promise<void> {
+  const ws = await rawDb.workspace.findUniqueOrThrow({ where: { slug: workspaceSlug } });
+  await rawDb.$transaction([
+    rawDb.$executeRaw`SELECT set_config('app.workspace_id', ${ws.id}, true)`,
+    rawDb.missingDataPrompt.deleteMany({ where: { workspaceId: ws.id } }),
+  ]);
+}
