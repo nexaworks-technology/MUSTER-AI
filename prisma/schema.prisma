@@ -783,24 +783,28 @@ model Message {
 
 /// [W] A support ticket (Zendesk/Freshdesk in M9; CSV/seed now). Its thread is a Conversation.
 model Ticket {
-  id              String         @id @default(cuid())
-  workspaceId     String
-  accountId       String
-  contactId       String?
-  conversationId  String?
-  externalId      String?
-  subject         String
-  status          TicketStatus   @default(OPEN)
-  priority        TicketPriority @default(NORMAL)
-  isEscalated     Boolean        @default(false)
+  id                String          @id @default(cuid())
+  workspaceId       String
+  accountId         String
+  contactId         String?
+  conversationId    String?
+  externalId        String?
+  subject           String
+  status            TicketStatus    @default(OPEN)
+  priority          TicketPriority  @default(NORMAL)
+  isEscalated       Boolean         @default(false)
   /// When the ticket was escalated (D-56). Set by the database on escalation unless given.
-  escalatedAt     DateTime?
-  openedAt        DateTime
-  firstResponseAt DateTime?
-  closedAt        DateTime?
-  source          RecordSource   @default(MANUAL)
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  escalatedAt       DateTime?
+  /// Priority when opened, and when it last changed (D-64): a back-test reads the priority as of
+  /// its date. Set by the database unless given.
+  openingPriority   TicketPriority?
+  priorityChangedAt DateTime?
+  openedAt          DateTime
+  firstResponseAt   DateTime?
+  closedAt          DateTime?
+  source            RecordSource    @default(MANUAL)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 
   workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   account      Account       @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)

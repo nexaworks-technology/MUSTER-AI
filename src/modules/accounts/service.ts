@@ -8,6 +8,8 @@ import { minorDigits } from "@/lib/money";
 import { getSettingsData } from "@/modules/settings/service";
 import { segmentWhere } from "@/modules/segments/service";
 import { deriveTier } from "./tier";
+
+export { deriveTier, type TierRule } from "./tier";
 import { nextMissingQuestion, type MissingField } from "./missing-data";
 import { accountPatch, PAGE_SIZE, type AccountListQuery } from "./schemas";
 
@@ -308,7 +310,8 @@ export class AccountInputError extends Error {
   }
 }
 
-async function tierRuleFor(workspaceId: string) {
+/** The workspace's ARR tier bands in minor units (also used by health to rebuild tier as of a date). */
+export async function tierRuleFor(workspaceId: string) {
   const [settings, workspace] = await Promise.all([
     getSettingsData(workspaceId),
     getOwnWorkspace({ workspaceId }),
