@@ -115,12 +115,14 @@ export function filterFromListQuery(q: {
   tier?: string;
   stage?: string;
   owner?: string;
+  health?: string;
 }): SegmentFilter | null {
   const all: unknown[] = [];
   if (q.q) all.push({ field: "name", op: "contains", value: q.q });
   if (q.tier) all.push({ field: "tier", op: "eq", value: q.tier });
   if (q.stage) all.push({ field: "lifecycleStage", op: "eq", value: q.stage });
   if (q.owner) all.push({ field: "owner", op: "eq", value: q.owner });
+  if (q.health) all.push({ field: "health", op: "eq", value: q.health });
   if (all.length === 0) return null;
   return segmentFilter.parse({ all });
 }

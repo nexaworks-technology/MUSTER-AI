@@ -22,7 +22,8 @@ export default async function PeoplePage({ params }: { params: Promise<{ id: str
       {people.map((p) => (
         <li
           key={p.id}
-          className="flex flex-wrap items-start justify-between gap-3 p-3 text-sm"
+          id={`contact-${p.id}`}
+          className="target:bg-muted flex scroll-mt-4 flex-wrap items-start justify-between gap-3 p-3 text-sm"
           data-testid={`person-${p.name}`}
         >
           <div className="space-y-0.5">

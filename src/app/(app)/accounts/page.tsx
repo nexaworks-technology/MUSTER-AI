@@ -17,6 +17,11 @@ import { listAccounts, listOwners } from "@/modules/accounts/service";
 import { listSegments } from "@/modules/segments/service";
 import { SaveSegment } from "@/components/app/save-segment";
 import { can } from "@/lib/auth/permissions";
+import { DisagreementMark, RISK_WORDS, RiskBadge } from "@/components/app/risk-badge";
+import { healthForAccounts } from "@/modules/health/service";
+
+const HEALTH_LEVELS = ["HEALTHY", "WATCH", "AT_RISK", "INSUFFICIENT_DATA"] as const;
+const PULSE_WORDS = { FINE: "Actually fine", WORRIED: "Worried" } as const;
 
 export const metadata: Metadata = { title: "Accounts" };
 
@@ -38,7 +43,14 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
     listOwners(ctx),
     listSegments(ctx),
   ]);
-  const hasListFilters = Boolean(query.q || query.tier || query.stage || query.owner);
+  const hasListFilters = Boolean(
+    query.q || query.tier || query.stage || query.owner || query.health,
+  );
+  // Health and Pulse come from the health module in one batch for this page (M3 slice 8).
+  const health = await healthForAccounts(
+    ctx,
+    page.rows.map((a) => a.id),
+  );
   const tz = ctx.workspace.timezone;
 
   const pageHref = (cursor: string) => ({
@@ -89,6 +101,19 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
             {STAGES.map((s) => (
               <option key={s} value={s}>
                 {STAGE_LABELS[s]}
+              </option>
+            ))}
+          </NativeSelect>
+        </div>
+        <div className="space-y-1">
+          <label htmlFor="health" className="text-muted-foreground block text-xs">
+            Health
+          </label>
+          <NativeSelect id="health" name="health" defaultValue={query.health ?? ""}>
+            <option value="">Any health</option>
+            {HEALTH_LEVELS.map((h) => (
+              <option key={h} value={h}>
+                {RISK_WORDS[h]}
               </option>
             ))}
           </NativeSelect>
@@ -179,12 +204,18 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
           aria-label="Accounts table"
           tabIndex={0}
         >
-          <table className="w-full min-w-[44rem] text-sm">
+          <table className="w-full min-w-[56rem] text-sm">
             <caption className="sr-only">Accounts</caption>
             <thead className="bg-muted text-muted-foreground text-left text-xs">
               <tr>
                 <th scope="col" className="px-3 py-2 font-medium">
                   Name
+                </th>
+                <th scope="col" className="px-3 py-2 font-medium">
+                  Health
+                </th>
+                <th scope="col" className="px-3 py-2 font-medium">
+                  CSM Pulse
                 </th>
                 <th scope="col" className="px-3 py-2 font-medium">
                   Tier
@@ -216,6 +247,37 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
                     {a.domain ? (
                       <div className="text-muted-foreground text-xs">{a.domain}</div>
                     ) : null}
+                  </td>
+                  <td className="px-3 py-2">
+                    {(() => {
+                      const h = health.get(a.id);
+                      if (!h?.riskLevel)
+                        return <span className="text-muted-foreground">Not scored yet</span>;
+                      return (
+                        <Link
+                          href={`/accounts/${a.id}/health`}
+                          className="inline-flex items-center gap-2 hover:underline"
+                          aria-label={`Health ${h.overall ?? "not enough data"}, ${RISK_WORDS[h.riskLevel]}: why`}
+                        >
+                          <span className="tabular-nums">
+                            {h.overall === null ? "—" : h.overall.toFixed(0)}
+                          </span>
+                          <RiskBadge level={h.riskLevel} />
+                        </Link>
+                      );
+                    })()}
+                  </td>
+                  <td className="px-3 py-2">
+                    {(() => {
+                      const h = health.get(a.id);
+                      if (!h?.pulse?.valid) return <span className="text-muted-foreground">—</span>;
+                      return (
+                        <span className="inline-flex flex-wrap items-center gap-1">
+                          <span>{PULSE_WORDS[h.pulse.value]}</span>
+                          {h.pulseDisagreement ? <DisagreementMark /> : null}
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td className="px-3 py-2">
                     {a.canEdit ? (

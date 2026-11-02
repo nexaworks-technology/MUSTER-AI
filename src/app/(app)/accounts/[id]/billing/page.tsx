@@ -177,7 +177,11 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
         </h2>
         <ul className="divide-border border-border divide-y rounded-md border text-sm">
           {billing.contracts.map((c) => (
-            <li key={c.id} className="flex flex-wrap justify-between gap-2 p-3">
+            <li
+              key={c.id}
+              id={`contract-${c.id}`}
+              className="target:bg-muted flex scroll-mt-4 flex-wrap justify-between gap-2 p-3"
+            >
               <span>
                 {formatCalendarDate(c.startDate)} –{" "}
                 {c.endDate ? formatCalendarDate(c.endDate) : "no end date"} ·{" "}
@@ -200,7 +204,11 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
         ) : (
           <ul className="divide-border border-border divide-y rounded-md border text-sm">
             {billing.revenueEvents.map((e) => (
-              <li key={e.id} className="flex justify-between gap-2 p-3">
+              <li
+                key={e.id}
+                id={`revenue-${e.id}`}
+                className="target:bg-muted flex scroll-mt-4 justify-between gap-2 p-3"
+              >
                 <span>
                   {EVENT_LABELS[e.type]} · {formatCalendarDate(e.effectiveDate)}
                 </span>
@@ -247,7 +255,11 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
               </thead>
               <tbody>
                 {billing.invoices.map((i) => (
-                  <tr key={i.id} className="border-border border-t">
+                  <tr
+                    key={i.id}
+                    id={`invoice-${i.id}`}
+                    className="border-border target:bg-muted scroll-mt-4 border-t"
+                  >
                     <td className="px-3 py-2">{i.number}</td>
                     <td className="px-3 py-2">{formatCalendarDate(i.issuedAt)}</td>
                     <td className="px-3 py-2">{formatCalendarDate(i.dueAt)}</td>

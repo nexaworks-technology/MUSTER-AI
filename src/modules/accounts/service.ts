@@ -101,6 +101,7 @@ export function listWhere(
   }
   if (query.tier) and.push({ tier: query.tier });
   if (query.stage) and.push({ lifecycleStage: query.stage });
+  if (query.health) and.push({ currentHealth: { is: { riskLevel: query.health } } });
   if (query.owner === "none") and.push({ ownerMembershipId: null });
   else if (query.owner) and.push({ ownerMembershipId: query.owner });
   return { AND: and };

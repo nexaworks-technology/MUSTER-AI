@@ -27,6 +27,7 @@ export const accountListQuery = z.object({
   q: z.preprocess(emptyToUndefined, z.string().trim().max(120).optional()),
   tier: optionalEnum(TIERS),
   stage: optionalEnum(STAGES),
+  health: optionalEnum(["HEALTHY", "WATCH", "AT_RISK", "INSUFFICIENT_DATA"] as const),
   /** A membership id, or "none" for unowned accounts. */
   owner: z.preprocess(emptyToUndefined, z.string().max(64).optional()),
   segment: z.preprocess(emptyToUndefined, z.string().max(64).optional()),

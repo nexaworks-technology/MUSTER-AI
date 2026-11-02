@@ -57,6 +57,7 @@ Status legend: **OPEN** (default in use) · **ANSWERED** (see section C; the row
 | Q-41 | ARCHITECTURE §3.2 | `Signal` is unique on (workspaceId, dedupeKey), so a condition that clears and returns could never open again. | Add `episode`; unique on (workspaceId, dedupeKey, episode). | One column and index. |
 | Q-42 | SEED_DATA §8 | The M2 seed lacks the 2 "champion left" churn plants, and both "temporary dip" renewals got a usage dip (one was meant to be a migration support spike). | Add the plants in M3 seed v2. | Seed only. |
 | Q-43 | SEED_DATA §8 | The default model may catch fewer than SEED_DATA's "≈ 8 of 12" churns. Tune to match? | No. Record what the seed produces. | None. |
+| Q-44 | M3.md §6 #4 and §7 step 2; D-59 | Under the approved default formulas, Brightwell scores **67.6 (Watch)**, not At Risk: Adoption 46 (users −49% vs own normal, seats 17% used), Relationship 61 (champion bounced), Support and Commercial clean. One collapsed pillar is diluted by clean ones (Redfern, 0 logins for 24 days, scores 76 Healthy). M3.md's demo and acceptance #4 name Brightwell "At Risk". | **Do not tune (D-59).** Report the actual band; acceptance #4 is judged on its substance (every pillar opens reasons with clickable sources) and the band is reported as found. The weight-search proposal and the founder decide whether the default changes. Open for the founder. | Formula or seed change only if the founder decides. |
 
 ## C. Answered
 

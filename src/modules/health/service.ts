@@ -13,7 +13,11 @@ import {
   type ModelConfig,
 } from "./engine/model";
 import type { AccountBundle } from "./engine/types";
+import { getAccount, type Actor } from "@/modules/accounts/service";
+import { calendarDateOf } from "@/lib/dates";
 import { loadBundles, type LoadContext } from "./loader";
+import { describeSource, sourceLookups, type ResolvedSource } from "./sources";
+import type { SourceRef } from "./engine/types";
 import { writeSnapshot, type WriteResult } from "./snapshots";
 
 /**
@@ -124,6 +128,151 @@ export async function scoreAndStore(
     out.set(id, { ...written, score: s.score });
   }
   return out;
+}
+
+// ─── Reads for the screens (RBAC: the account must be in the viewer's book) ───
+
+const PILLAR_COLUMNS = [
+  "adoption",
+  "engagement",
+  "support",
+  "relationship",
+  "commercial",
+  "sentiment",
+] as const;
+const num = (d: { toNumber(): number } | null) => (d === null ? null : d.toNumber());
+
+export interface PulseView {
+  id: string;
+  value: "FINE" | "WORRIED";
+  comment: string | null;
+  author: string;
+  createdAt: Date;
+  expiresAt: Date;
+  valid: boolean;
+}
+
+async function latestPulses(db: ReturnType<typeof scopedDb>, accountIds: string[]) {
+  const rows = await db.csmPulse.findMany({
+    where: { accountId: { in: accountIds } },
+    orderBy: [{ createdAt: "desc" }, { id: "asc" }],
+    distinct: ["accountId"],
+    include: { membership: { select: { user: { select: { name: true, email: true } } } } },
+  });
+  const now = new Date();
+  return new Map(
+    rows.map((p): [string, PulseView] => [
+      p.accountId,
+      {
+        id: p.id,
+        value: p.value,
+        comment: p.comment,
+        author: p.membership.user.name ?? p.membership.user.email,
+        createdAt: p.createdAt,
+        expiresAt: p.expiresAt,
+        valid: p.expiresAt > now,
+      },
+    ]),
+  );
+}
+
+/** Account 360 Health tab: the latest live snapshot under the active model, with resolved proof. */
+export async function getAccountHealth(actor: Actor, accountId: string) {
+  const account = await getAccount(actor, accountId);
+  if (!account) return null;
+  const db = scopedDb(actor);
+  const model = await getActiveModel(actor);
+  const where = { accountId, healthModelId: model.id, isBacktest: false };
+  const [snapshot, history, pulses] = await Promise.all([
+    db.healthScoreSnapshot.findFirst({
+      where,
+      orderBy: { asOf: "desc" },
+      include: { reasons: { orderBy: { sortOrder: "asc" } } },
+    }),
+    db.healthScoreSnapshot.findMany({
+      where,
+      orderBy: { asOf: "desc" },
+      take: 120,
+      select: { asOf: true, overall: true, riskLevel: true },
+    }),
+    latestPulses(db, [accountId]),
+  ]);
+  const refs = (snapshot?.reasons ?? []).flatMap((r) => r.sources as unknown as SourceRef[]);
+  const look = await sourceLookups(db, refs);
+  return {
+    account,
+    model: { id: model.id, version: model.version, proposedBy: model.proposedBy, note: model.note },
+    pulse: pulses.get(accountId) ?? null,
+    snapshot: snapshot && {
+      id: snapshot.id,
+      asOf: calendarDateOf(snapshot.asOf),
+      overall: num(snapshot.overall),
+      overallExcludingPulse: num(snapshot.overallExcludingPulse),
+      riskLevel: snapshot.riskLevel,
+      riskLevelExcludingPulse: snapshot.riskLevelExcludingPulse,
+      pulseDisagreement: snapshot.pulseDisagreement,
+      riskReasonId: snapshot.riskReasonId,
+      pillars: Object.fromEntries(
+        PILLAR_COLUMNS.map((c) => [c.toUpperCase(), num(snapshot[c])]),
+      ) as Record<string, number | null>,
+      effectiveWeights: snapshot.effectiveWeights as Record<string, number | null>,
+      reasons: snapshot.reasons.map((r) => ({
+        id: r.id,
+        pillar: r.pillar,
+        component: r.component,
+        input: r.input,
+        kind: r.kind,
+        direction: r.direction,
+        impact: r.impact.toNumber(),
+        score: num(r.score),
+        message: r.message,
+        value: num(r.value),
+        baseline: num(r.baseline),
+        cohortValue: num(r.cohortValue),
+        cohortKey: r.cohortKey,
+        cohortSize: r.cohortSize,
+        periodStart: r.periodStart ? calendarDateOf(r.periodStart) : null,
+        periodEnd: r.periodEnd ? calendarDateOf(r.periodEnd) : null,
+        sources: (r.sources as unknown as SourceRef[]).map((s): ResolvedSource =>
+          describeSource(accountId, s, look),
+        ),
+      })),
+    },
+    history: history.reverse().map((h) => ({
+      asOf: calendarDateOf(h.asOf),
+      overall: num(h.overall),
+      riskLevel: h.riskLevel,
+    })),
+  };
+}
+export type AccountHealth = NonNullable<Awaited<ReturnType<typeof getAccountHealth>>>;
+
+/** Health + Pulse for a page of accounts the caller already loaded through the book scope. */
+export async function healthForAccounts(ctx: TenantContext, accountIds: string[]) {
+  const db = scopedDb(ctx);
+  const [accounts, pulses] = await Promise.all([
+    db.account.findMany({
+      where: { id: { in: accountIds } },
+      select: {
+        id: true,
+        currentHealth: {
+          select: { overall: true, riskLevel: true, pulseDisagreement: true, asOf: true },
+        },
+      },
+    }),
+    latestPulses(db, accountIds),
+  ]);
+  return new Map(
+    accounts.map((a) => [
+      a.id,
+      {
+        overall: a.currentHealth ? num(a.currentHealth.overall) : null,
+        riskLevel: a.currentHealth?.riskLevel ?? null,
+        pulseDisagreement: a.currentHealth?.pulseDisagreement ?? false,
+        pulse: pulses.get(a.id) ?? null,
+      },
+    ]),
+  );
 }
 
 export { DEFAULT_MODEL, modelConfigSchema, type ModelConfig };

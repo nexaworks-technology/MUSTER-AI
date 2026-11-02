@@ -41,7 +41,7 @@ export default async function ConversationsPage({
               </summary>
               <ol className="border-border mt-2 space-y-2 border-l-2 pl-3">
                 {c.messages.map((m) => (
-                  <li key={m.id}>
+                  <li key={m.id} id={`message-${m.id}`} className="target:bg-muted scroll-mt-4">
                     <div className="text-muted-foreground text-xs">
                       {m.direction === "INBOUND" ? "From" : "Sent by"} {m.from} ·{" "}
                       {formatDateTime(m.sentAt, tz)}

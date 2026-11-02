@@ -6,8 +6,22 @@ import { loadAccount } from "../data";
 
 export const metadata: Metadata = { title: "Usage" };
 
-export default async function UsagePage({ params }: { params: Promise<{ id: string }> }) {
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
+
+export default async function UsagePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { id } = await params;
+  // A health reason links here with ?from=&to= (calendar days): those weeks are highlighted.
+  const q = await searchParams;
+  const from = one(q.from);
+  const to = one(q.to);
+  const window = from && to && DAY.test(from) && DAY.test(to) && from <= to ? { from, to } : null;
   // Usage dates are calendar days (UTC), so they are shown without a time-zone shift.
   const { ctx, account } = await loadAccount(id);
   const usage = await getUsage(ctx, account.id);
@@ -33,7 +47,9 @@ export default async function UsagePage({ params }: { params: Promise<{ id: stri
       timeZone: "UTC",
     }).format(w.weekStart),
     value: w.activeUsers,
+    highlight: window ? inWindow(w.weekStart, window) : false,
   }));
+  const shown = points.filter((p) => p.highlight).length;
   const keyUnused = usage.features.filter((f) => f.inPlan && f.isKey && f.daysUsed28d === 0);
 
   return (
@@ -42,6 +58,19 @@ export default async function UsagePage({ params }: { params: Promise<{ id: stri
         <h2 id="usage-chart" className="text-base font-semibold">
           {metricLabel}, last {points.length} weeks
         </h2>
+        {window ? (
+          <p className="text-sm" data-testid="usage-window" role="note">
+            Shaded: the window a health reason points to (
+            {formatCalendarDate(new Date(`${window.from}T00:00:00Z`))} –{" "}
+            {formatCalendarDate(new Date(`${window.to}T00:00:00Z`))}).
+            {shown === 0
+              ? " None of it falls inside the weeks shown here."
+              : usage.weekly.length > 0 &&
+                  window.from < usage.weekly[0]!.weekStart.toISOString().slice(0, 10)
+                ? " Part of it is earlier than the weeks shown here."
+                : ""}
+          </p>
+        ) : null}
         {points.length > 0 ? (
           <LineChart points={points} valueLabel={metricLabel} />
         ) : (
@@ -63,7 +92,10 @@ export default async function UsagePage({ params }: { params: Promise<{ id: stri
             </thead>
             <tbody>
               {usage.weekly.map((w, i) => (
-                <tr key={i} className="border-border border-t">
+                <tr
+                  key={i}
+                  className={`border-border border-t ${window && inWindow(w.weekStart, window) ? "bg-muted font-medium" : ""}`}
+                >
                   <td className="py-1">{formatCalendarDate(w.weekStart)}</td>
                   <td className="py-1 text-right tabular-nums">{w.activeUsers}</td>
                 </tr>
@@ -158,4 +190,11 @@ export default async function UsagePage({ params }: { params: Promise<{ id: stri
       </section>
     </div>
   );
+}
+
+/** A week (Monday start, 7 days) overlaps the reason's window. */
+function inWindow(weekStart: Date, w: { from: string; to: string }): boolean {
+  const start = weekStart.toISOString().slice(0, 10);
+  const end = new Date(weekStart.getTime() + 6 * 86_400_000).toISOString().slice(0, 10);
+  return start <= w.to && end >= w.from;
 }

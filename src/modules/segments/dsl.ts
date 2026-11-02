@@ -83,6 +83,8 @@ export const segmentCondition = z.union([
   enumCondition("tier", TIERS),
   enumCondition("lifecycleStage", STAGES),
   enumCondition("tierSource", ["RULE", "MANUAL"] as const),
+  // M3 (D-45): the account's current health band.
+  enumCondition("health", ["HEALTHY", "WATCH", "AT_RISK", "INSUFFICIENT_DATA"] as const),
   dateCondition,
   arrCondition,
   ownerCondition,
@@ -122,6 +124,12 @@ function compileCondition(c: SegmentCondition, ctx: CompileContext): Prisma.Acco
     }
     case "owner":
       return { ownerMembershipId: c.value === "none" ? null : c.value };
+    case "health":
+      return {
+        currentHealth: {
+          is: { riskLevel: c.op === "eq" ? c.value : { in: c.value } },
+        },
+      };
     case "tier":
     case "lifecycleStage":
     case "tierSource":

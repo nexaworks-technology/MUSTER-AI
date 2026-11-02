@@ -11,6 +11,8 @@ import { useId, useState } from "react";
 export interface LinePoint {
   label: string;
   value: number;
+  /** Shade this point's slot: the window a health reason points to. */
+  highlight?: boolean;
 }
 
 const W = 640;
@@ -81,6 +83,19 @@ export function LineChart({ points, valueLabel }: { points: LinePoint[]; valueLa
             >
               {p.label}
             </text>
+          ) : null,
+        )}
+        {points.map((p, i) =>
+          p.highlight ? (
+            <rect
+              key={`hl-${p.label}`}
+              x={x(i) - innerW / (2 * Math.max(1, points.length - 1))}
+              y={PAD.top}
+              width={innerW / Math.max(1, points.length - 1)}
+              height={innerH}
+              fill="var(--muted)"
+              data-testid="chart-highlight"
+            />
           ) : null,
         )}
         {active !== null ? (

@@ -26,7 +26,12 @@ export default async function TicketsPage({ params }: { params: Promise<{ id: st
       </p>
       <ul className="divide-border border-border divide-y rounded-md border text-sm">
         {tickets.map((t) => (
-          <li key={t.id} className="p-3" data-testid="ticket">
+          <li
+            key={t.id}
+            id={`ticket-${t.id}`}
+            className="target:bg-muted scroll-mt-4 p-3"
+            data-testid="ticket"
+          >
             <details>
               <summary className="cursor-pointer">
                 <span className="font-medium">{t.subject}</span>{" "}

@@ -18,6 +18,7 @@ export default async function AccountLayout({
   const base = `/accounts/${account.id}`;
   const tabs = [
     { label: "Overview", href: base },
+    { label: "Health", href: `${base}/health` },
     { label: "People", href: `${base}/people` },
     { label: "Usage", href: `${base}/usage` },
     { label: "Tickets", href: `${base}/tickets` },
