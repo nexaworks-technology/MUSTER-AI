@@ -19,7 +19,8 @@ you must flag the disagreement in `docs/QUESTIONS.md` — never silently follow 
   (needs `.env` with the local-services names from `.env.example`; see DECISIONS D-31)
 - Migrate: `pnpm db:migrate` · Generate client: `pnpm db:generate` · Seed demo: `pnpm db:seed`
   (add `-- --with-test-tenant` for the second tenant, Ferngrove Software, used by isolation checks)
-- Test (unit+integration): `pnpm test` · E2E: `pnpm test:e2e`
+- Test (unit+integration): `pnpm test` (one file: `pnpm test <name>`) · E2E: `pnpm test:e2e`
+  (runs `next dev` on port 3100 against the `_test` database: stop any other `next dev` in this folder first)
 - Typecheck: `pnpm typecheck` · Lint: `pnpm lint` · Format check: `pnpm format:check`
 - Build: `pnpm build` · Full gate (must pass before any commit): `pnpm gate`
   (= typecheck + lint + test + build, in that order)
