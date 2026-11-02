@@ -42,3 +42,31 @@ export const accountListQuery = z.object({
 });
 
 export type AccountListQuery = z.infer<typeof accountListQuery>;
+
+// ─── Timeline (shared by every module that contributes timeline items) ───────
+
+export type TimelineKind =
+  | "email"
+  | "call"
+  | "ticket"
+  | "invoice"
+  | "usage"
+  | "note"
+  | "task"
+  | "people"
+  | "contract"
+  | "revenue";
+
+export interface TimelineItem {
+  /** Unique across sources: `<source>:<id>[:<event>]`. Also the tie-breaker. */
+  key: string;
+  at: Date;
+  kind: TimelineKind;
+  title: string;
+  detail?: string;
+  href?: string;
+  sourceType: string;
+  sourceId: string;
+}
+
+export { decodeCursor, encodeCursor, mergeTimeline } from "./timeline";

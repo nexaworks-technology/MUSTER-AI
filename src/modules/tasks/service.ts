@@ -1,7 +1,8 @@
 import type { z } from "zod";
 import { writeAudit } from "@/lib/audit";
 import { ForbiddenError, requirePermission } from "@/lib/auth/permissions";
-import { scopedDb } from "@/lib/db/scoped";
+import { scopedDb, type ScopedDb } from "@/lib/db/scoped";
+import type { TimelineItem } from "@/modules/accounts/schemas";
 import {
   AccountNotFoundError,
   canEditAccount,
@@ -139,4 +140,44 @@ export async function listAccountTasks(actor: Actor, accountId: string) {
     take: 100,
     include: TASK_INCLUDE,
   });
+}
+
+/** Tasks created and completed. */
+export async function taskTimeline(
+  db: ScopedDb,
+  accountId: string,
+  upTo: Date,
+  take: number,
+): Promise<TimelineItem[]> {
+  const tasks = await db.task.findMany({
+    where: { accountId, createdAt: { lte: upTo } },
+    orderBy: { createdAt: "desc" },
+    take,
+  });
+  return tasks
+    .flatMap((t): TimelineItem[] => [
+      {
+        key: `task:${t.id}:created`,
+        at: t.createdAt,
+        kind: "task",
+        title: `Task created: ${t.title}`,
+        href: `/accounts/${accountId}/tasks`,
+        sourceType: "Task",
+        sourceId: t.id,
+      },
+      ...(t.completedAt
+        ? [
+            {
+              key: `task:${t.id}:done`,
+              at: t.completedAt,
+              kind: "task" as const,
+              title: `Task done: ${t.title}`,
+              href: `/accounts/${accountId}/tasks`,
+              sourceType: "Task",
+              sourceId: t.id,
+            },
+          ]
+        : []),
+    ])
+    .filter((i) => i.at <= upTo);
 }

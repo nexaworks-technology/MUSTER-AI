@@ -1,6 +1,7 @@
 import type { z } from "zod";
 import { writeAudit } from "@/lib/audit";
-import { scopedDb } from "@/lib/db/scoped";
+import { scopedDb, type ScopedDb } from "@/lib/db/scoped";
+import type { TimelineItem } from "@/modules/accounts/schemas";
 import {
   AccountNotFoundError,
   bookWhere,
@@ -108,4 +109,29 @@ export async function listNotes(actor: Actor, accountId: string) {
 
 export async function listNoteTemplates(actor: Actor) {
   return scopedDb(actor).noteTemplate.findMany({ orderBy: { name: "asc" } });
+}
+
+/** Notes added. */
+export async function noteTimeline(
+  db: ScopedDb,
+  accountId: string,
+  upTo: Date,
+  take: number,
+): Promise<TimelineItem[]> {
+  const notes = await db.note.findMany({
+    where: { accountId, createdAt: { lte: upTo } },
+    orderBy: { createdAt: "desc" },
+    take,
+    include: { author: { select: { user: { select: { name: true } } } } },
+  });
+  return notes.map((n) => ({
+    key: `note:${n.id}`,
+    at: n.createdAt,
+    kind: "note" as const,
+    title: `Note by ${n.author?.user.name ?? "a former member"}`,
+    detail: n.body.length > 160 ? `${n.body.slice(0, 157)}…` : n.body,
+    href: `/accounts/${accountId}/notes`,
+    sourceType: "Note",
+    sourceId: n.id,
+  }));
 }

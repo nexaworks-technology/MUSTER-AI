@@ -25,6 +25,7 @@ export default async function AccountLayout({
     { label: "Contracts & billing", href: `${base}/billing` },
     { label: "Tasks", href: `${base}/tasks` },
     { label: "Notes", href: `${base}/notes` },
+    { label: "Timeline", href: `${base}/timeline` },
   ] as Array<{ label: string; href: Route }>;
   return (
     <div className="space-y-4">

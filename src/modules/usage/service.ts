@@ -1,6 +1,8 @@
 import { Prisma } from "@prisma/client";
-import { scopedDb } from "@/lib/db/scoped";
+import { scopedDb, type ScopedDb } from "@/lib/db/scoped";
+import type { TimelineItem } from "@/modules/accounts/schemas";
 import { AccountNotFoundError, getAccount, type Actor } from "@/modules/accounts/service";
+import { usageChangePoints } from "./change-points";
 
 /**
  * Usage read model for Account 360 (spec §6G4 in CS language). Windows are computed with SQL
@@ -123,4 +125,36 @@ export async function getUsage(
       daysActive: Number(u.days),
     })),
   };
+}
+
+// ─── Timeline source ─────────────────────────────────────────────────────────
+
+/** Usage change points over the last year (one SQL aggregate + the pure detector). */
+export async function usageTimeline(
+  db: ScopedDb,
+  workspaceId: string,
+  accountId: string,
+  upTo: Date,
+): Promise<TimelineItem[]> {
+  const since = new Date(upTo.getTime() - 371 * DAY);
+  const rows = await db.$queryRaw<Array<{ week: Date; avg: number }>>(Prisma.sql`
+    SELECT date_trunc('week', "date")::date AS week, avg("activeUsers")::float AS avg
+    FROM "UsageDaily"
+    WHERE "workspaceId" = ${workspaceId} AND "accountId" = ${accountId} AND "date" > ${since} AND "date" <= ${upTo}
+    GROUP BY 1 ORDER BY 1`);
+  return usageChangePoints(
+    rows.map((r) => ({ weekStart: new Date(r.week), avgActive: Number(r.avg) })),
+  ).map((p) => {
+    const at = new Date(p.weekStart.getTime() + 6 * DAY);
+    return {
+      key: `usage:${p.weekStart.toISOString().slice(0, 10)}`,
+      at: at > upTo ? upTo : at,
+      kind: "usage" as const,
+      title: `Usage ${p.direction === "down" ? "fell" : "rose"} ${p.pct}% against the previous four weeks`,
+      detail: `Average daily active users ${p.value} vs ${p.baseline} before (week of ${p.weekStart.toISOString().slice(0, 10)}).`,
+      href: `/accounts/${accountId}/usage`,
+      sourceType: "UsageDaily",
+      sourceId: `${accountId}:${p.weekStart.toISOString().slice(0, 10)}`,
+    };
+  });
 }

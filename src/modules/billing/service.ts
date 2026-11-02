@@ -3,7 +3,9 @@ import { z } from "zod";
 import { writeAudit } from "@/lib/audit";
 import { can, ForbiddenError, requirePermission } from "@/lib/auth/permissions";
 import { fieldCipher } from "@/lib/crypto";
-import { scopedDb } from "@/lib/db/scoped";
+import { scopedDb, type ScopedDb } from "@/lib/db/scoped";
+import { formatMoney } from "@/lib/money";
+import type { TimelineItem } from "@/modules/accounts/schemas";
 import {
   AccountNotFoundError,
   getAccount,
@@ -231,3 +233,103 @@ export type BillingView = Awaited<ReturnType<typeof getBilling>>;
 
 /** Thrown for a forbidden write; re-exported so actions can map it to a plain message. */
 export { ForbiddenError };
+
+// ─── Timeline source ─────────────────────────────────────────────────────────
+
+const REVENUE_LABEL = {
+  NEW: "New customer ARR",
+  EXPANSION: "ARR expansion",
+  CONTRACTION: "ARR contraction",
+  CHURN: "Churn",
+  REACTIVATION: "Reactivation",
+} as const;
+
+/** Contract starts/ends, invoices issued/paid/failed and ARR movements. Money only if visible. */
+export async function billingTimeline(
+  db: ScopedDb,
+  accountId: string,
+  upTo: Date,
+  take: number,
+  moneyVisible: boolean,
+): Promise<TimelineItem[]> {
+  const amount = (minor: bigint, currency: string) =>
+    moneyVisible ? ` (${formatMoney({ minor, currency })})` : "";
+  const [contracts, invoices, events] = await Promise.all([
+    db.contract.findMany({
+      where: { accountId, startDate: { lte: upTo } },
+      orderBy: { startDate: "desc" },
+      take,
+    }),
+    db.invoice.findMany({
+      where: { accountId, issuedAt: { lte: upTo } },
+      orderBy: { issuedAt: "desc" },
+      take,
+    }),
+    db.revenueEvent.findMany({
+      where: { accountId, effectiveDate: { lte: upTo } },
+      orderBy: { effectiveDate: "desc" },
+      take,
+    }),
+  ]);
+  const items: TimelineItem[] = [];
+  for (const c of contracts) {
+    items.push({
+      key: `contract:${c.id}:start`,
+      at: c.startDate,
+      kind: "contract",
+      title: "Contract started",
+      sourceType: "Contract",
+      sourceId: c.id,
+    });
+    if (c.status !== "ACTIVE" && c.endDate) {
+      items.push({
+        key: `contract:${c.id}:end`,
+        at: c.endDate,
+        kind: "contract",
+        title: `Contract ${c.status === "CANCELLED" ? "cancelled" : "ended"}`,
+        sourceType: "Contract",
+        sourceId: c.id,
+      });
+    }
+  }
+  for (const i of invoices) {
+    items.push({
+      key: `invoice:${i.id}:issued`,
+      at: i.issuedAt,
+      kind: "invoice",
+      title: `Invoice ${i.number} issued${amount(i.amountMinor, i.currency)}`,
+      sourceType: "Invoice",
+      sourceId: i.id,
+    });
+    if (i.paidAt)
+      items.push({
+        key: `invoice:${i.id}:paid`,
+        at: i.paidAt,
+        kind: "invoice",
+        title: `Invoice ${i.number} paid`,
+        sourceType: "Invoice",
+        sourceId: i.id,
+      });
+    if (i.lastFailedAt) {
+      items.push({
+        key: `invoice:${i.id}:failed`,
+        at: i.lastFailedAt,
+        kind: "invoice",
+        title: `Payment failed for invoice ${i.number}${i.failureCount > 1 ? ` (${i.failureCount} attempts)` : ""}`,
+        sourceType: "Invoice",
+        sourceId: i.id,
+      });
+    }
+  }
+  for (const e of events) {
+    items.push({
+      key: `revenue:${e.id}`,
+      at: e.effectiveDate,
+      kind: "revenue",
+      title: `${REVENUE_LABEL[e.type]}${amount(e.deltaArrMinor < 0n ? -e.deltaArrMinor : e.deltaArrMinor, e.currency)}`,
+      sourceType: "RevenueEvent",
+      sourceId: e.id,
+    });
+  }
+  return items.filter((i) => i.at <= upTo);
+}

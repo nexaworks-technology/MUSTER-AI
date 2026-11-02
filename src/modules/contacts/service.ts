@@ -1,13 +1,14 @@
 import type { z } from "zod";
 import { writeAudit } from "@/lib/audit";
-import { scopedDb } from "@/lib/db/scoped";
+import { scopedDb, type ScopedDb } from "@/lib/db/scoped";
+import type { TimelineItem } from "@/modules/accounts/schemas";
 import {
   AccountNotFoundError,
   getAccount,
   requireEditableAccount,
   type Actor,
 } from "@/modules/accounts/service";
-import type { setChampionInput } from "./schemas";
+import { ROLE_LABELS, type setChampionInput } from "./schemas";
 
 /**
  * People & stakeholder map (spec §6A2). Roles keep their history (validFrom/validTo) so the M3
@@ -73,5 +74,45 @@ export async function setChampion(
       },
       tx,
     );
+  });
+}
+
+// ─── Timeline source ─────────────────────────────────────────────────────────
+
+/** Stakeholder role changes: a role starting or ending is a timeline event. */
+export async function roleTimeline(
+  db: ScopedDb,
+  accountId: string,
+  upTo: Date,
+  take: number,
+): Promise<TimelineItem[]> {
+  const roles = await db.stakeholderRole.findMany({
+    where: { accountId, OR: [{ validFrom: { lte: upTo } }, { validTo: { lte: upTo } }] },
+    orderBy: { validFrom: "desc" },
+    take,
+    include: { contact: { select: { name: true } } },
+  });
+  return roles.flatMap((r) => {
+    const items: TimelineItem[] = [
+      {
+        key: `role:${r.id}:from`,
+        at: r.validFrom,
+        kind: "people",
+        title: `${r.contact.name} became ${ROLE_LABELS[r.role].toLowerCase()}`,
+        sourceType: "StakeholderRole",
+        sourceId: r.id,
+      },
+    ];
+    if (r.validTo) {
+      items.push({
+        key: `role:${r.id}:to`,
+        at: r.validTo,
+        kind: "people",
+        title: `${r.contact.name} is no longer ${ROLE_LABELS[r.role].toLowerCase()}`,
+        sourceType: "StakeholderRole",
+        sourceId: r.id,
+      });
+    }
+    return items;
   });
 }

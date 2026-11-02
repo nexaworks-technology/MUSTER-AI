@@ -1,4 +1,5 @@
-import { scopedDb } from "@/lib/db/scoped";
+import { scopedDb, type ScopedDb } from "@/lib/db/scoped";
+import type { TimelineItem } from "@/modules/accounts/schemas";
 import { AccountNotFoundError, getAccount, type Actor } from "@/modules/accounts/service";
 
 /**
@@ -52,4 +53,62 @@ export async function listConversations(actor: Actor, accountId: string, cursor 
     })),
     nextCursor: rows.length > CONVERSATION_PAGE ? cursor + CONVERSATION_PAGE : null,
   };
+}
+
+/** Emails/chats (one item per message) and calls (one item per transcript). */
+export async function conversationTimeline(
+  db: ScopedDb,
+  accountId: string,
+  upTo: Date,
+  take: number,
+): Promise<TimelineItem[]> {
+  const [messages, transcripts] = await Promise.all([
+    db.message.findMany({
+      where: {
+        accountId,
+        sentAt: { lte: upTo },
+        conversation: { channel: { in: ["EMAIL", "CHAT"] } },
+      },
+      orderBy: { sentAt: "desc" },
+      take,
+      select: {
+        id: true,
+        direction: true,
+        sentAt: true,
+        subject: true,
+        fromAddress: true,
+        fromContact: { select: { name: true } },
+        fromMember: { select: { user: { select: { name: true } } } },
+      },
+    }),
+    db.callTranscript.findMany({
+      where: { accountId, occurredAt: { lte: upTo } },
+      orderBy: { occurredAt: "desc" },
+      take,
+      select: { id: true, title: true, occurredAt: true },
+    }),
+  ]);
+  return [
+    ...messages.map((m): TimelineItem => ({
+      key: `message:${m.id}`,
+      at: m.sentAt,
+      kind: "email",
+      title:
+        m.direction === "INBOUND"
+          ? `Email from ${m.fromContact?.name ?? m.fromAddress ?? "the customer"}: ${m.subject ?? "(no subject)"}`
+          : `Email sent by ${m.fromMember?.user.name ?? m.fromAddress ?? "the team"}: ${m.subject ?? "(no subject)"}`,
+      href: `/accounts/${accountId}/conversations`,
+      sourceType: "Message",
+      sourceId: m.id,
+    })),
+    ...transcripts.map((t): TimelineItem => ({
+      key: `call:${t.id}`,
+      at: t.occurredAt,
+      kind: "call",
+      title: `Call: ${t.title}`,
+      href: `/accounts/${accountId}/conversations`,
+      sourceType: "CallTranscript",
+      sourceId: t.id,
+    })),
+  ];
 }
