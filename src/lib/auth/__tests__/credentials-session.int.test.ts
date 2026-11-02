@@ -2,7 +2,11 @@ import { NextRequest } from "next/server";
 import { beforeAll, describe, expect, it } from "vitest";
 import { handlers } from "@/lib/auth/config";
 import { hashPassword } from "@/lib/auth/password";
-import { findSessionByToken, resolveWorkspaceContext } from "@/lib/auth/session";
+import {
+  findSessionByToken,
+  resolveWorkspaceContext,
+  setActiveWorkspace,
+} from "@/lib/auth/session";
 import { rawDb } from "@/lib/db/raw";
 import { scopedDb } from "@/lib/db/scoped";
 import { createTestWorkspace } from "@/test/fixtures";
@@ -138,5 +142,14 @@ describe("credentials sign-in with database sessions (D-07)", () => {
     );
     const body = (await res.json()) as { user?: { id?: string; email?: string } };
     expect(body.user).toMatchObject({ id: userId, email });
+  });
+
+  it("the workspace switcher refuses a workspace the user is not a member of", async () => {
+    const { cookies } = await signInWith(PASSWORD);
+    const session = (await findSessionByToken(cookies.get("authjs.session-token")!))!;
+    const other = await createTestWorkspace("NotMine");
+    expect(await setActiveWorkspace(session, other.workspace.id)).toBe(false);
+    const ctx = await resolveWorkspaceContext((await findSessionByToken(session.sessionToken))!);
+    expect(ctx?.workspaceId).toBe(workspaceId);
   });
 });
