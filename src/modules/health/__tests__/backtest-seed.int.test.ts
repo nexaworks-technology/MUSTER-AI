@@ -22,7 +22,8 @@ const FIXTURE = JSON.parse(
 let ctx: { workspaceId: string };
 
 beforeAll(async () => {
-  const [ws] = await runSeed({ includeTestTenant: false });
+  // With the second tenant: the isolation check below must always have someone to look at.
+  const [ws] = await runSeed({ includeTestTenant: true });
   ctx = { workspaceId: ws!.id };
 }, 180_000);
 
@@ -90,8 +91,13 @@ describe("the seed's back-test (SEED_DATA §8)", () => {
 
   it("the workspace's own Larkspur history is what it reads (no other workspace)", async () => {
     const other = await rawDb.workspace.findUnique({ where: { slug: "ferngrove-test" } });
-    if (!other) return;
-    const { outcomes } = await labelledOutcomes({ workspaceId: other.id }, "2026-11-02");
-    expect(outcomes).toEqual([]);
+    // Fail loudly: a missing second workspace would make this check pass while asserting nothing.
+    expect(other, "the second workspace (ferngrove-test) must be seeded").not.toBeNull();
+    const own = await labelledOutcomes(ctx, "2026-11-02");
+    const theirs = await labelledOutcomes({ workspaceId: other!.id }, "2026-11-02");
+    expect(own.outcomes.length).toBe(24); // control: this workspace's history is there
+    const ownIds = new Set(own.outcomes.map((o) => o.accountId));
+    expect(theirs.outcomes.filter((o) => ownIds.has(o.accountId))).toEqual([]);
+    expect(theirs.outcomes).toEqual([]);
   });
 });
