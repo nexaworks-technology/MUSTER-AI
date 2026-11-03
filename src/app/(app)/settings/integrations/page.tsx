@@ -21,10 +21,22 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 
 const STATUS: Record<"CONNECTED" | "ERROR" | "DISCONNECTED", string> = {
+  // Data connectors read only (Rule 7); Slack is the exception and says so below (Q-56).
   CONNECTED: "Connected · read-only",
   ERROR: "Needs attention",
   DISCONNECTED: "Disconnected",
 };
+
+/** Slack sends messages to the team (never to customers), so it is never called read-only (Q-56). */
+const statusLabel = (provider: string, status: keyof typeof STATUS) =>
+  provider === "SLACK" && status === "CONNECTED"
+    ? "Connected · messages your team"
+    : STATUS[status];
+
+const connectedNotice = (provider: string, name: string) =>
+  provider === "SLACK"
+    ? "Connected Slack. It sends approvals, big signals and a morning digest to your team as direct messages; it never messages customers."
+    : `Connected ${name}. It reads only; nothing is written back.`;
 
 const OAUTH_ERRORS: Record<string, string> = {
   declined: "The sign-in was cancelled, so nothing was connected.",
@@ -55,7 +67,10 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
   const notice = error
     ? (OAUTH_ERRORS[error] ?? error)
     : one(params.connected)
-      ? `Connected ${cards.find((c) => c.provider.toLowerCase() === one(params.connected))?.name ?? ""}. It reads only; nothing is written back.`
+      ? (() => {
+          const c = cards.find((x) => x.provider.toLowerCase() === one(params.connected));
+          return connectedNotice(c?.provider ?? "", c?.name ?? "");
+        })()
       : one(params.tested)
         ? one(params.tested)
         : one(params.queued)
@@ -73,9 +88,9 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
           Integrations
         </h2>
         <p className="text-muted-foreground text-sm">
-          Connect the tools your team already uses. Every connection reads only, unless you turn on
-          write-back for a named field. Syncs run every night before health is scored, and you can
-          run one now.
+          Connect the tools your team already uses. CRM and billing connections read only, unless
+          you turn on write-back for a named field; syncs run every night before health is scored,
+          and you can run one now. Slack sends direct messages to your team, never to customers.
         </p>
         {notice ? (
           <Alert variant={error ? "destructive" : "default"} role={error ? "alert" : "status"}>
@@ -111,7 +126,7 @@ function ProviderSection({ card, tz }: { card: ProviderCard; tz: string }) {
           </span>
         </h3>
         <span className="text-sm" data-testid={`status-${card.provider}`}>
-          {i ? STATUS[i.status] : "Not connected"}
+          {i ? statusLabel(card.provider, i.status) : "Not connected"}
         </span>
       </div>
 

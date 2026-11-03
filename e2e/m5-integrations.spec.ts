@@ -190,7 +190,7 @@ test.describe("M5 integrations and setup", () => {
       .getByRole("region", { name: /Slack/ })
       .getByRole("link", { name: "Connect Slack" })
       .click();
-    await expect(page.getByTestId("status-SLACK")).toHaveText("Connected · read-only");
+    await expect(page.getByTestId("status-SLACK")).toHaveText("Connected · messages your team");
     await expect(page.getByTestId("slack-linked")).toContainText("Sensitive approvals show");
     const click = await page.request.post("/api/integrations/slack/interactivity", {
       headers: { "content-type": "application/x-www-form-urlencoded" },
