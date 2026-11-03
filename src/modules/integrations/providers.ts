@@ -7,6 +7,9 @@ export const PROVIDER_NAMES: Record<IntegrationProvider, string> = {
   STRIPE: "Stripe",
   CHARGEBEE: "Chargebee",
   SLACK: "Slack",
+  USAGE_API: "Usage API",
+  MIXPANEL: "Mixpanel",
+  AMPLITUDE: "Amplitude",
 };
 
 export const SOURCE_NAMES: Partial<Record<RecordSource, string>> = {
@@ -14,6 +17,9 @@ export const SOURCE_NAMES: Partial<Record<RecordSource, string>> = {
   SALESFORCE: "Salesforce",
   STRIPE: "Stripe",
   CHARGEBEE: "Chargebee",
+  USAGE_API: "the Usage API",
+  MIXPANEL: "Mixpanel",
+  AMPLITUDE: "Amplitude",
   CSV: "a CSV import",
   MANUAL: "a person",
   SEED: "the demo data",

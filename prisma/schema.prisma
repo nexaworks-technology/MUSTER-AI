@@ -70,51 +70,55 @@ model Workspace {
   outboxEvents OutboxEvent[]
   sessions     Session[]
 
-  accounts         Account[]
-  contacts         Contact[]
-  stakeholderRoles StakeholderRole[]
-  contracts        Contract[]
-  subscriptions    Subscription[]
-  invoices         Invoice[]
-  revenueEvents    RevenueEvent[]
-  usageDaily       UsageDaily[]
-  userUsageDaily   UserUsageDaily[]
-  featureUsage     FeatureUsageDaily[]
-  featureCatalog   FeatureCatalog[]
-  conversations    Conversation[]
-  messages         Message[]
-  tickets          Ticket[]
-  transcripts      CallTranscript[]
-  tasks            Task[]
-  noteTemplates    NoteTemplate[]
-  notes            Note[]
-  notifications    Notification[]
-  segments         Segment[]
-  files            FileObject[]
-  externalRefs     ExternalRef[]
-  importJobs       ImportJob[]
-  missingPrompts   MissingDataPrompt[]
-  dataIssues       DataQualityIssue[]
-  healthModels     HealthModel[]
-  healthSnapshots  HealthScoreSnapshot[]
-  healthReasons    HealthReason[]
-  pulses           CsmPulse[]
-  usageBaselines   UsageBaseline[]
-  signalRules      SignalRule[]
-  signals          Signal[]
-  outcomes         OutcomeRecord[]
-  agentDefinitions AgentDefinition[]
-  agentRuns        AgentRun[]
-  approvals        Approval[]
-  draftRevisions   DraftRevision[]
-  outboundMessages OutboundMessage[]
-  suppressions     EmailSuppression[]
-  todayItems       TodayItem[]
-  extractions      Extraction[]
-  integrations     Integration[]
-  syncJobs         SyncJob[]
-  webhookEvents    WebhookEvent[]
-  slackUserLinks   SlackUserLink[]
+  accounts            Account[]
+  contacts            Contact[]
+  stakeholderRoles    StakeholderRole[]
+  contracts           Contract[]
+  subscriptions       Subscription[]
+  invoices            Invoice[]
+  revenueEvents       RevenueEvent[]
+  usageDaily          UsageDaily[]
+  userUsageDaily      UserUsageDaily[]
+  featureUsage        FeatureUsageDaily[]
+  featureCatalog      FeatureCatalog[]
+  conversations       Conversation[]
+  messages            Message[]
+  tickets             Ticket[]
+  transcripts         CallTranscript[]
+  tasks               Task[]
+  noteTemplates       NoteTemplate[]
+  notes               Note[]
+  notifications       Notification[]
+  segments            Segment[]
+  files               FileObject[]
+  externalRefs        ExternalRef[]
+  importJobs          ImportJob[]
+  missingPrompts      MissingDataPrompt[]
+  dataIssues          DataQualityIssue[]
+  healthModels        HealthModel[]
+  healthSnapshots     HealthScoreSnapshot[]
+  healthReasons       HealthReason[]
+  pulses              CsmPulse[]
+  usageBaselines      UsageBaseline[]
+  signalRules         SignalRule[]
+  signals             Signal[]
+  outcomes            OutcomeRecord[]
+  agentDefinitions    AgentDefinition[]
+  agentRuns           AgentRun[]
+  approvals           Approval[]
+  draftRevisions      DraftRevision[]
+  outboundMessages    OutboundMessage[]
+  suppressions        EmailSuppression[]
+  todayItems          TodayItem[]
+  extractions         Extraction[]
+  integrations        Integration[]
+  syncJobs            SyncJob[]
+  webhookEvents       WebhookEvent[]
+  slackUserLinks      SlackUserLink[]
+  onboardingTemplates OnboardingTemplate[]
+  onboardingPlans     OnboardingPlan[]
+  onboardingSteps     OnboardingStep[]
+  goals               Goal[]
 }
 
 // ─── Global identity (Auth.js) ───────────────────────────────────────────────
@@ -223,6 +227,9 @@ model Membership {
   outboundCreated    OutboundMessage[]   @relation("OutboundCreator")
   todayItems         TodayItem[]
   integrationsMade   Integration[]       @relation("IntegrationConnector")
+  stepsOwned         OnboardingStep[]    @relation("StepOwner")
+  stepsCompleted     OnboardingStep[]    @relation("StepCompleter")
+  goalsCreated       Goal[]              @relation("GoalCreator")
   slackLinks         SlackUserLink[]
 
   @@unique([workspaceId, id])
@@ -343,6 +350,9 @@ enum RecordSource {
   SALESFORCE
   STRIPE
   CHARGEBEE
+  USAGE_API
+  MIXPANEL
+  AMPLITUDE
 }
 
 /// Who wrote a record. origin = AI requires agentRunId (Rule 5, DB CHECK).
@@ -434,6 +444,8 @@ model Account {
   outboundMessages OutboundMessage[]
   todayItems       TodayItem[]
   extractions      Extraction[]
+  onboardingPlans  OnboardingPlan[]
+  goals            Goal[]
 
   @@unique([workspaceId, id])
   @@index([workspaceId, renewalDate])
@@ -474,6 +486,7 @@ model Contact {
   messages         Message[]
   tickets          Ticket[]
   outboundMessages OutboundMessage[]
+  stepsOwned       OnboardingStep[]
 
   @@unique([workspaceId, id])
   @@index([workspaceId, accountId])
@@ -1685,6 +1698,7 @@ model AgentRun {
   notes            Note[]            @relation("NoteAgentRun")
   signals          Signal[]          @relation("SignalAgentRun")
   outcomeRecords   OutcomeRecord[]   @relation("OutcomeAgentRun")
+  goals            Goal[]            @relation("GoalAgentRun")
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, idempotencyKey])
@@ -1971,6 +1985,10 @@ enum IntegrationProvider {
   STRIPE
   CHARGEBEE
   SLACK
+  /// M6: our own usage ingest endpoint (Segment-compatible subset).
+  USAGE_API
+  MIXPANEL
+  AMPLITUDE
 }
 
 enum IntegrationStatus {
@@ -2104,4 +2122,150 @@ model SlackUserLink {
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, integrationId, slackUserId])
+}
+
+// ─── M6: onboarding ──────────────────────────────────────────────────────────────────────
+
+enum OnboardingPlanStatus {
+  ACTIVE
+  STALLED
+  COMPLETE
+  CANCELLED
+}
+
+enum StepOwnerSide {
+  US
+  CUSTOMER
+}
+
+/// How a step was completed (M6 D1): a person, or a verified product event. Never a timer.
+enum StepCompletion {
+  HUMAN
+  PRODUCT_EVENT
+}
+
+enum GoalStatus {
+  OPEN
+  ACHIEVED
+  MISSED
+  DROPPED
+}
+
+/// [W] A reusable onboarding plan (spec §6G1). `steps` and `valueDefinition` are validated by
+/// src/modules/onboarding/schemas.ts; value is defined only over metrics the product measures.
+model OnboardingTemplate {
+  id              String       @id @default(cuid())
+  workspaceId     String
+  name            String
+  forTier         AccountTier?
+  forPlan         String?
+  /// Days from start the template expects first value (the account's own target, D3).
+  targetDays      Int
+  steps           Json         @default("[]")
+  valueDefinition Json         @default("[]")
+  archivedAt      DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  workspace Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  plans     OnboardingPlan[]
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, name])
+}
+
+/// [W] One account's onboarding. At most one open (ACTIVE or STALLED) plan per account (DB index).
+model OnboardingPlan {
+  id              String               @id @default(cuid())
+  workspaceId     String
+  accountId       String
+  templateId      String?
+  startDate       DateTime             @db.Date
+  targetValueDate DateTime             @db.Date
+  /// First business date every value condition held (D3); null = not reached.
+  valueReachedAt  DateTime?            @db.Date
+  /// The usage rows that prove value was reached: [{sourceType, sourceId, value, date}].
+  valueEvidence   Json                 @default("[]")
+  status          OnboardingPlanStatus @default(ACTIVE)
+  /// The likely blocker in plain words, from stall.ts (D2); null when not stalled.
+  stallReason     String?
+  /// Ranked blockers with sources, as stall.ts produced them.
+  blockers        Json                 @default("[]")
+  /// Sales handoff (handoff.ts): items, each with sources; "Not found in CRM" for missing ones.
+  handoff         Json                 @default("{}")
+  lastEvaluatedOn DateTime?            @db.Date
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  workspace Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account             @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  template  OnboardingTemplate? @relation(fields: [workspaceId, templateId], references: [workspaceId, id], onDelete: NoAction)
+  steps     OnboardingStep[]
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, status])
+  @@index([workspaceId, accountId])
+}
+
+/// [W] One step of a plan. Done only by a person (HUMAN) or a verified product event with the
+/// proving rows stored as evidence (PRODUCT_EVENT); DB CHECKs enforce both (D1).
+model OnboardingStep {
+  id                      String          @id @default(cuid())
+  workspaceId             String
+  planId                  String
+  key                     String
+  position                Int
+  title                   String
+  ownerSide               StepOwnerSide
+  ownerMembershipId       String?
+  ownerContactId          String?
+  dueDate                 DateTime        @db.Date
+  /// From the template: the product condition that completes this step on its own (D1).
+  completesWhen           Json?
+  doneAt                  DateTime?
+  completedVia            StepCompletion?
+  completedByMembershipId String?
+  evidence                Json            @default("[]")
+  blockedReason           String?
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+
+  workspace    Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  plan         OnboardingPlan @relation(fields: [workspaceId, planId], references: [workspaceId, id], onDelete: Cascade)
+  owner        Membership?    @relation("StepOwner", fields: [workspaceId, ownerMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  ownerContact Contact?       @relation(fields: [workspaceId, ownerContactId], references: [workspaceId, id], onDelete: NoAction)
+  completedBy  Membership?    @relation("StepCompleter", fields: [workspaceId, completedByMembershipId], references: [workspaceId, id], onDelete: Restrict)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, planId, key])
+  @@index([workspaceId, planId])
+}
+
+/// [W] A customer goal (spec §6G2, Architecture §3.2). M6 uses it for stated goals in the Sales
+/// handoff; call-derived goals arrive in M9 and success plans in M10.
+model Goal {
+  id                    String       @id @default(cuid())
+  workspaceId           String
+  accountId             String
+  successPlanId         String?
+  text                  String
+  metricKey             String?
+  targetValue           Float?
+  status                GoalStatus   @default(OPEN)
+  sourceType            String?
+  sourceId              String?
+  quote                 String?
+  origin                RecordOrigin @default(HUMAN)
+  agentRunId            String?
+  createdByMembershipId String?
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+
+  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account     @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  agentRun  AgentRun?   @relation("GoalAgentRun", fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
+  createdBy Membership? @relation("GoalCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: Restrict)
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, accountId])
 }

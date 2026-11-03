@@ -355,6 +355,11 @@ async function mergeContacts(tx: Tx, fix: Extract<DqFix, { type: "MERGE_CONTACTS
     where: { contactId: { in: removeIds } },
     data: { contactId: keepId },
   });
+  // M6: onboarding steps owned by a customer contact follow the kept record.
+  await tx.onboardingStep.updateMany({
+    where: { ownerContactId: { in: removeIds } },
+    data: { ownerContactId: keepId },
+  });
   await tx.externalRef.updateMany({
     where: { internalType: "Contact", internalId: { in: removeIds } },
     data: { internalId: keepId },
