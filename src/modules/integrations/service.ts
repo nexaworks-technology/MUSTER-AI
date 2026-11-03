@@ -25,6 +25,12 @@ export {
 } from "./connections.service";
 export { OAUTH_NONCE_COOKIE, OAuthStateError } from "./oauth";
 export { PROVIDER_NAMES } from "./providers";
+export {
+  processWebhookEvent,
+  receiveWebhook,
+  type WebhookProcessResult,
+  type WebhookResponse,
+} from "./webhooks.service";
 
 /** URL segment → provider (`/api/integrations/hubspot/...`). */
 export const providerParam = z

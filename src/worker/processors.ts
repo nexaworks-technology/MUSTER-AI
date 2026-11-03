@@ -12,7 +12,7 @@ import {
   sweepAllHealthNarratives,
 } from "@/modules/agents/service";
 import { importJobPayload, runImportJob } from "@/modules/imports/service";
-import { runSync } from "@/modules/integrations/service";
+import { processWebhookEvent, runSync } from "@/modules/integrations/service";
 import { evaluateSevenDayCheckpoints } from "@/modules/outcomes/service";
 import { escalateOverdueTasks } from "@/modules/tasks/service";
 import { rebuildWorkspaceToday } from "@/modules/today/service";
@@ -54,6 +54,10 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
     /** M5: one integration sync (nightly flow child, "Run sync now", setup import). */
     async "sync.run"(job) {
       return runSync(job.data);
+    },
+    /** M5: one verified webhook event: ingest, then real-time evaluation of its account. */
+    async "webhook.process"(job) {
+      return processWebhookEvent(job.data);
     },
   },
   /** M3: the nightly run and the real-time hook (signals → health), scoped by payload. */
