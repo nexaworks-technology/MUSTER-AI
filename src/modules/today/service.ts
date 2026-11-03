@@ -4,7 +4,7 @@ import {
   calendarDateOf,
   localDate,
   startOfLocalDay,
-  systemClock,
+  businessClock,
   todayIn,
   utcMidnight,
   type Clock,
@@ -50,7 +50,10 @@ const accountSelect = {
   renewalDate: true,
 } as const;
 
-export async function todayCandidates(m: Member, clock: Clock = systemClock): Promise<Candidate[]> {
+export async function todayCandidates(
+  m: Member,
+  clock: Clock = businessClock,
+): Promise<Candidate[]> {
   const ctx: TenantContext = { workspaceId: m.workspaceId };
   const db = scopedDb(ctx);
   const ws = await getOwnWorkspace(ctx);
@@ -164,7 +167,7 @@ export async function todayCandidates(m: Member, clock: Clock = systemClock): Pr
 }
 
 /** Replaces one member's Today items with a fresh ranking (idempotent). */
-export async function rebuildToday(m: Member, clock: Clock = systemClock) {
+export async function rebuildToday(m: Member, clock: Clock = businessClock) {
   const ctx: TenantContext = { workspaceId: m.workspaceId };
   const ws = await getOwnWorkspace(ctx);
   const ranked = rankItems(await todayCandidates(m, clock), {
@@ -216,7 +219,7 @@ export async function getToday(
   m: Member,
   opts: { cursors?: Partial<Record<TodayItemType, number>>; clock?: Clock } = {},
 ): Promise<TodaySection[]> {
-  const clock = opts.clock ?? systemClock;
+  const clock = opts.clock ?? businessClock;
   const db = scopedDb({ workspaceId: m.workspaceId });
   const latest = await db.todayItem.findFirst({
     where: { membershipId: m.membershipId },
@@ -264,7 +267,7 @@ export async function getToday(
 }
 
 /** The hourly job: every active member of a workspace. */
-export async function rebuildWorkspaceToday(ctx: TenantContext, clock: Clock = systemClock) {
+export async function rebuildWorkspaceToday(ctx: TenantContext, clock: Clock = businessClock) {
   const members = await scopedDb(ctx).membership.findMany({
     where: { status: "ACTIVE" },
     select: { workspaceId: true, id: true, bookScope: true, canViewRevenue: true },

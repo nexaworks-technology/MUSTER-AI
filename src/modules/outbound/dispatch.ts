@@ -1,7 +1,7 @@
 import type { OutboundMessage, Prisma } from "@prisma/client";
 import { writeAudit } from "@/lib/audit";
 import { can } from "@/lib/auth/permissions";
-import { systemClock, type Clock } from "@/lib/dates";
+import { businessClock, type Clock } from "@/lib/dates";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { customerTransport, type CustomerTransport } from "@/lib/email/customerTransport";
 import { markActed } from "@/modules/outcomes/service";
@@ -196,7 +196,7 @@ export async function dispatch(
   deps: DispatchDeps = {},
 ): Promise<DispatchResult> {
   const db = scopedDb(ctx);
-  const now = (deps.clock ?? systemClock)();
+  const now = (deps.clock ?? businessClock)();
   const m = await db.outboundMessage.findUniqueOrThrow({ where: { id: outboundMessageId } });
   if (m.status === "SENT")
     return { status: "ALREADY_SENT", providerMessageId: m.providerMessageId };

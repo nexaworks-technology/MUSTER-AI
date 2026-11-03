@@ -14,7 +14,7 @@ import {
   sourceLookups,
   type SourceRef,
 } from "@/modules/health/service";
-import { systemClock, todayIn, type Clock } from "@/lib/dates";
+import { businessClock, todayIn, type Clock } from "@/lib/dates";
 import { insertOutsideSignal, outsideInputFor } from "./outside";
 import type { SignalListQuery } from "./schemas";
 import { parseParams, RULE_BY_KEY, RULES, type RuleKey } from "./rules/catalog";
@@ -288,7 +288,11 @@ export {
 } from "./outside";
 
 /** A person adds public news about an account in their book, with its source link and date. */
-export async function createOutsideSignal(actor: Actor, raw: unknown, clock: Clock = systemClock) {
+export async function createOutsideSignal(
+  actor: Actor,
+  raw: unknown,
+  clock: Clock = businessClock,
+) {
   requirePermission(actor, "accounts:edit");
   const ctx = await loadContext(actor);
   const today = todayIn(ctx.timeZone, clock);

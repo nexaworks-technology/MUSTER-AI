@@ -2,7 +2,7 @@ import type { Approval, ApprovalKind, Prisma } from "@prisma/client";
 import { z } from "zod";
 import { writeAudit } from "@/lib/audit";
 import { can, ForbiddenError, requirePermission } from "@/lib/auth/permissions";
-import { systemClock, type Clock } from "@/lib/dates";
+import { businessClock, type Clock } from "@/lib/dates";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { bookWhere, type Actor } from "@/modules/accounts/service";
 import {
@@ -343,7 +343,7 @@ export async function approve(
   const input = decisionInput.parse(raw);
   const via = opts.via ?? "APP";
   const a = await loadPending(actor, input.approvalId, via);
-  const now = (opts.clock ?? systemClock)();
+  const now = (opts.clock ?? businessClock)();
   const approval = await scopedDb(actor).$tenantTransaction(async (tx) => {
     const updated = await tx.approval.update({
       where: { id: a.id },
@@ -398,7 +398,7 @@ export async function editAndApprove(
   const sensitive = detectSensitive({ texts: [input.subject, input.body] });
   if (sensitive.isSensitive && via === "SLACK")
     throw new ApprovalStateError("Sensitive items are decided in the app, never from Slack.");
-  const now = (opts.clock ?? systemClock)();
+  const now = (opts.clock ?? businessClock)();
   const approval = await scopedDb(actor).$tenantTransaction(async (tx) => {
     const version = latest.version + 1;
     await tx.draftRevision.create({
@@ -474,7 +474,7 @@ export async function reject(
   const input = rejectInput.parse(raw);
   const via = opts.via ?? "APP";
   const a = await loadPending(actor, input.approvalId, via);
-  const now = (opts.clock ?? systemClock)();
+  const now = (opts.clock ?? businessClock)();
   const approval = await scopedDb(actor).$tenantTransaction(async (tx) => {
     const updated = await tx.approval.update({
       where: { id: a.id },

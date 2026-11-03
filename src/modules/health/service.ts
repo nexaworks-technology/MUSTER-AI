@@ -16,7 +16,7 @@ import type { AccountBundle } from "./engine/types";
 import { z } from "zod";
 import { writeAudit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth/permissions";
-import { systemClock, todayIn, type Clock } from "@/lib/dates";
+import { businessClock, todayIn, type Clock } from "@/lib/dates";
 import {
   bookWhere,
   getAccount,
@@ -303,7 +303,7 @@ async function latestPulses(db: ReturnType<typeof scopedDb>, accountIds: string[
 export async function getAccountHealth(
   actor: Actor,
   accountId: string,
-  clock: Clock = systemClock,
+  clock: Clock = businessClock,
 ) {
   const account = await getAccount(actor, accountId);
   if (!account) return null;
@@ -378,7 +378,7 @@ export type AccountHealth = NonNullable<Awaited<ReturnType<typeof getAccountHeal
 export async function healthForAccounts(
   ctx: TenantContext,
   accountIds: string[],
-  clock: Clock = systemClock,
+  clock: Clock = businessClock,
 ) {
   const db = scopedDb(ctx);
   const [accounts, pulses] = await Promise.all([
@@ -427,7 +427,7 @@ export async function setPulse(
   actor: Actor,
   accountId: string,
   raw: unknown,
-  clock: Clock = systemClock,
+  clock: Clock = businessClock,
 ) {
   requirePermission(actor, "pulse:set");
   await requireEditableAccount(actor, accountId);
@@ -468,7 +468,7 @@ export async function setPulse(
 export async function recomputeAccounts(
   ctx: TenantContext,
   accountIds: string[],
-  clock: Clock = systemClock,
+  clock: Clock = businessClock,
 ) {
   const load = await loadContext(ctx);
   return scoreAndStore(ctx, accountIds, todayIn(load.timeZone, clock), await getActiveModel(ctx), {
@@ -507,7 +507,7 @@ export interface Mover {
  * revenue access, M3 rule 11), what moved since yesterday and in the last 7 days (band changed or
  * ≥ 10 points) with the reason that moved most, and where score and CSM disagree.
  */
-export async function healthOverview(actor: Actor, clock: Clock = systemClock) {
+export async function healthOverview(actor: Actor, clock: Clock = businessClock) {
   const grant = requirePermission(actor, "accounts:view");
   const db = scopedDb(actor);
   const model = await getActiveModel(actor);

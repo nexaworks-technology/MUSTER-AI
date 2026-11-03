@@ -1,6 +1,6 @@
 import { Prisma, type OutcomeRecord } from "@prisma/client";
 import { writeAudit } from "@/lib/audit";
-import { systemClock, type Clock } from "@/lib/dates";
+import { businessClock, type Clock } from "@/lib/dates";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 
 /**
@@ -22,7 +22,7 @@ export async function markActed(
   ctx: TenantContext,
   link: { signalId: string },
   ref: ActionRef,
-  clock: Clock = systemClock,
+  clock: Clock = businessClock,
 ): Promise<OutcomeRecord | null> {
   const db = scopedDb(ctx);
   const record = await db.outcomeRecord.findUnique({
@@ -79,7 +79,10 @@ export interface Checkpoint {
  * than at the flag and every snapshot since the first better one stayed better (evidence: the
  * snapshots); else NO_CHANGE. Idempotent: an evaluated record is not evaluated again.
  */
-export async function evaluateSevenDayCheckpoints(ctx: TenantContext, clock: Clock = systemClock) {
+export async function evaluateSevenDayCheckpoints(
+  ctx: TenantContext,
+  clock: Clock = businessClock,
+) {
   const db = scopedDb(ctx);
   const now = clock();
   const due = await db.outcomeRecord.findMany({

@@ -15,6 +15,7 @@ import {
   type Actor,
 } from "@/modules/accounts/service";
 import { currentContract, deriveRevenueEvents } from "./revenue";
+import { businessClock } from "@/lib/dates";
 
 /**
  * Contracts, subscriptions, invoices and rule-derived revenue events (spec §6A3, §6N3).
@@ -31,7 +32,7 @@ export async function recomputeCommercials(
   tx: Tx,
   workspaceId: string,
   accountId: string,
-  asOf = new Date(),
+  asOf = businessClock(), // ARR and renewal "as of today" (also run by the import job; D-81)
 ) {
   const contracts = await tx.contract.findMany({ where: { accountId } });
   const derived = deriveRevenueEvents(contracts, asOf);

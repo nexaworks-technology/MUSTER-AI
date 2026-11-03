@@ -1,6 +1,6 @@
 import type { Job } from "bullmq";
 import { z } from "zod";
-import { systemClock, todayIn, type Clock } from "@/lib/dates";
+import { businessClock, todayIn, type Clock } from "@/lib/dates";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { writeOutboxEvent } from "@/lib/jobs/outbox";
 import { getQueue, type QueueName } from "@/lib/jobs/queues";
@@ -173,7 +173,7 @@ export async function enqueueAccountEvaluation(
   ctx: TenantContext,
   accountIds: string[],
   reason: string,
-  clock: Clock = systemClock,
+  clock: Clock = businessClock,
 ) {
   const asOf = todayIn((await loadContext(ctx)).timeZone, clock);
   const run = `rt-${reason.replace(/[^\w-]/g, "-").slice(0, 30)}-${clock().getTime()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -194,7 +194,7 @@ export async function enqueueAccountEvaluation(
 }
 
 /** "Recompute now" for the whole workspace: a kickoff with its own run id. */
-export async function enqueueWorkspaceRun(ctx: TenantContext, clock: Clock = systemClock) {
+export async function enqueueWorkspaceRun(ctx: TenantContext, clock: Clock = businessClock) {
   const run = `manual-${clock().getTime()}`;
   await add(
     "signals",
@@ -206,7 +206,7 @@ export async function enqueueWorkspaceRun(ctx: TenantContext, clock: Clock = sys
 }
 
 /** Queue a back-test + proposal run for the workspace. */
-export async function enqueueBacktest(ctx: TenantContext, clock: Clock = systemClock) {
+export async function enqueueBacktest(ctx: TenantContext, clock: Clock = businessClock) {
   const id = `${ctx.workspaceId}.backtest.${clock().getTime()}`;
   await getQueue("health").add(
     "health.backtest",

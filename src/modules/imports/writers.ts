@@ -6,7 +6,7 @@ import {
   syncSignalRules,
 } from "@/modules/signals/service";
 import type { ScopedDb } from "@/lib/db/scoped";
-import { todayIn } from "@/lib/dates";
+import { todayIn, businessClock } from "@/lib/dates";
 import { loadContext } from "@/modules/health/service";
 import type { ValidRecord } from "./parse";
 import type { ImportKind } from "./templates";
@@ -247,7 +247,7 @@ async function planContacts(
             accountId: acct.id!,
             contactId,
             role,
-            validFrom: new Date(),
+            validFrom: businessClock(), // business date: the role starts "today" (D-81)
             setByMembershipId: ctx.actorMembershipId,
             origin: "IMPORT",
           },
@@ -666,7 +666,7 @@ async function planOutside(
           origin: "IMPORT",
           createdByMembershipId: ctx.actorMembershipId,
           today,
-          now: new Date(),
+          now: businessClock(),
           ruleVersion: rule.version,
         });
       },

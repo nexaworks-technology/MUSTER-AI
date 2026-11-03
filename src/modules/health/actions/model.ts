@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { ForbiddenError, requirePermission } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
-import { systemClock } from "@/lib/dates";
+import { businessClock } from "@/lib/dates";
 import { logger } from "@/lib/logger";
 import { enqueueBacktest, enqueueWorkspaceRun } from "@/modules/signals/service";
 import { activateModel, previewModelEdit, saveModelEdit } from "../service";
@@ -84,7 +84,7 @@ export async function modelEditAction(
     if (!a) return { error: "You're not a member of this workspace." };
     const edit = editFromForm(fd);
     if (fd.get("intent") === "save") {
-      const draft = await saveModelEdit(a, edit, systemClock);
+      const draft = await saveModelEdit(a, edit, businessClock);
       revalidatePath("/settings/health-model");
       return {
         ok: `Saved as draft v${draft.version}. Nothing changes until an Admin activates it.`,

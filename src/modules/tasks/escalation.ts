@@ -1,5 +1,5 @@
 import { writeAudit } from "@/lib/audit";
-import { addDays, startOfLocalDay, systemClock, todayIn, type Clock } from "@/lib/dates";
+import { addDays, startOfLocalDay, businessClock, todayIn, type Clock } from "@/lib/dates";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { getOwnWorkspace } from "@/lib/db/workspace";
 import { writeOutboxEvent } from "@/lib/jobs/outbox";
@@ -12,7 +12,7 @@ import { getSettingsData } from "@/modules/settings/service";
  * audited, and a `task.overdue` event is recorded for plays (M8). Idempotent: escalated tasks are
  * skipped, so the daily job and a re-run never notify twice.
  */
-export async function escalateOverdueTasks(ctx: TenantContext, clock: Clock = systemClock) {
+export async function escalateOverdueTasks(ctx: TenantContext, clock: Clock = businessClock) {
   const db = scopedDb(ctx);
   const ws = await getOwnWorkspace(ctx);
   const { tasks: cfg } = await getSettingsData(ctx.workspaceId);

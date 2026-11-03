@@ -11,7 +11,39 @@
 export type CalendarDate = string;
 export type Clock = () => Date;
 
-export const systemClock: Clock = () => new Date();
+/** Real wall-clock time: record and audit timestamps, expiries, durations. Never faked. */
+export const realClock: Clock = () => new Date();
+
+const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/;
+
+/**
+ * The business "now" (Q-49, D-81): real time, unless a test harness sets BOTH
+ * `ALLOW_FAKE_CLOCK=true` and `APP_FAKE_NOW` (an ISO 8601 instant) outside production. The e2e
+ * app and worker pin it to the seed's day, so asynchronous jobs (activation re-scores, the nightly
+ * pipeline) can never date the frozen test world "today". Production always gets real time.
+ */
+export function businessNow(
+  source: Record<string, string | undefined> = process.env,
+  real: Clock = realClock,
+): Date {
+  if (
+    source.NODE_ENV === "production" ||
+    source.ALLOW_FAKE_CLOCK !== "true" ||
+    !source.APP_FAKE_NOW
+  )
+    return real();
+  const fake = source.APP_FAKE_NOW;
+  const at = new Date(fake);
+  if (!ISO_INSTANT.test(fake) || Number.isNaN(at.getTime()))
+    throw new Error("APP_FAKE_NOW must be an ISO 8601 instant, e.g. 2026-11-02T17:00:00Z");
+  return at;
+}
+
+/**
+ * The clock for business dates: scoring as-of, signal evaluation, Today, escalation, outcome
+ * checkpoints, send guards, agent budgets. Services take it as their default injected clock.
+ */
+export const businessClock: Clock = () => businessNow();
 export const fixedClock =
   (iso: string): Clock =>
   () =>
@@ -103,6 +135,6 @@ export function addDays(d: CalendarDate, n: number): CalendarDate {
   return calendarDateOf(t);
 }
 
-export function todayIn(timeZone: string, clock: Clock = systemClock): CalendarDate {
+export function todayIn(timeZone: string, clock: Clock = businessClock): CalendarDate {
   return localDate(clock(), timeZone);
 }

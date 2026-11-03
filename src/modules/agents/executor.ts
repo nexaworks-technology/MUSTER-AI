@@ -12,7 +12,7 @@ import {
   type StructuredResult,
 } from "@/lib/ai";
 import { writeAudit } from "@/lib/audit";
-import { startOfLocalDay, systemClock, todayIn, type Clock } from "@/lib/dates";
+import { startOfLocalDay, businessClock, todayIn, type Clock } from "@/lib/dates";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { getOwnWorkspace } from "@/lib/db/workspace";
 import { logger } from "@/lib/logger";
@@ -135,7 +135,7 @@ export async function runAgent(
 ): Promise<RunOutcome> {
   if (!deps.provider && !isAiConfigured())
     return { kind: "not_configured", reason: "ANTHROPIC_API_KEY is not set" };
-  const clock = deps.clock ?? systemClock;
+  const clock = deps.clock ?? businessClock;
   const db = scopedDb(ctx);
   const {
     input,

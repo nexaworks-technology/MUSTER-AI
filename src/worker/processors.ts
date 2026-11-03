@@ -3,7 +3,7 @@ import { env } from "@/lib/config/env";
 import { dispatchOutbox, OUTBOX_ROUTES } from "@/lib/jobs/outbox";
 import type { QueueName } from "@/lib/jobs/queues";
 import { logger } from "@/lib/logger";
-import { systemClock } from "@/lib/dates";
+import { businessClock } from "@/lib/dates";
 import { listActiveWorkspaces } from "@/lib/db/workspace";
 import { getQueue } from "@/lib/jobs/queues";
 import {
@@ -17,7 +17,7 @@ import { escalateOverdueTasks } from "@/modules/tasks/service";
 import { rebuildWorkspaceToday } from "@/modules/today/service";
 import { createPipelineProcessors } from "@/modules/signals/service";
 
-const pipeline = createPipelineProcessors({ clock: systemClock });
+const pipeline = createPipelineProcessors({ clock: businessClock });
 
 /**
  * One repeatable nightly kickoff per active workspace, at 02:00 in that workspace's time zone

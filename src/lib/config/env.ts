@@ -32,6 +32,19 @@ export const envSchema = z
      * real-clock nightly run can never rewrite the seeded demo workspace (Q-49).
      */
     NIGHTLY_SCHEDULES: z.enum(["on", "off"]).default("on"),
+    /**
+     * TEST-ONLY fake business clock (Q-49, D-81). Honoured by businessClock only when
+     * ALLOW_FAKE_CLOCK is exactly "true", APP_FAKE_NOW is an ISO 8601 instant, and NODE_ENV is not
+     * production. Unset everywhere except the e2e harness.
+     */
+    ALLOW_FAKE_CLOCK: optionalString,
+    APP_FAKE_NOW: z
+      .string()
+      .regex(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/,
+        "must be an ISO 8601 instant",
+      )
+      .optional(),
 
     AUTH_SECRET: z.string().min(32, "must be at least 32 characters"),
     AUTH_GOOGLE_ID: optionalString,
