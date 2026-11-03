@@ -1,0 +1,36 @@
+{
+  "provider": "hubspot",
+  "description": "HubSpot answers HTTP 401 to the first sync call.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/crm/v3/owners"
+      },
+      "response": {
+        "status": 401,
+        "headers": {},
+        "body": {
+          "status": "error",
+          "category": "INVALID_AUTHENTICATION",
+          "message": "Authentication credentials not found."
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/account-info/v3/details"
+      },
+      "response": {
+        "status": 401,
+        "headers": {},
+        "body": {
+          "status": "error",
+          "category": "INVALID_AUTHENTICATION",
+          "message": "Authentication credentials not found."
+        }
+      }
+    }
+  ]
+}

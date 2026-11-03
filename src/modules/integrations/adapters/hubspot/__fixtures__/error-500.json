@@ -1,0 +1,34 @@
+{
+  "provider": "hubspot",
+  "description": "HubSpot answers HTTP 500 to the first sync call.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/crm/v3/owners"
+      },
+      "response": {
+        "status": 500,
+        "headers": {},
+        "body": {
+          "status": "error",
+          "category": "INTERNAL_ERROR"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/account-info/v3/details"
+      },
+      "response": {
+        "status": 500,
+        "headers": {},
+        "body": {
+          "status": "error",
+          "category": "INTERNAL_ERROR"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "provider": "hubspot",
+  "description": "Contacts: Jo Harper matches the existing Sundial contact by email, Maya is new at Meridian, one has no company, one has a broken email.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/crm/v3/objects/contacts"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "results": [
+            {
+              "id": "p-1",
+              "properties": {
+                "firstname": "Jo",
+                "lastname": "Harper",
+                "email": "jo.harper@sundial-fitness.test",
+                "jobtitle": "Owner",
+                "associatedcompanyid": "c-1002"
+              },
+              "archived": false,
+              "createdAt": "2025-01-10T00:00:00Z",
+              "updatedAt": "2026-10-30T00:00:00Z"
+            },
+            {
+              "id": "p-2",
+              "properties": {
+                "firstname": "Maya",
+                "lastname": "Chen",
+                "email": "maya.chen@meridian-labs.test",
+                "jobtitle": "Head of Ops",
+                "associatedcompanyid": "c-1003"
+              },
+              "archived": false,
+              "createdAt": "2025-01-10T00:00:00Z",
+              "updatedAt": "2026-10-30T00:00:00Z"
+            },
+            {
+              "id": "p-3",
+              "properties": {
+                "firstname": "Free",
+                "lastname": "Agent",
+                "email": "free.agent@nowhere.test",
+                "associatedcompanyid": null
+              },
+              "archived": false,
+              "createdAt": "2025-01-10T00:00:00Z",
+              "updatedAt": "2026-10-30T00:00:00Z"
+            },
+            {
+              "id": "p-4",
+              "properties": {
+                "firstname": "Typo",
+                "lastname": "Person",
+                "email": "typo@@meridian-labs",
+                "associatedcompanyid": "c-1003"
+              },
+              "archived": false,
+              "createdAt": "2025-01-10T00:00:00Z",
+              "updatedAt": "2026-10-30T00:00:00Z"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/crm/v3/objects/contacts/search"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "results": []
+        }
+      }
+    }
+  ]
+}

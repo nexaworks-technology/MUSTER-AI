@@ -1,0 +1,150 @@
+{
+  "provider": "hubspot",
+  "description": "Companies: Brightwell's name differs from Larkspur's record (Q-32 conflict), Sundial links by domain, Meridian is new with an unknown owner, one has no name, one is archived.",
+  "interactions": [
+    {
+      "note": "archived companies",
+      "request": {
+        "method": "GET",
+        "path": "/crm/v3/objects/companies",
+        "query": {
+          "archived": "true"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "results": [
+            {
+              "id": "c-0999",
+              "properties": {
+                "name": "Old Co",
+                "domain": "old-co.test"
+              },
+              "archived": true,
+              "createdAt": "2025-01-10T00:00:00Z",
+              "updatedAt": "2026-10-30T00:00:00Z"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "note": "page 2",
+      "request": {
+        "method": "GET",
+        "path": "/crm/v3/objects/companies",
+        "query": {
+          "after": "companies-2"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "results": [
+            {
+              "id": "c-1003",
+              "properties": {
+                "name": "Meridian Labs",
+                "domain": "meridian-labs.test",
+                "hubspot_owner_id": "103",
+                "industry": "COMPUTER_SOFTWARE",
+                "numberofemployees": "120"
+              },
+              "archived": false,
+              "createdAt": "2025-01-10T00:00:00Z",
+              "updatedAt": "2026-10-30T00:00:00Z"
+            },
+            {
+              "id": "c-1004",
+              "properties": {
+                "name": "",
+                "domain": "nameless.test"
+              },
+              "archived": false,
+              "createdAt": "2025-01-10T00:00:00Z",
+              "updatedAt": "2026-10-30T00:00:00Z"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "note": "page 1",
+      "request": {
+        "method": "GET",
+        "path": "/crm/v3/objects/companies"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "results": [
+            {
+              "id": "c-1001",
+              "properties": {
+                "name": "Brightwell Logistics Inc.",
+                "domain": "brightwell-logistics.test",
+                "hubspot_owner_id": "102",
+                "industry": "LOGISTICS_AND_SUPPLY_CHAIN",
+                "numberofemployees": "800"
+              },
+              "archived": false,
+              "createdAt": "2025-01-10T00:00:00Z",
+              "updatedAt": "2026-10-30T00:00:00Z"
+            },
+            {
+              "id": "c-1002",
+              "properties": {
+                "name": "Sundial Fitness",
+                "domain": "sundial-fitness.test",
+                "hubspot_owner_id": "101",
+                "industry": "HEALTH_WELLNESS_AND_FITNESS",
+                "numberofemployees": "30"
+              },
+              "archived": false,
+              "createdAt": "2025-01-10T00:00:00Z",
+              "updatedAt": "2026-10-30T00:00:00Z"
+            }
+          ],
+          "paging": {
+            "next": {
+              "after": "companies-2",
+              "link": "x"
+            }
+          }
+        }
+      }
+    },
+    {
+      "note": "incremental search",
+      "request": {
+        "method": "POST",
+        "path": "/crm/v3/objects/companies/search"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "results": [
+            {
+              "id": "c-1003",
+              "properties": {
+                "name": "Meridian Labs",
+                "domain": "meridian-labs.test",
+                "hubspot_owner_id": "101",
+                "industry": "COMPUTER_SOFTWARE",
+                "numberofemployees": "140"
+              },
+              "archived": false,
+              "createdAt": "2025-01-10T00:00:00Z",
+              "updatedAt": "2026-10-30T00:00:00Z"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

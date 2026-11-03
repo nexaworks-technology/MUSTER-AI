@@ -1,0 +1,21 @@
+{
+  "provider": "hubspot",
+  "description": "Owner write-back for Brightwell (fake transport only in M5, founder D2).",
+  "interactions": [
+    {
+      "request": {
+        "method": "PATCH",
+        "path": "/crm/v3/objects/companies/c-1001",
+        "bodyIncludes": "hubspot_owner_id"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "id": "c-1001",
+          "properties": {}
+        }
+      }
+    }
+  ]
+}

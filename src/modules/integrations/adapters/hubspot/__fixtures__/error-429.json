@@ -1,0 +1,38 @@
+{
+  "provider": "hubspot",
+  "description": "HubSpot answers HTTP 429 to the first sync call.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/crm/v3/owners"
+      },
+      "response": {
+        "status": 429,
+        "headers": {
+          "Retry-After": "10"
+        },
+        "body": {
+          "status": "error",
+          "errorType": "RATE_LIMIT"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/account-info/v3/details"
+      },
+      "response": {
+        "status": 429,
+        "headers": {
+          "Retry-After": "10"
+        },
+        "body": {
+          "status": "error",
+          "errorType": "RATE_LIMIT"
+        }
+      }
+    }
+  ]
+}

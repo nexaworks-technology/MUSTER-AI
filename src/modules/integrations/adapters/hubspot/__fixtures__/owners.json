@@ -1,0 +1,71 @@
+{
+  "provider": "hubspot",
+  "description": "Owners: two match Larkspur members by email, one former rep matches nobody, one archived; two pages.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/crm/v3/owners",
+        "query": {
+          "after": "owners-2"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "results": [
+            {
+              "id": "103",
+              "email": "former.rep@larkspur.test",
+              "firstName": "Former",
+              "lastName": "Rep",
+              "archived": false
+            },
+            {
+              "id": "104",
+              "email": "gone@larkspur.test",
+              "firstName": "Archived",
+              "lastName": "Owner",
+              "archived": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/crm/v3/owners"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "results": [
+            {
+              "id": "101",
+              "email": "aisha@larkspur.test",
+              "firstName": "Aisha",
+              "lastName": "Bello",
+              "archived": false
+            },
+            {
+              "id": "102",
+              "email": "leo@larkspur.test",
+              "firstName": "Leo",
+              "lastName": "Marsh",
+              "archived": false
+            }
+          ],
+          "paging": {
+            "next": {
+              "after": "owners-2",
+              "link": "x"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

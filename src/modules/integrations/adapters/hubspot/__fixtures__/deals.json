@@ -1,0 +1,58 @@
+{
+  "provider": "hubspot",
+  "description": "Deals: one closed-won for Meridian (a contract when deals-as-contracts is on), one still open.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/crm/v3/objects/deals"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "results": [
+            {
+              "id": "d-1",
+              "properties": {
+                "amount": "24000",
+                "closedate": "2026-06-01T00:00:00Z",
+                "dealstage": "closedwon",
+                "deal_currency_code": null,
+                "associatedcompanyid": "c-1003"
+              },
+              "archived": false,
+              "createdAt": "2025-01-10T00:00:00Z",
+              "updatedAt": "2026-10-30T00:00:00Z"
+            },
+            {
+              "id": "d-2",
+              "properties": {
+                "amount": "9000",
+                "closedate": "2026-12-01T00:00:00Z",
+                "dealstage": "contractsent",
+                "associatedcompanyid": "c-1001"
+              },
+              "archived": false,
+              "createdAt": "2025-01-10T00:00:00Z",
+              "updatedAt": "2026-10-30T00:00:00Z"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/crm/v3/objects/deals/search"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "results": []
+        }
+      }
+    }
+  ]
+}

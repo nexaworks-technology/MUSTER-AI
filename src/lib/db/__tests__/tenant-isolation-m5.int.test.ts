@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { beforeAll, describe, expect, it } from "vitest";
 import { rawDb } from "@/lib/db/raw";
@@ -18,7 +19,8 @@ let B: Side;
 
 /** Both workspaces connect the SAME external accounts on purpose (M5 rule 8). */
 const SHARED_PORTAL = "portal-4242";
-const SHARED_TEAM = "T0SHARED42";
+/** Unique per run: global lookups must not see earlier runs' rows. */
+const RUN = randomUUID().replaceAll("-", "").slice(0, 8).toUpperCase();
 
 async function setup(label: string) {
   const { actor } = await createTestAdmin(label);
@@ -34,7 +36,7 @@ async function setup(label: string) {
     },
   });
   const slack = await db.integration.create({
-    data: { workspaceId, provider: "SLACK", externalAccountId: `${SHARED_TEAM}${label.at(-1)}` },
+    data: { workspaceId, provider: "SLACK", externalAccountId: `T${RUN}${label.at(-1)}` },
   });
   const syncJob = await db.syncJob.create({
     data: {
@@ -196,6 +198,25 @@ describe("tenant isolation — M5 integration models (Rule 2)", () => {
       workspaceId: A.workspaceId,
     });
     expect(await findSlackIntegrationByTeam(SHARED_PORTAL)).toBeNull(); // a HubSpot id, wrong shape
+  });
+
+  it("a Slack team connected to two workspaces resolves to neither", async () => {
+    const team = `T${RUN}DUP`;
+    for (const s of [A, B])
+      await s.db.integration.update({
+        where: { id: s.slack.id },
+        data: { externalAccountId: team },
+      });
+    expect(await findSlackIntegrationByTeam(team)).toBeNull();
+    await B.db.integration.update({
+      where: { id: B.slack.id },
+      data: { externalAccountId: `T${RUN}B` },
+    });
+    expect(await findSlackIntegrationByTeam(team)).toMatchObject({ workspaceId: A.workspaceId });
+    await A.db.integration.update({
+      where: { id: A.slack.id },
+      data: { externalAccountId: `T${RUN}A` },
+    });
   });
 
   it("the database refuses credentials on a disconnected integration and write-back fields with the switch off", async () => {

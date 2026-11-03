@@ -37,17 +37,22 @@ export async function findIntegrationForWebhook(
   return row;
 }
 
-/** The Slack integration connected to a Slack team (workspace), or null. */
+/**
+ * The Slack integration connected to a Slack team, or null. A team connected to more than one
+ * workspace is ambiguous, so it resolves to nothing: a Slack click must never land in a tenant
+ * it cannot be proven to belong to.
+ */
 export async function findSlackIntegrationByTeam(
   teamId: string,
 ): Promise<InboundIntegration | null> {
   if (!/^[A-Z0-9]{3,40}$/.test(teamId)) return null;
-  const [, row] = await rawDb.$transaction([
+  const [, rows] = await rawDb.$transaction([
     rawDb.$executeRaw`SELECT set_config('app.slack_team_id', ${teamId}, true)`,
-    rawDb.integration.findFirst({
+    rawDb.integration.findMany({
       where: { provider: "SLACK", externalAccountId: teamId, status: { not: "DISCONNECTED" } },
       select,
+      take: 2,
     }),
   ]);
-  return row;
+  return rows.length === 1 ? rows[0]! : null;
 }
