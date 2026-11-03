@@ -59,6 +59,31 @@ describe("navigation gating (Rule 6: no coming-soon screens)", () => {
       CSM: ["Home", "Today", "Approvals", "Accounts", "Tasks", "Health"],
       VIEWER: ["Home", "Today", "Accounts", "Tasks", "Health"],
     },
+    // M6 adds Onboarding for every role (it lists the member's own book).
+    6: {
+      ADMIN: [
+        "Home",
+        "Today",
+        "Approvals",
+        "Accounts",
+        "Tasks",
+        "Health",
+        "Onboarding",
+        "Settings",
+      ],
+      CS_LEADER: [
+        "Home",
+        "Today",
+        "Approvals",
+        "Accounts",
+        "Tasks",
+        "Health",
+        "Onboarding",
+        "Settings",
+      ],
+      CSM: ["Home", "Today", "Approvals", "Accounts", "Tasks", "Health", "Onboarding"],
+      VIEWER: ["Home", "Today", "Accounts", "Tasks", "Health", "Onboarding"],
+    },
   } as const;
 
   for (const [milestone, roles] of Object.entries(NAV_BY_MILESTONE))

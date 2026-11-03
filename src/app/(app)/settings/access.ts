@@ -15,6 +15,11 @@ export const SETTINGS_TABS: ReadonlyArray<{ label: string; href: Route; permissi
     { label: "Data health", href: "/settings/data-health", permission: "data:import" },
     { label: "Signals", href: "/settings/signals", permission: "healthModel:propose" },
     { label: "Health model", href: "/settings/health-model", permission: "healthModel:propose" },
+    {
+      label: "Onboarding templates",
+      href: "/settings/onboarding-templates",
+      permission: "plays:publish",
+    },
     { label: "AI team", href: "/settings/ai-team", permission: "audit:view" },
     { label: "Audit", href: "/settings/audit", permission: "audit:view" },
     // Last on purpose: /settings opens the first allowed tab, which stays Users for Admins.

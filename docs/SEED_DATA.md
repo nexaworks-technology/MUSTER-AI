@@ -138,6 +138,34 @@ It is the "other tenant" for isolation tests and e2e "cannot see" checks.
 Onboarding templates: "Mid-touch standard (60d)", "High-touch guided (90d)", "Long-tail self-serve (21d)", each with a measurable value definition
 (e.g. "≥ 3 scheduled reports active and ≥ 60% seats active for 14 days").
 
+**As seeded (M6, `prisma/seed/demo/onboarding.ts`).** The seed writes templates, plans, steps and goals only; every
+status, stall reason, blocker and product-event completion comes from the seed's own nightly pass (the same code as
+production). Steps due before today are marked done by the account owner (HUMAN) unless the story leaves them open;
+on open plans a step with a product condition is left for the pass, which completes it from the seeded usage with the
+proving row ids.
+
+- Value definitions: Mid-touch = Data connectors used on 3 different days AND Scheduled reports used on 32 different
+  days AND ≥ 40% of seats active on each of 10 weekdays in a row; High-touch = 4 key features used AND ≥ 60% of seats active on 10 weekdays in a row; Long-tail = 2
+  key features used AND ≥ 2 active users on 5 weekdays in a row. Conditions count weekdays (B2B use drops at weekends).
+- Story steps: Pinecrest leaves SSO open (customer step owned by Raj, due day 21 → 12 days overdue); Ostara leaves
+  "Connect a data source" open (19 days overdue); Ridgeback has an extra "Security review" step blocked with
+  "waiting on legal review"; Lumen's plan has a per-account target of day 60 on the 90-day High-touch template.
+- **Seed-only history for time to value (D3):** completed plans started 300 days ago on adopted accounts, value reached
+  on a fixed list of days per cohort, each with a real `UsageDaily` id as evidence — Mid-touch Growth 51-200:
+  40, 45, 48, 50, 52, 55, 58, 62, 70 (cycled; median 52); Mid-touch Growth 201-1000: 14, 16, 18, 20; High-touch
+  Scale: 55, 60, 62, 70, 80 (median 62, P75 70).
+- Juniper Vet's plan is seeded open like the others; the seed's nightly pass finds value reached on **day 37** from
+  its usage (the proving `UsageDaily`/`FeatureUsageDaily` rows are the evidence). §7's table says day 38: no
+  threshold lands on 38 without reshaping the M3 usage stories, so the data-derived day 37 stands (M6-LOG,
+  Q-57). The historical plans' evidence is the usage row of the recorded day (seed-only history, not re-derived).
+- Goals: Saltmarsh has 2 stated goals and Pinecrest 1, sourced to the account (CRM deal notes). Saltmarsh's
+  "1 promised integration" needs the Promise model (M9) and is not seeded in M6.
+- Resulting states (asserted by `prisma/seed/__tests__/seed-onboarding.int.test.ts`): Pinecrest STALLED "SSO setup
+  (customer) overdue 12 days"; Wrenfield ACTIVE; Ostara STALLED "Connect a data source (customer) overdue 19 days";
+  Cobalt Ridge STALLED "No one has used the product for 9 days"; Juniper Vet COMPLETE (day 37 vs median 52); Lumen
+  STALLED "Day 75 and value not reached yet…" (High-touch Scale cohort: the 201-1000 band has only 3 peers, so the
+  cohort falls back to all High-touch Scale accounts and says so); Saltmarsh ACTIVE; Ridgeback ACTIVE.
+
 ## 8. Historical outcomes for back-testing (§6C4)
 
 - **12 churned accounts** (lifecycle LOST, churned 1–14 months ago). They have full history in the 180 days before churn: usage, tickets, messages, invoices, stakeholder roles.

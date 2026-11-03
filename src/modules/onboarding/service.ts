@@ -44,3 +44,21 @@ export {
   type HandoffItem,
   type HandoffSource,
 } from "./handoff";
+export {
+  addStep,
+  archiveTemplate,
+  chooseTemplate,
+  createPlan,
+  getAccountOnboarding,
+  listOnboarding,
+  listTemplates,
+  loadHandoff,
+  markStepDone,
+  onboardingListQuery,
+  OnboardingError,
+  removeStep,
+  saveTemplate,
+  stepPatch,
+  updateStep,
+  type OnboardingRow,
+} from "./plans.service";

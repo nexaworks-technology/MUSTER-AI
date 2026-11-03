@@ -20,6 +20,8 @@ export interface Met {
   evidence: Source[];
 }
 
+const isWeekend = (d: CalendarDate) => [0, 6].includes(new Date(`${d}T00:00:00Z`).getUTCDay());
+
 function conditionOn(
   c: Condition,
   d: UsageData,
@@ -59,8 +61,11 @@ function conditionOn(
       if (c.metric === "activeSeatShare" && !d.seatsPurchased) return null;
       const byDate = new Map(d.usage.map((u) => [u.date, u]));
       const rows: Source[] = [];
-      for (let k = c.days - 1; k >= 0; k--) {
-        const date = addDays(day, -k);
+      // B2B use drops at weekends: "N days in a row" means N weekdays in a row, ending on `day`.
+      if (isWeekend(day)) return null;
+      let date = day;
+      for (let k = 0; k < c.days; k++) {
+        while (isWeekend(date)) date = addDays(date, -1);
         const u = date >= start ? byDate.get(date) : undefined;
         if (!u) return null;
         const ok =
@@ -68,7 +73,13 @@ function conditionOn(
             ? u.activeUsers >= c.min
             : u.activeUsers / d.seatsPurchased! >= c.min;
         if (!ok) return null;
-        rows.push({ sourceType: "UsageDaily", sourceId: u.id, value: u.activeUsers, date: u.date });
+        rows.unshift({
+          sourceType: "UsageDaily",
+          sourceId: u.id,
+          value: u.activeUsers,
+          date: u.date,
+        });
+        date = addDays(date, -1);
       }
       return rows;
     }

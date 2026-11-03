@@ -22,7 +22,7 @@ export const condition = z.discriminatedUnion("metric", [
   z.object({
     metric: z.literal("activeUsers"),
     min: z.number().int().min(1).max(100_000),
-    /** On each of this many days in a row. */
+    /** On each of this many weekdays in a row (weekends skipped: B2B use drops then). */
     days: z.number().int().min(1).max(60).default(1),
   }),
   z.object({
@@ -74,8 +74,8 @@ export function describeCondition(c: Condition, labels: Record<string, string> =
     case "keyFeaturesUsed":
       return `${times(c.min, "key feature", "key features")} of the plan used`;
     case "activeUsers":
-      return `at least ${times(c.min, "active user", "active users")}${c.days > 1 ? ` on each of ${c.days} days in a row` : ""}`;
+      return `at least ${times(c.min, "active user", "active users")}${c.days > 1 ? ` on each of ${c.days} weekdays in a row` : ""}`;
     case "activeSeatShare":
-      return `at least ${pct(c.min)} of seats active${c.days > 1 ? ` on each of ${c.days} days in a row` : ""}`;
+      return `at least ${pct(c.min)} of seats active${c.days > 1 ? ` on each of ${c.days} weekdays in a row` : ""}`;
   }
 }

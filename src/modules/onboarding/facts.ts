@@ -39,11 +39,16 @@ export async function loadPlanContexts(
   db: ScopedDb,
   accountIds: string[],
   asOf: CalendarDate,
+  /** Specific plans, whatever their status (Account 360 shows a completed plan's TTV). */
+  planIds?: string[],
 ): Promise<Map<string, PlanContext>> {
   const out = new Map<string, PlanContext>();
   if (accountIds.length === 0) return out;
   const plans: PlanRow[] = await db.onboardingPlan.findMany({
-    where: { accountId: { in: accountIds }, status: { in: ["ACTIVE", "STALLED"] } },
+    where: {
+      accountId: { in: accountIds },
+      ...(planIds ? { id: { in: planIds } } : { status: { in: ["ACTIVE", "STALLED"] } }),
+    },
     include: { steps: { orderBy: { position: "asc" } }, template: true },
   });
   if (plans.length === 0) return out;
@@ -137,7 +142,8 @@ export function factsOf(
     me: c.account,
     asOf,
     startDate: start,
-    targetDays: c.plan.template?.targetDays ?? daysBetween(start, d(c.plan.targetValueDate)),
+    // The plan's own target (set from the template, adjustable per account) comes first (D3).
+    targetDays: daysBetween(start, d(c.plan.targetValueDate)),
     hasValueDefinition: c.valueDefinition.length > 0,
     valueReachedAt,
     valueEvidence: Array.isArray(c.plan.valueEvidence) ? (c.plan.valueEvidence as never) : [],

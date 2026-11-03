@@ -119,7 +119,7 @@ describe("firstMet", () => {
 describe("template schema and plain words", () => {
   it("describes conditions the way a CSM would say them", () => {
     expect(describeCondition(c({ metric: "activeSeatShare", min: 0.6, days: 14 }))).toBe(
-      "at least 60% of seats active on each of 14 days in a row",
+      "at least 60% of seats active on each of 14 weekdays in a row",
     );
     expect(
       describeCondition(c({ metric: "featureUsed", featureKey: "scheduled_reports", minDays: 3 }), {

@@ -8,6 +8,7 @@ import { seedUsage } from "./demo/usage";
 import { seedConversations } from "./demo/conversations";
 import { seedWork } from "./demo/work";
 import { seedHealth } from "./demo/health";
+import { seedOnboarding } from "./demo/onboarding";
 import { withDatabaseLock } from "@/lib/db/locks";
 import { recomputeLastTouch, runDataQualityScan } from "@/modules/accounts/service";
 import { ids, seedId } from "./demo/ids";
@@ -100,6 +101,8 @@ async function seedDemoData(workspaceId: string): Promise<void> {
   // The checker runs as Priya (Admin) so Silverline's duplicates are waiting in Data quality.
   const admin = await db.membership.findUniqueOrThrow({ where: { id: ids.membership("priya") } });
   await runDataQualityScan({ ...admin, workspaceId, membershipId: admin.id }, daysAgo(0));
+  // M6: plans before the nightly pass, which evaluates them like any other night.
+  await seedOnboarding(db, workspaceId);
   await seedHealth(db, workspaceId);
 }
 
