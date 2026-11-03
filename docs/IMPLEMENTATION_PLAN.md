@@ -22,7 +22,7 @@ Scope discipline:
 - [x] M2: Data, CSV Import & Account 360 (2026-11-02, see `docs/milestones/M2-LOG.md`)
 - [x] M3: Health & Signals (2026-11-03, see `docs/milestones/M3-LOG.md`; Q-44, Q-45 open)
 - [x] M4: Agent Framework, Today & Approvals
-- [ ] M5: Integrations Core
+- [x] M5: Integrations Core
 - [ ] M6: Onboarding & Adoption
 - [ ] M7: Renewals, Revenue & Expansion
 - [ ] M8: Plays Engine

@@ -6,6 +6,24 @@ All notable user-facing changes. Format: [Keep a Changelog](https://keepachangel
 
 ### Added
 
+- Integrations (Settings › Integrations, Admins): connect HubSpot, Salesforce, Stripe, Chargebee and Slack.
+  Every connection reads only; each one shows when it last synced, what it added, updated or could not use,
+  and any error in plain words. Run a sync now, test the connection, or disconnect (saved keys are deleted).
+- Syncs run every night before health is scored. Running one twice changes nothing. When a CRM disagrees
+  with a value already in NexaWorks, nothing is overwritten: the difference appears in Data quality as
+  "Sources disagree" for a person to resolve.
+- Payment failures from Stripe and Chargebee arrive in real time: the account's owner sees "Payment
+  failed" in Today straight away, with the invoice as evidence.
+- Write-back to HubSpot and Salesforce is off by default. An Admin can allow one field (account owner);
+  every change then waits for an approval and is recorded in the audit trail.
+- Slack: approvals, big signals and a morning digest arrive as direct messages to your team. Everyday
+  approvals can be approved or rejected from Slack; sensitive ones (cancel, price, legal, security,
+  complaint, escalation) show "Open in app to review" and can only be decided in the app.
+- Settings › Data health: work that did not finish (syncs, events, background jobs), in plain words, with
+  "Run again".
+- Setup (/setup): five steps for a new workspace: connect, import (from an integration or CSV), tier bands
+  and starter segments, the health model with its back-test, then go live.
+
 - Sign in with email and password. Google sign-in appears when it is configured.
 - Workspaces with roles: Admin, CS Leader, CSM and Viewer, plus a separate revenue-access permission and
   a per-member choice of which accounts they see.
