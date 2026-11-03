@@ -4,6 +4,7 @@ import { can } from "@/lib/auth/permissions";
 import { systemClock, type Clock } from "@/lib/dates";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { customerTransport, type CustomerTransport } from "@/lib/email/customerTransport";
+import { markActed } from "@/modules/outcomes/service";
 import { getSettingsData } from "@/modules/settings/service";
 import { evaluateGuards, type GuardResult } from "./guards";
 import { detectSensitive } from "./sensitive";
@@ -336,5 +337,13 @@ export async function dispatch(
       tx,
     );
   });
+  // A sent message about a signal is an action on that flag (outcome ledger, §6.5).
+  if (m.signalId)
+    await markActed(
+      ctx,
+      { signalId: m.signalId },
+      { type: "OutboundMessage", id: m.id },
+      deps.clock,
+    );
   return { status: "SENT", providerMessageId, transport: transport.name };
 }

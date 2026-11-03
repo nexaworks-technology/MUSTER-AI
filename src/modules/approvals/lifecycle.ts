@@ -11,6 +11,7 @@ import {
   type DispatchDeps,
   type DispatchResult,
 } from "@/modules/outbound/service";
+import { markActed } from "@/modules/outcomes/service";
 import { getSettingsData } from "@/modules/settings/service";
 import { resolveLevel } from "./level-resolver";
 
@@ -370,6 +371,13 @@ export async function approve(
     );
     return updated;
   });
+  if (approval.signalId)
+    await markActed(
+      actor,
+      { signalId: approval.signalId },
+      { type: "Approval", id: approval.id },
+      opts.clock,
+    );
   return { approval, send: await sendIfEmail(actor, approval, opts.dispatch) };
 }
 
@@ -448,6 +456,13 @@ export async function editAndApprove(
     );
     return updated;
   });
+  if (approval.signalId)
+    await markActed(
+      actor,
+      { signalId: approval.signalId },
+      { type: "Approval", id: approval.id },
+      opts.clock,
+    );
   return { approval, send: await sendIfEmail(actor, approval, opts.dispatch) };
 }
 

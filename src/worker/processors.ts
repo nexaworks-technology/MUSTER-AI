@@ -11,6 +11,7 @@ import {
   sweepAllHealthNarratives,
 } from "@/modules/agents/service";
 import { importJobPayload, runImportJob } from "@/modules/imports/service";
+import { evaluateSevenDayCheckpoints } from "@/modules/outcomes/service";
 import { escalateOverdueTasks } from "@/modules/tasks/service";
 import { rebuildWorkspaceToday } from "@/modules/today/service";
 import { createPipelineProcessors } from "@/modules/signals/service";
@@ -50,6 +51,15 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
   /** M3: the nightly run and the real-time hook (signals → health), scoped by payload. */
   signals: pipeline.signals,
   health: pipeline.health,
+  /** M4: the 7-day outcome checkpoint (ARCHITECTURE §6.5); idempotent per record. */
+  outcomes: {
+    async "outcomes.checkpoint"() {
+      const out: Record<string, number> = {};
+      for (const w of await listActiveWorkspaces())
+        out[w.slug] = (await evaluateSevenDayCheckpoints({ workspaceId: w.id })).evaluated;
+      return out;
+    },
+  },
   /** M4: one agent run per job, scoped by the payload's workspaceId (ARCHITECTURE §1.3). */
   agents: {
     async "agents.run"(job) {
@@ -100,6 +110,7 @@ export const SCHEDULES = [
   // M4: narratives for snapshots no event covers (first snapshot, top-reason change).
   { queue: "agents", id: "health-analyst-sweep", job: "health-analyst.sweep", everyMs: 900_000 },
   { queue: "maintenance", id: "task-escalation", job: "tasks.escalateOverdue", everyMs: 3_600_000 },
+  { queue: "outcomes", id: "outcomes-checkpoint", job: "outcomes.checkpoint", everyMs: 21_600_000 },
   { queue: "maintenance", id: "today-rebuild", job: "today.rebuildAll", everyMs: 3_600_000 },
 ] as const;
 
