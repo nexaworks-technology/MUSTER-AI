@@ -13,6 +13,7 @@ const KIND = {
   DUPLICATE_CONTACT: "Duplicate contact",
   INVALID_EMAIL: "Email",
   STALE: "Not updated",
+  CONFLICT: "Sources disagree",
 } as const;
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;

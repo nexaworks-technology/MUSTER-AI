@@ -34,7 +34,8 @@ export async function runDataQualityScan(actor: Actor, now = new Date()) {
     db.contact.findMany({
       select: { id: true, accountId: true, name: true, email: true, createdAt: true },
     }),
-    db.dataQualityIssue.findMany(),
+    // CONFLICT issues come from syncs (Q-32), not from this scan, so the scan never resolves them.
+    db.dataQualityIssue.findMany({ where: { kind: { not: "CONFLICT" } } }),
   ]);
   const detected = detectIssues({
     accounts,

@@ -50,6 +50,10 @@ export const TENANT_MODELS = [
   "EmailSuppression",
   "TodayItem",
   "Extraction",
+  "Integration",
+  "SyncJob",
+  "WebhookEvent",
+  "SlackUserLink",
 ] as const;
 
 /** Models without tenant scope: identity tables, the tenant root and the outbox (D-22). */

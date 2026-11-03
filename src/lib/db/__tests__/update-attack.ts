@@ -60,6 +60,10 @@ export const UPDATE_ATTACKS: Record<
   emailSuppression: { data: () => ({ note: "attack-control" }) },
   todayItem: { data: () => ({ rankScore: 0.5 }) },
   extraction: { data: () => ({ confidence: 0.5 }) },
+  integration: { data: () => ({ lastErrorPlain: "attack-control" }) },
+  syncJob: { data: () => ({ errorPlain: "attack-control" }) },
+  webhookEvent: { data: () => ({ errorPlain: "attack-control" }) },
+  slackUserLink: { data: touched },
 };
 
 /** A writes B's row (count 0, nothing changes), then A writes its own row (the control). */

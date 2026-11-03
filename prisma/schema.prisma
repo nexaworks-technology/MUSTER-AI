@@ -108,6 +108,10 @@ model Workspace {
   suppressions     EmailSuppression[]
   todayItems       TodayItem[]
   extractions      Extraction[]
+  integrations     Integration[]
+  syncJobs         SyncJob[]
+  webhookEvents    WebhookEvent[]
+  slackUserLinks   SlackUserLink[]
 }
 
 // ─── Global identity (Auth.js) ───────────────────────────────────────────────
@@ -215,6 +219,8 @@ model Membership {
   draftRevisions     DraftRevision[]     @relation("DraftEditor")
   outboundCreated    OutboundMessage[]   @relation("OutboundCreator")
   todayItems         TodayItem[]
+  integrationsMade   Integration[]       @relation("IntegrationConnector")
+  slackLinks         SlackUserLink[]
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, userId])
@@ -330,6 +336,10 @@ enum RecordSource {
   MANUAL
   SEED
   SYSTEM
+  HUBSPOT
+  SALESFORCE
+  STRIPE
+  CHARGEBEE
 }
 
 /// Who wrote a record. origin = AI requires agentRunId (Rule 5, DB CHECK).
@@ -383,6 +393,9 @@ model Account {
   /// The latest live snapshot under the active model (ARCHITECTURE §11 cache).
   currentHealthSnapshotId String?
   source                  RecordSource   @default(MANUAL)
+  /// Which source last set each field, e.g. {"domain":"HUBSPOT"} (Q-32 provenance, M5 D1).
+  /// A field missing here was set by `source`.
+  fieldSources            Json           @default("{}")
   archivedAt              DateTime?
   createdAt               DateTime       @default(now())
   updatedAt               DateTime       @updatedAt
@@ -446,6 +459,8 @@ model Contact {
   externalUserId  String?
   lastContactAt   DateTime?
   source          RecordSource  @default(MANUAL)
+  /// Which source last set each field (Q-32 provenance, M5 D1). Missing = `source`.
+  fieldSources    Json          @default("{}")
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -886,6 +901,11 @@ enum TaskPriority {
   HIGH
 }
 
+enum NotificationChannel {
+  IN_APP
+  SLACK
+}
+
 enum NotificationType {
   MENTION
   TASK_ASSIGNED
@@ -969,7 +989,7 @@ model Note {
 
 /// [W] An in-app notification for one member.
 model Notification {
-  id                    String           @id @default(cuid())
+  id                    String              @id @default(cuid())
   workspaceId           String
   recipientMembershipId String
   type                  NotificationType
@@ -977,8 +997,10 @@ model Notification {
   refType               String
   refId                 String
   accountId             String?
+  /// Where it is delivered: the in-app bell, or the workspace's Slack (M5).
+  channel               NotificationChannel @default(IN_APP)
   readAt                DateTime?
-  createdAt             DateTime         @default(now())
+  createdAt             DateTime            @default(now())
 
   workspace Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   recipient Membership @relation("NotificationRecipient", fields: [workspaceId, recipientMembershipId], references: [workspaceId, id], onDelete: Cascade)
@@ -1084,7 +1106,8 @@ model ExternalRef {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  integration Integration? @relation(fields: [workspaceId, integrationId], references: [workspaceId, id], onDelete: NoAction)
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, source, objectType, externalId])
@@ -1161,6 +1184,8 @@ enum DataQualityKind {
   DUPLICATE_CONTACT
   INVALID_EMAIL
   STALE
+  /// Two sources disagree on one field (Q-32, D1): nothing was overwritten.
+  CONFLICT
 }
 
 enum DataQualityStatus {
@@ -1929,4 +1954,147 @@ model Extraction {
   @@unique([workspaceId, sourceType, sourceId, promptVersion, itemIndex])
   @@index([workspaceId, accountId, kind, createdAt])
   @@index([workspaceId, sourceType, sourceId])
+}
+
+// ─── M5: integrations ────────────────────────────────────────────────────────────────────
+
+enum IntegrationProvider {
+  HUBSPOT
+  SALESFORCE
+  STRIPE
+  CHARGEBEE
+  SLACK
+}
+
+enum IntegrationStatus {
+  CONNECTED
+  ERROR
+  DISCONNECTED
+}
+
+enum SyncKind {
+  FULL
+  INCREMENTAL
+  WEBHOOK
+}
+
+enum SyncStatus {
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+enum SyncTrigger {
+  NIGHTLY
+  MANUAL
+  SETUP
+}
+
+enum WebhookEventStatus {
+  RECEIVED
+  PROCESSED
+  IGNORED
+  FAILED
+}
+
+/// [W] One connected external system (ARCHITECTURE §3.2, §8). Read-only unless an Admin turns on
+/// write-back for named fields (Rule 7). Credentials are sealed with the field cipher (§7.5) and
+/// never leave the integrations module in plain text.
+model Integration {
+  id                      String              @id @default(cuid())
+  workspaceId             String
+  provider                IntegrationProvider
+  status                  IntegrationStatus   @default(CONNECTED)
+  /// AES-256-GCM JSON of tokens / API key / webhook secret (src/lib/crypto). Never logged.
+  credentialsEnc          String?
+  scopes                  String[]            @default([])
+  /// The provider's own id for the connected account (portal, org, Stripe account, team).
+  externalAccountId       String?
+  writeBackEnabled        Boolean             @default(false)
+  writeBackFields         String[]            @default([])
+  connectedAt             DateTime            @default(now())
+  connectedByMembershipId String?
+  disconnectedAt          DateTime?
+  lastSyncAt              DateTime?
+  lastErrorPlain          String?
+  config                  Json                @default("{}")
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+
+  workspace     Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  connectedBy   Membership?     @relation("IntegrationConnector", fields: [workspaceId, connectedByMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  syncJobs      SyncJob[]
+  webhookEvents WebhookEvent[]
+  externalRefs  ExternalRef[]
+  slackLinks    SlackUserLink[]
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, provider])
+}
+
+/// [W] One sync run of one integration. `cursor` is the provider cursor reached by this run; an
+/// INCREMENTAL run resumes from the last SUCCEEDED run's cursor, and a failed page never moves it.
+model SyncJob {
+  id             String      @id @default(cuid())
+  workspaceId    String
+  integrationId  String
+  kind           SyncKind
+  trigger        SyncTrigger
+  /// Dedupe key: one nightly run per business date, or a unique id for "Run sync now".
+  runKey         String
+  status         SyncStatus  @default(RUNNING)
+  cursorIn       String?
+  cursor         String?
+  startedAt      DateTime    @default(now())
+  finishedAt     DateTime?
+  counts         Json        @default("{}")
+  errorPlain     String?
+  errorDetailRef String?
+
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  integration Integration @relation(fields: [workspaceId, integrationId], references: [workspaceId, id], onDelete: Cascade)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, integrationId, runKey])
+  @@index([workspaceId, integrationId, startedAt])
+}
+
+/// [W] One verified webhook delivery. Unverified payloads are never stored (M5 rule 4).
+model WebhookEvent {
+  id                String             @id @default(cuid())
+  workspaceId       String
+  integrationId     String
+  externalEventId   String
+  eventType         String
+  payloadStorageKey String
+  receivedAt        DateTime           @default(now())
+  processedAt       DateTime?
+  status            WebhookEventStatus @default(RECEIVED)
+  errorPlain        String?
+
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  integration Integration @relation(fields: [workspaceId, integrationId], references: [workspaceId, id], onDelete: Cascade)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, integrationId, externalEventId])
+}
+
+/// [W] A Slack user mapped to a member by verified email (M5, D-76). Decisions from Slack act as
+/// this member and pass the same permission and book checks as the web UI.
+model SlackUserLink {
+  id            String   @id @default(cuid())
+  workspaceId   String
+  integrationId String
+  slackUserId   String
+  membershipId  String
+  email         String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  integration Integration @relation(fields: [workspaceId, integrationId], references: [workspaceId, id], onDelete: Cascade)
+  membership  Membership  @relation(fields: [workspaceId, membershipId], references: [workspaceId, id], onDelete: Cascade)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, integrationId, slackUserId])
 }
