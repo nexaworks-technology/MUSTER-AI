@@ -5,7 +5,8 @@ import { scopedDb } from "@/lib/db/scoped";
 import { createTestAdmin } from "@/test/fixtures";
 
 /**
- * Rule 2 for the M6 onboarding models (M6 rule 1, rule 7). Its own file, like M3–M5. The update
+ * Rule 2 for the M6 onboarding models (M6 rule 1, rule 7) and, since the post-M6 review (S2), the
+ * Usage API's ledger `UsageIngestBatch`. Its own file, like M3–M5. The update
  * attack writes a real, harmless column on B's row (count 0) and the same write on A's own row
  * as the control (count 1). M6 keeps its attacks here rather than extending the shared helper.
  */
@@ -66,7 +67,26 @@ async function setup(label: string) {
       sourceId: "c1",
     },
   });
-  return { actor, workspaceId, db, account, contact, template, plan, step, goal };
+  // The Usage API's ledger (B1): one integration and one applied batch per side.
+  const integration = await db.integration.create({
+    data: { workspaceId, provider: "USAGE_API" },
+  });
+  const usageBatch = await db.usageIngestBatch.create({
+    data: { workspaceId, integrationId: integration.id, batchKey: "a".repeat(64), events: 3 },
+  });
+  return {
+    actor,
+    workspaceId,
+    db,
+    account,
+    contact,
+    template,
+    plan,
+    step,
+    goal,
+    integration,
+    usageBatch,
+  };
 }
 
 beforeAll(async () => {
@@ -108,6 +128,13 @@ const CASES = [
     delegate: "goal",
     row: (s: Side) => s.goal,
     write: () => ({ quote: "attack-control" }),
+  },
+  {
+    // Review S2: the ledger's real column, with the same own-row control (count 1) and delete attempt.
+    model: "UsageIngestBatch",
+    delegate: "usageIngestBatch",
+    row: (s: Side) => s.usageBatch,
+    write: () => ({ events: 99 }),
   },
 ] as const;
 
@@ -206,6 +233,23 @@ describe("tenant isolation — M6 onboarding models (Rule 2)", () => {
     await expect(
       A.db.goal.create({ data: { workspaceId: ws, accountId: B.account.id, text: "x" } }),
     ).rejects.toSatisfy(fk);
+  });
+
+  it("a usage batch cannot point at another workspace's integration (composite FK), and its row is B's alone", async () => {
+    await expect(
+      A.db.usageIngestBatch.create({
+        data: {
+          workspaceId: A.workspaceId,
+          integrationId: B.integration.id,
+          batchKey: "b".repeat(64),
+          events: 1,
+        },
+      }),
+    ).rejects.toSatisfy(fk);
+    // B's row is exactly as B left it after every attack above.
+    expect(
+      (await B.db.usageIngestBatch.findUniqueOrThrow({ where: { id: B.usageBatch.id } })).events,
+    ).toBe(3);
   });
 
   it("the database refuses a step done without how (D1), a product completion without proof, and a second open plan", async () => {
