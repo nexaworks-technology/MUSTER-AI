@@ -67,7 +67,7 @@ const LEVELS: Attr[][] = [
   ["tier"],
 ];
 
-function label(me: Peer, attrs: Attr[]): string {
+function label(me: CohortAttrs, attrs: Attr[]): string {
   let s = `${TIER_WORDS[me.tier]} accounts`;
   if (attrs.includes("plan")) s += ` on the ${me.plan} plan`;
   if (attrs.includes("employeeBand")) s += ` with ${me.employeeBand} employees`;
@@ -75,22 +75,57 @@ function label(me: Peer, attrs: Attr[]): string {
   return s;
 }
 
-export function cohortBaseline(me: Peer, peers: Peer[], minPeers: number): CohortBaseline {
-  const usable = peers.filter((p) => p.id !== me.id && p.rate !== null);
+/** What cohort selection needs from an account (Peer without the rate). */
+export type CohortAttrs = Pick<Peer, "id" | "tier" | "plan" | "employeeBand" | "useCase">;
+
+export interface CohortChoice<P> {
+  key: string;
+  label: string;
+  /** The peers in the chosen group (the account itself excluded). */
+  members: P[];
+  /** True when the full match had fewer than minPeers and a broader group was used. */
+  fellBack: boolean;
+}
+
+/**
+ * The cohort rule (ARCHITECTURE §4.2), shared by everything that compares an account with
+ * "accounts like it": the finest group with at least `minPeers` peers, falling back
+ * use case → company size → plan → tier only. M3 uses it for active rate, M6 for time to value.
+ */
+export function chooseCohort<P extends CohortAttrs>(
+  me: CohortAttrs,
+  peers: P[],
+  minPeers: number,
+): CohortChoice<P> {
+  const others = peers.filter((p) => p.id !== me.id);
   const levels = LEVELS.filter((attrs) => attrs.every((a) => me[a] !== null));
-  let chosen: CohortBaseline | null = null;
-  for (const attrs of levels) {
-    const match = usable.filter((p) => attrs.every((a) => p[a] === me[a]));
+  let chosen: CohortChoice<P> | null = null;
+  for (const [n, attrs] of levels.entries()) {
+    const members = others.filter((p) => attrs.every((a) => p[a] === me[a]));
     chosen = {
       key: attrs.map((a) => `${KEY[a]}=${me[a]}`).join("|"),
       label: label(me, attrs),
-      size: match.length,
-      medianRate: percentile(
-        match.map((p) => p.rate!),
-        0.5,
-      ),
+      members,
+      fellBack: n > 0,
     };
-    if (match.length >= minPeers) return chosen;
+    if (members.length >= minPeers) return chosen;
   }
   return chosen!;
+}
+
+export function cohortBaseline(me: Peer, peers: Peer[], minPeers: number): CohortBaseline {
+  const c = chooseCohort(
+    me,
+    peers.filter((p) => p.rate !== null),
+    minPeers,
+  );
+  return {
+    key: c.key,
+    label: c.label,
+    size: c.members.length,
+    medianRate: percentile(
+      c.members.map((p) => p.rate!),
+      0.5,
+    ),
+  };
 }
