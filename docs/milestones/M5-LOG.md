@@ -206,3 +206,6 @@ Created and granted, 20 migrations deployed from empty, seeded with `--with-test
 - **Setup wizard:** five steps; M8 inserts "Proposed plays" before Go live. `Workspace.setupPending` gates the nightly run.
 - **Slack:** `deliverOnce` is the only way to post; M8 play steps reuse it. Sensitive approvals never get buttons.
 
+### Addendum (2026-11-04, post-M6 review)
+
+The independent review (`docs/REVIEW-2026-11-04.md`, N1) found two unlogged extras in batch 2 (`e1b1490`): `e2e/m5-integrations.spec.ts` was edited (+6/−1: a step that opens Today first, and `reloadUntil` tightened from 60 s to 30 s), and the three tracked evidence images in `docs/milestones/m5-evidence/` were rewritten by the e2e run itself (the same happened in `6998b08` and `7dfe001`). Neither loosens a check. From 2026-11-04 the spec writes its screenshots to `test-results/` unless `M5_EVIDENCE=1`, so a normal e2e run no longer touches the tracked images.

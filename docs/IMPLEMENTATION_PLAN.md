@@ -18,7 +18,7 @@ Scope discipline:
 ## Progress
 
 - [x] M1: Foundation, Auth & Tenancy (2026-11-02, see `docs/milestones/M1-LOG.md`)
-  - ⚠ **Open follow-up, acceptance #16 PARTIAL:** `docker compose up -d postgres redis minio` has not been run, because Docker is not installed on the build machine. M1 was built and verified on the documented fallback `pnpm services:native` (D-31). Close this only by installing Docker (OrbStack or Docker Desktop), running that command successfully and recording the output in `M1-LOG.md`. It must not silently become PASS.
+  - ⚠ **Open follow-up, acceptance #16 PARTIAL:** `docker compose up -d postgres redis minio` has not been run, because Docker is not installed on the build machine. M1 was built and verified on the documented fallback `pnpm services:native` (D-31). Close this only by installing Docker (OrbStack or Docker Desktop), running that command successfully and recording the output in `M1-LOG.md`. It must not silently become PASS. **Home: M12** (`docs/milestones/M12.md` §2 "Carried verifications", step 15, acceptance #23).
 - [x] M2: Data, CSV Import & Account 360 (2026-11-02, see `docs/milestones/M2-LOG.md`)
 - [x] M3: Health & Signals (2026-11-03, see `docs/milestones/M3-LOG.md`; Q-44, Q-45 open)
 - [x] M4: Agent Framework, Today & Approvals
