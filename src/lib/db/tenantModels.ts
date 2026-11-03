@@ -42,6 +42,14 @@ export const TENANT_MODELS = [
   "SignalRule",
   "Signal",
   "OutcomeRecord",
+  "AgentDefinition",
+  "AgentRun",
+  "Approval",
+  "DraftRevision",
+  "OutboundMessage",
+  "EmailSuppression",
+  "TodayItem",
+  "Extraction",
 ] as const;
 
 /** Models without tenant scope: identity tables, the tenant root and the outbox (D-22). */

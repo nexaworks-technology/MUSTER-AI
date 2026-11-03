@@ -52,6 +52,14 @@ export const UPDATE_ATTACKS: Record<
   signalRule: { data: touched },
   signal: { data: touched },
   outcomeRecord: { data: touched },
+  agentDefinition: { data: touched },
+  agentRun: { data: touched },
+  approval: { data: touched },
+  draftRevision: { data: () => ({ subject: "attack-control" }), frozen: true },
+  outboundMessage: { data: touched },
+  emailSuppression: { data: () => ({ note: "attack-control" }) },
+  todayItem: { data: () => ({ rankScore: 0.5 }) },
+  extraction: { data: () => ({ confidence: 0.5 }) },
 };
 
 /** A writes B's row (count 0, nothing changes), then A writes its own row (the control). */
