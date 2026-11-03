@@ -2,8 +2,19 @@ import { Prisma } from "@prisma/client";
 import { scopedDb, type ScopedDb } from "@/lib/db/scoped";
 import type { TimelineItem } from "@/modules/accounts/schemas";
 import { AccountNotFoundError, getAccount, type Actor } from "@/modules/accounts/service";
-import { utcMidnight, type CalendarDate } from "@/lib/dates";
+import {
+  addDays,
+  businessClock,
+  calendarDateOf,
+  todayIn,
+  utcMidnight,
+  type CalendarDate,
+  type Clock,
+} from "@/lib/dates";
+import { loadBundles, loadContext } from "@/modules/health/service";
+import { adoption } from "./adoption";
 import { usageChangePoints } from "./change-points";
+export { adoption, UNDER_USE_SHARE, type Adoption, type AdoptionInput } from "./adoption";
 
 /**
  * Usage read model for Account 360 (spec §6G4 in CS language). Windows are computed with SQL
@@ -167,4 +178,60 @@ export async function usageTimeline(
       sourceId: `${accountId}:${p.weekStart.toISOString().slice(0, 10)}`,
     };
   });
+}
+
+// ─── Adoption (M6, spec §6G4) ───────────────────────────────────────────────
+
+/**
+ * The Adoption tab's figures for one account, as of the business date: the M3 bundle (own normal,
+ * cohort, per-person and per-feature rows), the plan's full feature catalogue, the current
+ * contract and daily seats/credits. Book scope applies (getAccount).
+ */
+export async function getAdoption(actor: Actor, accountId: string, clock: Clock = businessClock) {
+  const account = await getAccount(actor, accountId);
+  if (!account) throw new AccountNotFoundError();
+  const db = scopedDb(actor);
+  const lc = await loadContext(actor);
+  const asOf = todayIn(lc.timeZone, clock);
+  const [bundles, catalog, contracts, rows, plan] = await Promise.all([
+    loadBundles(db, lc, asOf, [accountId]),
+    db.featureCatalog.findMany({ orderBy: { label: "asc" } }),
+    db.contract.findMany({
+      where: { accountId, status: "ACTIVE", startDate: { lte: utcMidnight(asOf) } },
+      orderBy: { startDate: "desc" },
+      take: 1,
+    }),
+    db.usageDaily.findMany({
+      where: { accountId, date: { gte: utcMidnight(addDays(asOf, -120)), lte: utcMidnight(asOf) } },
+      orderBy: { date: "asc" },
+      select: { id: true, date: true, activeUsers: true, seatsUsed: true, creditsUsed: true },
+    }),
+    db.account.findUniqueOrThrow({ where: { id: accountId }, select: { plan: true } }),
+  ]);
+  const b = bundles.get(accountId);
+  const c = contracts[0];
+  return {
+    asOf,
+    ...adoption({
+      accountId,
+      asOf,
+      plan: plan.plan,
+      contract: c
+        ? {
+            id: c.id,
+            seatsPurchased: c.seatsPurchased,
+            creditsPurchased: c.creditsPurchased,
+            startDate: calendarDateOf(c.startDate),
+          }
+        : null,
+      usage: rows.length ? rows.map((r) => ({ ...r, date: calendarDateOf(r.date) })) : null,
+      userUsage: b?.userUsage ?? null,
+      featureUsage: b?.featureUsage ?? null,
+      catalog,
+      ownNormal: b?.ownBaseline
+        ? { median: b.ownBaseline.median, from: b.ownBaseline.from, to: b.ownBaseline.to }
+        : null,
+      cohort: b?.cohort ?? null,
+    }),
+  };
 }

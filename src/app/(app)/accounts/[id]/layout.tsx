@@ -22,6 +22,7 @@ export default async function AccountLayout({
     { label: "Signals", href: `${base}/signals` },
     { label: "People", href: `${base}/people` },
     { label: "Usage", href: `${base}/usage` },
+    { label: "Adoption", href: `${base}/adoption` },
     { label: "Tickets", href: `${base}/tickets` },
     { label: "Conversations", href: `${base}/conversations` },
     { label: "Contracts & billing", href: `${base}/billing` },
