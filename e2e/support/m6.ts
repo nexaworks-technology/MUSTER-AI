@@ -21,6 +21,8 @@ export async function resetUsageApi(workspace: string) {
     await tx.featureUsageDaily.deleteMany({ where });
     await tx.userUsageDaily.deleteMany({ where });
     await tx.usageDaily.deleteMany({ where });
+    // The group → account mappings the Usage API learned point at the integration: they go first.
+    await tx.externalRef.deleteMany({ where: { workspaceId, source: "USAGE_API" } });
     await tx.integration.deleteMany({ where: { workspaceId, provider: "USAGE_API" } });
   });
 }
