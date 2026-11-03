@@ -1,0 +1,52 @@
+{
+  "case": "invented-number",
+  "description": "ADVERSARIAL: the draft says usage fell 60%, a number in no record.",
+  "agent": "outreach",
+  "bundle": [
+    {
+      "sourceType": "Signal",
+      "sourceId": "sig_drop",
+      "fields": {
+        "title": "Usage drop vs normal",
+        "explanation": "Weekday active users are 49% below this account's normal.",
+        "severity": "critical",
+        "firstSeen": "Oct 20, 2026"
+      }
+    },
+    {
+      "sourceType": "Account",
+      "sourceId": "acc_bw",
+      "fields": {
+        "name": "Brightwell Logistics"
+      }
+    },
+    {
+      "sourceType": "Contact",
+      "sourceId": "con_dana",
+      "fields": {
+        "name": "Dana Reyes",
+        "title": "Operations Director"
+      }
+    }
+  ],
+  "output": {
+    "reasoningSummary": "Usage dropped sharply, so a short offer of help fits.",
+    "confidence": 0.7,
+    "citations": [
+      {
+        "sourceType": "Signal",
+        "sourceId": "sig_drop"
+      },
+      {
+        "sourceType": "Contact",
+        "sourceId": "con_dana"
+      }
+    ],
+    "proposedActions": [],
+    "subject": "Checking in",
+    "body": "Hi Dana, your team's usage fell 60% this month. Can we help?"
+  },
+  "expect": {
+    "status": "UNCITED"
+  }
+}

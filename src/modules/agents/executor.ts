@@ -145,7 +145,7 @@ export async function runAgent(
 
   if (run.status === "SUCCEEDED") {
     // A crash after persist: re-apply the side effects; their sourceKeys make this a no-op twice.
-    await applyEffects(ctx, def, run, built);
+    await applyEffects(ctx, def, run, built, input);
     return { kind: "run", runId: run.id, status: run.status, reused };
   }
   if (run.status !== "QUEUED" && run.status !== "RUNNING")
@@ -324,7 +324,7 @@ export async function runAgent(
     return row;
   });
   logger.info({ runId: run.id, agentKey: def.key, status: "SUCCEEDED" }, "agent run");
-  await applyEffects(ctx, def, succeeded, built);
+  await applyEffects(ctx, def, succeeded, built, input);
   return { kind: "run", runId: run.id, status: "SUCCEEDED", reused };
 }
 
@@ -384,6 +384,7 @@ async function applyEffects(
   def: AnyAgentDef,
   run: AgentRun,
   built: BuiltContext,
+  input: unknown,
 ): Promise<void> {
   if (!def.act) return;
   const db = scopedDb(ctx);
@@ -394,6 +395,7 @@ async function applyEffects(
     runId: run.id,
     accountId: run.accountId,
     bundle: built.bundle,
+    input,
     sourceKey: (index) => `${run.id}:${index}`,
   });
   await db.agentRun.update({

@@ -68,3 +68,11 @@ export {
   WATCHER_PROMPT,
   backfillExtractions,
 } from "./definitions/watcher";
+export {
+  draftCheckIn,
+  draftCheckInInput,
+  checkInTarget,
+  CheckInError,
+  type CheckInResult,
+} from "./checkin";
+export { outreach, outreachOutput, outreachInput } from "./definitions/outreach";

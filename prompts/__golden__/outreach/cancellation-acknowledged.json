@@ -1,0 +1,61 @@
+{
+  "case": "cancellation-acknowledged",
+  "description": "Quillmark asks how to export before cancelling: the draft only acknowledges and offers a call (the approval is marked sensitive downstream).",
+  "agent": "outreach",
+  "bundle": [
+    {
+      "sourceType": "Ticket",
+      "sourceId": "tk_q",
+      "fields": {
+        "subject": "Exporting our data",
+        "status": "open",
+        "priority": "normal",
+        "opened": "Oct 30, 2026"
+      }
+    },
+    {
+      "sourceType": "Account",
+      "sourceId": "acc_q",
+      "fields": {
+        "name": "Quillmark Legal"
+      }
+    },
+    {
+      "sourceType": "Contact",
+      "sourceId": "con_grace",
+      "fields": {
+        "name": "Grace Lin",
+        "title": null
+      }
+    },
+    {
+      "sourceType": "Message",
+      "sourceId": "msg_q",
+      "fields": {
+        "text": "How do I export all our data before we cancel at the end of the term?",
+        "sent": "Oct 30, 2026"
+      }
+    }
+  ],
+  "output": {
+    "reasoningSummary": "The customer asked about exporting before cancelling; a person should handle it.",
+    "confidence": 0.6,
+    "citations": [
+      {
+        "sourceType": "Ticket",
+        "sourceId": "tk_q"
+      },
+      {
+        "sourceType": "Message",
+        "sourceId": "msg_q",
+        "quote": "before we cancel at the end of the term"
+      }
+    ],
+    "proposedActions": [],
+    "subject": "Your question about exporting your data",
+    "body": "Hi Grace,\n\nThanks for your note about exporting your data. I'd like to understand what's behind it. Could we have a short call this week?\n\nBest,\nAisha"
+  },
+  "expect": {
+    "status": "SUCCEEDED"
+  }
+}

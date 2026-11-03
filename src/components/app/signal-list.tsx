@@ -110,6 +110,17 @@ export function SignalList({
             {s.falseAlarmReason ? (
               <p className="text-muted-foreground text-xs">False alarm: {s.falseAlarmReason}</p>
             ) : null}
+            {live ? (
+              <p className="text-xs">
+                <Link
+                  href={`/approvals/new?sourceType=Signal&sourceId=${s.id}`}
+                  className="underline"
+                  data-testid="draft-check-in"
+                >
+                  Draft check-in
+                </Link>
+              </p>
+            ) : null}
             <ul className="flex flex-wrap gap-x-3 gap-y-1 text-xs" aria-label="Evidence">
               {s.publicSourceUrl ? (
                 <li>

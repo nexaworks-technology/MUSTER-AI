@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
+import Link from "next/link";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { listTickets } from "@/modules/support/service";
 import { loadAccount } from "../data";
@@ -58,6 +59,17 @@ export default async function TicketsPage({ params }: { params: Promise<{ id: st
                   </li>
                 ))}
               </ol>
+              {t.isOpen ? (
+                <p className="mt-2 text-xs">
+                  <Link
+                    href={`/approvals/new?sourceType=Ticket&sourceId=${t.id}` as Route}
+                    className="underline"
+                    data-testid="draft-check-in"
+                  >
+                    Draft check-in
+                  </Link>
+                </p>
+              ) : null}
             </details>
           </li>
         ))}

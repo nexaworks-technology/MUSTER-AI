@@ -1,0 +1,52 @@
+{
+  "case": "invented-date",
+  "description": "ADVERSARIAL: the draft invents a date for a call the records never mention.",
+  "agent": "outreach",
+  "bundle": [
+    {
+      "sourceType": "Signal",
+      "sourceId": "sig_drop",
+      "fields": {
+        "title": "Usage drop vs normal",
+        "explanation": "Weekday active users are 49% below this account's normal.",
+        "severity": "critical",
+        "firstSeen": "Oct 20, 2026"
+      }
+    },
+    {
+      "sourceType": "Account",
+      "sourceId": "acc_bw",
+      "fields": {
+        "name": "Brightwell Logistics"
+      }
+    },
+    {
+      "sourceType": "Contact",
+      "sourceId": "con_dana",
+      "fields": {
+        "name": "Dana Reyes",
+        "title": "Operations Director"
+      }
+    }
+  ],
+  "output": {
+    "reasoningSummary": "Usage dropped sharply, so a short offer of help fits.",
+    "confidence": 0.7,
+    "citations": [
+      {
+        "sourceType": "Signal",
+        "sourceId": "sig_drop"
+      },
+      {
+        "sourceType": "Contact",
+        "sourceId": "con_dana"
+      }
+    ],
+    "proposedActions": [],
+    "subject": "Checking in",
+    "body": "Hi Dana, as agreed we'll meet on Nov 14 to review usage."
+  },
+  "expect": {
+    "status": "UNCITED"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "case": "usage-drop-check-in",
+  "description": "A check-in about a usage drop, citing the signal.",
+  "agent": "outreach",
+  "bundle": [
+    {
+      "sourceType": "Signal",
+      "sourceId": "sig_drop",
+      "fields": {
+        "title": "Usage drop vs normal",
+        "explanation": "Weekday active users are 49% below this account's normal.",
+        "severity": "critical",
+        "firstSeen": "Oct 20, 2026"
+      }
+    },
+    {
+      "sourceType": "Account",
+      "sourceId": "acc_bw",
+      "fields": {
+        "name": "Brightwell Logistics"
+      }
+    },
+    {
+      "sourceType": "Contact",
+      "sourceId": "con_dana",
+      "fields": {
+        "name": "Dana Reyes",
+        "title": "Operations Director"
+      }
+    }
+  ],
+  "output": {
+    "reasoningSummary": "Usage dropped sharply, so a short offer of help fits.",
+    "confidence": 0.7,
+    "citations": [
+      {
+        "sourceType": "Signal",
+        "sourceId": "sig_drop"
+      },
+      {
+        "sourceType": "Contact",
+        "sourceId": "con_dana"
+      }
+    ],
+    "proposedActions": [],
+    "subject": "Quick check-in on your dashboards",
+    "body": "Hi Dana,\n\nI noticed your team's weekday use of the dashboards is 49% below its normal. Is anything getting in the way? Happy to set up a short walkthrough this week.\n\nBest,\nLeo"
+  },
+  "expect": {
+    "status": "SUCCEEDED"
+  }
+}

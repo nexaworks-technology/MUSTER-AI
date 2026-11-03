@@ -1,0 +1,48 @@
+{
+  "case": "cites-other-account",
+  "description": "ADVERSARIAL: the draft cites a record the run was not given.",
+  "agent": "outreach",
+  "bundle": [
+    {
+      "sourceType": "Signal",
+      "sourceId": "sig_drop",
+      "fields": {
+        "title": "Usage drop vs normal",
+        "explanation": "Weekday active users are 49% below this account's normal.",
+        "severity": "critical",
+        "firstSeen": "Oct 20, 2026"
+      }
+    },
+    {
+      "sourceType": "Account",
+      "sourceId": "acc_bw",
+      "fields": {
+        "name": "Brightwell Logistics"
+      }
+    },
+    {
+      "sourceType": "Contact",
+      "sourceId": "con_dana",
+      "fields": {
+        "name": "Dana Reyes",
+        "title": "Operations Director"
+      }
+    }
+  ],
+  "output": {
+    "reasoningSummary": "Usage dropped sharply, so a short offer of help fits.",
+    "confidence": 0.7,
+    "citations": [
+      {
+        "sourceType": "Signal",
+        "sourceId": "sig_someone_else"
+      }
+    ],
+    "proposedActions": [],
+    "subject": "Checking in",
+    "body": "Hi Dana, want a walkthrough?"
+  },
+  "expect": {
+    "status": "UNCITED"
+  }
+}

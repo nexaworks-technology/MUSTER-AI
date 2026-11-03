@@ -29,6 +29,8 @@ export interface ActContext {
   runId: string;
   accountId: string | null;
   bundle: ContextBundle;
+  /** The run's input, already parsed with the agent's inputSchema. */
+  input: unknown;
   /** `runId:index`, unique on every side-effect table: a retried run never writes twice. */
   sourceKey: (index: number) => string;
 }

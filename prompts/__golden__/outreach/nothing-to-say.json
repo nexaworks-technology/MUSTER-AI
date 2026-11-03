@@ -1,0 +1,41 @@
+{
+  "case": "nothing-to-say",
+  "description": "ADVERSARIAL: the records give nothing to write about. Correct output: no draft and the gap named, not an invented reason to write.",
+  "agent": "outreach",
+  "bundle": [
+    {
+      "sourceType": "Account",
+      "sourceId": "acc_bw",
+      "fields": {
+        "name": "Brightwell Logistics"
+      }
+    },
+    {
+      "sourceType": "Contact",
+      "sourceId": "con_dana",
+      "fields": {
+        "name": "Dana Reyes",
+        "title": "Operations Director"
+      }
+    }
+  ],
+  "output": {
+    "reasoningSummary": "There is no signal or ticket content to base a check-in on.",
+    "confidence": 0.3,
+    "citations": [
+      {
+        "sourceType": "Account",
+        "sourceId": "acc_bw"
+      }
+    ],
+    "proposedActions": [],
+    "subject": null,
+    "body": null,
+    "insufficientData": {
+      "missing": ["a signal or customer message to write about"]
+    }
+  },
+  "expect": {
+    "status": "SUCCEEDED"
+  }
+}
