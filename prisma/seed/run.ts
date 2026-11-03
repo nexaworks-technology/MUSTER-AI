@@ -18,6 +18,8 @@ import {
   DEMO_WORKSPACE,
   TEST_TENANT,
   TEST_TENANT_USERS,
+  EMPTY_WORKSPACE,
+  EMPTY_WORKSPACE_USERS,
   type SeedUser,
 } from "./users";
 
@@ -31,18 +33,20 @@ export const SEED_TODAY = process.env.SEED_TODAY ?? "2026-11-02";
 export { seedId };
 
 async function seedWorkspace(
-  ws: typeof DEMO_WORKSPACE | typeof TEST_TENANT,
+  ws: typeof DEMO_WORKSPACE | typeof TEST_TENANT | typeof EMPTY_WORKSPACE,
   users: readonly SeedUser[],
+  setupPending = false,
 ) {
   const { key, ...profile } = ws;
   const workspace = await rawDb.workspace.upsert({
     where: { slug: ws.slug },
-    create: { id: seedId(key), ...profile },
+    create: { id: seedId(key), ...profile, setupPending },
     update: {
       name: profile.name,
       timezone: profile.timezone,
       baseCurrency: profile.baseCurrency,
       status: "ACTIVE",
+      setupPending,
     },
   });
   const passwordHash = await hashPassword(DEMO_PASSWORD);
@@ -99,7 +103,14 @@ async function seedDemoData(workspaceId: string): Promise<void> {
   await seedHealth(db, workspaceId);
 }
 
-export async function runSeed({ includeTestTenant }: { includeTestTenant: boolean }) {
+export async function runSeed({
+  includeTestTenant,
+  emptyWorkspace = false,
+}: {
+  includeTestTenant: boolean;
+  /** M5: also seed Juniper Labs, a fresh workspace still in setup (the /setup demo). */
+  emptyWorkspace?: boolean;
+}) {
   if (process.env.NODE_ENV === "production" && process.env.ALLOW_DEMO_SEED !== "true") {
     throw new Error(
       "Refusing to seed demo data in production (set ALLOW_DEMO_SEED=true for a demo environment)",
@@ -112,6 +123,8 @@ export async function runSeed({ includeTestTenant }: { includeTestTenant: boolea
     await seedDemoData(larkspur.id);
     const seeded = [larkspur];
     if (includeTestTenant) seeded.push(await seedWorkspace(TEST_TENANT, TEST_TENANT_USERS));
+    if (emptyWorkspace)
+      seeded.push(await seedWorkspace(EMPTY_WORKSPACE, EMPTY_WORKSPACE_USERS, true));
     return seeded;
   });
 }

@@ -18,7 +18,8 @@ you must flag the disagreement in `docs/QUESTIONS.md` — never silently follow 
   · Fallback without Docker (Homebrew Postgres/Redis/MinIO, same role SQL): `pnpm services:native`
   (needs `.env` with the local-services names from `.env.example`; see DECISIONS D-31)
 - Migrate: `pnpm db:migrate` · Generate client: `pnpm db:generate` · Seed demo: `pnpm db:seed`
-  (add `-- --with-test-tenant` for the second tenant, Ferngrove Software, used by isolation checks)
+  (add `-- --with-test-tenant` for the second tenant, Ferngrove Software, used by isolation checks;
+  `-- --empty-workspace` for Juniper Labs, a workspace still in setup)
 - Test (unit+integration): `pnpm test` (one file: `pnpm test <name>`) · E2E: `pnpm test:e2e`
   (runs `next dev` on port 3100 and the worker against the `_test` database, queue prefix
   `nexaworks-e2e`: stop any other `next dev` in this folder first)
@@ -27,6 +28,10 @@ you must flag the disagreement in `docs/QUESTIONS.md` — never silently follow 
 - Watcher-basic extraction backfill (M4): `pnpm agents:extract --workspace <slug> [--account "<name>"]`
   (prints which AI transport ran; with no key and `AI_PROVIDER` not `recorded` it writes nothing)
 - Live agent eval (outside the gate): `pnpm eval` (prints DEFERRED without `ANTHROPIC_API_KEY`)
+- Demo webhook (dev only, M5): `pnpm demo:webhook stripe payment_failed sundial` (or `chargebee payment_failed kestrel --auth user:password`; `--forged` shows the 401)
+  — posts a recorded fixture to the running app, signed as the provider signs it
+- Fresh workspace in setup (M5 `/setup` demo): `pnpm db:seed -- --empty-workspace` (Juniper Labs, admin@juniper.test)
+- Connectors on recorded fixtures (tests, e2e, demo; refused in production): `INTEGRATIONS_TRANSPORT=fixture`
 - Typecheck: `pnpm typecheck` · Lint: `pnpm lint` · Format check: `pnpm format:check`
 - Build: `pnpm build` · Full gate (must pass before any commit): `pnpm gate`
   (= typecheck + lint + test + build, in that order)

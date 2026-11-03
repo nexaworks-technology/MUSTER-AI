@@ -5,6 +5,7 @@ import type { WorkspaceContext } from "@/lib/auth/session";
 import { scopedDb } from "@/lib/db/scoped";
 import { getOwnWorkspace } from "@/lib/db/workspace";
 import { minorDigits } from "@/lib/money";
+import { workspaceSettingsData } from "@/modules/settings/schemas";
 import { getSettingsData } from "@/modules/settings/service";
 import { segmentWhere } from "@/modules/segments/service";
 import { deriveTier } from "./tier";
@@ -325,7 +326,11 @@ export async function tierRuleFor(workspaceId: string) {
   };
 }
 
-/** Re-derives one account's tier from its ARR (no-op for manual tiers or missing ARR). */
+/**
+ * Re-derives one account's tier from its ARR (no-op for manual tiers or missing ARR). The bands
+ * are read through `tx`: a scopedDb read nested in a tenant transaction runs on another
+ * connection without the workspace setting and would see no settings row (QUESTIONS Q-54).
+ */
 export async function applyTierRule(
   tx: Prisma.TransactionClient,
   workspaceId: string,
@@ -336,7 +341,17 @@ export async function applyTierRule(
     account.arrMinor !== null && account.arrCurrency
       ? { minor: account.arrMinor, currency: account.arrCurrency }
       : null;
-  const tier = deriveTier(arr, await tierRuleFor(workspaceId), account);
+  const row = await tx.workspaceSettings.findUnique({ where: { workspaceId } });
+  const parsed = workspaceSettingsData.safeParse(row?.data ?? {});
+  const settings = parsed.success ? parsed.data : workspaceSettingsData.parse({});
+  const workspace = await getOwnWorkspace({ workspaceId });
+  const scale = 10n ** BigInt(minorDigits(workspace.baseCurrency));
+  const rule = {
+    highTouchMinArrMinor: BigInt(settings.tierRule.highTouchMinArr) * scale,
+    midTouchMinArrMinor: BigInt(settings.tierRule.midTouchMinArr) * scale,
+    currency: workspace.baseCurrency,
+  };
+  const tier = deriveTier(arr, rule, account);
   if (tier !== account.tier) await tx.account.update({ where: { id: accountId }, data: { tier } });
 }
 

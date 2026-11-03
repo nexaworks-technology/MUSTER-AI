@@ -17,12 +17,15 @@ export function updateOwnWorkspace(
   return rawDb.workspace.update({ where: { id: ctx.workspaceId }, data });
 }
 
-/** Active workspaces and their time zones (global table; used to schedule each one's night run). */
+/**
+ * Live workspaces and their time zones (global table; used to schedule each one's night run).
+ * A workspace still in setup (M5 wizard) is not live until its Admin goes live.
+ */
 export function listActiveWorkspaces(): Promise<
   Array<Pick<Workspace, "id" | "slug" | "timezone">>
 > {
   return rawDb.workspace.findMany({
-    where: { status: "ACTIVE" },
+    where: { status: "ACTIVE", setupPending: false },
     select: { id: true, slug: true, timezone: true },
     orderBy: { id: "asc" },
   });
@@ -30,4 +33,21 @@ export function listActiveWorkspaces(): Promise<
 
 export function findWorkspaceBySlug(slug: string): Promise<Workspace | null> {
   return rawDb.workspace.findUnique({ where: { slug } });
+}
+
+/**
+ * M5 setup wizard: the caller's own workspace goes live (its nightly run is then scheduled).
+ * Compare-and-set: true only for the one call that actually flipped it.
+ */
+export async function markWorkspaceLive(ctx: TenantContext): Promise<boolean> {
+  const { count } = await rawDb.workspace.updateMany({
+    where: { id: ctx.workspaceId, setupPending: true },
+    data: { setupPending: false },
+  });
+  return count === 1;
+}
+
+/** Undo of markWorkspaceLive when what must accompany it (the audit row) could not be written. */
+export async function markWorkspacePending(ctx: TenantContext): Promise<void> {
+  await rawDb.workspace.update({ where: { id: ctx.workspaceId }, data: { setupPending: true } });
 }

@@ -84,3 +84,23 @@ export const TEST_TENANT_USERS: readonly SeedUser[] = [
     bookScope: "ALL",
   },
 ];
+
+/** `--empty-workspace` (M5 setup wizard demo): a fresh workspace still in setup, one Admin, no data. */
+export const EMPTY_WORKSPACE = {
+  key: "workspace:juniper",
+  name: "Juniper Labs",
+  slug: "juniper-fresh",
+  timezone: "America/New_York",
+  baseCurrency: "USD",
+} as const;
+
+export const EMPTY_WORKSPACE_USERS: readonly SeedUser[] = [
+  {
+    key: "user:juniper-admin",
+    name: "Mara Quinn",
+    email: "admin@juniper.test",
+    role: "ADMIN",
+    canViewRevenue: true,
+    bookScope: "ALL",
+  },
+];
