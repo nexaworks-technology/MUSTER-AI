@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { rawDb } from "@/lib/db/raw";
 import { scopedDb } from "@/lib/db/scoped";
 import { createTestAdmin } from "@/test/fixtures";
+import { ApprovalNotFoundError, approve, getApproval, reject } from "@/modules/approvals/service";
 import { expectUpdateIsolated } from "./update-attack";
 
 /**
@@ -284,5 +285,27 @@ describe("tenant isolation — M4 agent, approval and outbound models (Rule 2)",
         },
       }),
     ).rejects.toSatisfy(fk);
+  });
+
+  it("approving or rejecting B's approval from A is not found (404), and B's stays pending", async () => {
+    const pending = await B.db.approval.create({
+      data: {
+        workspaceId: B.workspaceId,
+        accountId: B.account.id,
+        kind: "SEND_EMAIL",
+        reason: "r",
+        requiredLevel: "DRAFT_FOR_APPROVAL",
+      },
+    });
+    await expect(getApproval(A.actor, pending.id)).rejects.toBeInstanceOf(ApprovalNotFoundError);
+    await expect(approve(A.actor, { approvalId: pending.id })).rejects.toBeInstanceOf(
+      ApprovalNotFoundError,
+    );
+    await expect(
+      reject(A.actor, { approvalId: pending.id, note: "cross-tenant" }),
+    ).rejects.toBeInstanceOf(ApprovalNotFoundError);
+    expect((await B.db.approval.findUniqueOrThrow({ where: { id: pending.id } })).status).toBe(
+      "PENDING",
+    );
   });
 });
