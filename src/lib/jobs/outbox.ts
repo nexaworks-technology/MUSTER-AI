@@ -107,4 +107,10 @@ export const OUTBOX_ROUTES: OutboxRoutes = {
  * (consumed by the Health Analyst and play triggers, M4/M8). M4 consumes health.bandChanged;
  * signal.opened / signal.resolved wait for plays (M8).
  */
-export const AWAITING_CONSUMER: string[] = ["signal.opened", "signal.resolved", "task.overdue"];
+export const AWAITING_CONSUMER: string[] = [
+  "signal.opened",
+  "signal.resolved",
+  "task.overdue",
+  /** M5: written at the end of every integration sync; consumed by plays (M8). */
+  "sync.completed",
+];

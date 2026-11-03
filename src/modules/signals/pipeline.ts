@@ -12,6 +12,7 @@ import {
   scoreAndStore,
   storeUsageBaselines,
 } from "@/modules/health/service";
+import { addNightlySyncFlow } from "@/modules/integrations/service";
 import { evaluateAndStore } from "./lifecycle";
 
 /**
@@ -34,6 +35,8 @@ export const kickoffPayload = z.object({
   workspaceId: z.string().min(1),
   asOf: day.optional(),
   runId: runId.optional(),
+  /** Set on the flow parent that runs once the integration syncs finished (M5). */
+  afterSync: z.boolean().optional(),
 });
 export const chunkPayload = z.object({
   workspaceId: z.string().min(1),
@@ -62,6 +65,12 @@ export async function kickoff(raw: unknown, deps: PipelineDeps) {
   const ctx = { workspaceId: data.workspaceId };
   const asOf = data.asOf ?? todayIn((await loadContext(ctx)).timeZone, deps.clock);
   const run = data.runId ?? `nightly-${asOf}`;
+  // M5 (ARCHITECTURE §1.2 step 2): with connected data integrations, sync first. The fan-out
+  // below then runs in the flow parent, after every sync.run child has finished.
+  if (!data.afterSync) {
+    const syncs = await addNightlySyncFlow(ctx, { asOf, runId: run });
+    if (syncs > 0) return { asOf, runId: run, waitingOnSyncs: syncs };
+  }
   const accounts = await scopedDb(ctx).account.findMany({
     where: { lifecycleStage: { not: "LOST" }, archivedAt: null },
     select: { id: true },

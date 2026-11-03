@@ -22,7 +22,9 @@ export const SOURCE_NAMES: Partial<Record<RecordSource, string>> = {
 
 export const CRM_PROVIDERS = ["HUBSPOT", "SALESFORCE"] as const;
 
+export type ProviderSource = Exclude<IntegrationProvider, "SLACK"> & RecordSource;
+
 /** Slack writes no records, so it has no source. */
-export function recordSourceFor(provider: IntegrationProvider): RecordSource | null {
+export function recordSourceFor(provider: IntegrationProvider): ProviderSource | null {
   return provider === "SLACK" ? null : provider;
 }

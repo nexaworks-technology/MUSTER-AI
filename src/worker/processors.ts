@@ -12,6 +12,7 @@ import {
   sweepAllHealthNarratives,
 } from "@/modules/agents/service";
 import { importJobPayload, runImportJob } from "@/modules/imports/service";
+import { runSync } from "@/modules/integrations/service";
 import { evaluateSevenDayCheckpoints } from "@/modules/outcomes/service";
 import { escalateOverdueTasks } from "@/modules/tasks/service";
 import { rebuildWorkspaceToday } from "@/modules/today/service";
@@ -49,6 +50,10 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
       const { workspaceId, importJobId } = importJobPayload.parse(job.data);
       await runImportJob(workspaceId, importJobId);
       return { importJobId };
+    },
+    /** M5: one integration sync (nightly flow child, "Run sync now", setup import). */
+    async "sync.run"(job) {
+      return runSync(job.data);
     },
   },
   /** M3: the nightly run and the real-time hook (signals → health), scoped by payload. */

@@ -1,4 +1,4 @@
-import { Queue, type ConnectionOptions } from "bullmq";
+import { FlowProducer, Queue, type ConnectionOptions } from "bullmq";
 import { env } from "@/lib/config/env";
 
 /**
@@ -51,7 +51,17 @@ export function getQueue(name: QueueName): Queue {
   return queue;
 }
 
+let flows: FlowProducer | undefined;
+
+/** Parent/child job flows (M5: the nightly kickoff waits for the integration syncs). */
+export function getFlowProducer(): FlowProducer {
+  flows ??= new FlowProducer({ connection: redisConnection(), prefix: queuePrefix() });
+  return flows;
+}
+
 export async function closeQueues(): Promise<void> {
   await Promise.all([...queues.values()].map((q) => q.close()));
   queues.clear();
+  await flows?.close();
+  flows = undefined;
 }
