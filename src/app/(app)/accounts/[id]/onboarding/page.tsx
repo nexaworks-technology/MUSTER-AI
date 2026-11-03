@@ -76,12 +76,7 @@ function Proof({ accountId, evidence }: { accountId: string; evidence: unknown }
   });
   return (
     <details className="text-muted-foreground text-xs" data-testid="proof">
-      <summary className="cursor-pointer">
-        Proof: {summary.join("; ")} ·{" "}
-        <Link href={`/accounts/${accountId}/usage` as Route} className="underline">
-          Usage
-        </Link>
-      </summary>
+      <summary className="cursor-pointer">Proof: {summary.join("; ")}</summary>
       <ul className="mt-1 list-disc pl-5">
         {rows.map((r, i) => (
           <li key={`${r.sourceId ?? "row"}-${i}`}>
@@ -90,6 +85,11 @@ function Proof({ accountId, evidence }: { accountId: string; evidence: unknown }
           </li>
         ))}
       </ul>
+      <p className="mt-1">
+        <Link href={`/accounts/${accountId}/usage` as Route} className="underline">
+          See these days in Usage
+        </Link>
+      </p>
     </details>
   );
 }
@@ -170,7 +170,12 @@ export default async function AccountOnboardingPage({
                     ? `Us${s.owner ? ` (${s.owner.user.name ?? s.owner.user.email})` : ""}`
                     : `Customer${s.ownerContact ? ` (${s.ownerContact.name})` : ""}`;
                 return (
-                  <li key={s.id} className="space-y-1 p-3" data-testid={`step-${s.key}`}>
+                  <li
+                    key={s.id}
+                    id={`step-${s.id}`}
+                    className="space-y-1 p-3"
+                    data-testid={`step-${s.key}`}
+                  >
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
                       <span className="font-medium">{s.title}</span>
                       <span className="text-muted-foreground text-xs">

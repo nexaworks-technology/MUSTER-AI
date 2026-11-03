@@ -1,5 +1,11 @@
 export { aggregateUsage, aggregatePayload, type AggregateResult } from "./aggregate";
-export { hashIngestKey, issueUsageApiKey, saveSegmentSecret, INGEST_KEY_PREFIX } from "./keys";
+export {
+  hashIngestKey,
+  issueUsageApiKey,
+  newIngestKey,
+  saveSegmentSecret,
+  INGEST_KEY_PREFIX,
+} from "./keys";
 export {
   receiveUsage,
   verifySegmentSignature,

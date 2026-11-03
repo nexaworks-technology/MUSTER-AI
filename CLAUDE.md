@@ -30,6 +30,9 @@ you must flag the disagreement in `docs/QUESTIONS.md` — never silently follow 
 - Live agent eval (outside the gate): `pnpm eval` (prints DEFERRED without `ANTHROPIC_API_KEY`)
 - Demo webhook (dev only, M5): `pnpm demo:webhook stripe payment_failed sundial` (or `chargebee payment_failed kestrel --auth user:password`; `--forged` shows the 401)
   — posts a recorded fixture to the running app, signed as the provider signs it
+- Demo usage events (dev only, M6): `pnpm demo:usage pinecrest --key <ingest key>` (or `USAGE_API_KEY`)
+  — posts recorded product events to the running app's Usage API, Bearer-authenticated with the key shown once on
+  Settings › Integrations › Usage API; refuses any address but this machine; a second run is a replay and changes nothing
 - Fresh workspace in setup (M5 `/setup` demo): `pnpm db:seed -- --empty-workspace` (Juniper Labs, admin@juniper.test)
 - Connectors on recorded fixtures (tests, e2e, demo; refused in production): `INTEGRATIONS_TRANSPORT=fixture`
 - Typecheck: `pnpm typecheck` · Lint: `pnpm lint` · Format check: `pnpm format:check`

@@ -55,32 +55,56 @@ export async function resolveProof(
   refs: ProofRef[],
 ): Promise<ProofLink[]> {
   const ids = (t: string) => refs.filter((r) => r.sourceType === t).map((r) => r.sourceId);
-  const [signals, reasons, runs, accounts, outbound, look] = await Promise.all([
-    db.signal.findMany({
-      where: { id: { in: ids("Signal") } },
-      select: { id: true, title: true, accountId: true },
-    }),
-    db.healthReason.findMany({
-      where: { id: { in: ids("HealthReason") } },
-      select: { id: true, message: true, snapshot: { select: { accountId: true } } },
-    }),
-    db.agentRun.findMany({
-      where: { id: { in: ids("AgentRun") } },
-      select: { id: true, agentKey: true },
-    }),
-    db.account.findMany({
-      where: { id: { in: ids("Account") } },
-      select: { id: true, name: true },
-    }),
-    db.outboundMessage.findMany({
-      where: { id: { in: ids("OutboundMessage") } },
-      select: { id: true, subject: true },
-    }),
-    sourceLookups(
-      db,
-      refs.filter((r) => HEALTH_TYPES.has(r.sourceType)),
-    ),
-  ]);
+  // M6: onboarding and feature records are read only when a proof cites them, so the reads an
+  // approval made before M6 are unchanged.
+  const [signals, reasons, runs, accounts, outbound, look, plans, steps, features] =
+    await Promise.all([
+      db.signal.findMany({
+        where: { id: { in: ids("Signal") } },
+        select: { id: true, title: true, accountId: true },
+      }),
+      db.healthReason.findMany({
+        where: { id: { in: ids("HealthReason") } },
+        select: { id: true, message: true, snapshot: { select: { accountId: true } } },
+      }),
+      db.agentRun.findMany({
+        where: { id: { in: ids("AgentRun") } },
+        select: { id: true, agentKey: true },
+      }),
+      db.account.findMany({
+        where: { id: { in: ids("Account") } },
+        select: { id: true, name: true },
+      }),
+      db.outboundMessage.findMany({
+        where: { id: { in: ids("OutboundMessage") } },
+        select: { id: true, subject: true },
+      }),
+      sourceLookups(
+        db,
+        refs.filter((r) => HEALTH_TYPES.has(r.sourceType)),
+      ),
+      ids("OnboardingPlan").length
+        ? db.onboardingPlan.findMany({
+            where: { id: { in: ids("OnboardingPlan") } },
+            select: { id: true, accountId: true, account: { select: { name: true } } },
+          })
+        : Promise.resolve([]),
+      ids("OnboardingStep").length
+        ? db.onboardingStep.findMany({
+            where: { id: { in: ids("OnboardingStep") } },
+            select: { id: true, title: true, plan: { select: { accountId: true } } },
+          })
+        : Promise.resolve([]),
+      ids("FeatureCatalog").length
+        ? db.featureCatalog.findMany({
+            where: { id: { in: ids("FeatureCatalog") } },
+            select: { id: true, label: true },
+          })
+        : Promise.resolve([]),
+    ]);
+  const plan = new Map(plans.map((p) => [p.id, p]));
+  const step = new Map(steps.map((x) => [x.id, x]));
+  const feature = new Map(features.map((f) => [f.id, f]));
   const signal = new Map(signals.map((s) => [s.id, s]));
   const reason = new Map(reasons.map((r) => [r.id, r]));
   const run = new Map(runs.map((r) => [r.id, r]));
@@ -136,6 +160,39 @@ export async function resolveProof(
       case "OutboundMessage": {
         const o = draft.get(r.sourceId);
         return o ? { ...r, label: `Draft: ${o.subject}`, href: null, missing: false } : gone(r);
+      }
+      case "OnboardingPlan": {
+        const p = plan.get(r.sourceId);
+        return p
+          ? {
+              ...r,
+              label: `Onboarding plan: ${p.account.name}`,
+              href: `/accounts/${p.accountId}/onboarding`,
+              missing: false,
+            }
+          : gone(r);
+      }
+      case "OnboardingStep": {
+        const x = step.get(r.sourceId);
+        return x
+          ? {
+              ...r,
+              label: `Onboarding step: ${x.title}`,
+              href: `/accounts/${x.plan.accountId}/onboarding#step-${x.id}`,
+              missing: false,
+            }
+          : gone(r);
+      }
+      case "FeatureCatalog": {
+        const f = feature.get(r.sourceId);
+        return f
+          ? {
+              ...r,
+              label: `Feature in the plan: ${f.label}`,
+              href: `/accounts/${accountId}/adoption`,
+              missing: false,
+            }
+          : gone(r);
       }
       default: {
         if (!HEALTH_TYPES.has(r.sourceType))

@@ -53,6 +53,7 @@ export {
   hashIngestKey,
   INGEST_KEY_PREFIX,
   issueUsageApiKey,
+  newIngestKey,
   receiveUsage,
   saveSegmentSecret,
   USAGE_RATE_LIMIT,

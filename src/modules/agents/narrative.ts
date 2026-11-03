@@ -3,6 +3,7 @@ import { isAiConfigured } from "@/lib/ai";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { resolveProof, type ProofLink } from "@/modules/approvals/service";
 import { displayedSnapshot } from "@/modules/health/service";
+import { adoptionCoachOutput } from "./definitions/adoption-coach";
 import { healthAnalystOutput } from "./definitions/health-analyst";
 
 /**
@@ -69,6 +70,53 @@ export async function healthNarrative(ctx: TenantContext, accountId: string): Pr
       finishedAt: run.finishedAt,
       model: run.model,
       promptVersion: run.promptVersion,
+    },
+    items,
+    missing: parsed.data.insufficientData?.missing ?? [],
+    reasoningSummary: parsed.data.reasoningSummary,
+  };
+}
+
+/**
+ * What the Adoption tab may show from the Adoption Coach (§6.4, M6): the latest SUCCEEDED run's
+ * findings, each with links to the feature rows it cites. Nothing else renders; with no run, the
+ * tab shows nothing from the agent.
+ */
+export interface AdoptionFinding {
+  run: Pick<AgentRun, "id" | "status" | "confidence" | "finishedAt"> | null;
+  items: Array<{ text: string; sources: ProofLink[] }>;
+  missing: string[];
+  reasoningSummary: string | null;
+}
+
+export async function adoptionFinding(
+  ctx: TenantContext,
+  accountId: string,
+): Promise<AdoptionFinding> {
+  const db = scopedDb(ctx);
+  const run = await db.agentRun.findFirst({
+    where: { accountId, agentKey: "adoption-coach", status: "SUCCEEDED" },
+    orderBy: { createdAt: "desc" },
+  });
+  const none = { run: null, items: [], missing: [], reasoningSummary: null };
+  if (!run) return none;
+  const parsed = adoptionCoachOutput.safeParse(run.output);
+  if (!parsed.success) return none;
+  const items = await Promise.all(
+    parsed.data.findings.map(async (f) => ({
+      text: f.text,
+      sources: await resolveProof(db, accountId, [
+        ...f.citesCatalogIds.map((id) => ({ sourceType: "FeatureCatalog", sourceId: id })),
+        ...f.citesUsageIds.map((id) => ({ sourceType: "FeatureUsageDaily", sourceId: id })),
+      ]),
+    })),
+  );
+  return {
+    run: {
+      id: run.id,
+      status: run.status,
+      confidence: run.confidence,
+      finishedAt: run.finishedAt,
     },
     items,
     missing: parsed.data.insufficientData?.missing ?? [],

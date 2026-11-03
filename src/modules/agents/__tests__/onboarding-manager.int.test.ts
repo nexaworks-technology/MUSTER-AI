@@ -24,7 +24,10 @@ async function world(label: string, opts: { ourSide?: boolean } = {}) {
   const db = scopedDb(actor);
   const ws = actor.workspaceId;
   const csmUser = await rawDb.user.create({
-    data: { email: `${label.toLowerCase()}-aisha-${randomUUID().slice(0, 8)}@t.test`, name: "Aisha Bello" },
+    data: {
+      email: `${label.toLowerCase()}-aisha-${randomUUID().slice(0, 8)}@t.test`,
+      name: "Aisha Bello",
+    },
   });
   const csm = await db.membership.create({
     data: { workspaceId: ws, userId: csmUser.id, role: "CSM" },

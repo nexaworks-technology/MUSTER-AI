@@ -60,7 +60,12 @@ export {
   healthAnalystOutput,
   type HealthAnalystOutput,
 } from "./definitions/health-analyst";
-export { healthNarrative, type Narrative } from "./narrative";
+export {
+  adoptionFinding,
+  healthNarrative,
+  type AdoptionFinding,
+  type Narrative,
+} from "./narrative";
 export { judge, loadGolden, GOLDEN_DIR, type GoldenCase, type Verdict } from "./golden";
 export {
   watcher,

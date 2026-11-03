@@ -21,6 +21,8 @@ const RULES: ReadonlyArray<{ rule: string; pattern: RegExp }> = [
   { rule: "stripe-webhook-secret", pattern: /\bwhsec_[A-Za-z0-9]{24,}\b/ },
   { rule: "hubspot-token", pattern: /\bpat-(?:na|eu|ap)\d-[0-9a-f]{8}-[0-9a-f-]{20,}/ },
   { rule: "salesforce-session", pattern: /\b00D[A-Za-z0-9]{12,15}![A-Za-z0-9._]{40,}/ },
+  // M6: the Usage API's ingest key (`nxu_` + 43 URL-safe characters). Only its hash is ever stored.
+  { rule: "usage-ingest-key", pattern: /\bnxu_[A-Za-z0-9_-]{40,}/ },
   {
     rule: "url-credentials",
     pattern: /[a-z][a-z0-9+.-]*:\/\/[^\s:/@]+:[^\s@/]{6,}@(?!localhost|127\.0\.0\.1)/i,

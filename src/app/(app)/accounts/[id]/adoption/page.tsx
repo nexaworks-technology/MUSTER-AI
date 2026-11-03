@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import type { Route } from "next";
 import Link from "next/link";
+import { AiText } from "@/components/app/ai-text";
 import { formatCalendarDate } from "@/lib/format";
+import { adoptionFinding } from "@/modules/agents/service";
 import { getAdoption, type Adoption } from "@/modules/usage/service";
 import { loadAccount } from "../data";
 
@@ -55,7 +57,10 @@ function SourceLinks({ accountId, sources }: { accountId: string; sources: Sourc
 export default async function AdoptionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { ctx, account } = await loadAccount(id);
-  const a = await getAdoption(ctx, account.id);
+  const [a, coach] = await Promise.all([
+    getAdoption(ctx, account.id),
+    adoptionFinding(ctx, account.id),
+  ]);
   const nothing = !a.seats && !a.features && !a.powerUsers && !a.trend;
   return (
     <div className="max-w-3xl space-y-6">
@@ -64,6 +69,27 @@ export default async function AdoptionPage({ params }: { params: Promise<{ id: s
         <p className="text-sm" data-testid="no-adoption">
           Nothing to show yet: no product usage has been recorded for this account.
         </p>
+      ) : null}
+
+      {coach.run ? (
+        <section aria-labelledby="adopt-coach" className="space-y-1" data-testid="adoption-coach">
+          <h3 id="adopt-coach" className="font-medium">
+            What the Adoption Coach found
+          </h3>
+          <AiText
+            run={coach.run}
+            items={coach.items}
+            emptyText={`Nothing here needs action. ${coach.reasoningSummary ?? ""}`.trim()}
+          />
+          {coach.missing.length ? (
+            <p className="text-muted-foreground text-xs">
+              Not on file: {coach.missing.join("; ")}.
+            </p>
+          ) : null}
+          <p className="text-muted-foreground text-xs">
+            Its nudge, if any, waits in Approvals. Nothing is sent without a person.
+          </p>
+        </section>
       ) : null}
 
       {a.features ? (

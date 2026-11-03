@@ -27,7 +27,8 @@
     "jobs:nightly": "tsx --env-file=.env scripts/jobs-nightly.ts",
     "eval": "tsx --env-file=.env scripts/eval.ts",
     "agents:extract": "tsx --env-file=.env scripts/agents-extract.ts",
-    "demo:webhook": "tsx --env-file=.env scripts/demo-webhook.ts"
+    "demo:webhook": "tsx --env-file=.env scripts/demo-webhook.ts",
+    "demo:usage": "tsx --env-file=.env scripts/demo-usage.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.3.0",

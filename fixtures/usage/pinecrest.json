@@ -1,0 +1,78 @@
+{
+  "description": "Fictional product events for Pinecrest Health (demo:usage). No timestamps: the app dates them with its business clock. Message ids are fixed, so sending the batch again is a replay and changes nothing.",
+  "batch": [
+    {
+      "type": "track",
+      "messageId": "demo-usage-pinecrest-001",
+      "userId": "raj.patel@pinecrest-health.test",
+      "groupId": "pinecrest-health.test",
+      "event": "Session Started"
+    },
+    {
+      "type": "track",
+      "messageId": "demo-usage-pinecrest-002",
+      "userId": "raj.patel@pinecrest-health.test",
+      "groupId": "pinecrest-health.test",
+      "event": "Connector Added",
+      "properties": {
+        "feature": "data_connectors"
+      }
+    },
+    {
+      "type": "track",
+      "messageId": "demo-usage-pinecrest-003",
+      "userId": "raj.patel@pinecrest-health.test",
+      "groupId": "pinecrest-health.test",
+      "event": "Connector Added",
+      "properties": {
+        "feature": "data_connectors"
+      }
+    },
+    {
+      "type": "track",
+      "messageId": "demo-usage-pinecrest-004",
+      "userId": "raj.patel@pinecrest-health.test",
+      "groupId": "pinecrest-health.test",
+      "event": "Connector Synced",
+      "properties": {
+        "feature": "data_connectors"
+      }
+    },
+    {
+      "type": "track",
+      "messageId": "demo-usage-pinecrest-005",
+      "userId": "demo.user.2@pinecrest-health.test",
+      "groupId": "pinecrest-health.test",
+      "event": "Session Started"
+    },
+    {
+      "type": "track",
+      "messageId": "demo-usage-pinecrest-006",
+      "userId": "demo.user.2@pinecrest-health.test",
+      "groupId": "pinecrest-health.test",
+      "event": "Report Scheduled",
+      "properties": {
+        "feature": "scheduled_reports"
+      }
+    },
+    {
+      "type": "track",
+      "messageId": "demo-usage-pinecrest-007",
+      "userId": "demo.user.2@pinecrest-health.test",
+      "groupId": "pinecrest-health.test",
+      "event": "Report Scheduled",
+      "properties": {
+        "feature": "scheduled_reports"
+      }
+    },
+    {
+      "type": "identify",
+      "messageId": "demo-usage-pinecrest-ident-1",
+      "userId": "raj.patel@pinecrest-health.test",
+      "groupId": "pinecrest-health.test",
+      "traits": {
+        "email": "raj.patel@pinecrest-health.test"
+      }
+    }
+  ]
+}
