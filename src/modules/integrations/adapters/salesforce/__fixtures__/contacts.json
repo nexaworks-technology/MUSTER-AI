@@ -1,0 +1,64 @@
+{
+  "provider": "salesforce",
+  "description": "Contacts: one new at Pinecrest, one with no account, one deleted.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/services/data/v61.0/queryAll",
+        "query": {
+          "q": "~FROM Contact"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "totalSize": 3,
+          "done": true,
+          "records": [
+            {
+              "attributes": {
+                "type": "Contact",
+                "url": "/services/data/v61.0/sobjects/Contact/0035f00000RINAK"
+              },
+              "Id": "0035f00000RINAK",
+              "AccountId": "0015f00000PINEC",
+              "FirstName": "Rina",
+              "LastName": "Kapoor",
+              "Email": "rina.kapoor@pinecrest-health.test",
+              "Title": "COO",
+              "IsDeleted": false
+            },
+            {
+              "attributes": {
+                "type": "Contact",
+                "url": "/services/data/v61.0/sobjects/Contact/0035f00000LONER"
+              },
+              "Id": "0035f00000LONER",
+              "AccountId": null,
+              "FirstName": "Lone",
+              "LastName": "Ranger",
+              "Email": "lone@nowhere.test",
+              "Title": null,
+              "IsDeleted": false
+            },
+            {
+              "attributes": {
+                "type": "Contact",
+                "url": "/services/data/v61.0/sobjects/Contact/0035f00000GONEC"
+              },
+              "Id": "0035f00000GONEC",
+              "AccountId": "0015f00000HALDN",
+              "FirstName": "Old",
+              "LastName": "Contact",
+              "Email": "old@halden-retail.test",
+              "Title": null,
+              "IsDeleted": true
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

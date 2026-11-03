@@ -1,0 +1,38 @@
+{
+  "provider": "salesforce",
+  "description": "Salesforce answers HTTP 403 to every query.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/services/data/v61.0/queryAll"
+      },
+      "response": {
+        "status": 403,
+        "headers": {},
+        "body": [
+          {
+            "errorCode": "API_DISABLED_FOR_ORG",
+            "message": "API is not enabled for this Organization or Partner"
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/services/data/v61.0/query"
+      },
+      "response": {
+        "status": 403,
+        "headers": {},
+        "body": [
+          {
+            "errorCode": "API_DISABLED_FOR_ORG",
+            "message": "API is not enabled for this Organization or Partner"
+          }
+        ]
+      }
+    }
+  ]
+}

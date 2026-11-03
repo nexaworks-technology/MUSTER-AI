@@ -5,6 +5,7 @@ import type { Credentials } from "../../credentials";
 import { describeProviderError } from "../../errors";
 import type { NormalizedBatch } from "../../normalized";
 import { requestJson, type HttpTransport } from "../../transport";
+import { employeeBand, toMinor } from "../shared";
 
 /**
  * HubSpot (OAuth). Read-only by default: owners → members by email (unmatched listed),
@@ -67,23 +68,6 @@ const accountInfo = z.object({
 
 const p = (o: z.infer<typeof object>, k: string) => o.properties[k] ?? undefined;
 
-/** HubSpot's employee count → the band shown on accounts. */
-function band(count: string | undefined): string | undefined {
-  const n = count ? Number(count) : NaN;
-  if (!Number.isFinite(n) || n <= 0) return undefined;
-  if (n <= 50) return "1-50";
-  if (n <= 200) return "51-200";
-  if (n <= 1000) return "201-1000";
-  return "1001+";
-}
-
-/** "24000" or "24000.5" → minor units; anything else is "value not on file", never 0. */
-function money(amount: string | undefined): number | undefined {
-  if (!amount || !/^\d+(\.\d{1,2})?$/.test(amount)) return undefined;
-  const [whole, frac = ""] = amount.split(".");
-  return Number(whole) * 100 + Number(frac.padEnd(2, "0"));
-}
-
 const titleCase = (v: string | undefined) =>
   v
     ? v
@@ -97,7 +81,7 @@ const mapCompany = (o: z.infer<typeof object>) => ({
   domain: p(o, "domain"),
   ownerExternalId: p(o, "hubspot_owner_id"),
   industry: titleCase(p(o, "industry")),
-  employeeBand: band(p(o, "numberofemployees")),
+  employeeBand: employeeBand(p(o, "numberofemployees")),
   archived: o.archived ?? false,
 });
 
@@ -319,7 +303,7 @@ export const hubspotAdapter: IntegrationAdapter<Cfg> = {
               externalId: d.id,
               accountExternalId: p(d, "associatedcompanyid") ?? "",
               startDate: p(d, "closedate"),
-              valueMinor: money(p(d, "amount")),
+              valueMinor: toMinor(p(d, "amount")),
               currency: p(d, "deal_currency_code") ?? info.companyCurrency ?? "",
             })),
         };

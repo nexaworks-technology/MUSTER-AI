@@ -1,6 +1,7 @@
 import type { IntegrationProvider } from "@prisma/client";
 import type { IntegrationAdapter } from "../adapter";
 import { hubspotAdapter } from "./hubspot";
+import { salesforceAdapter } from "./salesforce";
 import { stripeAdapter } from "./stripe";
 
 /**
@@ -14,6 +15,7 @@ type AnyAdapter = IntegrationAdapter<any>;
 
 export const ADAPTERS: Partial<Record<IntegrationProvider, AnyAdapter>> = {
   HUBSPOT: hubspotAdapter,
+  SALESFORCE: salesforceAdapter,
   STRIPE: stripeAdapter,
 };
 

@@ -1,0 +1,38 @@
+{
+  "provider": "salesforce",
+  "description": "Salesforce answers HTTP 401 to every query.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/services/data/v61.0/queryAll"
+      },
+      "response": {
+        "status": 401,
+        "headers": {},
+        "body": [
+          {
+            "errorCode": "INVALID_SESSION_ID",
+            "message": "Session expired or invalid"
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/services/data/v61.0/query"
+      },
+      "response": {
+        "status": 401,
+        "headers": {},
+        "body": [
+          {
+            "errorCode": "INVALID_SESSION_ID",
+            "message": "Session expired or invalid"
+          }
+        ]
+      }
+    }
+  ]
+}

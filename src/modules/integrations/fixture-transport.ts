@@ -17,8 +17,13 @@ const interaction = z.object({
     method: z.enum(["GET", "POST", "PATCH", "PUT", "DELETE"]),
     /** Path only (host is ignored, so one fixture serves any instance URL). */
     path: z.string().startsWith("/"),
-    /** Every listed key must match exactly; unlisted query keys are ignored. */
+    /**
+     * Every listed key must match exactly; unlisted query keys are ignored. A value starting with
+     * "~" matches when the request's value contains the rest (long SOQL queries).
+     */
     query: z.record(z.string(), z.string()).optional(),
+    /** Every listed header must match exactly (e.g. an expired vs a refreshed bearer token). */
+    headers: z.record(z.string(), z.string()).optional(),
     /** When set, the request body must contain this text. */
     bodyIncludes: z.string().optional(),
   }),
@@ -46,8 +51,12 @@ export class UnfixturedRequestError extends Error {
 
 function matches(i: FixtureInteraction, req: HttpRequest, url: URL): boolean {
   if (i.request.method !== req.method || i.request.path !== url.pathname) return false;
-  for (const [k, v] of Object.entries(i.request.query ?? {}))
-    if (url.searchParams.get(k) !== v) return false;
+  for (const [k, v] of Object.entries(i.request.query ?? {})) {
+    const got = url.searchParams.get(k);
+    if (v.startsWith("~") ? !got?.includes(v.slice(1)) : got !== v) return false;
+  }
+  for (const [k, v] of Object.entries(i.request.headers ?? {}))
+    if (req.headers?.[k.toLowerCase()] !== v && req.headers?.[k] !== v) return false;
   if (i.request.bodyIncludes && !(req.body ?? "").includes(i.request.bodyIncludes)) return false;
   return true;
 }

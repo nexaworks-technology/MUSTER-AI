@@ -1,0 +1,18 @@
+{
+  "provider": "salesforce",
+  "description": "Owner write-back for Halden (fake transport only in M5, founder D2).",
+  "interactions": [
+    {
+      "request": {
+        "method": "PATCH",
+        "path": "/services/data/v61.0/sobjects/Account/0015f00000HALDN",
+        "bodyIncludes": "OwnerId"
+      },
+      "response": {
+        "status": 204,
+        "headers": {},
+        "body": ""
+      }
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "provider": "salesforce",
+  "description": "Salesforce answers HTTP 500 to every query.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/services/data/v61.0/queryAll"
+      },
+      "response": {
+        "status": 500,
+        "headers": {},
+        "body": [
+          {
+            "errorCode": "UNKNOWN_EXCEPTION"
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/services/data/v61.0/query"
+      },
+      "response": {
+        "status": 500,
+        "headers": {},
+        "body": [
+          {
+            "errorCode": "UNKNOWN_EXCEPTION"
+          }
+        ]
+      }
+    }
+  ]
+}

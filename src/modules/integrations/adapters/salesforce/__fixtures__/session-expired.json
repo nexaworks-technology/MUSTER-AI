@@ -1,0 +1,25 @@
+{
+  "provider": "salesforce",
+  "description": "An expired session: any query with the expired token answers 401 INVALID_SESSION_ID.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/services/data/v61.0/queryAll",
+        "headers": {
+          "authorization": "Bearer fixture-sf-expired"
+        }
+      },
+      "response": {
+        "status": 401,
+        "headers": {},
+        "body": [
+          {
+            "message": "Session expired or invalid",
+            "errorCode": "INVALID_SESSION_ID"
+          }
+        ]
+      }
+    }
+  ]
+}

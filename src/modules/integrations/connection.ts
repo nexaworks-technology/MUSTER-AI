@@ -31,6 +31,8 @@ export async function loadConnection(
   ctx: TenantContext,
   integrationId: string,
   deps: ConnectionDeps = {},
+  /** Refresh even if the token looks fresh (the provider said the session expired). */
+  forceRefresh = false,
 ): Promise<{
   integration: Integration;
   adapter: IntegrationAdapter<unknown>;
@@ -45,7 +47,7 @@ export async function loadConnection(
   const adapter = (deps.adapter ?? adapterFor)(integration.provider);
   const transport = (deps.transport ?? transportFor)(integration.provider);
   let credentials: Credentials = openCredentials(integration.credentialsEnc);
-  if (adapter.auth.kind === "oauth2" && needsRefresh(credentials, clock())) {
+  if (adapter.auth.kind === "oauth2" && (forceRefresh || needsRefresh(credentials, clock()))) {
     if (!credentials.refreshToken)
       throw new IntegrationUnavailableError("The connection has expired. Reconnect it.");
     credentials = { ...credentials, ...(await adapter.auth.refresh(credentials, transport)) };

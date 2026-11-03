@@ -53,7 +53,7 @@ Server log had no errors. Evidence: `m5-evidence/01-settings-integrations-hubspo
 - **Decisions:** D-82 … D-93 (no SDKs; Q-32 provenance; billing match-only; fixture transport; new-account tier; Stripe window and failure dates; HubSpot deals; write-back gate; webhooks; nightly flow and ids; OAuth state; Slack team ambiguity).
 - **Questions:**
   - Q-50: the action-enumeration test does not exist yet (M12); M5 covers the integrations actions explicitly.
-  - Q-51: `update-attack.ts` gained four entries.
+  - Q-51: `update-attack.ts` gained four entries (ratified by the founder at the start of Session B).
   - Q-52: Sundial can show more than one payment signal in the fixture world.
   - Q-53: `next dev` request log shows the OAuth callback URL.
 
@@ -61,7 +61,7 @@ Server log had no errors. Evidence: `m5-evidence/01-settings-integrations-hubspo
 
 - **M5.md §4 "each slice ends with `pnpm gate`"** is superseded by the founder's execution economics: targeted tests per slice, and one full `pnpm test` at the end of Session A.
 - **M5.md names `oauth.test.ts` / `writeback.test.ts`:** both use the database, kept under those names.
-- **Pre-M5 test files touched:** the four approved, plus `update-attack.ts` (Q-51).
+- **Pre-M5 test files touched:** the four approved, plus `update-attack.ts` (Q-51, ratified).
   - `features.test.ts`: only the M5 row.
   - `tenant-isolation`: new M5 file.
   - `model-registry`: no change needed; it picks the models up from the registry.

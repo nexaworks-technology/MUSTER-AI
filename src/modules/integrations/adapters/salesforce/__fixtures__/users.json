@@ -1,0 +1,52 @@
+{
+  "provider": "salesforce",
+  "description": "Active users: Aisha and Leo match Larkspur members; one sales rep matches nobody.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/services/data/v61.0/queryAll",
+        "query": {
+          "q": "~FROM User"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "totalSize": 3,
+          "done": true,
+          "records": [
+            {
+              "attributes": {
+                "type": "User",
+                "url": "/services/data/v61.0/sobjects/User/0055f00000AISHA"
+              },
+              "Id": "0055f00000AISHA",
+              "Email": "aisha@larkspur.test",
+              "Name": "Aisha Bello"
+            },
+            {
+              "attributes": {
+                "type": "User",
+                "url": "/services/data/v61.0/sobjects/User/0055f00000LEOMA"
+              },
+              "Id": "0055f00000LEOMA",
+              "Email": "leo@larkspur.test",
+              "Name": "Leo Marsh"
+            },
+            {
+              "attributes": {
+                "type": "User",
+                "url": "/services/data/v61.0/sobjects/User/0055f00000SALES"
+              },
+              "Id": "0055f00000SALES",
+              "Email": "sales.rep@larkspur.test",
+              "Name": "Sam Sales"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

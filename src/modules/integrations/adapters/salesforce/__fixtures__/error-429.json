@@ -1,0 +1,40 @@
+{
+  "provider": "salesforce",
+  "description": "Salesforce answers HTTP 429 to every query.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/services/data/v61.0/queryAll"
+      },
+      "response": {
+        "status": 429,
+        "headers": {
+          "Retry-After": "60"
+        },
+        "body": [
+          {
+            "errorCode": "REQUEST_LIMIT_EXCEEDED"
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/services/data/v61.0/query"
+      },
+      "response": {
+        "status": 429,
+        "headers": {
+          "Retry-After": "60"
+        },
+        "body": [
+          {
+            "errorCode": "REQUEST_LIMIT_EXCEEDED"
+          }
+        ]
+      }
+    }
+  ]
+}

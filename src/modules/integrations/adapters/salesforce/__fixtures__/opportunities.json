@@ -1,0 +1,36 @@
+{
+  "provider": "salesforce",
+  "description": "Won opportunities: Pinecrest's annual deal (a contract when turned on).",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/services/data/v61.0/queryAll",
+        "query": {
+          "q": "~FROM Opportunity"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "totalSize": 1,
+          "done": true,
+          "records": [
+            {
+              "attributes": {
+                "type": "Opportunity",
+                "url": "/services/data/v61.0/sobjects/Opportunity/0065f00000PINEW"
+              },
+              "Id": "0065f00000PINEW",
+              "AccountId": "0015f00000PINEC",
+              "Amount": 36000.0,
+              "CloseDate": "2026-05-15",
+              "IsDeleted": false
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

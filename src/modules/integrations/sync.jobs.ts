@@ -123,20 +123,31 @@ export async function runSync(raw: unknown, deps: ConnectionDeps = {}): Promise<
   let cursor: string | null = cursorIn;
   const name = PROVIDER_NAMES[integration.provider];
   try {
-    const { adapter, context } = await loadConnection(ctx, integration.id, deps);
-    const pages = adapter.sync(context, {
-      kind: job.kind === "INCREMENTAL" ? "INCREMENTAL" : "FULL",
-      cursor: cursorIn ?? undefined,
-    });
-    for await (const batch of pages) {
-      const r = await ingestBatch(
-        { workspaceId: ctx.workspaceId, integrationId: integration.id, source },
-        batch,
-      );
-      counts = addCounts(counts, r.counts);
-      for (const pr of r.problems) if (problems.length < PROBLEM_CAP) problems.push(pr);
-      for (const id of r.accountIds) accountIds.add(id);
-      if (batch.cursor !== undefined) cursor = batch.cursor;
+    // An OAuth session can expire before its stated expiry (Salesforce sessions do): on a 401,
+    // refresh once and read again. Pages already ingested are idempotent, so re-reading is safe.
+    for (let attempt = 0; ; attempt++) {
+      const { adapter, context } = await loadConnection(ctx, integration.id, deps, attempt > 0);
+      try {
+        const pages = adapter.sync(context, {
+          kind: job.kind === "INCREMENTAL" ? "INCREMENTAL" : "FULL",
+          cursor: cursorIn ?? undefined,
+        });
+        for await (const batch of pages) {
+          const r = await ingestBatch(
+            { workspaceId: ctx.workspaceId, integrationId: integration.id, source },
+            batch,
+          );
+          counts = addCounts(counts, r.counts);
+          for (const pr of r.problems) if (problems.length < PROBLEM_CAP) problems.push(pr);
+          for (const id of r.accountIds) accountIds.add(id);
+          if (batch.cursor !== undefined) cursor = batch.cursor;
+        }
+        break;
+      } catch (err) {
+        const expired =
+          err instanceof ProviderHttpError && err.status === 401 && adapter.auth.kind === "oauth2";
+        if (!expired || attempt > 0) throw err;
+      }
     }
   } catch (err) {
     const described = describe(err, integration.provider, name, deps);

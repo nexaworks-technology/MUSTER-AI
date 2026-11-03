@@ -1,0 +1,96 @@
+{
+  "provider": "salesforce",
+  "description": "Accounts over two pages: Halden links by website, Brightwell's industry differs (Q-32 conflict), Pinecrest is new, one is deleted.",
+  "interactions": [
+    {
+      "note": "page 2",
+      "request": {
+        "method": "GET",
+        "path": "/services/data/v61.0/query/01gACC-2000"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "totalSize": 2,
+          "done": true,
+          "records": [
+            {
+              "attributes": {
+                "type": "Account",
+                "url": "/services/data/v61.0/sobjects/Account/0015f00000PINEC"
+              },
+              "Id": "0015f00000PINEC",
+              "Name": "Pinecrest Health",
+              "Website": "https://www.pinecrest-health.test",
+              "OwnerId": "0055f00000AISHA",
+              "Industry": "Healthcare",
+              "NumberOfEmployees": 320,
+              "IsDeleted": false
+            },
+            {
+              "attributes": {
+                "type": "Account",
+                "url": "/services/data/v61.0/sobjects/Account/0015f00000GONEX"
+              },
+              "Id": "0015f00000GONEX",
+              "Name": "Gone Industries",
+              "Website": "gone-industries.test",
+              "OwnerId": "0055f00000LEOMA",
+              "Industry": "Retail",
+              "NumberOfEmployees": 10,
+              "IsDeleted": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "note": "page 1",
+      "request": {
+        "method": "GET",
+        "path": "/services/data/v61.0/queryAll",
+        "query": {
+          "q": "~FROM Account"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "totalSize": 2,
+          "done": false,
+          "records": [
+            {
+              "attributes": {
+                "type": "Account",
+                "url": "/services/data/v61.0/sobjects/Account/0015f00000HALDN"
+              },
+              "Id": "0015f00000HALDN",
+              "Name": "Halden Retail",
+              "Website": "halden-retail.test",
+              "OwnerId": "0055f00000LEOMA",
+              "Industry": null,
+              "NumberOfEmployees": null,
+              "IsDeleted": false
+            },
+            {
+              "attributes": {
+                "type": "Account",
+                "url": "/services/data/v61.0/sobjects/Account/0015f00000BRITE"
+              },
+              "Id": "0015f00000BRITE",
+              "Name": "Brightwell Logistics",
+              "Website": "brightwell-logistics.test",
+              "OwnerId": "0055f00000SALES",
+              "Industry": "Transportation",
+              "NumberOfEmployees": 900,
+              "IsDeleted": false
+            }
+          ],
+          "nextRecordsUrl": "/services/data/v61.0/query/01gACC-2000"
+        }
+      }
+    }
+  ]
+}
