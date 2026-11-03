@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
+import { displayedSnapshot, getActiveModel } from "@/modules/health/service";
 import { logger } from "@/lib/logger";
 import { runAgent, type ExecutorDeps } from "../executor";
 import { healthAnalyst } from "./health-analyst";
@@ -50,12 +51,14 @@ export async function considerHealthNarrative(
   const db = scopedDb(ctx);
   const account = await db.account.findUnique({
     where: { id: accountId },
-    select: { currentHealthSnapshotId: true, lifecycleStage: true },
+    select: { lifecycleStage: true },
   });
-  if (!account?.currentHealthSnapshotId || account.lifecycleStage === "LOST")
-    return { ran: false as const, why: "no current snapshot" };
+  // The snapshot the Health tab shows, so every link in the narrative lands on a reason there.
+  const shown =
+    account && account.lifecycleStage !== "LOST" ? await displayedSnapshot(ctx, accountId) : null;
+  if (!shown) return { ran: false as const, why: "no current snapshot" };
   const current = await db.healthScoreSnapshot.findUniqueOrThrow({
-    where: { id: account.currentHealthSnapshotId },
+    where: { id: shown.id },
     include: { reasons: reasonSelect },
   });
   const previous = await db.healthScoreSnapshot.findFirst({
@@ -102,21 +105,26 @@ export async function processConsider(raw: unknown) {
  */
 export async function sweepHealthNarratives(ctx: TenantContext, deps: ExecutorDeps = {}) {
   const db = scopedDb(ctx);
-  const accounts = await db.account.findMany({
+  const model = await getActiveModel(ctx);
+  // The snapshot each Health tab shows: the latest live one under the active model, per account.
+  const shown = await db.healthScoreSnapshot.findMany({
     where: {
-      currentHealthSnapshotId: { not: null },
-      lifecycleStage: { not: "LOST" },
-      archivedAt: null,
+      healthModelId: model.id,
+      isBacktest: false,
+      account: { lifecycleStage: { not: "LOST" }, archivedAt: null },
     },
-    select: { id: true, currentHealthSnapshotId: true },
+    orderBy: [{ accountId: "asc" }, { asOf: "desc" }],
+    distinct: ["accountId"],
+    select: { id: true, accountId: true },
   });
+  const accounts = shown.map((s) => ({ id: s.accountId, snapshotId: s.id }));
   const done = new Set(
     (
       await db.agentRun.findMany({
         where: {
           agentKey: healthAnalyst.key,
           triggerType: "snapshot",
-          triggerId: { in: accounts.map((a) => a.currentHealthSnapshotId!) },
+          triggerId: { in: accounts.map((a) => a.snapshotId) },
         },
         select: { triggerId: true },
       })
@@ -124,7 +132,7 @@ export async function sweepHealthNarratives(ctx: TenantContext, deps: ExecutorDe
   );
   let ran = 0;
   for (const a of accounts) {
-    if (done.has(a.currentHealthSnapshotId!)) continue;
+    if (done.has(a.snapshotId)) continue;
     const r = await considerHealthNarrative(ctx, a.id, deps);
     if (r.ran && r.outcome.kind === "not_configured") {
       logger.info(

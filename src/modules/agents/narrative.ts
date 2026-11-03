@@ -2,6 +2,7 @@ import type { AgentRun } from "@prisma/client";
 import { isAiConfigured } from "@/lib/ai";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { resolveProof, type ProofLink } from "@/modules/approvals/service";
+import { displayedSnapshot } from "@/modules/health/service";
 import { healthAnalystOutput } from "./definitions/health-analyst";
 
 /**
@@ -24,15 +25,20 @@ export interface Narrative {
 
 export async function healthNarrative(ctx: TenantContext, accountId: string): Promise<Narrative> {
   const db = scopedDb(ctx);
+  // Only a narrative about the snapshot the tab shows: its links then land on reasons on the page.
+  const shown = await displayedSnapshot(ctx, accountId);
+  const about = {
+    accountId,
+    agentKey: "health-analyst",
+    triggerType: "snapshot",
+    triggerId: shown?.id ?? "none",
+  };
   const [run, latest] = await Promise.all([
     db.agentRun.findFirst({
-      where: { accountId, agentKey: "health-analyst", status: "SUCCEEDED" },
+      where: { ...about, status: "SUCCEEDED" },
       orderBy: { createdAt: "desc" },
     }),
-    db.agentRun.findFirst({
-      where: { accountId, agentKey: "health-analyst" },
-      orderBy: { createdAt: "desc" },
-    }),
+    db.agentRun.findFirst({ where: about, orderBy: { createdAt: "desc" } }),
   ]);
   const base = {
     configured: isAiConfigured(),

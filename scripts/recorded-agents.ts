@@ -16,6 +16,7 @@ import { env } from "@/lib/config/env";
 import { recordingKey } from "@/lib/ai/recorded";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { findWorkspaceBySlug } from "@/lib/db/workspace";
+import { displayedSnapshot } from "@/modules/health/service";
 import {
   healthAnalyst,
   outreach,
@@ -65,8 +66,9 @@ async function main() {
 
   // 1. Health Analyst for Brightwell: its two most negative evidence reasons, word for word.
   const bw = await account("Brightwell Logistics");
+  // The snapshot Brightwell's Health tab shows (the narrative is about that one).
   const snap = await db.healthScoreSnapshot.findUniqueOrThrow({
-    where: { id: bw.currentHealthSnapshotId! },
+    where: { id: (await displayedSnapshot(ctx, bw.id))!.id },
     include: { reasons: true },
   });
   const top = snap.reasons
@@ -91,11 +93,12 @@ async function main() {
 
   // 2. A recorded refusal (Halden), so a failed run exists and is shown as failed.
   const halden = await account("Halden Retail");
-  const hInput = { accountId: halden.id, snapshotId: halden.currentHealthSnapshotId! };
+  const haldenSnap = (await displayedSnapshot(ctx, halden.id))!.id;
+  const hInput = { accountId: halden.id, snapshotId: haldenSnap };
   await record(ctx, healthAnalyst, hInput, () => ({ __stopReason: "refusal" }));
   const hr = await runAgent(ctx, healthAnalyst, hInput, {
     type: "snapshot",
-    id: halden.currentHealthSnapshotId!,
+    id: haldenSnap,
   });
   results.push(
     `health-analyst Halden (recorded refusal): ${hr.kind === "run" ? hr.status : hr.kind}`,

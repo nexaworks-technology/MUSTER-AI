@@ -57,6 +57,20 @@ export function modelConfigOf(
  * The workspace's ACTIVE model. A workspace with none gets version 1 with the default formulas
  * (D-63), labelled as such; the back-test proposal (M3 slice 16) can replace it.
  */
+/**
+ * The snapshot an account's Health tab shows: the latest live snapshot under the active model.
+ * Anything written about "the account's health" (the Health Analyst narrative) must be about this
+ * one, so every reason it links to is on the page.
+ */
+export async function displayedSnapshot(ctx: TenantContext, accountId: string) {
+  const model = await getActiveModel(ctx);
+  return scopedDb(ctx).healthScoreSnapshot.findFirst({
+    where: { accountId, healthModelId: model.id, isBacktest: false },
+    orderBy: { asOf: "desc" },
+    select: { id: true, asOf: true },
+  });
+}
+
 export async function getActiveModel(ctx: TenantContext): Promise<HealthModel> {
   const db = scopedDb(ctx);
   const active = await db.healthModel.findFirst({ where: { status: "ACTIVE" } });

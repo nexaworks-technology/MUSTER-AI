@@ -8,7 +8,8 @@ import { postResendEmail } from "./resendHttp";
 /**
  * The customer email transport (ARCHITECTURE §7.4, Rule 3). Only src/modules/outbound/dispatch.ts
  * may import this file (ESLint restricted import + import-graph test). In development and tests
- * it is log-only: the message is written to `.dev-mail/customer/` (git-ignored) and the log line
+ * it is log-only: the message is written to `.dev-mail-customer/` (git-ignored; a sibling of the staff
+ * `.dev-mail/` folder, which other code reads file by file) and the log line
  * carries ids only, never the subject or body (Rule 8). Production uses Resend.
  */
 export interface CustomerEmail {
@@ -25,7 +26,7 @@ export interface CustomerTransport {
 }
 
 export function createLogCustomerTransport(
-  dir = path.join(process.cwd(), ".dev-mail", "customer"),
+  dir = path.join(process.cwd(), ".dev-mail-customer"),
 ): CustomerTransport {
   return {
     name: "log",

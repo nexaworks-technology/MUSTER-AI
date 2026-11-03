@@ -223,4 +223,62 @@ describe("Health Analyst runs", () => {
       items: [],
     });
   });
+
+  it("shows a narrative only about the snapshot the Health tab shows, never an older one", async () => {
+    const { actor } = await createTestAdmin("HAStale");
+    const db = scopedDb(actor);
+    const first = await account(db, actor.workspaceId, "WATCH");
+    const { p } = provider(() => ({
+      reasoningSummary: "Usage has roughly halved.",
+      confidence: 0.7,
+      citations: [{ sourceType: "HealthScoreSnapshot", sourceId: first.snapshotId }],
+      proposedActions: [],
+      items: [
+        {
+          text: "Weekday users fell from 40 to 20.4.",
+          citesReasonIds: [first.reasonId],
+          citesSignalIds: [],
+        },
+      ],
+    }));
+    await considerHealthNarrative(actor, first.accountId, { provider: p });
+    expect((await healthNarrative(actor, first.accountId)).items).toHaveLength(1);
+    // A newer snapshot under the active model replaces what the tab shows.
+    const model = await db.healthModel.findFirstOrThrow({ where: { status: "ACTIVE" } });
+    const newer = randomUUID();
+    await db.$tenantTransaction(async (tx) => {
+      await tx.healthScoreSnapshot.create({
+        data: {
+          id: newer,
+          workspaceId: actor.workspaceId,
+          accountId: first.accountId,
+          healthModelId: model.id,
+          asOf: new Date("2026-11-03"),
+          overall: 95,
+          adoption: 95,
+          riskLevel: "HEALTHY",
+          riskLevelExcludingPulse: "HEALTHY",
+          effectiveWeights: {},
+          inputsHash: newer,
+        },
+      });
+      await tx.healthReason.create({
+        data: {
+          workspaceId: actor.workspaceId,
+          snapshotId: newer,
+          pillar: "ADOPTION",
+          component: "users",
+          kind: "EVIDENCE",
+          direction: "UP",
+          impact: 0,
+          input: "i",
+          message: "Usage is at normal.",
+          sources: [{ sourceType: "Account", sourceId: first.accountId }],
+        },
+      });
+    });
+    const n = await healthNarrative(actor, first.accountId);
+    expect(n.run).toBeNull();
+    expect(n.items).toEqual([]);
+  });
 });
