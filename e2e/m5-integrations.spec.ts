@@ -19,6 +19,15 @@ import {
  * no signing secret by design), so here a Slack click is shown refused.
  */
 const WEBHOOK_SECRET = "whsec_e2e_only";
+/**
+ * Screenshots go to `test-results/` (git-ignored) unless M5_EVIDENCE=1, so a normal e2e run leaves
+ * the tracked evidence in docs/milestones/m5-evidence/ alone (post-M6 review N1). To retake them:
+ * `M5_EVIDENCE=1 pnpm test:e2e e2e/m5-integrations.spec.ts`, then commit the images on purpose.
+ */
+const evidence = (file: string) =>
+  process.env.M5_EVIDENCE === "1"
+    ? `docs/milestones/m5-evidence/${file}`
+    : `test-results/m5-evidence/${file}`;
 const fixture = (...p: string[]) => readFileSync(path.join(process.cwd(), ...p), "utf8");
 
 async function reloadUntil(
@@ -96,7 +105,7 @@ test.describe("M5 integrations and setup", () => {
     ).toBeVisible();
     await expect(page.getByTestId("status-CHARGEBEE")).toHaveText("Not connected");
     await page.screenshot({
-      path: "docs/milestones/m5-evidence/02-chargebee-rejected-key-plain-words.png",
+      path: evidence("02-chargebee-rejected-key-plain-words.png"),
       fullPage: true,
     });
   });
@@ -159,7 +168,7 @@ test.describe("M5 integrations and setup", () => {
     expect(await countIn(ws.workspaceId, "webhookEvent")).toBe(1);
     await reloadUntil(page, "/today", /Payment failed: invoice SUNDIAL-0011/, 30_000);
     await page.screenshot({
-      path: "docs/milestones/m5-evidence/03-payment-failed-in-today.png",
+      path: evidence("03-payment-failed-in-today.png"),
       fullPage: true,
     });
   });
@@ -255,7 +264,7 @@ test.describe("M5 integrations and setup", () => {
     await page.getByRole("button", { name: "Go live" }).click();
     await expect(page.getByRole("status").filter({ hasText: "You are live." })).toBeVisible();
     await page.screenshot({
-      path: "docs/milestones/m5-evidence/04-setup-go-live.png",
+      path: evidence("04-setup-go-live.png"),
       fullPage: true,
     });
   });
