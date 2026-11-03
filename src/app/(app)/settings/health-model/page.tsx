@@ -89,7 +89,14 @@ export default async function HealthModelPage() {
   const ctx = await requireSettingsAccess("healthModel:propose");
   const [models, running] = await Promise.all([listModels(ctx), backtestRunning(ctx)]);
   const active = models.find((m) => m.status === "ACTIVE");
-  const proposal = models.find((m) => m.proposedBy === "BACKTEST_PROPOSAL" && m.status === "DRAFT");
+  // Only a proposal made after the active model went live is "the" proposal: an older draft was
+  // compared with a model that is no longer active, so it stays in "All versions" only.
+  const proposal = models.find(
+    (m) =>
+      m.proposedBy === "BACKTEST_PROPOSAL" &&
+      m.status === "DRAFT" &&
+      (!active?.activatedAt || m.createdAt > active.activatedAt),
+  );
   const canActivate = can(ctx, "healthModel:activate") !== null;
   const tz = ctx.workspace.timezone;
   const editFrom = proposal ?? models.find((m) => m.backtest) ?? null;
