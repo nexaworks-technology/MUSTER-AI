@@ -32,6 +32,7 @@ export {
 } from "./writeback.service";
 export { PROVIDER_NAMES } from "./providers";
 export { listIntegrations, runSyncNow, type ProviderCard } from "./status.service";
+export { DataHealthError, getDataHealth, retryDeadJob } from "./data-health.service";
 export {
   handleSlackInteraction,
   linkSlackMembers,

@@ -161,7 +161,7 @@ export const slackAdapter: IntegrationAdapter<Cfg> = {
     };
   },
   // Slack carries no customer records: nothing to sync.
-   
+
   async *sync() {
     return;
   },
