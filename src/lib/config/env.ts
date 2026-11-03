@@ -26,6 +26,12 @@ export const envSchema = z
     REDIS_URL: z.url(),
     /** BullMQ key prefix. Default: "nexaworks", or "nexaworks-test" under NODE_ENV=test. */
     QUEUE_PREFIX: optionalString,
+    /**
+     * "off" stops the worker registering the per-workspace nightly health and signals schedules.
+     * Unset or "on" (the default) is production behaviour. Only the e2e worker sets "off", so a
+     * real-clock nightly run can never rewrite the seeded demo workspace (Q-49).
+     */
+    NIGHTLY_SCHEDULES: z.enum(["on", "off"]).default("on"),
 
     AUTH_SECRET: z.string().min(32, "must be at least 32 characters"),
     AUTH_GOOGLE_ID: optionalString,

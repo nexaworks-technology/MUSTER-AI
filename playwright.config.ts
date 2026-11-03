@@ -59,6 +59,8 @@ export default defineConfig({
         DATABASE_URL: process.env.DATABASE_URL!,
         DATABASE_URL_MIGRATE: process.env.DATABASE_URL_MIGRATE!,
         QUEUE_PREFIX: E2E_QUEUE_PREFIX,
+        // No real-clock nightly runs against the seeded workspace, which stays "as of" SEED_TODAY.
+        NIGHTLY_SCHEDULES: "off",
       },
     },
   ],

@@ -1,4 +1,5 @@
 import type { Job } from "bullmq";
+import { env } from "@/lib/config/env";
 import { dispatchOutbox, OUTBOX_ROUTES } from "@/lib/jobs/outbox";
 import type { QueueName } from "@/lib/jobs/queues";
 import { logger } from "@/lib/logger";
@@ -22,7 +23,9 @@ const pipeline = createPipelineProcessors({ clock: systemClock });
  * One repeatable nightly kickoff per active workspace, at 02:00 in that workspace's time zone
  * (ARCHITECTURE §1.2). Idempotent: re-registering updates the schedule in place.
  */
-export async function syncNightlySchedules(): Promise<number> {
+export async function syncNightlySchedules(opts: { enabled?: boolean } = {}): Promise<number> {
+  // NIGHTLY_SCHEDULES=off (e2e worker only): register nothing. Unset keeps production behaviour.
+  if (!(opts.enabled ?? env().NIGHTLY_SCHEDULES !== "off")) return 0;
   const workspaces = await listActiveWorkspaces();
   for (const w of workspaces)
     await getQueue("signals").upsertJobScheduler(
