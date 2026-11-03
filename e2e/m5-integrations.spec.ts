@@ -121,6 +121,10 @@ test.describe("M5 integrations and setup", () => {
 
     // Today lists the member's own book (D-78): in the demo Aisha owns Sundial; here the Admin does.
     await assignToAdmin(ws.workspaceId, "Sundial Fitness");
+    // Today is cached for 10 minutes (D-78): look at it first, as a CSM would, so the webhook
+    // must refresh it (found in the M5 demo, failure batch 2).
+    await page.goto("/today");
+    await expect(page.getByRole("heading", { name: "Today", level: 1 })).toBeVisible();
     const id = await integrationId(ws.workspaceId, "STRIPE");
     const body = fixture(
       "src/modules/integrations/adapters/stripe/__fixtures__/webhook-invoice-payment-failed.json",
@@ -153,7 +157,7 @@ test.describe("M5 integrations and setup", () => {
     });
     expect(replay.status()).toBe(200);
     expect(await countIn(ws.workspaceId, "webhookEvent")).toBe(1);
-    await reloadUntil(page, "/today", /Payment failed: invoice SUNDIAL-0011/);
+    await reloadUntil(page, "/today", /Payment failed: invoice SUNDIAL-0011/, 30_000);
     await page.screenshot({
       path: "docs/milestones/m5-evidence/03-payment-failed-in-today.png",
       fullPage: true,

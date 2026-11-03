@@ -9,6 +9,7 @@ import { logger } from "@/lib/logger";
 import { getStorage } from "@/lib/storage";
 import { loadContext } from "@/modules/health/service";
 import { enqueueAccountEvaluation, evaluateAndStore } from "@/modules/signals/service";
+import { rebuildWorkspaceToday } from "@/modules/today/service";
 import type { InboundRequest, IntegrationAdapter } from "./adapter";
 import { adapterFor } from "./adapters";
 import { openCredentials } from "./credentials";
@@ -187,6 +188,9 @@ export async function processWebhookEvent(
       opened = (await evaluateAndStore(ctx, [...accountIds], asOf, clock)).opened;
       await enqueueAccountEvaluation(ctx, [...accountIds], `webhook-${event.eventType}`, clock);
       if (opened) {
+        // Today is a cache rebuilt every 10 minutes (D-78); a real-time signal must not wait for
+        // it (M5 §7 step 5: "within a minute"), so the owners' Today is rebuilt now.
+        await rebuildWorkspaceToday(ctx, clock);
         // Big signals reach the account owner in Slack right away (no-op without Slack; D-95).
         const fresh = await db.signal.findMany({
           where: { accountId: { in: [...accountIds] }, status: "OPEN", createdAt: { gte: since } },

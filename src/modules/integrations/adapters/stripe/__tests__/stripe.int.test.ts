@@ -5,6 +5,7 @@ import { afterAll, describe, expect, it, vi } from "vitest";
 import { scopedDb } from "@/lib/db/scoped";
 import { closeQueues } from "@/lib/jobs/queues";
 import { createTestAdmin } from "@/test/fixtures";
+import { rebuildWorkspaceToday } from "@/modules/today/service";
 import { sealCredentials } from "../../../credentials";
 import { createFixtureTransport, loadFixture } from "../../../fixture-transport";
 import { runSync } from "../../../sync.jobs";
@@ -103,6 +104,12 @@ describe("Stripe on the database (fixture transport)", () => {
 
   it("a signed invoice.payment_failed opens a Payment failed signal for the matched account in the same job", async () => {
     const S = await setup("StripeRealtime");
+    // The owner's Today was computed a moment ago (the 10-minute cache, D-78).
+    await S.db.account.update({
+      where: { id: S.sundial.id },
+      data: { ownerMembershipId: S.actor.membershipId },
+    });
+    await rebuildWorkspaceToday(S.actor, () => NOW);
     const raw = readFileSync(
       path.join(import.meta.dirname, "..", "__fixtures__", "webhook-invoice-payment-failed.json"),
       "utf8",
@@ -144,6 +151,9 @@ describe("Stripe on the database (fixture transport)", () => {
     });
     expect(signal).toMatchObject({ status: "OPEN", title: "Payment failed: invoice SUNDIAL-0011" });
     expect(JSON.stringify(signal.evidence)).toContain(invoice.id);
+    // ...and the owner's Today already lists it: real time does not wait for the cache.
+    const today = await S.db.todayItem.findMany({ where: { membershipId: S.actor.membershipId } });
+    expect(today.map((t) => t.title)).toContain("Payment failed: invoice SUNDIAL-0011");
 
     // A forged copy of the same event is refused and changes nothing.
     const forged = await receiveWebhook(
