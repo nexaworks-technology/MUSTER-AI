@@ -1,0 +1,157 @@
+import { z } from "zod";
+
+/**
+ * Normalized records (ARCHITECTURE §8.1). Adapters translate provider payloads into these; the one
+ * ingest service upserts them through ExternalRef, so domain modules never know the provider.
+ * Ingest Zod-parses every record again: an adapter mapping bug becomes a plain-words rejection
+ * for that record, never a bad row.
+ */
+const externalId = z.string().trim().min(1, "has no id").max(200);
+const optionalText = z
+  .string()
+  .trim()
+  .max(500)
+  .transform((v) => (v === "" ? undefined : v))
+  .optional()
+  .nullable()
+  .transform((v) => v ?? undefined);
+const email = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "has an email address that is not valid");
+const domain = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .transform((v) =>
+    v
+      .replace(/^https?:\/\//, "")
+      .replace(/^www\./, "")
+      .replace(/\/.*$/, ""),
+  )
+  .pipe(z.string().regex(/^[a-z0-9-]+(\.[a-z0-9-]+)+$/, "has a domain that is not valid"));
+const currency = z
+  .string()
+  .trim()
+  .length(3, "has a currency that is not a 3-letter code")
+  .transform((v) => v.toUpperCase());
+/** Minor units as an integer (providers send numbers or numeric strings). */
+const minor = z.union([z.number().int(), z.string().regex(/^-?\d+$/)]).transform((v) => BigInt(v));
+const date = z.coerce.date();
+
+export const normalizedOwner = z.object({
+  externalId,
+  email: email.optional(),
+  name: optionalText,
+});
+
+export const normalizedAccount = z.object({
+  externalId,
+  name: z.string().trim().min(1, "has no name").max(300),
+  domain: domain.optional(),
+  ownerExternalId: optionalText,
+  industry: optionalText,
+  employeeBand: optionalText,
+  plan: optionalText,
+  timezone: optionalText,
+  /** Archived/deleted at the provider: the mapping is kept, the account is not touched (D-84). */
+  archived: z.boolean().default(false),
+});
+
+/** A billing customer (Stripe/Chargebee) is matched to an existing account, never guessed. */
+export const normalizedBillingCustomer = z.object({
+  externalId,
+  name: optionalText,
+  email: email.optional(),
+  domain: domain.optional(),
+  deleted: z.boolean().default(false),
+});
+
+export const normalizedContact = z.object({
+  externalId,
+  accountExternalId: optionalText,
+  name: z.string().trim().min(1, "has no name").max(300),
+  email: email.optional(),
+  title: optionalText,
+  archived: z.boolean().default(false),
+});
+
+export const normalizedSubscription = z.object({
+  externalId,
+  customerExternalId: externalId,
+  plan: z.string().trim().min(1, "has no plan").max(200),
+  interval: z.enum(["MONTH", "YEAR"]),
+  amountMinor: minor,
+  currency,
+  quantity: z.number().int().min(0).default(1),
+  status: z.enum(["ACTIVE", "PAST_DUE", "CANCELLED", "ENDED"]),
+  currentPeriodEnd: date.optional(),
+});
+
+export const normalizedInvoice = z.object({
+  externalId,
+  customerExternalId: externalId,
+  subscriptionExternalId: optionalText,
+  number: z.string().trim().min(1, "has no invoice number").max(100),
+  amountMinor: minor,
+  currency,
+  issuedAt: date,
+  dueAt: date,
+  paidAt: date.optional(),
+  status: z.enum(["OPEN", "PAID", "FAILED", "VOID", "UNCOLLECTIBLE"]),
+  failureCount: z.number().int().min(0).default(0),
+  lastFailedAt: date.optional(),
+});
+
+export const normalizedContract = z.object({
+  externalId,
+  accountExternalId: externalId,
+  startDate: date,
+  endDate: date.optional(),
+  renewalDate: date.optional(),
+  /** Null/absent = value not on file (never treated as 0, Rule 4). */
+  valueMinor: minor.optional(),
+  currency,
+  status: z.enum(["ACTIVE", "ENDED", "CANCELLED"]).default("ACTIVE"),
+});
+
+export type NormalizedOwner = z.infer<typeof normalizedOwner>;
+export type NormalizedAccount = z.infer<typeof normalizedAccount>;
+export type NormalizedBillingCustomer = z.infer<typeof normalizedBillingCustomer>;
+export type NormalizedContact = z.infer<typeof normalizedContact>;
+export type NormalizedSubscription = z.infer<typeof normalizedSubscription>;
+export type NormalizedInvoice = z.infer<typeof normalizedInvoice>;
+export type NormalizedContract = z.infer<typeof normalizedContract>;
+
+export const NORMALIZED = {
+  owners: normalizedOwner,
+  accounts: normalizedAccount,
+  customers: normalizedBillingCustomer,
+  contacts: normalizedContact,
+  subscriptions: normalizedSubscription,
+  invoices: normalizedInvoice,
+  contracts: normalizedContract,
+} as const;
+
+export type NormalizedKind = keyof typeof NORMALIZED;
+
+/**
+ * One page from an adapter. `records` are the adapter's mapped objects, typed `unknown` on purpose:
+ * ingest validates each one against NORMALIZED[kind] and rejects bad ones by themselves.
+ */
+export interface NormalizedBatch {
+  kind: NormalizedKind;
+  records: unknown[];
+  /** Provider cursor after this page; persisted only when the whole run succeeds. */
+  cursor?: string;
+}
+
+/** A webhook turned into data plus, optionally, a reason to evaluate one account now (§5.2). */
+export interface NormalizedEvent {
+  externalEventId: string;
+  type: string;
+  batches: NormalizedBatch[];
+  /** Billing customer whose account should be re-evaluated in real time. */
+  realtimeCustomerExternalId?: string;
+}

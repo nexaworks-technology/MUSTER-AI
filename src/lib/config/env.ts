@@ -70,6 +70,22 @@ export const envSchema = z
 
     FIELD_ENCRYPTION_KEY: encryptionKey,
 
+    /**
+     * How connectors reach providers (M5, D-85). "live" = HTTPS to the provider. "fixture" =
+     * recorded payloads from the adapters' __fixtures__ folders, for tests, e2e and the demo only;
+     * refused in production. Any request with no recorded fixture fails loudly.
+     */
+    INTEGRATIONS_TRANSPORT: z.enum(["live", "fixture"]).default("live"),
+    HUBSPOT_CLIENT_ID: optionalString,
+    HUBSPOT_CLIENT_SECRET: optionalString,
+    SALESFORCE_CLIENT_ID: optionalString,
+    SALESFORCE_CLIENT_SECRET: optionalString,
+    SLACK_CLIENT_ID: optionalString,
+    SLACK_CLIENT_SECRET: optionalString,
+    SLACK_SIGNING_SECRET: optionalString,
+    /** Used only by the dev `pnpm demo:webhook` script; real integrations keep their own (D3). */
+    STRIPE_WEBHOOK_SECRET: optionalString,
+
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
   })
   .superRefine((env, ctx) => {
@@ -92,6 +108,13 @@ export const envSchema = z
         code: "custom",
         path: ["RESEND_API_KEY"],
         message: "EMAIL_TRANSPORT=resend needs RESEND_API_KEY and EMAIL_FROM",
+      });
+    }
+    if (env.NODE_ENV === "production" && env.INTEGRATIONS_TRANSPORT === "fixture") {
+      ctx.addIssue({
+        code: "custom",
+        path: ["INTEGRATIONS_TRANSPORT"],
+        message: "the fixture integrations transport is test-only and refused in production",
       });
     }
     if (env.NODE_ENV === "production" && env.EMAIL_TRANSPORT === "log") {
