@@ -17,6 +17,7 @@ import {
   type NormalizedOwner,
   type NormalizedSubscription,
 } from "./normalized";
+import { ingestUsage } from "./ingest-usage";
 import { mergeFields, readFieldSources, type FieldConflict, type FieldValue } from "./provenance";
 import { SOURCE_NAMES } from "./providers";
 
@@ -41,7 +42,8 @@ export interface IngestTarget {
 }
 
 export interface IngestProblem {
-  kind: "REJECTED" | "UNMATCHED";
+  /** SKIPPED: a record another source owns was left as it is (counted with conflicts). */
+  kind: "REJECTED" | "UNMATCHED" | "SKIPPED";
   objectType: string;
   externalId?: string;
   reason: string;
@@ -62,6 +64,8 @@ export interface IngestResult {
   problems: IngestProblem[];
   /** Accounts whose data changed (for re-evaluation and the sync.completed event). */
   accountIds: string[];
+  /** A usage batch whose ledger key was already applied: nothing was read or written. */
+  replayed?: boolean;
 }
 
 export const emptyCounts = (): IngestCounts => ({
@@ -89,6 +93,7 @@ const OBJECT: Record<NormalizedKind, string> = {
   subscriptions: "Subscription",
   invoices: "Invoice",
   contracts: "Contract",
+  usage: "Usage",
 };
 
 const FIELD_LABEL: Record<string, string> = {
@@ -114,6 +119,7 @@ class Run {
 
   problem(p: IngestProblem) {
     if (p.kind === "REJECTED") this.counts.rejected++;
+    else if (p.kind === "SKIPPED") this.counts.conflicts++;
     else this.counts.unmatched++;
     this.problems.push(p);
   }
@@ -164,7 +170,11 @@ function validate<S extends z.ZodType>(
       continue;
     }
     const id =
-      raw && typeof raw === "object" && "externalId" in raw ? String(raw.externalId) : undefined;
+      raw && typeof raw === "object" && "externalId" in raw
+        ? String(raw.externalId)
+        : raw && typeof raw === "object" && "accountExternalId" in raw
+          ? String(raw.accountExternalId)
+          : undefined;
     const issue = parsed.error.issues[0];
     const field = issue?.path.join(".");
     run.problem({
@@ -797,6 +807,7 @@ const HANDLERS: {
   subscriptions: ingestSubscriptions,
   invoices: ingestInvoices,
   contracts: ingestContracts,
+  usage: ingestUsage,
 };
 
 /** Upserts one normalized page. Idempotent; never throws for record problems. */
@@ -807,9 +818,43 @@ export async function ingestBatch(
   return scopedDb(target).$tenantTransaction(async (tx) => {
     await lockInTransaction(tx, `ingest:${target.workspaceId}:${target.integrationId}`);
     const run = new Run(target, tx);
+    // A usage batch already applied is skipped whole (M6 B1: replays change nothing).
+    if (batch.ledgerKey) {
+      const seen = await tx.usageIngestBatch.findUnique({
+        where: {
+          workspaceId_integrationId_batchKey: {
+            workspaceId: target.workspaceId,
+            integrationId: target.integrationId,
+            batchKey: batch.ledgerKey,
+          },
+        },
+        select: { id: true },
+      });
+      if (seen) {
+        run.counts.unchanged = batch.records.length;
+        return { counts: run.counts, problems: [], accountIds: [], replayed: true };
+      }
+    }
     const records = validate(run, batch.kind, NORMALIZED[batch.kind], batch.records);
     // Each handler takes the records its own schema produced.
     await (HANDLERS[batch.kind] as (run: Run, r: unknown[]) => Promise<void>)(run, records);
+    if (batch.ledgerKey)
+      await tx.usageIngestBatch.create({
+        data: {
+          workspaceId: target.workspaceId,
+          integrationId: target.integrationId,
+          batchKey: batch.ledgerKey,
+          events: batch.ledgerEvents ?? batch.records.length,
+          unmatched: run.problems
+            .filter((p) => p.kind === "UNMATCHED")
+            .slice(0, 20)
+            .map((p) => ({ groupId: p.externalId ?? null, reason: p.reason })),
+          skipped: run.problems
+            .filter((p) => p.kind === "SKIPPED")
+            .slice(0, 20)
+            .map((p) => p.reason),
+        },
+      });
     return { counts: run.counts, problems: run.problems, accountIds: [...run.accountIds] };
   });
 }

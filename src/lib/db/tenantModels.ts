@@ -53,6 +53,7 @@ export const TENANT_MODELS = [
   "Integration",
   "SyncJob",
   "WebhookEvent",
+  "UsageIngestBatch",
   "SlackUserLink",
   "OnboardingTemplate",
   "OnboardingPlan",

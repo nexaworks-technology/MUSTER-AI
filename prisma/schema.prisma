@@ -113,6 +113,7 @@ model Workspace {
   extractions         Extraction[]
   integrations        Integration[]
   syncJobs            SyncJob[]
+  usageIngestBatches  UsageIngestBatch[]
   webhookEvents       WebhookEvent[]
   slackUserLinks      SlackUserLink[]
   onboardingTemplates OnboardingTemplate[]
@@ -2042,19 +2043,50 @@ model Integration {
   disconnectedAt          DateTime?
   lastSyncAt              DateTime?
   lastErrorPlain          String?
+  /// USAGE_API only (M6 B1): SHA-256 of the ingest key. The key itself is shown once and never stored.
+  ingestKeyHash           String?             @unique
+  /// Last four characters of the key, the only part shown again.
+  ingestKeyLast4          String?
+  ingestKeyRotatedAt      DateTime?
   config                  Json                @default("{}")
   createdAt               DateTime            @default(now())
   updatedAt               DateTime            @updatedAt
 
-  workspace     Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  connectedBy   Membership?     @relation("IntegrationConnector", fields: [workspaceId, connectedByMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  workspace     Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  connectedBy   Membership?        @relation("IntegrationConnector", fields: [workspaceId, connectedByMembershipId], references: [workspaceId, id], onDelete: Restrict)
   syncJobs      SyncJob[]
   webhookEvents WebhookEvent[]
   externalRefs  ExternalRef[]
   slackLinks    SlackUserLink[]
+  usageBatches  UsageIngestBatch[]
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, provider])
+}
+
+/// [W] Ledger of usage batches the aggregation job has applied (M6 B1, D-23/Q-33). It holds a hash and
+/// counts, never an event: raw events live only in the queue job until they are folded into
+/// UsageDaily / UserUsageDaily / FeatureUsageDaily. Re-processing a batch finds its key here and
+/// changes nothing.
+model UsageIngestBatch {
+  id            String   @id @default(cuid())
+  workspaceId   String
+  integrationId String
+  /// SHA-256 over the batch's event keys (messageId, else the event's own content).
+  batchKey      String
+  events        Int
+  /// Events whose group matched no account in this workspace: {groupId, events}[] (capped).
+  unmatched     Json     @default("[]")
+  /// Day totals left as they were because another source owns them: plain-words reasons (capped).
+  skipped       Json     @default("[]")
+  appliedAt     DateTime @default(now())
+
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  integration Integration @relation(fields: [workspaceId, integrationId], references: [workspaceId, id], onDelete: Cascade)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, integrationId, batchKey])
+  @@index([workspaceId, integrationId, appliedAt])
 }
 
 /// [W] One sync run of one integration. `cursor` is the provider cursor reached by this run; an

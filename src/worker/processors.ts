@@ -13,6 +13,7 @@ import {
 } from "@/modules/agents/service";
 import { importJobPayload, runImportJob } from "@/modules/imports/service";
 import {
+  aggregateUsage,
   notifyApprovalRequested,
   processWebhookEvent,
   runSync,
@@ -59,6 +60,10 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
     /** M5: one integration sync (nightly flow child, "Run sync now", setup import). */
     async "sync.run"(job) {
       return runSync(job.data);
+    },
+    /** M6: one Usage API batch folded into the daily usage tables (D-23; events live only here). */
+    async "usage.aggregate"(job) {
+      return aggregateUsage(job.data);
     },
     /** M5: one verified webhook event: ingest, then real-time evaluation of its account. */
     async "webhook.process"(job) {

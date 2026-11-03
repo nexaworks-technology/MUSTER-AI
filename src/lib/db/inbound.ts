@@ -56,3 +56,21 @@ export async function findSlackIntegrationByTeam(
   ]);
   return rows.length === 1 ? rows[0]! : null;
 }
+
+/**
+ * The Usage API integration a hashed ingest key belongs to, or null. The caller hashes the key
+ * (SHA-256) first; the read-only policy admits the single row whose stored hash equals it.
+ */
+export async function findIntegrationByUsageKeyHash(
+  keyHash: string,
+): Promise<InboundIntegration | null> {
+  if (!/^[a-f0-9]{64}$/.test(keyHash)) return null;
+  const [, row] = await rawDb.$transaction([
+    rawDb.$executeRaw`SELECT set_config('app.usage_key_hash', ${keyHash}, true)`,
+    rawDb.integration.findFirst({
+      where: { provider: "USAGE_API", ingestKeyHash: keyHash, status: { not: "DISCONNECTED" } },
+      select,
+    }),
+  ]);
+  return row;
+}

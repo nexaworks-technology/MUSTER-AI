@@ -116,6 +116,47 @@ export const normalizedContract = z.object({
   status: z.enum(["ACTIVE", "ENDED", "CANCELLED"]).default("ACTIVE"),
 });
 
+const calendarDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "has a date that is not YYYY-MM-DD");
+const count = z.number().int().min(0).max(1_000_000_000);
+
+/**
+ * One account's product usage on one calendar day, with the people and features behind it
+ * (spec §6B, D-23: daily aggregates only). `SET` days arrive complete from an analytics tool
+ * (Mixpanel, Amplitude): replaying one changes nothing. `ADD` days are increments from the Usage
+ * API's aggregation job and are applied once per batch (UsageIngestBatch).
+ */
+export const normalizedUsageDay = z.object({
+  /** The customer's own id for the account (a group id); matched, never created. */
+  accountExternalId: externalId,
+  date: calendarDay,
+  mode: z.enum(["SET", "ADD"]).default("SET"),
+  events: count.default(0),
+  sessions: count.default(0),
+  /** Absent = the number of people listed (ADD: people seen that day so far). */
+  activeUsers: count.optional(),
+  users: z
+    .array(
+      z.object({
+        externalUserId: externalId,
+        email: email.optional(),
+        events: count,
+        sessions: count.default(0),
+      }),
+    )
+    .max(5000)
+    .default([]),
+  features: z
+    .array(
+      z.object({
+        featureKey: z.string().trim().min(1).max(100),
+        users: count,
+        events: count,
+      }),
+    )
+    .max(500)
+    .default([]),
+});
+
 export type NormalizedOwner = z.infer<typeof normalizedOwner>;
 export type NormalizedAccount = z.infer<typeof normalizedAccount>;
 export type NormalizedBillingCustomer = z.infer<typeof normalizedBillingCustomer>;
@@ -123,6 +164,7 @@ export type NormalizedContact = z.infer<typeof normalizedContact>;
 export type NormalizedSubscription = z.infer<typeof normalizedSubscription>;
 export type NormalizedInvoice = z.infer<typeof normalizedInvoice>;
 export type NormalizedContract = z.infer<typeof normalizedContract>;
+export type NormalizedUsageDay = z.infer<typeof normalizedUsageDay>;
 
 export const NORMALIZED = {
   owners: normalizedOwner,
@@ -132,6 +174,7 @@ export const NORMALIZED = {
   subscriptions: normalizedSubscription,
   invoices: normalizedInvoice,
   contracts: normalizedContract,
+  usage: normalizedUsageDay,
 } as const;
 
 export type NormalizedKind = keyof typeof NORMALIZED;
@@ -145,6 +188,13 @@ export interface NormalizedBatch {
   records: unknown[];
   /** Provider cursor after this page; persisted only when the whole run succeeds. */
   cursor?: string;
+  /**
+   * `usage` batches from the Usage API: the batch's key in UsageIngestBatch. A batch whose key is
+   * already there is skipped whole (a replay changes nothing).
+   */
+  ledgerKey?: string;
+  /** With `ledgerKey`: how many raw events the batch held (recorded as a count, never the events). */
+  ledgerEvents?: number;
 }
 
 /** A webhook turned into data plus, optionally, a reason to evaluate one account now (§5.2). */

@@ -248,6 +248,9 @@ export async function disconnect(actor: Actor, integrationId: string) {
       data: {
         status: "DISCONNECTED",
         credentialsEnc: null,
+        // The Usage API's ingest key goes with the connection: a disconnected one accepts nothing.
+        ingestKeyHash: null,
+        ingestKeyLast4: null,
         writeBackEnabled: false,
         writeBackFields: [],
         disconnectedAt: realClock(),

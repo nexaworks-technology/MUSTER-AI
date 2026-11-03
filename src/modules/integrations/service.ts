@@ -48,6 +48,22 @@ export {
   type WebhookResponse,
 } from "./webhooks.service";
 
+export {
+  aggregateUsage,
+  hashIngestKey,
+  INGEST_KEY_PREFIX,
+  issueUsageApiKey,
+  receiveUsage,
+  saveSegmentSecret,
+  USAGE_RATE_LIMIT,
+  verifySegmentSignature,
+  type AggregatePayload,
+  type AggregateResult,
+  type UsageDeps,
+  type UsageResponse,
+} from "./usage-api";
+export { handleUsageRequest } from "./usage-api/route-handler";
+
 /** URL segment → provider (`/api/integrations/hubspot/...`). */
 export const providerParam = z
   .enum(["hubspot", "salesforce", "stripe", "chargebee", "slack"])
