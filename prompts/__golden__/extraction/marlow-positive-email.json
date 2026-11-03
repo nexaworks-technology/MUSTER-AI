@@ -1,0 +1,38 @@
+{
+  "case": "marlow-positive-email",
+  "description": "Marlow & Finch's thank-you: praise, positive.",
+  "agent": "watcher",
+  "sourceType": "Message",
+  "sourceText": "Hi Leo, just a quick note to say the new close dashboard made this month-end much smoother for the whole finance team. Thank you!",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "INTENT",
+        "quote": "Thank you!",
+        "confidence": 0.85,
+        "payload": {
+          "intent": "praise"
+        }
+      }
+    ],
+    "sentiment": {
+      "label": "POSITIVE",
+      "quote": "made this month-end much smoother"
+    }
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": ["INTENT"],
+    "sentiment": "POSITIVE",
+    "dropped": 0
+  }
+}

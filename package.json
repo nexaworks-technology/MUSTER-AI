@@ -24,7 +24,9 @@
     "services:native": "sh scripts/services-native.sh",
     "dev:worker": "tsx watch --env-file=.env src/worker/index.ts",
     "db:seed": "tsx --env-file=.env prisma/seed.ts",
-    "jobs:nightly": "tsx --env-file=.env scripts/jobs-nightly.ts"
+    "jobs:nightly": "tsx --env-file=.env scripts/jobs-nightly.ts",
+    "eval": "tsx --env-file=.env scripts/eval.ts",
+    "agents:extract": "tsx --env-file=.env scripts/agents-extract.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.3.0",

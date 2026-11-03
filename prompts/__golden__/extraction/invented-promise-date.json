@@ -1,0 +1,40 @@
+{
+  "case": "invented-promise-date",
+  "description": "ADVERSARIAL: the model adds a due date the text never names; it is removed and flagged.",
+  "agent": "watcher",
+  "sourceType": "Message",
+  "sourceText": "Thanks for flagging. We will fix the export issue soon and let you know.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "PROMISE",
+        "quote": "We will fix the export issue soon",
+        "confidence": 0.85,
+        "payload": {
+          "what": "export fix",
+          "dueDate": "2026-12-01"
+        }
+      }
+    ],
+    "sentiment": {
+      "label": "NEUTRAL",
+      "quote": "Thanks for flagging."
+    }
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": ["PROMISE"],
+    "sentiment": "NEUTRAL",
+    "dropped": 0,
+    "flags": [["no_date"]]
+  }
+}

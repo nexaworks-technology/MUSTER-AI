@@ -109,6 +109,11 @@ export interface AccountBundle {
     date: CalendarDate;
     fromContactId: string | null;
     isBounce: boolean;
+    /**
+     * An AI label written only after its verbatim quote was verified against this message (M4,
+     * D-75): data, never a score. Absent when the message has no label.
+     */
+    sentimentLabel?: "NEGATIVE" | "NEUTRAL" | "POSITIVE" | "MIXED";
   }> | null;
   /** False when the workspace has no ticket data at all (Support then has no data). */
   workspaceHasTickets: boolean;

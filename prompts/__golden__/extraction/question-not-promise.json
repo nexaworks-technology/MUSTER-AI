@@ -1,0 +1,38 @@
+{
+  "case": "question-not-promise",
+  "description": "ADVERSARIAL: a transcript line whose 'promise' is actually a question. Correct output: an INTENT, no PROMISE.",
+  "agent": "watcher",
+  "sourceType": "Message",
+  "sourceText": "Could you fix the CSV export before Friday's close?",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "INTENT",
+        "quote": "Could you fix the CSV export before Friday's close?",
+        "confidence": 0.85,
+        "payload": {
+          "intent": "request"
+        }
+      }
+    ],
+    "sentiment": {
+      "label": "NEUTRAL",
+      "quote": "Could you fix the CSV export"
+    }
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": ["INTENT"],
+    "sentiment": "NEUTRAL",
+    "dropped": 0
+  }
+}

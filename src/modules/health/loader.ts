@@ -124,6 +124,7 @@ export async function loadBundles(
         sentAt: true,
         fromContactId: true,
         fromAddress: true,
+        sentimentLabel: true,
         conversation: { select: { channel: true } },
       },
     }),
@@ -294,6 +295,8 @@ export async function loadBundles(
             date: local(m.sentAt),
             fromContactId: m.fromContactId,
             isBounce: !m.fromContactId && BOUNCE.test(m.fromAddress ?? ""),
+            // Only when present, so unlabelled messages hash exactly as before (inputsHash).
+            ...(m.sentimentLabel ? { sentimentLabel: m.sentimentLabel } : {}),
           }))
         : null,
       workspaceHasTickets: anyTicket !== null,

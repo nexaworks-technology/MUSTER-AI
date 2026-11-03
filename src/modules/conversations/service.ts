@@ -148,3 +148,13 @@ export async function conversationTimeline(
     })),
   ];
 }
+
+export {
+  validateExtraction,
+  extractionModelOutput,
+  ITEM_KINDS,
+  INTENTS,
+  type ValidatedExtraction,
+  type KeptItem,
+  type Dropped,
+} from "./extraction";

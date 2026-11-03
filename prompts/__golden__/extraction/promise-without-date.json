@@ -1,0 +1,40 @@
+{
+  "case": "promise-without-date",
+  "description": "A promise with no date: stored with dueDate null and a no_date flag.",
+  "agent": "watcher",
+  "sourceType": "Message",
+  "sourceText": "Thanks for flagging. We will fix the export issue soon and let you know.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "PROMISE",
+        "quote": "We will fix the export issue soon",
+        "confidence": 0.85,
+        "payload": {
+          "what": "export fix",
+          "dueDate": null
+        }
+      }
+    ],
+    "sentiment": {
+      "label": "NEUTRAL",
+      "quote": "Thanks for flagging."
+    }
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": ["PROMISE"],
+    "sentiment": "NEUTRAL",
+    "dropped": 0,
+    "flags": [["no_date"]]
+  }
+}

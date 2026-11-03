@@ -1,0 +1,36 @@
+{
+  "case": "question-mislabelled-as-promise",
+  "description": "ADVERSARIAL: the model labels that question as a PROMISE; the validator drops it.",
+  "agent": "watcher",
+  "sourceType": "Message",
+  "sourceText": "Could you fix the CSV export before Friday's close?",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "PROMISE",
+        "quote": "Could you fix the CSV export before Friday's close?",
+        "confidence": 0.85,
+        "payload": {
+          "what": "CSV export fix",
+          "dueDate": null
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [],
+    "sentiment": null,
+    "dropped": 1
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "case": "halden-angry-email",
+  "description": "Halden's angry email: a repeated complaint, negative.",
+  "agent": "watcher",
+  "sourceType": "Message",
+  "sourceText": "Hi Leo,\n\nThis is the third time the export has failed during month-end. We are losing patience.\n\nElena",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "COMPLAINT",
+        "quote": "This is the third time the export has failed during month-end",
+        "confidence": 0.85,
+        "payload": {
+          "theme": "CSV export failures"
+        }
+      }
+    ],
+    "sentiment": {
+      "label": "NEGATIVE",
+      "quote": "We are losing patience."
+    }
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": ["COMPLAINT"],
+    "sentiment": "NEGATIVE",
+    "dropped": 0
+  }
+}

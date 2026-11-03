@@ -1,0 +1,38 @@
+{
+  "case": "halden-ticket-complaint",
+  "description": "Halden's ticket: an export failure, negative.",
+  "agent": "watcher",
+  "sourceType": "Message",
+  "sourceText": "The CSV export of the stock report fails with a timeout when we run it at month-end.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "COMPLAINT",
+        "quote": "fails with a timeout when we run it at month-end",
+        "confidence": 0.85,
+        "payload": {
+          "theme": "CSV export failures"
+        }
+      }
+    ],
+    "sentiment": {
+      "label": "NEGATIVE",
+      "quote": "fails with a timeout"
+    }
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": ["COMPLAINT"],
+    "sentiment": "NEGATIVE",
+    "dropped": 0
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "case": "quillmark-cancel-export",
+  "description": "Quillmark's ticket: cancel and export language (sensitive; M9 rules use these).",
+  "agent": "watcher",
+  "sourceType": "Message",
+  "sourceText": "How do I export all our data before we cancel at the end of the term?",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "CANCEL_LANGUAGE",
+        "quote": "before we cancel at the end of the term",
+        "confidence": 0.85,
+        "payload": {}
+      },
+      {
+        "kind": "EXPORT_LANGUAGE",
+        "quote": "How do I export all our data",
+        "confidence": 0.85,
+        "payload": {}
+      },
+      {
+        "kind": "INTENT",
+        "quote": "How do I export all our data before we cancel",
+        "confidence": 0.85,
+        "payload": {
+          "intent": "cancellation"
+        }
+      }
+    ],
+    "sentiment": {
+      "label": "NEGATIVE",
+      "quote": "before we cancel"
+    }
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": ["CANCEL_LANGUAGE", "EXPORT_LANGUAGE", "INTENT"],
+    "sentiment": "NEGATIVE",
+    "dropped": 0
+  }
+}

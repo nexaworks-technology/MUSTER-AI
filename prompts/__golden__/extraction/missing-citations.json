@@ -1,0 +1,18 @@
+{
+  "case": "missing-citations",
+  "description": "Schema: an answer that cites nothing is invalid output.",
+  "agent": "watcher",
+  "sourceType": "Message",
+  "sourceText": "The CSV export of the stock report fails with a timeout when we run it at month-end.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [],
+    "proposedActions": [],
+    "items": [],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "INVALID_OUTPUT"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "case": "promise-with-date",
+  "description": "A CSM note with a dated promise: the date is kept.",
+  "agent": "watcher",
+  "sourceType": "Message",
+  "sourceText": "Spoke to Raj. I'll send the SSO setup guide by 2026-11-10 so IT can finish onboarding.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "PROMISE",
+        "quote": "I'll send the SSO setup guide by 2026-11-10",
+        "confidence": 0.85,
+        "payload": {
+          "what": "SSO setup guide",
+          "dueDate": "2026-11-10",
+          "owner": "CSM"
+        }
+      }
+    ],
+    "sentiment": {
+      "label": "NEUTRAL",
+      "quote": "Spoke to Raj."
+    }
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": ["PROMISE"],
+    "sentiment": "NEUTRAL",
+    "dropped": 0,
+    "flags": [[]]
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "case": "competitor-and-budget",
+  "description": "A competitor and a budget concern in one note.",
+  "agent": "watcher",
+  "sourceType": "Message",
+  "sourceText": "Finance told me our budget for next year has been cut by a third, and they are evaluating Tallyfield as an alternative.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "BUDGET_CONCERN",
+        "quote": "our budget for next year has been cut by a third",
+        "confidence": 0.85,
+        "payload": {
+          "summary": "Budget cut by a third"
+        }
+      },
+      {
+        "kind": "COMPETITOR",
+        "quote": "evaluating Tallyfield as an alternative",
+        "confidence": 0.85,
+        "payload": {
+          "competitorName": "Tallyfield"
+        }
+      }
+    ],
+    "sentiment": {
+      "label": "NEGATIVE",
+      "quote": "budget for next year has been cut"
+    }
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": ["BUDGET_CONCERN", "COMPETITOR"],
+    "sentiment": "NEGATIVE",
+    "dropped": 0
+  }
+}

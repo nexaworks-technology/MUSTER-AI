@@ -60,3 +60,11 @@ export {
   type HealthAnalystOutput,
 } from "./definitions/health-analyst";
 export { healthNarrative, type Narrative } from "./narrative";
+export { judge, loadGolden, GOLDEN_DIR, type GoldenCase, type Verdict } from "./golden";
+export {
+  watcher,
+  watcherOutput,
+  watcherInput,
+  WATCHER_PROMPT,
+  backfillExtractions,
+} from "./definitions/watcher";

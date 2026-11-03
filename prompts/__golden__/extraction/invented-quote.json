@@ -1,0 +1,38 @@
+{
+  "case": "invented-quote",
+  "description": "ADVERSARIAL: a quote that is not in the text is dropped, never repaired.",
+  "agent": "watcher",
+  "sourceType": "Message",
+  "sourceText": "The CSV export of the stock report fails with a timeout when we run it at month-end.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "COMPLAINT",
+        "quote": "your product is unusable",
+        "confidence": 0.85,
+        "payload": {
+          "theme": "quality"
+        }
+      }
+    ],
+    "sentiment": {
+      "label": "NEGATIVE",
+      "quote": "we want a refund"
+    }
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [],
+    "sentiment": null,
+    "dropped": 2
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "case": "neutral-nothing",
+  "description": "A routine ticket with nothing to label: no items, neutral.",
+  "agent": "watcher",
+  "sourceType": "Message",
+  "sourceText": "Please reset the password for the warehouse kiosk account.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [],
+    "sentiment": {
+      "label": "NEUTRAL",
+      "quote": "Please reset the password"
+    }
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [],
+    "sentiment": "NEUTRAL",
+    "dropped": 0
+  }
+}
