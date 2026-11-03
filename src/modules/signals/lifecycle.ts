@@ -85,7 +85,7 @@ export async function evaluateAndStore(
         seen.add(c.dedupeKey);
         const prev = latest.get(c.dedupeKey);
         if (prev && LIVE.has(prev.status)) {
-          if (await updateLive(db, prev, c, day)) result.updated++;
+          if (await updateLive(db, prev, c, day, now)) result.updated++;
           continue;
         }
         if (
@@ -156,6 +156,7 @@ async function updateLive(
   prev: Signal,
   c: SignalCandidate,
   day: Date,
+  now: Date,
 ) {
   const same =
     prev.severity === c.severity &&
@@ -185,14 +186,7 @@ async function updateLive(
       });
       await tx.outcomeRecord.upsert({
         where: { workspaceId_signalId: { workspaceId: prev.workspaceId, signalId: prev.id } },
-        create: outcome(
-          prev.workspaceId,
-          prev.accountId,
-          prev.id,
-          prev.polarity,
-          new Date(),
-          account,
-        ),
+        create: outcome(prev.workspaceId, prev.accountId, prev.id, prev.polarity, now, account),
         update: {},
       });
     }

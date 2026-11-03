@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { scopedDb, type ScopedDb } from "@/lib/db/scoped";
 import type { TimelineItem } from "@/modules/accounts/schemas";
 import { AccountNotFoundError, getAccount, type Actor } from "@/modules/accounts/service";
+import { utcMidnight, type CalendarDate } from "@/lib/dates";
 import { usageChangePoints } from "./change-points";
 
 /**
@@ -22,6 +23,8 @@ export interface UsageView {
   metric: "distinct-users" | "peak-daily";
   weekly: WeeklyPoint[];
   lastActiveDate: Date | null;
+  /** The window people, seats and features are counted over; null = the last 28 days to now. */
+  period: { from: CalendarDate; to: CalendarDate } | null;
   activeUsers28d: number | null;
   seatsPurchased: number | null;
   features: Array<{
@@ -44,13 +47,19 @@ export async function getUsage(
   actor: Actor,
   accountId: string,
   asOf = new Date(),
+  window?: { from: CalendarDate; to: CalendarDate },
 ): Promise<UsageView> {
   const account = await getAccount(actor, accountId);
   if (!account) throw new AccountNotFoundError();
   const db = scopedDb(actor);
   const workspaceId = actor.workspaceId;
   const since91 = new Date(asOf.getTime() - 91 * DAY);
-  const since28 = new Date(asOf.getTime() - 28 * DAY);
+  // People, seats and features: a health reason's own window when it links here, both ends
+  // included (lower bound exclusive by one day), else the last 28 days up to now.
+  const periodAfter = window
+    ? new Date(utcMidnight(window.from).getTime() - DAY)
+    : new Date(asOf.getTime() - 28 * DAY);
+  const until = window ? utcMidnight(window.to) : asOf;
 
   const [userWeeks, dailyWeeks, lastActive, active28, features, catalog, topUsers, contract] =
     await Promise.all([
@@ -71,10 +80,10 @@ export async function getUsage(
       }),
       db.$queryRaw<Array<{ n: bigint }>>(Prisma.sql`
       SELECT count(DISTINCT "externalUserId") AS n FROM "UserUsageDaily"
-      WHERE "workspaceId" = ${workspaceId} AND "accountId" = ${accountId} AND "date" > ${since28} AND "date" <= ${asOf}`),
+      WHERE "workspaceId" = ${workspaceId} AND "accountId" = ${accountId} AND "date" > ${periodAfter} AND "date" <= ${until}`),
       db.featureUsageDaily.groupBy({
         by: ["featureKey"],
-        where: { accountId, date: { gt: since28, lte: asOf }, users: { gt: 0 } },
+        where: { accountId, date: { gt: periodAfter, lte: until }, users: { gt: 0 } },
         _count: { _all: true },
         _max: { date: true },
       }),
@@ -85,10 +94,10 @@ export async function getUsage(
       SELECT u."externalUserId", c."name" AS "contactName", sum(u."events") AS events, count(*) AS days
       FROM "UserUsageDaily" u
       LEFT JOIN "Contact" c ON c."workspaceId" = u."workspaceId" AND c."id" = u."contactId"
-      WHERE u."workspaceId" = ${workspaceId} AND u."accountId" = ${accountId} AND u."date" > ${since28} AND u."date" <= ${asOf}
+      WHERE u."workspaceId" = ${workspaceId} AND u."accountId" = ${accountId} AND u."date" > ${periodAfter} AND u."date" <= ${until}
       GROUP BY 1, 2 ORDER BY events DESC, 1 ASC LIMIT 10`),
       db.contract.findFirst({
-        where: { accountId, status: "ACTIVE", startDate: { lte: asOf } },
+        where: { accountId, status: "ACTIVE", startDate: { lte: until } },
         orderBy: { startDate: "desc" },
         select: { seatsPurchased: true },
       }),
@@ -106,6 +115,7 @@ export async function getUsage(
     metric: useUsers ? "distinct-users" : "peak-daily",
     weekly,
     lastActiveDate: lastActive?.date ?? null,
+    period: window ?? null,
     activeUsers28d: useUsers ? Number(active28[0]?.n ?? 0) : null,
     seatsPurchased: contract?.seatsPurchased ?? null,
     features: catalog

@@ -83,7 +83,7 @@ describe("CSM Pulse writes", () => {
   });
 
   it("stores who and when, expires in 30 days, audits, and re-scores at once", async () => {
-    const before = (await getAccountHealth(owner, accountId))!.snapshot!;
+    const before = (await getAccountHealth(owner, accountId, clock))!.snapshot!;
     expect(before.riskLevel).toBe("HEALTHY");
     await setPulse(owner, accountId, { value: "WORRIED", comment: "New VP is skeptical" }, clock);
     const db = scopedDb(admin);
@@ -98,7 +98,7 @@ describe("CSM Pulse writes", () => {
       await db.auditLog.count({ where: { action: "health.pulse_set", targetId: accountId } }),
     ).toBe(1);
 
-    const after = (await getAccountHealth(owner, accountId))!;
+    const after = (await getAccountHealth(owner, accountId, clock))!;
     expect(after.snapshot!.pulseDisagreement).toBe(true);
     expect(after.pulse).toMatchObject({ value: "WORRIED", author: "Owner", valid: true });
     // The Pulse is one input: the score moves only by its 30% share of Relationship.

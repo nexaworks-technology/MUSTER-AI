@@ -24,7 +24,11 @@ export default async function UsagePage({
   const window = from && to && DAY.test(from) && DAY.test(to) && from <= to ? { from, to } : null;
   // Usage dates are calendar days (UTC), so they are shown without a time-zone shift.
   const { ctx, account } = await loadAccount(id);
-  const usage = await getUsage(ctx, account.id);
+  const usage = await getUsage(ctx, account.id, new Date(), window ?? undefined);
+  // Counts below follow the reason's window when there is one, so the proof shows its number.
+  const span = usage.period
+    ? `from ${formatCalendarDate(new Date(`${usage.period.from}T00:00:00Z`))} to ${formatCalendarDate(new Date(`${usage.period.to}T00:00:00Z`))}`
+    : "in the last 28 days";
 
   if (!usage.hasData) {
     return (
@@ -115,7 +119,7 @@ export default async function UsagePage({
         </h2>
         <p data-testid="seats">
           {usage.activeUsers28d !== null
-            ? `${usage.activeUsers28d} people active in the last 28 days`
+            ? `${usage.activeUsers28d} people active ${span}`
             : "No person-level usage recorded"}
           {" · "}
           {usage.seatsPurchased !== null
@@ -131,12 +135,12 @@ export default async function UsagePage({
 
       <section aria-labelledby="features" className="space-y-2">
         <h2 id="features" className="text-base font-semibold">
-          Features in their plan (last 28 days)
+          Features in their plan ({usage.period ? span : "last 28 days"})
         </h2>
         {keyUnused.length > 0 ? (
           <p className="text-sm">
             {keyUnused.length} key feature{keyUnused.length > 1 ? "s" : ""} in their plan{" "}
-            {keyUnused.length > 1 ? "have" : "has"} not been used in 28 days:{" "}
+            {keyUnused.length > 1 ? "have" : "has"} not been used {span}:{" "}
             {keyUnused.map((f) => f.label).join(", ")}.
           </p>
         ) : null}
@@ -163,12 +167,10 @@ export default async function UsagePage({
 
       <section aria-labelledby="top-users" className="space-y-2">
         <h2 id="top-users" className="text-base font-semibold">
-          Most active people (last 28 days)
+          Most active people ({usage.period ? span : "last 28 days"})
         </h2>
         {usage.topUsers.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            No person-level activity in the last 28 days.
-          </p>
+          <p className="text-muted-foreground text-sm">No person-level activity {span}.</p>
         ) : (
           <ol className="divide-border border-border divide-y rounded-md border text-sm">
             {usage.topUsers.map((u) => (

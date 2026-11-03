@@ -8,11 +8,47 @@ import { AccountNotFoundError, getAccount, type Actor } from "@/modules/accounts
  */
 export const CONVERSATION_PAGE = 20;
 
+const LISTED_CHANNELS = ["EMAIL", "CHAT", "CALL", "MEETING"] as const;
+
+/**
+ * Where one message sits on the Conversations tab: the page offset and its thread. A health
+ * reason links to a single message, so the link must open the page that holds it. Null when the
+ * message is not this account's (or this workspace's) or is not on this tab (tickets).
+ */
+export async function conversationPageFor(
+  actor: Actor,
+  accountId: string,
+  messageId: string,
+): Promise<{ offset: number; conversationId: string } | null> {
+  const db = scopedDb(actor);
+  const message = await db.message.findFirst({
+    where: { id: messageId, accountId },
+    select: { conversation: { select: { id: true, channel: true, lastMessageAt: true } } },
+  });
+  const c = message?.conversation;
+  if (!c || !(LISTED_CHANNELS as readonly string[]).includes(c.channel)) return null;
+  // Same order as listConversations: lastMessageAt desc, then id asc.
+  const before = await db.conversation.count({
+    where: {
+      accountId,
+      channel: { in: [...LISTED_CHANNELS] },
+      OR: [
+        { lastMessageAt: { gt: c.lastMessageAt } },
+        { lastMessageAt: c.lastMessageAt, id: { lt: c.id } },
+      ],
+    },
+  });
+  return {
+    offset: Math.floor(before / CONVERSATION_PAGE) * CONVERSATION_PAGE,
+    conversationId: c.id,
+  };
+}
+
 export async function listConversations(actor: Actor, accountId: string, cursor = 0) {
   const account = await getAccount(actor, accountId);
   if (!account) throw new AccountNotFoundError();
   const rows = await scopedDb(actor).conversation.findMany({
-    where: { accountId, channel: { in: ["EMAIL", "CHAT", "CALL", "MEETING"] } },
+    where: { accountId, channel: { in: [...LISTED_CHANNELS] } },
     orderBy: [{ lastMessageAt: "desc" }, { id: "asc" }],
     skip: cursor,
     take: CONVERSATION_PAGE + 1,

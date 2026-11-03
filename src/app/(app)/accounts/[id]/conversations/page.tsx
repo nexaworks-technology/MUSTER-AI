@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { formatDateTime } from "@/lib/format";
-import { listConversations } from "@/modules/conversations/service";
+import { conversationPageFor, listConversations } from "@/modules/conversations/service";
 import { loadAccount } from "../data";
 
 export const metadata: Metadata = { title: "Conversations" };
@@ -11,12 +11,17 @@ export default async function ConversationsPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ cursor?: string }>;
+  searchParams: Promise<{ cursor?: string; message?: string }>;
 }) {
   const { id } = await params;
-  const { cursor } = await searchParams;
-  const offset = /^\d{1,5}$/.test(cursor ?? "") ? Number(cursor) : 0;
+  const { cursor, message } = await searchParams;
   const { ctx, account } = await loadAccount(id);
+  // A health reason links to one message: open the page and the thread that hold it.
+  const target =
+    typeof message === "string" && /^[A-Za-z0-9_-]{1,64}$/.test(message) && cursor === undefined
+      ? await conversationPageFor(ctx, account.id, message)
+      : null;
+  const offset = target ? target.offset : /^\d{1,5}$/.test(cursor ?? "") ? Number(cursor) : 0;
   const tz = ctx.workspace.timezone;
   const { conversations, nextCursor } = await listConversations(ctx, account.id, offset);
   if (conversations.length === 0 && offset === 0) {
@@ -29,7 +34,7 @@ export default async function ConversationsPage({
       <ul className="divide-border border-border divide-y rounded-md border text-sm">
         {conversations.map((c) => (
           <li key={c.id} className="p-3" data-testid="conversation">
-            <details>
+            <details open={c.id === target?.conversationId}>
               <summary className="cursor-pointer">
                 <span className="text-muted-foreground text-xs uppercase">
                   {c.channel === "CALL" ? "Call" : "Email"}

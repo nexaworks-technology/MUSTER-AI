@@ -190,6 +190,9 @@ describe("nightly pipeline through the real queue", () => {
           name: "signals.evaluateChunk",
         } as Job);
         await processors.health["health.scoreChunk"]!({ data, name: "health.scoreChunk" } as Job);
+        // Prisma emits query events asynchronously after each query resolves: let this run's
+        // last parallel reads arrive inside its own count, not in the next run's.
+        await new Promise((r) => setTimeout(r, 50));
       });
     // The background workers are paused (waiting for any active job) so they cannot add queries.
     await Promise.all(workers.map((w) => w.pause()));

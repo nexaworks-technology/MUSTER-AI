@@ -83,6 +83,31 @@ test.describe("M3 health and signals", () => {
     await expect(drop.getByText("How early it appears")).toBeVisible();
   });
 
+  test("every proof link on Brightwell's Health and Signals tabs lands on the record it names", async ({
+    page,
+  }) => {
+    await signIn(page, "leo@larkspur.test");
+    const hrefs = new Set<string>();
+    for (const [tab, list] of [
+      ["health", "Sources"],
+      ["signals", "Evidence"],
+    ] as const) {
+      await page.goto(`${account("brightwell")}/${tab}`);
+      // CSS, not getByRole: reasons sit in closed <details>, which role queries skip.
+      for (const a of await page.locator(`[aria-label="${list}"] a`).all()) {
+        const href = await a.getAttribute("href");
+        if (href?.startsWith("/")) hrefs.add(href);
+      }
+    }
+    expect(hrefs.size).toBeGreaterThan(10);
+    for (const href of hrefs) {
+      const [path, hash] = href.split("#");
+      const res = await page.request.get(path!);
+      expect(res.status(), href).toBe(200);
+      if (hash) expect(await res.text(), href).toContain(`id="${hash}"`);
+    }
+  });
+
   test("Priya sees Sundial's failed payment with the invoice linked", async ({ page }) => {
     await signIn(page, "admin@larkspur.test");
     await page.goto(`${account("sundial")}/signals`);

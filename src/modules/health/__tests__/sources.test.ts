@@ -32,7 +32,9 @@ describe("health reason sources", () => {
       ["i1", "INV-1"],
       ["t1", "Export fails"],
     ]),
-    existing: new Set(["u1", "r1", "c1", "i1", "t1", "k1", "e1", "m1", "p1"]),
+    // m2 is a reply on a ticket: ticket threads live on the Tickets tab, not Conversations.
+    messageTicket: new Map([["m2", { ticketId: "t1", subject: "Export fails" }]]),
+    existing: new Set(["u1", "r1", "c1", "i1", "t1", "k1", "e1", "m1", "m2", "p1"]),
   };
 
   it.each([
@@ -75,7 +77,7 @@ describe("health reason sources", () => {
     [
       { sourceType: "RevenueEvent", accountId: a, from: "2025-11-03", to: "2026-11-02" },
       "ARR changes, Nov 3, 2025 – Nov 2, 2026",
-      "/accounts/acc1/billing#arr-movements",
+      "/accounts/acc1/billing#revenue",
     ],
     [
       { sourceType: "Ticket", sourceId: "t1" },
@@ -90,7 +92,12 @@ describe("health reason sources", () => {
     [
       { sourceType: "Message", sourceId: "m1" },
       "Message",
-      "/accounts/acc1/conversations#message-m1",
+      "/accounts/acc1/conversations?message=m1#message-m1",
+    ],
+    [
+      { sourceType: "Message", sourceId: "m2" },
+      "Ticket message: Export fails",
+      "/accounts/acc1/tickets#ticket-t1",
     ],
     [
       { sourceType: "Message", accountId: a, from: "2026-07-22", to: "2026-10-19" },

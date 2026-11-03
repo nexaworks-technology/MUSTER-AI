@@ -26,6 +26,8 @@ export interface SourceLookups {
   roleContact: Map<string, { contactId: string; role: string; name: string }>;
   /** id → display name (contact name, invoice number, ticket subject). */
   names: Map<string, string>;
+  /** Messages that are ticket replies: they are shown on the Tickets tab, under their ticket. */
+  messageTicket: Map<string, { ticketId: string; subject: string }>;
   existing: Set<string>;
 }
 
@@ -58,7 +60,7 @@ export function describeSource(
       UserUsageDaily: [`People's usage, ${win}`, `${base}/usage${range}#top-users`],
       FeatureUsageDaily: [`Feature usage, ${win}`, `${base}/usage${range}#features`],
       Invoice: [`Invoices, ${win}`, `${base}/billing#invoices`],
-      RevenueEvent: [`ARR changes, ${win}`, `${base}/billing#arr-movements`],
+      RevenueEvent: [`ARR changes, ${win}`, `${base}/billing#revenue`],
       Ticket: [`Tickets, ${win}`, `${base}/tickets`],
       Message: [`Emails, ${win}`, `${base}/conversations`],
     };
@@ -98,8 +100,20 @@ export function describeSource(
         href: `${base}/tickets#ticket-${id}`,
         missing: false,
       };
-    case "Message":
-      return { label: "Message", href: `${base}/conversations#message-${id}`, missing: false };
+    case "Message": {
+      const t = look.messageTicket.get(id);
+      return t
+        ? {
+            label: `Ticket message: ${t.subject}`,
+            href: `${base}/tickets#ticket-${t.ticketId}`,
+            missing: false,
+          }
+        : {
+            label: "Message",
+            href: `${base}/conversations?message=${id}#message-${id}`,
+            missing: false,
+          };
+    }
     case "Contact":
       return {
         label: `Contact: ${look.names.get(id) ?? id}`,
@@ -153,7 +167,18 @@ export async function sourceLookups(db: ScopedDb, refs: SourceRef[]): Promise<So
         where: { id: { in: ids("RevenueEvent") } },
         select: { id: true },
       }),
-      db.message.findMany({ where: { id: { in: ids("Message") } }, select: { id: true } }),
+      db.message.findMany({
+        where: { id: { in: ids("Message") } },
+        select: {
+          id: true,
+          conversation: {
+            select: {
+              channel: true,
+              tickets: { select: { id: true, subject: true }, orderBy: { id: "asc" }, take: 1 },
+            },
+          },
+        },
+      }),
       db.csmPulse.findMany({ where: { id: { in: ids("CsmPulse") } }, select: { id: true } }),
     ]);
   const existing = new Set<string>(
@@ -171,6 +196,12 @@ export async function sourceLookups(db: ScopedDb, refs: SourceRef[]): Promise<So
       ...invoices.map((i) => [i.id, i.number] as const),
       ...tickets.map((t) => [t.id, t.subject] as const),
     ]),
+    messageTicket: new Map(
+      messages.flatMap((m) => {
+        const t = m.conversation.channel === "TICKET" ? m.conversation.tickets[0] : undefined;
+        return t ? [[m.id, { ticketId: t.id, subject: t.subject }] as const] : [];
+      }),
+    ),
     existing,
   };
 }

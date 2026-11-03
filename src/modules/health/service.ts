@@ -261,14 +261,14 @@ export interface PulseView {
   valid: boolean;
 }
 
-async function latestPulses(db: ReturnType<typeof scopedDb>, accountIds: string[]) {
+/** Latest Pulse per account; `valid` is judged at `now` (the clock is injectable, M3 rule 7). */
+async function latestPulses(db: ReturnType<typeof scopedDb>, accountIds: string[], now: Date) {
   const rows = await db.csmPulse.findMany({
     where: { accountId: { in: accountIds } },
     orderBy: [{ createdAt: "desc" }, { id: "asc" }],
     distinct: ["accountId"],
     include: { membership: { select: { user: { select: { name: true, email: true } } } } },
   });
-  const now = new Date();
   return new Map(
     rows.map((p): [string, PulseView] => [
       p.accountId,
@@ -286,7 +286,11 @@ async function latestPulses(db: ReturnType<typeof scopedDb>, accountIds: string[
 }
 
 /** Account 360 Health tab: the latest live snapshot under the active model, with resolved proof. */
-export async function getAccountHealth(actor: Actor, accountId: string) {
+export async function getAccountHealth(
+  actor: Actor,
+  accountId: string,
+  clock: Clock = systemClock,
+) {
   const account = await getAccount(actor, accountId);
   if (!account) return null;
   const db = scopedDb(actor);
@@ -304,7 +308,7 @@ export async function getAccountHealth(actor: Actor, accountId: string) {
       take: 120,
       select: { asOf: true, overall: true, riskLevel: true },
     }),
-    latestPulses(db, [accountId]),
+    latestPulses(db, [accountId], clock()),
   ]);
   const refs = (snapshot?.reasons ?? []).flatMap((r) => r.sources as unknown as SourceRef[]);
   const look = await sourceLookups(db, refs);
@@ -357,7 +361,11 @@ export async function getAccountHealth(actor: Actor, accountId: string) {
 export type AccountHealth = NonNullable<Awaited<ReturnType<typeof getAccountHealth>>>;
 
 /** Health + Pulse for a page of accounts the caller already loaded through the book scope. */
-export async function healthForAccounts(ctx: TenantContext, accountIds: string[]) {
+export async function healthForAccounts(
+  ctx: TenantContext,
+  accountIds: string[],
+  clock: Clock = systemClock,
+) {
   const db = scopedDb(ctx);
   const [accounts, pulses] = await Promise.all([
     db.account.findMany({
@@ -369,7 +377,7 @@ export async function healthForAccounts(ctx: TenantContext, accountIds: string[]
         },
       },
     }),
-    latestPulses(db, accountIds),
+    latestPulses(db, accountIds, clock()),
   ]);
   return new Map(
     accounts.map((a) => [
@@ -485,7 +493,7 @@ export interface Mover {
  * revenue access, M3 rule 11), what moved since yesterday and in the last 7 days (band changed or
  * ≥ 10 points) with the reason that moved most, and where score and CSM disagree.
  */
-export async function healthOverview(actor: Actor) {
+export async function healthOverview(actor: Actor, clock: Clock = systemClock) {
   const grant = requirePermission(actor, "accounts:view");
   const db = scopedDb(actor);
   const model = await getActiveModel(actor);
@@ -599,6 +607,7 @@ export async function healthOverview(actor: Actor) {
   const pulses = await latestPulses(
     db,
     current.filter((a) => a.currentHealth!.pulseDisagreement).map((a) => a.id),
+    clock(),
   );
   const disagreements = current
     .filter((a) => a.currentHealth!.pulseDisagreement)
