@@ -29,3 +29,23 @@ All notable user-facing changes. Format: [Keep a Changelog](https://keepachangel
   and stale accounts. Safe fixes (merging duplicate contacts, tidying an email) apply only after you
   preview the exact changes and confirm, one at a time or all at once.
 - Signed contract documents: upload and download them from Contracts & billing.
+- Health with proof: every account gets a score from six parts (Adoption, Engagement, Support,
+  Relationship, Commercial, Sentiment), each part opening into its reasons, the values and dates behind
+  them, and links to the exact records (usage window, contact, ticket, invoice). A part with no data
+  shows "Not enough data" and never lowers the score. The Health screen shows accounts by band, what
+  moved today and this week with the reason, and a history chart per account.
+- CSM Pulse: "Actually fine" or "Worried" (with a comment) on any account in your book. It counts as one
+  input to Relationship and never silently overrides the numbers; when the two disagree, both are shown.
+- Signals: 15 rules over usage, people, support, money and outside events, each explaining what it
+  means, how it is detected, how early it appears and what makes it a false alarm. Signals open,
+  update, resolve themselves when the condition clears, and can be acknowledged or marked as a false
+  alarm (which stays quiet unless things get materially worse). Admins and CS Leaders tune thresholds in
+  Settings › Signals. Outside events (acquisitions, leadership changes…) are added by hand or by CSV,
+  always with a dated public source.
+- Health model back-test (Settings › Health model): replays your own renewed and churned accounts using
+  only what was known at the time, proposes a model in one sentence ("we would have flagged X of your
+  last Y churns, on average N days early, with Z false alarms"), shows the runner-up, and lets you
+  preview your own weights before saving them as a new version. Nothing changes until an Admin approves
+  and activates a version; old scores keep the version they were made with.
+- Health and signals refresh every night at 02:00 in the workspace's time zone, and right away after a
+  Pulse, a payment change or a ticket escalation. "Recompute now" runs the same job on demand.
