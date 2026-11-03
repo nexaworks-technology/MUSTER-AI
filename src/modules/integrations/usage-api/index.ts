@@ -1,3 +1,4 @@
+export { processUsageAggregate, scrubbedUsageData, USAGE_AGGREGATE_JOB_OPTIONS } from "./job";
 export { aggregateUsage, aggregatePayload, type AggregateResult } from "./aggregate";
 export {
   hashIngestKey,

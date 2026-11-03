@@ -9,6 +9,7 @@ import { getQueue } from "@/lib/jobs/queues";
 import { logger } from "@/lib/logger";
 import { hitRateLimit, type RateLimit, type RateLimitResult } from "@/lib/rate-limit";
 import { openCredentials } from "../credentials";
+import { USAGE_AGGREGATE_JOB_OPTIONS } from "./job";
 import { hashIngestKey, INGEST_KEY_PREFIX } from "./keys";
 import { batchBody, toUsageEvent, type Rejected, type UsageEvent } from "./schemas";
 
@@ -65,8 +66,7 @@ const UNVERIFIED: UsageResponse = { status: 401, body: { error: "unverified" } }
 const defaultEnqueue = (p: AggregatePayload) =>
   getQueue("sync").add("usage.aggregate", p, {
     jobId: `usage-${p.integrationId}-${p.batchKey.slice(0, 40)}`,
-    attempts: 3,
-    backoff: { type: "exponential", delay: 2_000 },
+    ...USAGE_AGGREGATE_JOB_OPTIONS,
   });
 
 function refuse(reason: string): UsageResponse {
