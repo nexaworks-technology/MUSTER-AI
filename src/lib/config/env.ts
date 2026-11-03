@@ -76,6 +76,11 @@ export const envSchema = z
      * refused in production. Any request with no recorded fixture fails loudly.
      */
     INTEGRATIONS_TRANSPORT: z.enum(["live", "fixture"]).default("live"),
+    /**
+     * D-116: live write-back to a customer's CRM stays refused in code until this is "true". It does
+     * not affect fixture transports. Unset by default; live verification belongs to M12.
+     */
+    WRITE_BACK_LIVE: z.enum(["true", "false"]).default("false"),
     HUBSPOT_CLIENT_ID: optionalString,
     HUBSPOT_CLIENT_SECRET: optionalString,
     SALESFORCE_CLIENT_ID: optionalString,

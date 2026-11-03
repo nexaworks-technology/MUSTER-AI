@@ -2,6 +2,7 @@ import type { Integration } from "@prisma/client";
 import { z } from "zod";
 import { writeAudit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth/permissions";
+import { env } from "@/lib/config/env";
 import { scopedDb } from "@/lib/db/scoped";
 import type { Actor } from "@/modules/accounts/service";
 import { requestApproval } from "@/modules/approvals/service";
@@ -16,8 +17,8 @@ import { PROVIDER_NAMES, recordSourceFor } from "./providers";
  * listed the field, AND the adapter declares it. Every request then becomes a WRITE_BACK approval
  * (no M5 caller has an automatic level), and the push happens only once it is approved, after
  * the gate is checked again. Every path (refused, requested, pushed, failed) writes an AuditLog row.
- * In M5 pushes are exercised only against the fake transport (founder D2); live write-back is
- * DEFERRED.
+ * Live write-back is DEFERRED (founder D2) and enforced in code (D-116): a push over the live
+ * transport refuses unless WRITE_BACK_LIVE=true; fixture transports (tests, e2e, demo) push.
  */
 export class WriteBackRefusedError extends Error {
   constructor(message: string) {
@@ -38,6 +39,8 @@ type Who = Pick<Actor, "workspaceId" | "userId"> & { membershipId?: string };
 
 interface WriteBackDeps extends ConnectionDeps {
   adapter?: (provider: Integration["provider"]) => IntegrationAdapter<unknown>;
+  /** Overrides WRITE_BACK_LIVE (tests); production reads the env. */
+  writeBackLive?: boolean;
 }
 
 async function audit(
@@ -215,17 +218,27 @@ export async function executeApprovedWriteBack(
     );
     return { status: "REFUSED", plain };
   }
+  let notLive: string | null = null;
   try {
     const { context } = await loadConnection(who, integration.id, {
       ...deps,
       adapter: () => adapter,
     });
-    await adapter.writeBack!.push(context, {
-      field: change.field,
-      accountId: change.accountId,
-      externalId: ids.externalId,
-      value: ids.value,
-    });
+    // D-116 (founder, 2026-11-04): a push over the live transport needs WRITE_BACK_LIVE=true. The
+    // check is on the transport actually in use, so a deployment cannot write to a customer's
+    // system by an Admin's switch and an approval alone while live write-back is deferred.
+    if (
+      context.transport.mode === "live" &&
+      !(deps.writeBackLive ?? env().WRITE_BACK_LIVE === "true")
+    )
+      notLive = `Writing to ${name} for real is switched off for this deployment (WRITE_BACK_LIVE is not set), so nothing was changed there.`;
+    else
+      await adapter.writeBack!.push(context, {
+        field: change.field,
+        accountId: change.accountId,
+        externalId: ids.externalId,
+        value: ids.value,
+      });
   } catch (err) {
     const d = adapter.describeError(err);
     await audit(
@@ -235,6 +248,16 @@ export async function executeApprovedWriteBack(
       `${d.plain} (approval ${approvalId})`,
     );
     return { status: "FAILED", plain: d.plain };
+  }
+  if (notLive) {
+    await audit(
+      who,
+      "integration.writeback_refused",
+      integration.id,
+      `${notLive} (approval ${approvalId})`,
+      { field: change.field, accountId: change.accountId, transport: "live" },
+    );
+    return { status: "REFUSED", plain: notLive };
   }
   const plain = `Updated in ${name} (approval ${approvalId}).`;
   await audit(who, "integration.writeback_pushed", integration.id, plain, {
