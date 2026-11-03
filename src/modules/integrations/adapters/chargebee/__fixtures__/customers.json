@@ -1,0 +1,109 @@
+{
+  "provider": "chargebee",
+  "description": "Customers: Orchard Lane and Kestrel match Larkspur accounts; page 2 has one that matches nothing and a deleted one.",
+  "interactions": [
+    {
+      "note": "validate",
+      "request": {
+        "method": "GET",
+        "path": "/api/v2/customers",
+        "query": {
+          "limit": "1"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "list": [
+            {
+              "customer": {
+                "id": "cb_kestrel",
+                "email": "billing@kestrel-robotics.test",
+                "company": "Kestrel Robotics",
+                "first_name": null,
+                "last_name": null,
+                "deleted": false
+              }
+            }
+          ],
+          "next_offset": "[\"1793000000000\",\"1\"]"
+        }
+      }
+    },
+    {
+      "note": "page 2",
+      "request": {
+        "method": "GET",
+        "path": "/api/v2/customers",
+        "query": {
+          "offset": "[\"1793000000000\",\"2\"]"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "list": [
+            {
+              "customer": {
+                "id": "cb_nomatch",
+                "email": "ap@lost-cafe.test",
+                "company": "Lost Cafe",
+                "first_name": null,
+                "last_name": null,
+                "deleted": false
+              }
+            },
+            {
+              "customer": {
+                "id": "cb_gone",
+                "email": "x@gone.test",
+                "company": "Gone",
+                "first_name": null,
+                "last_name": null,
+                "deleted": true
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "note": "page 1",
+      "request": {
+        "method": "GET",
+        "path": "/api/v2/customers"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "list": [
+            {
+              "customer": {
+                "id": "cb_orchard",
+                "email": "ap@orchard-lane.test",
+                "company": "Orchard Lane Bakery Supply",
+                "first_name": null,
+                "last_name": null,
+                "deleted": false
+              }
+            },
+            {
+              "customer": {
+                "id": "cb_kestrel",
+                "email": "billing@kestrel-robotics.test",
+                "company": "Kestrel Robotics",
+                "first_name": null,
+                "last_name": null,
+                "deleted": false
+              }
+            }
+          ],
+          "next_offset": "[\"1793000000000\",\"2\"]"
+        }
+      }
+    }
+  ]
+}

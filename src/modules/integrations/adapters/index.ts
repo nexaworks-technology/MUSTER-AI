@@ -1,5 +1,6 @@
 import type { IntegrationProvider } from "@prisma/client";
 import type { IntegrationAdapter } from "../adapter";
+import { chargebeeAdapter } from "./chargebee";
 import { hubspotAdapter } from "./hubspot";
 import { salesforceAdapter } from "./salesforce";
 import { stripeAdapter } from "./stripe";
@@ -17,6 +18,7 @@ export const ADAPTERS: Partial<Record<IntegrationProvider, AnyAdapter>> = {
   HUBSPOT: hubspotAdapter,
   SALESFORCE: salesforceAdapter,
   STRIPE: stripeAdapter,
+  CHARGEBEE: chargebeeAdapter,
 };
 
 export class AdapterMissingError extends Error {

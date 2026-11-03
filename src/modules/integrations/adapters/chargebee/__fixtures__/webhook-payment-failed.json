@@ -1,0 +1,31 @@
+{
+  "id": "ev_kestrel_failed_1",
+  "occurred_at": 1793629800,
+  "source": "scheduled_job",
+  "object": "event",
+  "api_version": "v2",
+  "event_type": "payment_failed",
+  "content": {
+    "invoice": {
+      "id": "cb-inv-104",
+      "customer_id": "cb_kestrel",
+      "subscription_id": "sub_kestrel",
+      "status": "payment_due",
+      "total": 150000,
+      "currency_code": "USD",
+      "date": 1793491200,
+      "due_date": 1793491200,
+      "paid_at": null,
+      "dunning_attempts": [],
+      "deleted": false
+    },
+    "customer": {
+      "id": "cb_kestrel",
+      "email": "billing@kestrel-robotics.test",
+      "company": "Kestrel Robotics",
+      "first_name": null,
+      "last_name": null,
+      "deleted": false
+    }
+  }
+}

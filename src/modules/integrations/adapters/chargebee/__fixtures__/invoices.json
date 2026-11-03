@@ -1,0 +1,74 @@
+{
+  "provider": "chargebee",
+  "description": "Invoices: Kestrel paid; Orchard payment due after two failed dunning attempts; a pending one is skipped.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/api/v2/invoices"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "list": [
+            {
+              "invoice": {
+                "id": "cb-inv-101",
+                "customer_id": "cb_kestrel",
+                "subscription_id": "sub_kestrel",
+                "status": "paid",
+                "total": 150000,
+                "currency_code": "USD",
+                "date": 1790812800,
+                "due_date": 1790812800,
+                "paid_at": 1790820000,
+                "dunning_attempts": [],
+                "deleted": false
+              }
+            },
+            {
+              "invoice": {
+                "id": "cb-inv-102",
+                "customer_id": "cb_orchard",
+                "subscription_id": "sub_orchard_cb",
+                "status": "payment_due",
+                "total": 240000,
+                "currency_code": "USD",
+                "date": 1792886400,
+                "due_date": 1792886400,
+                "paid_at": null,
+                "dunning_attempts": [
+                  {
+                    "attempt": 0,
+                    "created_at": 1793005200
+                  },
+                  {
+                    "attempt": 1,
+                    "created_at": 1793523600
+                  }
+                ],
+                "deleted": false
+              }
+            },
+            {
+              "invoice": {
+                "id": "cb-inv-103",
+                "customer_id": "cb_kestrel",
+                "subscription_id": "sub_kestrel",
+                "status": "pending",
+                "total": 150000,
+                "currency_code": "USD",
+                "date": 1793491200,
+                "due_date": 1793491200,
+                "paid_at": null,
+                "dunning_attempts": [],
+                "deleted": false
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

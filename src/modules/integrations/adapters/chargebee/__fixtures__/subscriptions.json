@@ -1,0 +1,56 @@
+{
+  "provider": "chargebee",
+  "description": "Subscriptions: Kestrel monthly active, Orchard yearly in trial.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/api/v2/subscriptions"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "list": [
+            {
+              "subscription": {
+                "id": "sub_kestrel",
+                "customer_id": "cb_kestrel",
+                "status": "active",
+                "billing_period_unit": "month",
+                "currency_code": "USD",
+                "current_term_end": 1795996800,
+                "subscription_items": [
+                  {
+                    "item_price_id": "pro-monthly-usd",
+                    "quantity": 1,
+                    "amount": 150000
+                  }
+                ],
+                "deleted": false
+              }
+            },
+            {
+              "subscription": {
+                "id": "sub_orchard_cb",
+                "customer_id": "cb_orchard",
+                "status": "in_trial",
+                "billing_period_unit": "year",
+                "currency_code": "USD",
+                "current_term_end": 1801440000,
+                "subscription_items": [
+                  {
+                    "item_price_id": "pro-yearly-usd",
+                    "quantity": 1,
+                    "amount": 240000
+                  }
+                ],
+                "deleted": false
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

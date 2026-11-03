@@ -248,7 +248,9 @@ function ConnectForm({ card }: { card: ProviderCard }) {
       {card.hasWebhooks ? (
         <div className="space-y-1">
           <Label htmlFor={`${p}-wh`}>
-            Webhook signing secret (optional, for real-time payment events)
+            {p === "CHARGEBEE"
+              ? "Webhook username:password, the same as on the Chargebee webhook (optional, for real-time payment events)"
+              : "Webhook signing secret (optional, for real-time payment events)"}
           </Label>
           <Input id={`${p}-wh`} name="webhookSecret" type="password" autoComplete="off" />
         </div>

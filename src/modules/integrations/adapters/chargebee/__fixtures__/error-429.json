@@ -1,0 +1,23 @@
+{
+  "provider": "chargebee",
+  "description": "Chargebee answers HTTP 429 to everything.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/api/v2/customers"
+      },
+      "response": {
+        "status": 429,
+        "headers": {
+          "Retry-After": "20"
+        },
+        "body": {
+          "message": "Sorry, access has been blocked temporarily due to request count exceeding acceptable limits.",
+          "api_error_code": "api_request_limit_exceeded",
+          "http_status_code": 429
+        }
+      }
+    }
+  ]
+}

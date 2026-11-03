@@ -1,0 +1,21 @@
+{
+  "provider": "chargebee",
+  "description": "Chargebee answers HTTP 403 to everything.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/api/v2/customers"
+      },
+      "response": {
+        "status": 403,
+        "headers": {},
+        "body": {
+          "message": "Sorry, Operation not allowed for this api key",
+          "api_error_code": "api_authorization_failed",
+          "http_status_code": 403
+        }
+      }
+    }
+  ]
+}

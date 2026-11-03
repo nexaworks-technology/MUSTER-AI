@@ -1,0 +1,21 @@
+{
+  "provider": "chargebee",
+  "description": "Chargebee answers HTTP 500 to everything.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/api/v2/customers"
+      },
+      "response": {
+        "status": 500,
+        "headers": {},
+        "body": {
+          "message": "Sorry, Something went wrong",
+          "api_error_code": "internal_error",
+          "http_status_code": 500
+        }
+      }
+    }
+  ]
+}
