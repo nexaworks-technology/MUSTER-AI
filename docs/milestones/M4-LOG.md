@@ -1,6 +1,6 @@
 # M4 log: Agent Framework, Today & Approvals
 
-**Date:** 2026-11-03 · **Result:** **NOT COMPLETE.** All slices are built, and 14 of 16 acceptance checks PASS. **#1 (gate) and #2 (e2e) are FAIL on the last runs** and await one more gate + e2e run after a founder decision (see "Final gate and e2e"). Two of the three failure causes were M4 defects and are fixed (`827213f`). The third is test-environment state left by M3's nightly scheduler running on the real clock during an e2e setup.
+**Date:** 2026-11-03 · **Result:** **COMPLETE: 16 of 16 acceptance checks PASS** (M1 #16 is carried PARTIAL, unchanged). Final verification: **e2e 40 passed / 0 failed / 28 skipped → gate 110 files / 1,078 tests, build OK → e2e 40 passed / 0 failed / 28 skipped**, all three green, after a four-round hunt for the real-clock pollution of the test world (see "How the last gate and e2e were made green").
 **Carried from M1, unchanged:** M1 acceptance **#16 is PARTIAL** (Docker not installed; founder-approved). No docker command was run in M4.
 **AI and email transports in this milestone:** `ANTHROPIC_API_KEY` is unset. No live model was called anywhere in M4. Tests use fake providers; the e2e and the demo use the **recorded** transport, with fixture answers composed from the records by `scripts/recorded-agents.ts` and run through the real executor. Every customer email went through `dispatch` to the **log** transport; nothing left this machine. `pnpm eval` (live) is **DEFERRED** (no key). Live Resend verification is deferred to M12, or earlier if a key is provided.
 
@@ -40,14 +40,14 @@ One Conventional Commit per slice.
 | 5 New tenant models use the fixed pattern | Met | `tenant-isolation-m4.int.test.ts`: 8 models × {read, real-field update with own-row control via `update-attack.ts`, delete, raw SQL}, composite-FK cases, cross-tenant approve / reject → 404, context builder cannot load B's records, audit export only A's rows. |
 | 6 Tests never call the live API | Met | Fake providers in integration tests; golden replay in CI (health-analyst 10, outreach 6, extraction 15, adversarial cases included); e2e on the recorded transport. `pnpm eval` prints DEFERRED without a key. |
 | 7 Nav via features.ts; M4 row only | Met | `SHIPPED_MILESTONE = 4`; `features.test.ts` gains the M4 row only. Today is the landing page (M4.md says so; Q-46). |
-| 8 Lean execution | Met, with one gate failure reported | Gate #1 after the core **failed at the build step**: typecheck, lint and all 91 files / 967 tests had passed, but `next build` type-checked a half-written slice-5 file I had created while the gate ran (my sequencing error, not committed code). Fixed, and the one allowed re-run passed on a clean tree: **93 files / 986 tests**. Final gate: **FAIL**: 105 files / 1,056 tests, 6 failed in 2 pre-M4 files (causes below). |
+| 8 Lean execution | Met; gate failures reported, never hidden | Gate #1 after the core failed once at the build step (a half-written slice-5 file I created while it ran; my sequencing error) and its one re-run passed: **93 files / 986 tests**. The later final-gate failures are all in the table "How the last gate and e2e were made green". **Final: gate 110 files / 1,078 tests, green.** |
 
 ## Acceptance checklist (docs/milestones/M4.md §6)
 
 | # | Check | Result | Evidence |
 |---|---|---|---|
-| 1 | `pnpm gate` green | **FAIL** (fix committed, re-run pending) | Final run: typecheck and lint OK (598 files secret-scanned, no secrets); **Test Files 2 failed / 103 passed (105), Tests 6 failed / 1,050 passed (1,056)**; build not reached. Causes and fixes are under "Final gate and e2e". |
-| 2 | `pnpm test:e2e` green for `e2e/m4-today-approvals.spec.ts` | **FAIL** on the full run (M4 spec alone: PASS) | M4 specs alone (`m4-today-approvals` + `a11y-m4`): **9 passed, 7 skipped, 0 failed**. Full suite after the gate: **32 passed, 3 failed, 28 skipped**. The failures are M1 invitation (EISDIR, fixed), M3 "Leo opens Brightwell's health" (test-state pollution) and M4 "Brightwell's Health tab…" (stale-snapshot narrative, fixed). |
+| 1 | `pnpm gate` green | **PASS** | Final run, after e2e #1 and before e2e #2: typecheck OK, lint OK, **605 files secret-scanned, no secrets**, **Test Files 110 passed (110), Tests 1,078 passed (1,078)**, `next build` compiled. Baseline was 79 files / 821 tests. |
+| 2 | `pnpm test:e2e` green for `e2e/m4-today-approvals.spec.ts` | **PASS** | Full suite twice, around the gate: **40 passed, 0 failed, 28 skipped** both times (1.9 min and 1.8 min); the 28 skipped are the desktop-only flow tests on the mobile project and the serial AI-team step, as in M3. `m4-today-approvals.spec.ts` (7 flow tests) and `a11y-m4.spec.ts` pass on desktop and mobile. |
 | 3 | Tenant suite and registry cover new models; cross-tenant approve and export blocked | **PASS** | `tenant-isolation-m4.int.test.ts` › "<Model>: A cannot read, update or delete B's row" × 8, "raw SQL without the workspace setting sees nothing" × 8, the composite-FK cases, "approving or rejecting B's approval from A is not found (404)…", "A's agent context builder cannot load B's records", "the audit export contains only A's rows"; `model-registry.int.test.ts` (unchanged) classifies all 8 new models and checks their RLS. |
 | 4 | Every SUCCEEDED AgentRun has prompt version, model, inputRefs, output, reasoning, confidence; DB CHECK enforces | **PASS** | `executor.int.test.ts` › "a SUCCEEDED run carries every audit field…"; `m4-constraints.int.test.ts` › "refuses a SUCCEEDED run without its audit fields"; CHECK `agentrun_succeeded_complete` in `20261103051529_m4_agents_approvals`. |
 | 5 | UNCITED / INVALID runs render nothing; every AI block shows sources | **PASS** | `citations.test.ts` (ids, quotes, numbers, dates, percentages); `executor.int` › "INVALID_OUTPUT after exactly one repair call; nothing is rendered" and the UNCITED case; `health-analyst.int` › "an uncited answer is stored as UNCITED and the Health tab shows nothing from it"; e2e › "Brightwell's Health tab…" asserts every `ai-sources` list has links. |
@@ -81,41 +81,42 @@ One Conventional Commit per slice.
 
 | | Baseline (`b01fa5b`) | Final |
 |---|---|---|
-| `pnpm gate` | green · 79 files · 821 tests | **FAIL** · 105 files · 1,056 tests (6 failed) · re-run pending |
-| `pnpm test:e2e` | 31 passed · 21 skipped (review run) | **FAIL** · 32 passed · 3 failed · 28 skipped · re-run pending |
+| `pnpm gate` | green · 79 files · 821 tests | **green · 110 files · 1,078 tests** |
+| `pnpm test:e2e` | 31 passed · 21 skipped (review run) | **40 passed · 0 failed · 28 skipped (twice)** |
 
-**Every pre-M4 test still exists.** Pre-M4 test files changed (`git diff b01fa5b` over the 174 test and test-infrastructure paths that existed there): exactly five, all founder-approved.
+**Every pre-M4 test still exists.** Pre-M4 test files changed (`git diff b01fa5b` over the 174 test and test-infrastructure paths that existed there): exactly six, all founder-approved (the sixth is test infrastructure).
 
 1. `src/config/__tests__/features.test.ts`: the M4 row only; existing rows untouched.
 2. `src/modules/health/__tests__/health-no-ai.test.ts`: the regex now also catches side-effect, dynamic and `require` imports, with self-checks for each (M4 rule 2).
 3. `src/lib/db/__tests__/update-attack.ts`: entries for the 8 new models; DraftRevision is "frozen", like snapshots.
 4. `e2e/support/app.ts`: `signIn` expects `/today` (Q-46).
 5. `e2e/m1-foundation.spec.ts`: the two Home checks after sign-in open `/` first (Q-46).
+6. `playwright.config.ts` (Q-49): the e2e worker sets `NIGHTLY_SCHEDULES=off`, and both the app and the worker get `ALLOW_FAKE_CLOCK` / `APP_FAKE_NOW` pinned to 2026-11-02T17:00:00Z (D-80, D-81). Guarded by `nightly-schedules.int.test.ts` and `business-clock.int.test.ts`.
 
 No assertion was loosened. `a11y.spec.ts` is unchanged; since sign-in lands on Today, its first scanned page is now Today, and Home is scanned in `a11y-m4.spec.ts`.
 
-## Final gate and e2e: what failed and why
+## How the last gate and e2e were made green (Q-49, four rounds)
 
-**Final gate:** 6 failures in two pre-M4 test files.
-- `settings.int.test.ts` ×5: **EISDIR**.
-- `seed-health.int.test.ts` ×1: a current snapshot dated 2026-11-03 instead of SEED_TODAY.
+The seed and the e2e world are frozen at SEED_TODAY (2026-11-02), but asynchronous work computed "today" from the real clock. It did not show while the real date, in the workspace's time zone, was still Nov 2: the baseline gate and the review's e2e ran at about 04:36 UTC, which is 23:36 on Nov 2 in New York. Each round below fixed a real cause and revealed the next.
 
-**Full e2e:** 3 failures.
-- M1 invitation: EISDIR.
-- M3 "Leo opens Brightwell's health": the reason text belonged to a different snapshot.
-- M4 "Brightwell's Health tab": the narrative cited a reason that was not on the page.
+| Round | Run | Result | Cause | Fix |
+|---|---|---|---|---|
+| 1 | gate, e2e | gate: 6 of 1,056 failed (`settings.int` ×5, `seed-health.int` ×1); e2e: 3 failed | (a) customer log mail wrote into a subfolder of `.dev-mail/` that the pre-M4 invitation tests read file by file (EISDIR); (b) the Health Analyst wrote about `currentHealthSnapshotId`, not the snapshot the tab shows; (c) the e2e worker's real-clock nightly schedule rewrote the seeded workspace as of Nov 3 | (a) and (b) in `827213f`; (c) `NIGHTLY_SCHEDULES=off` for the e2e worker (`902f91d`, D-80) |
+| 2 | gate, e2e | gate passed (106 files / 1,061 tests); e2e: 33 passed, 1 failed | the M3 model-activation re-score still dated "today" from the real clock; the M4 setup script dereferenced a snapshot that did not exist yet | bounded 120 s wait with a clear setup error (`f21adb0`) |
+| 3 | e2e, gate | e2e: 35 passed, 1 failed; gate: 1 failed (`seed-health.int`: a Nov-3 current snapshot) | the same real-clock re-score; the e2e's hard-coded "58%" had become "55%" | the business clock seam (`5dc3b5b`) and the harness pin (`8a3ce67`, D-81) |
+| 4a | e2e | 32 passed, **2 failed** | under the frozen clock two model activations in one instant produced the same job id (`manual-${clock().getTime()}`), so the queue dropped the second and the newest model never got its re-score | uniqueness-intended ids from real time + random (`32d8219`) |
+| **4b** | **e2e → gate → e2e** | **40 passed / gate 110 files, 1,078 tests / 40 passed. All green.** | | |
 
-The three causes:
-1. **M4 defect, fixed in `827213f`:** the customer log transport wrote into `.dev-mail/customer/`, a subdirectory of the folder the pre-M4 invitation test and the e2e `inviteLinkFor` helper read file by file. Customer dev mail now goes to the sibling `.dev-mail-customer/`. The pre-M4 settings tests pass again (targeted run: 7 files / 67 tests).
-2. **M4 defect, fixed in `827213f`:** the Health Analyst wrote about `account.currentHealthSnapshotId`, while the Health tab shows the latest live snapshot under the **active model**. After a model change, or a later nightly run, the narrative cited reasons that were not on the page. The trigger, sweep, narrative reader and fixture script now all use `displayedSnapshot()`, and a narrative about any other snapshot is not shown. Regression test: `health-analyst.int` › "shows a narrative only about the snapshot the Health tab shows, never an older one". Targeted run: 27 files / 215 tests.
-3. **Not M4 code; test-environment state:**
-   - The e2e worker (`playwright.config.ts` starts `src/worker/index.ts`) registers M3's nightly scheduler for every workspace in `_test` under the `nexaworks-e2e` queue prefix in Redis.
-   - The next 02:00 run in America/New_York fell due at 07:00 UTC on Nov 3.
-   - The first e2e started after that (slice 12, 09:02 UTC) ran it at once, **on the real clock**. That wrote 63 snapshots dated 2026-11-03 into `_test`'s `larkspur-demo`, which is meant to stay "as of SEED_TODAY".
-   - Evidence: the snapshots were created 0.3 s after the e2e re-seed's `seed.applied` audit row, and Redis holds `nexaworks-e2e:signals:repeat:nightly-*` jobs.
-   - The baseline gate and the review's e2e both ran before 07:00 UTC, which is why it never showed before.
+**After e2e #1 of round 4b, from the database:**
+- no snapshot dated after 2026-11-02 anywhere in `_test`;
+- the M3 spec's four activations (models v42 to v45) each have their 63 snapshots, **including the newest, v45**, all dated 2026-11-02;
+- Brightwell's usage signal reads "Usage fell to 58% of normal" (OPEN), and every current snapshot in `larkspur-demo` is dated 2026-11-02.
 
-   Re-running the gate needs this state cleaned. Stopping it from recurring needs the e2e worker not to register real-clock nightly schedules, which means a founder-approved change to `playwright.config.ts` (Q-49).
+**What e2e #2 ran against, after the gate:** the gate's unit tests leave 10 snapshots dated after Nov 2 in `_test`, in workspaces they created themselves (for example the Kolkata time-zone test, which deliberately dates Nov 3). None is in `larkspur-demo`; the second e2e passed regardless, which is the stability proof.
+
+**One leftover, noted for honesty:** Brightwell's signal row still carries `lastSeenAt = 2026-11-03` from the earlier real-clock pollution (cleanup removed snapshots, not signal columns). Nothing asserts it, and the title and value are correct.
+
+**Q-49 is closed for good.** D-80 stopped the e2e worker registering real-clock schedules; D-81 pins the business clock (production ignores the fake clock, proven by tests); the job-id rule keeps uniqueness-intended ids off the business clock.
 
 ## Clock seam (Q-49 round 3, D-81): audit of real-time reads
 
@@ -191,12 +192,14 @@ Found by the third e2e: under the frozen business clock, `manual-${clock().getTi
   - D-77: Watcher-basic and the Sentiment pillar.
   - D-78: Today.
   - D-79: outcome ledger, ACTED / IGNORED and the 7-day checkpoint.
+  - D-80: `NIGHTLY_SCHEDULES=off` for the e2e worker.
+  - D-81: the business clock seam, the frozen test world, and the job-id rule.
   - M4.md's and the plan's "structured output via a tool" wording is marked superseded by D-35 (founder point 1).
 - **Questions:**
   - Q-46 (landing page, answered).
   - Q-47 (e2e web server has no recorded provider; open, test infra only).
   - Q-48 (tasks carry no flag link → M8).
-  - Q-49 (the e2e worker runs real-clock nightly jobs against the seeded `_test` workspace; open, blocks the final gate).
+  - Q-49 (real-clock jobs polluting the frozen test world): **closed**, D-80 and D-81.
 - **Sensitive keyword list location:** `src/modules/outbound/sensitive.ts` (versioned in code, reviewed like any rule).
 - **Token budget default:** 2,000,000 tokens per workspace per day (`WorkspaceSettings.data.ai.dailyTokenBudget`).
 
@@ -281,7 +284,7 @@ Found by the third e2e: under the frozen business clock, `manual-${clock().getTi
 
 ## Files changed
 
-155 files against `b01fa5b` (119 added, 36 modified), including 31 golden fixtures and 15 evidence screenshots.
+188 files against `b01fa5b` (142 added, 46 modified), including 31 golden fixtures and 15 evidence screenshots. Since the first docs commit this adds the clock seam (`src/lib/dates`, `src/lib/jobs/ids.ts`), the `NIGHTLY_SCHEDULES` and fake-clock env names, and their tests.
 
 - **Schema:**
   - `prisma/schema.prisma`;
