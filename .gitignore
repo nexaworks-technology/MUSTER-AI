@@ -26,3 +26,6 @@ blob-report/
 # os
 .DS_Store
 .claude/launch.json
+
+# Recorded-provider fixtures written by scripts/recorded-agents.ts (e2e and demo replay)
+.dev-recordings/

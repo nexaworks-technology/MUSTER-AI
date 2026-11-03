@@ -94,6 +94,34 @@ async function spentToday(ctx: TenantContext, clock: Clock): Promise<number> {
 }
 
 /**
+ * Everything a run sends to the model, built exactly once per run from scoped records: the parsed
+ * input, the context bundle, the prompt, and the request (system + input). The recorded-provider
+ * fixture script uses this too, so a recording always matches what a real run would send.
+ */
+export async function prepareRun(
+  ctx: TenantContext,
+  def: AnyAgentDef,
+  rawInput: unknown,
+  promptsDir?: string,
+) {
+  const input = def.inputSchema.parse(rawInput);
+  const built = await def.buildContext(scopedDb(ctx), input, ctx);
+  const prompt = await loadPrompt(def.prompt.name, def.prompt.version, promptsDir);
+  return {
+    input,
+    built,
+    prompt,
+    request: {
+      tier: def.modelTier,
+      workspaceId: ctx.workspaceId,
+      promptRef: prompt.ref,
+      system: renderPrompt(prompt.body, built.vars),
+      input: renderInput(built),
+    },
+  };
+}
+
+/**
  * Runs one agent for one trigger. Safe to call again with the same trigger: the run is found by
  * its key; a SUCCEEDED run only re-applies its (idempotent) side effects; a terminal failure is
  * returned as it is; an interrupted run resumes.
@@ -109,9 +137,12 @@ export async function runAgent(
     return { kind: "not_configured", reason: "ANTHROPIC_API_KEY is not set" };
   const clock = deps.clock ?? systemClock;
   const db = scopedDb(ctx);
-  const input = def.inputSchema.parse(rawInput);
-  const built = await def.buildContext(db, input, ctx);
-  const prompt = await loadPrompt(def.prompt.name, def.prompt.version, deps.promptsDir);
+  const {
+    input,
+    built,
+    prompt,
+    request: base,
+  } = await prepareRun(ctx, def, rawInput, deps.promptsDir);
   const key = idempotencyKey(ctx.workspaceId, def, trigger, inputHashOf(input, built));
 
   let run: AgentRun;
@@ -180,14 +211,7 @@ export async function runAgent(
     );
 
   const provider = deps.provider ?? getAiProvider();
-  const request = {
-    tier: def.modelTier,
-    workspaceId: ctx.workspaceId,
-    promptRef: prompt.ref,
-    system: renderPrompt(prompt.body, built.vars),
-    input: renderInput(built),
-    schema: def.outputSchema,
-  };
+  const request = { ...base, schema: def.outputSchema };
 
   const started = Date.now();
   let tokens = { input: 0, output: 0 };

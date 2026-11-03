@@ -23,7 +23,9 @@ export function getAiProvider(): AiProvider {
   const e = env();
   if (e.AI_PROVIDER === "recorded") {
     provider = createRecordedProvider(
-      path.join(process.cwd(), "prompts", "__recordings__"),
+      e.AI_RECORDINGS_DIR
+        ? path.resolve(e.AI_RECORDINGS_DIR)
+        : path.join(process.cwd(), "prompts", "__recordings__"),
       e.NODE_ENV,
     );
     return provider;

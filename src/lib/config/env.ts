@@ -36,6 +36,8 @@ export const envSchema = z
     AI_MODEL_FAST: optionalString,
     AI_MODEL_STANDARD: optionalString,
     AI_MODEL_DEEP: optionalString,
+    /** Where AI_PROVIDER=recorded reads recordings (default prompts/__recordings__). Tests/demo only. */
+    AI_RECORDINGS_DIR: optionalString,
 
     EMAIL_TRANSPORT: z.enum(["log", "resend"]).default("log"),
     EMAIL_FROM: optionalString,
