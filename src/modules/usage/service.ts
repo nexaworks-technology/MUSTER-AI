@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { scopedDb, type ScopedDb } from "@/lib/db/scoped";
+import { scopedDb, type ScopedDb, type TenantContext } from "@/lib/db/scoped";
 import type { TimelineItem } from "@/modules/accounts/schemas";
 import { AccountNotFoundError, getAccount, type Actor } from "@/modules/accounts/service";
 import {
@@ -190,8 +190,20 @@ export async function usageTimeline(
 export async function getAdoption(actor: Actor, accountId: string, clock: Clock = businessClock) {
   const account = await getAccount(actor, accountId);
   if (!account) throw new AccountNotFoundError();
-  const db = scopedDb(actor);
-  const lc = await loadContext(actor);
+  return loadAdoption(actor, accountId, clock);
+}
+
+/**
+ * The same figures for a background job (the Adoption Coach): no member, so no book check; the
+ * workspace scope still applies to every read. The caller has already decided the account is its own.
+ */
+export async function loadAdoption(
+  ctx: TenantContext,
+  accountId: string,
+  clock: Clock = businessClock,
+) {
+  const db = scopedDb(ctx);
+  const lc = await loadContext(ctx);
   const asOf = todayIn(lc.timeZone, clock);
   const [bundles, catalog, contracts, rows, plan] = await Promise.all([
     loadBundles(db, lc, asOf, [accountId]),

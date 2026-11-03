@@ -84,7 +84,13 @@ describe("AI team", () => {
   it("lists every registered agent with its tier, switch and run counts", async () => {
     await run(mine);
     const team = await listAgentTeam(admin);
-    expect(team.map((a) => a.key).sort()).toEqual(["health-analyst", "outreach", "watcher"]);
+    expect(team.map((a) => a.key).sort()).toEqual([
+      "adoption-coach",
+      "health-analyst",
+      "onboarding-manager",
+      "outreach",
+      "watcher",
+    ]);
     const ha = team.find((a) => a.key === "health-analyst")!;
     expect(ha).toMatchObject({
       tier: "standard",

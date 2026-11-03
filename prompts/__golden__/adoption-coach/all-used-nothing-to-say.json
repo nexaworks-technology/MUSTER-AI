@@ -1,0 +1,60 @@
+{
+  "case": "all-used-nothing-to-say",
+  "description": "Every plan feature has been used: no finding, no draft, and it says so.",
+  "agent": "adoption-coach",
+  "bundle": [
+    {
+      "sourceType": "Account",
+      "sourceId": "acc_p",
+      "fields": {
+        "name": "Pinecrest Health",
+        "plan": "Growth",
+        "featuresInPlan": 5,
+        "featuresNeverUsed": 0,
+        "keyFeaturesNeverUsed": 0,
+        "summary": "All 5 features in your Growth plan have been used"
+      }
+    },
+    {
+      "sourceType": "FeatureUsageDaily",
+      "sourceId": "fud_dash",
+      "fields": {
+        "feature": "Dashboards",
+        "lastUsed": "Oct 30, 2026",
+        "peopleThatDay": 2
+      }
+    },
+    {
+      "sourceType": "Contact",
+      "sourceId": "con_raj",
+      "fields": {
+        "name": "Raj Menon",
+        "title": "IT administrator"
+      }
+    }
+  ],
+  "facts": {
+    "count": 0
+  },
+  "output": {
+    "reasoningSummary": "Every plan feature has been used.",
+    "confidence": 0.9,
+    "citations": [
+      {
+        "sourceType": "Account",
+        "sourceId": "acc_p"
+      }
+    ],
+    "proposedActions": [],
+    "findings": [],
+    "subject": null,
+    "body": null,
+    "insufficientData": {
+      "missing": ["No unused feature to raise"]
+    }
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "items": 0
+  }
+}

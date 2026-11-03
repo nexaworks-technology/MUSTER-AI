@@ -50,7 +50,9 @@ export default async function NotificationsPage() {
                         ? `/accounts/${n.accountId}/tasks#task-${n.refId}`
                         : n.refType === "Approval"
                           ? `/approvals/${n.refId}`
-                          : `/accounts/${n.accountId}`
+                          : n.refType === "OnboardingPlan"
+                            ? `/accounts/${n.accountId}/onboarding`
+                            : `/accounts/${n.accountId}`
                   }
                   className="shrink-0 text-xs underline"
                 >

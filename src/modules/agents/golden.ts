@@ -62,7 +62,9 @@ export function judge(
     return { status: "FAILED", problems: ["MODEL_DECLINED"] };
   const e = evaluateOutput(def, bundle, output, facts);
   if (e.status !== "SUCCEEDED") return { status: e.status, problems: e.problems };
-  const items = (e.output as { items?: unknown[] }).items;
+  // The Health Analyst's list is `items`; the Adoption Coach's is `findings`.
+  const o = e.output as { items?: unknown[]; findings?: unknown[] };
+  const items = o.items ?? o.findings;
   return {
     status: "SUCCEEDED",
     items: Array.isArray(items) ? items.length : undefined,

@@ -1,0 +1,97 @@
+{
+  "case": "unused-key-feature",
+  "description": "Three of five plan features never used: the finding cites the catalogue rows and a used feature's row; one nudge about Scheduled reports.",
+  "agent": "adoption-coach",
+  "bundle": [
+    {
+      "sourceType": "Account",
+      "sourceId": "acc_p",
+      "fields": {
+        "name": "Pinecrest Health",
+        "plan": "Growth",
+        "featuresInPlan": 5,
+        "featuresNeverUsed": 3,
+        "keyFeaturesNeverUsed": 2,
+        "summary": "3 of 5 features in your Growth plan have never been used"
+      }
+    },
+    {
+      "sourceType": "FeatureCatalog",
+      "sourceId": "cat_reports",
+      "fields": {
+        "feature": "Scheduled reports",
+        "keyFeature": true,
+        "includedInPlan": "Growth",
+        "usedByThisAccount": false
+      }
+    },
+    {
+      "sourceType": "FeatureCatalog",
+      "sourceId": "cat_connectors",
+      "fields": {
+        "feature": "Data connectors",
+        "keyFeature": true,
+        "includedInPlan": "Growth",
+        "usedByThisAccount": false
+      }
+    },
+    {
+      "sourceType": "FeatureCatalog",
+      "sourceId": "cat_csv",
+      "fields": {
+        "feature": "CSV export",
+        "keyFeature": false,
+        "includedInPlan": "Growth",
+        "usedByThisAccount": false
+      }
+    },
+    {
+      "sourceType": "FeatureUsageDaily",
+      "sourceId": "fud_dash",
+      "fields": {
+        "feature": "Dashboards",
+        "lastUsed": "Oct 30, 2026",
+        "peopleThatDay": 2
+      }
+    },
+    {
+      "sourceType": "Contact",
+      "sourceId": "con_raj",
+      "fields": {
+        "name": "Raj Menon",
+        "title": "IT administrator"
+      }
+    }
+  ],
+  "facts": {
+    "count": 3
+  },
+  "output": {
+    "reasoningSummary": "Scheduled reports are a key plan feature nobody has used.",
+    "confidence": 0.7,
+    "citations": [
+      {
+        "sourceType": "Account",
+        "sourceId": "acc_p"
+      },
+      {
+        "sourceType": "FeatureCatalog",
+        "sourceId": "cat_reports"
+      }
+    ],
+    "proposedActions": [],
+    "findings": [
+      {
+        "text": "3 of 5 features in the Growth plan have never been used, including Scheduled reports.",
+        "citesCatalogIds": ["cat_reports", "cat_connectors", "cat_csv"],
+        "citesUsageIds": ["fud_dash"]
+      }
+    ],
+    "subject": "Getting more from Scheduled reports",
+    "body": "Hi Raj,\n\n3 of 5 features in your Growth plan haven't been tried yet, and Scheduled reports could save your team time. Want me to walk you through one?\n\nAisha"
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "items": 1
+  }
+}

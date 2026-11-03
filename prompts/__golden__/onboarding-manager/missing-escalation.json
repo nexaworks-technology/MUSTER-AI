@@ -1,0 +1,84 @@
+{
+  "case": "missing-escalation",
+  "description": "The model leaves out the escalation object: the output does not validate.",
+  "agent": "onboarding-manager",
+  "bundle": [
+    {
+      "sourceType": "OnboardingPlan",
+      "sourceId": "plan_p",
+      "fields": {
+        "account": "Pinecrest Health",
+        "status": "stalled",
+        "started": "Oct 1, 2026",
+        "targetValueDate": "Nov 7, 2026",
+        "dayOfPlan": 32,
+        "likelyBlocker": "SSO setup (customer) overdue 12 days",
+        "blockers": "SSO setup (customer) overdue 12 days; No one has used the product for 9 days",
+        "firstBlockerKind": "STEP_OVERDUE_CUSTOMER",
+        "reason": "onboarding stalled"
+      }
+    },
+    {
+      "sourceType": "Account",
+      "sourceId": "acc_p",
+      "fields": {
+        "name": "Pinecrest Health"
+      }
+    },
+    {
+      "sourceType": "OnboardingStep",
+      "sourceId": "step_sso",
+      "fields": {
+        "title": "SSO setup",
+        "ownerSide": "customer",
+        "dueDate": "Oct 21, 2026",
+        "daysOverdue": 12,
+        "blockedReason": null
+      }
+    },
+    {
+      "sourceType": "Contact",
+      "sourceId": "con_raj",
+      "fields": {
+        "name": "Raj Menon",
+        "title": "IT administrator"
+      }
+    },
+    {
+      "sourceType": "UsageDaily",
+      "sourceId": "use_1",
+      "fields": {
+        "date": "Oct 24, 2026",
+        "activeUsers": 1
+      }
+    }
+  ],
+  "facts": {
+    "days": 12,
+    "dayOfPlan": 32
+  },
+  "output": {
+    "reasoningSummary": "The customer-owned SSO step is overdue and usage has stopped.",
+    "confidence": 0.7,
+    "citations": [
+      {
+        "sourceType": "OnboardingPlan",
+        "sourceId": "plan_p"
+      },
+      {
+        "sourceType": "OnboardingStep",
+        "sourceId": "step_sso"
+      },
+      {
+        "sourceType": "UsageDaily",
+        "sourceId": "use_1"
+      }
+    ],
+    "proposedActions": [],
+    "subject": "Getting SSO set up",
+    "body": "Hi Raj,\n\nThe SSO setup has been waiting for 12 days. Is something in the way? I can join a short call this week.\n\nAisha"
+  },
+  "expect": {
+    "status": "INVALID_OUTPUT"
+  }
+}

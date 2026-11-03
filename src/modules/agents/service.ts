@@ -78,6 +78,16 @@ export {
 } from "./checkin";
 export { outreach, outreachOutput, outreachInput } from "./definitions/outreach";
 export {
+  onboardingManager,
+  onboardingManagerOutput,
+  onboardingManagerInput,
+} from "./definitions/onboarding-manager";
+export {
+  adoptionCoach,
+  adoptionCoachOutput,
+  adoptionCoachInput,
+} from "./definitions/adoption-coach";
+export {
   listAgentTeam,
   setAgentEnabled,
   getRunDetail,

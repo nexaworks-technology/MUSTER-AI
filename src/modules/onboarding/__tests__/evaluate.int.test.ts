@@ -39,6 +39,12 @@ beforeAll(() => {
   );
 });
 afterAll(async () => {
+  // The events this file raises are consumed in production (M6 B3); here they are test residue, and
+  // left due they would crowd the global outbox queue other tests dispatch from.
+  await rawDb.outboxEvent.updateMany({
+    where: { workspaceId: S.ws, type: { startsWith: "onboarding." }, processedAt: null },
+    data: { processedAt: new Date() },
+  });
   await Promise.all(workers.map((w) => w.close()));
   await closeQueues();
 });

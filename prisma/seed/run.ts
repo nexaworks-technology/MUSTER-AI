@@ -104,6 +104,17 @@ async function seedDemoData(workspaceId: string): Promise<void> {
   // M6: plans before the nightly pass, which evaluates them like any other night.
   await seedOnboarding(db, workspaceId);
   await seedHealth(db, workspaceId);
+  // The onboarding events the seed's own nightly pass raised describe the seeded past, not news:
+  // marked processed, so the first worker start does not notify owners or ask the Onboarding
+  // Manager about history. A real stall or value day after the seed raises its own event (D-109).
+  await rawDb.outboxEvent.updateMany({
+    where: {
+      workspaceId,
+      type: { in: ["onboarding.stalled", "onboarding.valueReached"] },
+      processedAt: null,
+    },
+    data: { processedAt: new Date() },
+  });
 }
 
 export async function runSeed({

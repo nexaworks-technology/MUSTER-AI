@@ -1,0 +1,56 @@
+{
+  "case": "nothing-to-say",
+  "description": "No contact and no open step: nothing to write, and it says why.",
+  "agent": "onboarding-manager",
+  "bundle": [
+    {
+      "sourceType": "OnboardingPlan",
+      "sourceId": "plan_p",
+      "fields": {
+        "account": "Pinecrest Health",
+        "status": "stalled",
+        "started": "Oct 1, 2026",
+        "targetValueDate": "Nov 7, 2026",
+        "dayOfPlan": 32,
+        "likelyBlocker": "SSO setup (customer) overdue 12 days",
+        "blockers": "SSO setup (customer) overdue 12 days; No one has used the product for 9 days",
+        "firstBlockerKind": "STEP_OVERDUE_CUSTOMER",
+        "reason": "onboarding stalled"
+      }
+    },
+    {
+      "sourceType": "Account",
+      "sourceId": "acc_p",
+      "fields": {
+        "name": "Pinecrest Health"
+      }
+    }
+  ],
+  "facts": {
+    "days": 12,
+    "dayOfPlan": 32
+  },
+  "output": {
+    "reasoningSummary": "There is no customer contact to write to.",
+    "confidence": 0.5,
+    "citations": [
+      {
+        "sourceType": "OnboardingPlan",
+        "sourceId": "plan_p"
+      }
+    ],
+    "insufficientData": {
+      "missing": ["No contact with an email address"]
+    },
+    "proposedActions": [],
+    "subject": null,
+    "body": null,
+    "escalation": {
+      "needed": false,
+      "note": null
+    }
+  },
+  "expect": {
+    "status": "SUCCEEDED"
+  }
+}

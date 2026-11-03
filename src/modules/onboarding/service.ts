@@ -62,3 +62,13 @@ export {
   updateStep,
   type OnboardingRow,
 } from "./plans.service";
+
+export {
+  ADOPTION_RULE_KEYS,
+  onboardingEventPayload,
+  onOnboardingStalled,
+  onOnboardingValueReached,
+  sweepAllOnboardingAgents,
+  sweepOnboardingAgents,
+  type StalledOutcome,
+} from "./consumers";

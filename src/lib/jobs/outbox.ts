@@ -100,12 +100,17 @@ export const OUTBOX_ROUTES: OutboxRoutes = {
   "health.bandChanged": { queue: "agents", job: "health-analyst.consider" },
   /** M5: an approval request is DM'd to its assignee in Slack when Slack is connected. */
   "approval.requested": { queue: "outbound", job: "slack.approvalRequested" },
+  /** M6: a stalled plan tells its owner and asks the Onboarding Manager for a check-in draft. */
+  "onboarding.stalled": { queue: "agents", job: "onboarding.stalled" },
+  /** M6: first value reached tells the owner. */
+  "onboarding.valueReached": { queue: "agents", job: "onboarding.valueReached" },
 };
 
 /**
  * Event types written before anything consumes them (D-66): kept as records, not claimed by the
  * dispatcher (no retries, no warnings) until the milestone that consumes them registers a route
- * and removes them from this list. M3: signal.opened / signal.resolved / health.bandChanged
+ * and removes them from this list. M6 now consumes onboarding.stalled / onboarding.valueReached
+ * (owner notice + Onboarding Manager); plays (M8) will add their own consumers. M3: signal.opened / signal.resolved / health.bandChanged
  * (consumed by the Health Analyst and play triggers, M4/M8). M4 consumes health.bandChanged;
  * signal.opened / signal.resolved wait for plays (M8).
  */
@@ -115,7 +120,4 @@ export const AWAITING_CONSUMER: string[] = [
   "task.overdue",
   /** M5: written at the end of every integration sync; consumed by plays (M8). */
   "sync.completed",
-  /** M6: onboarding plan changes; the Onboarding Manager (M6 Session B) and plays (M8) consume them. */
-  "onboarding.stalled",
-  "onboarding.valueReached",
 ];

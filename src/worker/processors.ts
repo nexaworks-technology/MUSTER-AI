@@ -19,6 +19,11 @@ import {
   runSync,
   sendDigestIfDue,
 } from "@/modules/integrations/service";
+import {
+  onOnboardingStalled,
+  onOnboardingValueReached,
+  sweepAllOnboardingAgents,
+} from "@/modules/onboarding/service";
 import { evaluateSevenDayCheckpoints } from "@/modules/outcomes/service";
 import { escalateOverdueTasks } from "@/modules/tasks/service";
 import { rebuildWorkspaceToday } from "@/modules/today/service";
@@ -99,6 +104,18 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
     async "health-analyst.sweep"() {
       return sweepAllHealthNarratives();
     },
+    /** M6: a stalled plan tells its owner and asks the Onboarding Manager for a draft. */
+    async "onboarding.stalled"(job) {
+      return onOnboardingStalled(job.data);
+    },
+    /** M6: first value reached tells the owner. */
+    async "onboarding.valueReached"(job) {
+      return onOnboardingValueReached(job.data);
+    },
+    /** M6: customer steps due today and open adoption signals ask the two M6 agents once each. */
+    async "onboarding.agentsSweep"() {
+      return sweepAllOnboardingAgents();
+    },
   },
   maintenance: {
     async "nightly.schedules"() {
@@ -145,6 +162,13 @@ export const SCHEDULES = [
   { queue: "maintenance", id: "nightly-schedules", job: "nightly.schedules", everyMs: 3_600_000 },
   // M4: narratives for snapshots no event covers (first snapshot, top-reason change).
   { queue: "agents", id: "health-analyst-sweep", job: "health-analyst.sweep", everyMs: 900_000 },
+  // M6: the Onboarding Manager for steps due today, the Adoption Coach for adoption signals.
+  {
+    queue: "agents",
+    id: "onboarding-agents-sweep",
+    job: "onboarding.agentsSweep",
+    everyMs: 900_000,
+  },
   { queue: "maintenance", id: "task-escalation", job: "tasks.escalateOverdue", everyMs: 3_600_000 },
   { queue: "outcomes", id: "outcomes-checkpoint", job: "outcomes.checkpoint", everyMs: 21_600_000 },
   { queue: "maintenance", id: "today-rebuild", job: "today.rebuildAll", everyMs: 3_600_000 },

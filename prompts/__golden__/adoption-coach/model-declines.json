@@ -1,0 +1,75 @@
+{
+  "case": "model-declines",
+  "description": "The model declines to answer: nothing is written in its place.",
+  "agent": "adoption-coach",
+  "bundle": [
+    {
+      "sourceType": "Account",
+      "sourceId": "acc_p",
+      "fields": {
+        "name": "Pinecrest Health",
+        "plan": "Growth",
+        "featuresInPlan": 5,
+        "featuresNeverUsed": 3,
+        "keyFeaturesNeverUsed": 2,
+        "summary": "3 of 5 features in your Growth plan have never been used"
+      }
+    },
+    {
+      "sourceType": "FeatureCatalog",
+      "sourceId": "cat_reports",
+      "fields": {
+        "feature": "Scheduled reports",
+        "keyFeature": true,
+        "includedInPlan": "Growth",
+        "usedByThisAccount": false
+      }
+    },
+    {
+      "sourceType": "FeatureCatalog",
+      "sourceId": "cat_connectors",
+      "fields": {
+        "feature": "Data connectors",
+        "keyFeature": true,
+        "includedInPlan": "Growth",
+        "usedByThisAccount": false
+      }
+    },
+    {
+      "sourceType": "FeatureCatalog",
+      "sourceId": "cat_csv",
+      "fields": {
+        "feature": "CSV export",
+        "keyFeature": false,
+        "includedInPlan": "Growth",
+        "usedByThisAccount": false
+      }
+    },
+    {
+      "sourceType": "FeatureUsageDaily",
+      "sourceId": "fud_dash",
+      "fields": {
+        "feature": "Dashboards",
+        "lastUsed": "Oct 30, 2026",
+        "peopleThatDay": 2
+      }
+    },
+    {
+      "sourceType": "Contact",
+      "sourceId": "con_raj",
+      "fields": {
+        "name": "Raj Menon",
+        "title": "IT administrator"
+      }
+    }
+  ],
+  "facts": {
+    "count": 3
+  },
+  "output": {
+    "__stopReason": "refusal"
+  },
+  "expect": {
+    "status": "FAILED"
+  }
+}

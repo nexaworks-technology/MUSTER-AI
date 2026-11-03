@@ -1,0 +1,76 @@
+{
+  "case": "our-side-no-customer-email",
+  "description": "The overdue step is ours: no email to the customer, an escalation for the owner instead.",
+  "agent": "onboarding-manager",
+  "bundle": [
+    {
+      "sourceType": "OnboardingPlan",
+      "sourceId": "plan_p",
+      "fields": {
+        "account": "Pinecrest Health",
+        "status": "stalled",
+        "started": "Oct 1, 2026",
+        "targetValueDate": "Nov 7, 2026",
+        "dayOfPlan": 32,
+        "likelyBlocker": "Sandbox access (us) overdue 12 days",
+        "blockers": "SSO setup (customer) overdue 12 days; No one has used the product for 9 days",
+        "firstBlockerKind": "STEP_OVERDUE_US",
+        "reason": "onboarding stalled"
+      }
+    },
+    {
+      "sourceType": "Account",
+      "sourceId": "acc_p",
+      "fields": {
+        "name": "Pinecrest Health"
+      }
+    },
+    {
+      "sourceType": "OnboardingStep",
+      "sourceId": "step_sso",
+      "fields": {
+        "title": "Sandbox access",
+        "ownerSide": "us",
+        "dueDate": "Oct 21, 2026",
+        "daysOverdue": 12,
+        "blockedReason": null
+      }
+    },
+    {
+      "sourceType": "UsageDaily",
+      "sourceId": "use_1",
+      "fields": {
+        "date": "Oct 24, 2026",
+        "activeUsers": 1
+      }
+    }
+  ],
+  "facts": {
+    "days": 12,
+    "dayOfPlan": 32
+  },
+  "output": {
+    "reasoningSummary": "Our own sandbox step is late.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "OnboardingPlan",
+        "sourceId": "plan_p"
+      },
+      {
+        "sourceType": "OnboardingStep",
+        "sourceId": "step_sso"
+      }
+    ],
+    "proposedActions": [],
+    "subject": null,
+    "body": null,
+    "escalation": {
+      "needed": true,
+      "note": "Our sandbox step is 12 days late."
+    }
+  },
+  "expect": {
+    "status": "SUCCEEDED"
+  }
+}
