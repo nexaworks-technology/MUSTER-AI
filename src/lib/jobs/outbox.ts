@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { rawDb } from "@/lib/db/raw";
 import { logger } from "@/lib/logger";
 import { getQueue, type QueueName } from "./queues";
@@ -51,7 +51,16 @@ export interface DispatchResult {
  */
 export async function dispatchOutbox(
   routes: OutboxRoutes,
-  { enqueue = defaultEnqueue, batchSize = 100 }: { enqueue?: Enqueue; batchSize?: number } = {},
+  {
+    enqueue = defaultEnqueue,
+    batchSize = 100,
+    workspaceId,
+  }: {
+    enqueue?: Enqueue;
+    batchSize?: number;
+    /** Claim only this workspace's events (tests of one workspace's events; the worker passes none). */
+    workspaceId?: string;
+  } = {},
 ): Promise<DispatchResult> {
   return rawDb.$transaction(async (tx) => {
     const due = await tx.$queryRaw<
@@ -60,6 +69,7 @@ export async function dispatchOutbox(
       SELECT id, "workspaceId", type, payload FROM "OutboxEvent"
       WHERE "processedAt" IS NULL AND "availableAt" <= now() AND attempts < 10
         AND NOT (type = ANY(${AWAITING_CONSUMER}))
+        ${workspaceId ? Prisma.sql`AND "workspaceId" = ${workspaceId}` : Prisma.empty}
       ORDER BY "availableAt" ASC
       LIMIT ${batchSize}
       FOR UPDATE SKIP LOCKED`;

@@ -27,7 +27,7 @@ describe("transactional outbox (D-22)", () => {
     });
 
     const enqueue = vi.fn<Enqueue>(async () => undefined);
-    await dispatchOutbox(routes, { enqueue });
+    await dispatchOutbox(routes, { enqueue, workspaceId: workspace.id });
     expect(enqueue).toHaveBeenCalledWith(
       "maintenance",
       "heartbeat",
@@ -38,7 +38,7 @@ describe("transactional outbox (D-22)", () => {
     expect(stored.processedAt).not.toBeNull();
 
     enqueue.mockClear();
-    await dispatchOutbox(routes, { enqueue });
+    await dispatchOutbox(routes, { enqueue, workspaceId: workspace.id });
     expect(enqueue).not.toHaveBeenCalledWith(
       expect.anything(),
       expect.anything(),
@@ -63,7 +63,7 @@ describe("transactional outbox (D-22)", () => {
     const event = await scopedDb({ workspaceId: workspace.id }).$tenantTransaction((tx) =>
       writeOutboxEvent(tx, { workspaceId: workspace.id, type: "nobody.listens", payload: {} }),
     );
-    await dispatchOutbox({}, { enqueue: async () => undefined });
+    await dispatchOutbox({}, { enqueue: async () => undefined, workspaceId: workspace.id });
     const stored = await rawDb.outboxEvent.findUniqueOrThrow({ where: { id: event.id } });
     expect(stored).toMatchObject({ processedAt: null, attempts: 1 });
     expect(stored.lastError).toMatch(/No handler is registered/);
