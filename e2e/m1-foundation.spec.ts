@@ -27,6 +27,7 @@ test.describe("M1 foundation", () => {
 
     // 3. Priya signs in to Larkspur as Admin.
     await signIn(page, "admin@larkspur.test");
+    await page.goto("/"); // M4: sign-in lands on Today; Home is one click away (approved change)
     await expect(page.getByRole("heading", { name: "Larkspur Analytics" })).toBeVisible();
     await expect(page.getByTestId("role")).toHaveText("Admin");
     const nav = page.getByRole("navigation", { name: "Main" });
@@ -104,6 +105,7 @@ test.describe("M1 foundation", () => {
 
   test("another tenant's admin sees only their own workspace (Rule 2)", async ({ page }) => {
     await signIn(page, "admin@ferngrove.test");
+    await page.goto("/"); // M4: sign-in lands on Today (approved change)
     await expect(page.getByRole("heading", { name: "Ferngrove Software" })).toBeVisible();
     await page.goto("/settings/users");
     await expect(page.getByTestId("member-admin@ferngrove.test")).toBeVisible();

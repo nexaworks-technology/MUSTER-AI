@@ -15,7 +15,7 @@ export async function signInWithPassword(
     await signIn("credentials", {
       email: String(formData.get("email") ?? ""),
       password: String(formData.get("password") ?? ""),
-      redirectTo: "/",
+      redirectTo: "/today",
     });
     return {};
   } catch (error) {
@@ -27,7 +27,7 @@ export async function signInWithPassword(
 }
 
 export async function signInWithGoogle(): Promise<void> {
-  await signIn("google", { redirectTo: "/" });
+  await signIn("google", { redirectTo: "/today" });
 }
 
 export async function signOutAction(): Promise<void> {

@@ -11,7 +11,7 @@ import { SignInForm } from "./sign-in-form";
 export const metadata: Metadata = { title: "Sign in" };
 
 export default async function SignInPage() {
-  if (await getSession()) redirect("/");
+  if (await getSession()) redirect("/today");
   const google = isGoogleConfigured();
 
   return (

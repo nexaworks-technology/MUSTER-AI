@@ -10,7 +10,8 @@ export async function signIn(page: Page, email: string, password = DEMO_PASSWORD
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  // M4: Today is the post-sign-in landing page (founder-approved change, 2026-11-03).
+  await expect(page).toHaveURL(/\/today$/);
 }
 
 /** Reads the invitation link from the newest dev-mail message sent to `to`. */
