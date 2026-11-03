@@ -46,6 +46,12 @@ describe("navigation gating (Rule 6: no coming-soon screens)", () => {
       CSM: ["Home", "Accounts", "Tasks", "Health"],
       VIEWER: ["Home", "Accounts", "Tasks", "Health"],
     },
+    4: {
+      ADMIN: ["Home", "Today", "Approvals", "Accounts", "Tasks", "Health", "Settings"],
+      CS_LEADER: ["Home", "Today", "Approvals", "Accounts", "Tasks", "Health", "Settings"],
+      CSM: ["Home", "Today", "Approvals", "Accounts", "Tasks", "Health"],
+      VIEWER: ["Home", "Today", "Accounts", "Tasks", "Health"],
+    },
   } as const;
 
   for (const [milestone, roles] of Object.entries(NAV_BY_MILESTONE))

@@ -11,6 +11,7 @@ import {
   sweepAllHealthNarratives,
 } from "@/modules/agents/service";
 import { importJobPayload, runImportJob } from "@/modules/imports/service";
+import { rebuildWorkspaceToday } from "@/modules/today/service";
 import { createPipelineProcessors } from "@/modules/signals/service";
 
 const pipeline = createPipelineProcessors({ clock: systemClock });
@@ -72,6 +73,13 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
     async "outbox.dispatch"() {
       return dispatchOutbox(OUTBOX_ROUTES);
     },
+    /** M4: every member's Today, re-ranked (pages also rebuild a stale Today on read). */
+    async "today.rebuildAll"() {
+      const out: Record<string, number> = {};
+      for (const w of await listActiveWorkspaces())
+        out[w.slug] = await rebuildWorkspaceToday({ workspaceId: w.id });
+      return out;
+    },
   },
 };
 
@@ -83,6 +91,7 @@ export const SCHEDULES = [
   { queue: "maintenance", id: "nightly-schedules", job: "nightly.schedules", everyMs: 3_600_000 },
   // M4: narratives for snapshots no event covers (first snapshot, top-reason change).
   { queue: "agents", id: "health-analyst-sweep", job: "health-analyst.sweep", everyMs: 900_000 },
+  { queue: "maintenance", id: "today-rebuild", job: "today.rebuildAll", everyMs: 3_600_000 },
 ] as const;
 
 export function processorFor(queue: QueueName): Processor | undefined {

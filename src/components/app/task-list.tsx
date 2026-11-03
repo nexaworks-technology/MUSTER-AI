@@ -31,7 +31,8 @@ export function TaskList({
         return (
           <li
             key={t.id}
-            className="flex flex-wrap items-center justify-between gap-2 p-3"
+            id={`task-${t.id}`}
+            className="target:bg-muted flex scroll-mt-4 flex-wrap items-center justify-between gap-2 p-3"
             data-testid="task"
           >
             <div>
