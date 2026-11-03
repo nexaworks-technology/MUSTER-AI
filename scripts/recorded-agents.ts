@@ -16,7 +16,7 @@ import { env } from "@/lib/config/env";
 import { recordingKey } from "@/lib/ai/recorded";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { findWorkspaceBySlug } from "@/lib/db/workspace";
-import { displayedSnapshot } from "@/modules/health/service";
+import { displayedSnapshot, getActiveModel } from "@/modules/health/service";
 import {
   healthAnalyst,
   outreach,
@@ -45,6 +45,42 @@ async function record(
   await writeFile(file, JSON.stringify(answer(prep.built.bundle), null, 2));
 }
 
+const SNAPSHOT_WAIT_MS = 120_000;
+const SNAPSHOT_POLL_MS = 1_000;
+
+/**
+ * The snapshot the account's Health tab shows (same lookup), waiting for it to exist. After a
+ * model activation the re-score under the new active model runs on the worker, so the snapshot may
+ * not be there yet. Polls up to 120 s, says so when it had to wait, and otherwise fails with a clear
+ * setup error: it never dereferences a missing snapshot, and it never waits longer.
+ */
+async function waitForDisplayedSnapshot(
+  ctx: TenantContext,
+  accountId: string,
+  accountName: string,
+) {
+  const started = Date.now();
+  let polls = 0;
+  for (;;) {
+    const shown = await displayedSnapshot(ctx, accountId);
+    if (shown) {
+      if (polls > 0)
+        console.log(
+          `waited ${((Date.now() - started) / 1000).toFixed(1)} s for ${accountName}'s snapshot under the active health model (the post-activation re-score was still running)`,
+        );
+      return shown;
+    }
+    if (Date.now() - started >= SNAPSHOT_WAIT_MS) {
+      const model = await getActiveModel(ctx);
+      throw new Error(
+        `Setup error: no health snapshot for ${accountName} under the active health model v${model.version} after waiting ${SNAPSHOT_WAIT_MS / 1000} s. The post-activation re-score did not complete in time (or never wrote one); check the worker.`,
+      );
+    }
+    polls++;
+    await new Promise((r) => setTimeout(r, SNAPSHOT_POLL_MS));
+  }
+}
+
 async function main() {
   const e = env();
   if (e.AI_PROVIDER !== "recorded" || !e.AI_RECORDINGS_DIR)
@@ -68,7 +104,7 @@ async function main() {
   const bw = await account("Brightwell Logistics");
   // The snapshot Brightwell's Health tab shows (the narrative is about that one).
   const snap = await db.healthScoreSnapshot.findUniqueOrThrow({
-    where: { id: (await displayedSnapshot(ctx, bw.id))!.id },
+    where: { id: (await waitForDisplayedSnapshot(ctx, bw.id, bw.name)).id },
     include: { reasons: true },
   });
   const top = snap.reasons
@@ -93,7 +129,7 @@ async function main() {
 
   // 2. A recorded refusal (Halden), so a failed run exists and is shown as failed.
   const halden = await account("Halden Retail");
-  const haldenSnap = (await displayedSnapshot(ctx, halden.id))!.id;
+  const haldenSnap = (await waitForDisplayedSnapshot(ctx, halden.id, halden.name)).id;
   const hInput = { accountId: halden.id, snapshotId: haldenSnap };
   await record(ctx, healthAnalyst, hInput, () => ({ __stopReason: "refusal" }));
   const hr = await runAgent(ctx, healthAnalyst, hInput, {
