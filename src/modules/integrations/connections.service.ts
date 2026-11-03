@@ -186,6 +186,8 @@ async function saveConnection(
 export async function testConnection(actor: Actor, integrationId: string, deps: ConnectDeps = {}) {
   requirePermission(actor, "integrations:manage");
   const db = scopedDb(actor);
+  if (!(await db.integration.findUnique({ where: { id: integrationId }, select: { id: true } })))
+    throw new ConnectError("This integration does not exist.");
   let result: { ok: boolean; message: string; externalAccountId?: string };
   try {
     const { adapter, context } = await loadConnection(actor, integrationId, deps);

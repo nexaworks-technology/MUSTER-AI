@@ -52,6 +52,13 @@ describe("navigation gating (Rule 6: no coming-soon screens)", () => {
       CSM: ["Home", "Today", "Approvals", "Accounts", "Tasks", "Health"],
       VIEWER: ["Home", "Today", "Accounts", "Tasks", "Health"],
     },
+    // M5 adds no top-level screen: integrations and the setup wizard live under Settings.
+    5: {
+      ADMIN: ["Home", "Today", "Approvals", "Accounts", "Tasks", "Health", "Settings"],
+      CS_LEADER: ["Home", "Today", "Approvals", "Accounts", "Tasks", "Health", "Settings"],
+      CSM: ["Home", "Today", "Approvals", "Accounts", "Tasks", "Health"],
+      VIEWER: ["Home", "Today", "Accounts", "Tasks", "Health"],
+    },
   } as const;
 
   for (const [milestone, roles] of Object.entries(NAV_BY_MILESTONE))

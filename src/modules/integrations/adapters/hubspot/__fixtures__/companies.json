@@ -1,6 +1,6 @@
 {
   "provider": "hubspot",
-  "description": "Companies: Brightwell's name differs from Larkspur's record (Q-32 conflict), Sundial links by domain, Meridian is new with an unknown owner, one has no name, one is archived.",
+  "description": "Companies: Brightwell's name differs from Larkspur's record (Q-32 conflict), Sundial links by domain, Meridian is new with an unknown owner, one has no name, one is archived; the incremental search returns Meridian unchanged.",
   "interactions": [
     {
       "note": "archived companies",
@@ -119,7 +119,7 @@
       }
     },
     {
-      "note": "incremental search",
+      "note": "incremental search: Meridian was touched in HubSpot but nothing we read changed",
       "request": {
         "method": "POST",
         "path": "/crm/v3/objects/companies/search"
@@ -134,9 +134,9 @@
               "properties": {
                 "name": "Meridian Labs",
                 "domain": "meridian-labs.test",
-                "hubspot_owner_id": "101",
+                "hubspot_owner_id": "103",
                 "industry": "COMPUTER_SOFTWARE",
-                "numberofemployees": "140"
+                "numberofemployees": "120"
               },
               "archived": false,
               "createdAt": "2025-01-10T00:00:00Z",

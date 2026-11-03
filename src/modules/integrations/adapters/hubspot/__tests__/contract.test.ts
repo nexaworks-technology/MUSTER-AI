@@ -134,7 +134,7 @@ describe("HubSpot contract", () => {
     });
     expect(t.calls.some((c) => c.url.includes("archived=true"))).toBe(false);
     expect(of(batches, "accounts")).toEqual([
-      expect.objectContaining({ externalId: "c-1003", ownerExternalId: "101" }),
+      expect.objectContaining({ externalId: "c-1003", ownerExternalId: "103" }),
     ]);
     expect(batches.at(-1)?.cursor).toBe(String(NOW.getTime()));
   });

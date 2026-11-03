@@ -5,6 +5,13 @@ import { rawDb } from "@/lib/db/raw";
 import { scopedDb } from "@/lib/db/scoped";
 import { findIntegrationForWebhook, findSlackIntegrationByTeam } from "@/lib/db/inbound";
 import { createTestAdmin } from "@/test/fixtures";
+import {
+  disconnect,
+  listIntegrations,
+  runSyncNow,
+  setWriteBack,
+  testConnection,
+} from "@/modules/integrations/service";
 import { expectUpdateIsolated } from "./update-attack";
 
 /**
@@ -232,5 +239,24 @@ describe("tenant isolation — M5 integration models (Rule 2)", () => {
         data: { writeBackFields: ["ownerMembershipId"] },
       }),
     ).rejects.toThrow(/integration_writeback_fields_need_switch/);
+  });
+
+  it("workspace A cannot read or act on B's integration through any Settings action's service", async () => {
+    const cards = await listIntegrations(A.actor);
+    expect(cards.map((c) => c.integration?.id).filter(Boolean)).toEqual([A.integration.id]);
+    const bId = B.integration.id;
+    await expect(testConnection(A.actor, bId)).rejects.toThrow("This integration does not exist.");
+    await expect(runSyncNow(A.actor, bId)).rejects.toThrow("This integration does not exist.");
+    await expect(disconnect(A.actor, bId)).rejects.toThrow("This integration does not exist.");
+    await expect(
+      setWriteBack(A.actor, bId, { enabled: true, fields: ["ownerMembershipId"] }),
+    ).rejects.toThrow();
+    const after = await B.db.integration.findUniqueOrThrow({ where: { id: bId } });
+    expect(after).toMatchObject({
+      status: "CONNECTED",
+      writeBackEnabled: false,
+      credentialsEnc: B.integration.credentialsEnc,
+      lastErrorPlain: null,
+    });
   });
 });

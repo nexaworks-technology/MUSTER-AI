@@ -11,6 +11,7 @@ export const SETTINGS_TABS: ReadonlyArray<{ label: string; href: Route; permissi
     { label: "Workspace", href: "/settings/workspace", permission: "workspace:manageSettings" },
     { label: "Import", href: "/settings/import", permission: "data:import" },
     { label: "Data quality", href: "/settings/data-quality", permission: "data:import" },
+    { label: "Integrations", href: "/settings/integrations", permission: "integrations:manage" },
     { label: "Signals", href: "/settings/signals", permission: "healthModel:propose" },
     { label: "Health model", href: "/settings/health-model", permission: "healthModel:propose" },
     { label: "AI team", href: "/settings/ai-team", permission: "audit:view" },

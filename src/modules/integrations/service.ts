@@ -31,6 +31,7 @@ export {
   WriteBackRefusedError,
 } from "./writeback.service";
 export { PROVIDER_NAMES } from "./providers";
+export { listIntegrations, runSyncNow, type ProviderCard } from "./status.service";
 export {
   processWebhookEvent,
   receiveWebhook,
