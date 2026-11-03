@@ -1,0 +1,92 @@
+{
+  "provider": "stripe",
+  "description": "Fictional Larkspur Analytics customers: two pages, a deleted customer, one that matches no account.",
+  "interactions": [
+    {
+      "note": "validate / test connection",
+      "request": {
+        "method": "GET",
+        "path": "/v1/customers",
+        "query": {
+          "limit": "1"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "object": "list",
+          "data": [
+            {
+              "id": "cus_sundial",
+              "object": "customer",
+              "email": "billing@sundial-fitness.test",
+              "name": "Sundial Fitness"
+            }
+          ],
+          "has_more": true,
+          "url": "/v1/x"
+        }
+      }
+    },
+    {
+      "note": "page 2",
+      "request": {
+        "method": "GET",
+        "path": "/v1/customers",
+        "query": {
+          "starting_after": "cus_orchard"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "object": "list",
+          "data": [
+            {
+              "id": "cus_unknowngym",
+              "object": "customer",
+              "email": "ops@unknown-gym.test",
+              "name": "Unknown Gym"
+            },
+            {
+              "id": "cus_gone",
+              "object": "customer",
+              "deleted": true
+            }
+          ],
+          "has_more": false,
+          "url": "/v1/x"
+        }
+      }
+    },
+    {
+      "note": "page 1",
+      "request": {
+        "method": "GET",
+        "path": "/v1/customers"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "object": "list",
+          "data": [
+            {
+              "id": "cus_sundial",
+              "object": "customer",
+              "email": "billing@sundial-fitness.test",
+              "name": "Sundial Fitness"
+            },
+            {
+              "id": "cus_orchard",
+              "object": "customer",
+              "email": "ap@orchard-lane.test",
+              "name": "Orchard Lane Bakery Supply"
+            }
+          ],
+          "has_more": true,
+          "url": "/v1/x"
+        }
+      }
+    }
+  ]
+}

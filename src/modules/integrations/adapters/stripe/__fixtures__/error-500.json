@@ -1,0 +1,21 @@
+{
+  "provider": "stripe",
+  "description": "Stripe answers HTTP 500 to everything.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/v1/customers"
+      },
+      "response": {
+        "status": 500,
+        "headers": {},
+        "body": {
+          "error": {
+            "type": "api_error"
+          }
+        }
+      }
+    }
+  ]
+}

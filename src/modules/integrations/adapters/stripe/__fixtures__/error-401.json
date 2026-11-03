@@ -1,0 +1,22 @@
+{
+  "provider": "stripe",
+  "description": "Stripe answers HTTP 401 to everything.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/v1/customers"
+      },
+      "response": {
+        "status": 401,
+        "headers": {},
+        "body": {
+          "error": {
+            "type": "invalid_request_error",
+            "message": "Invalid API Key provided: rk_test_****"
+          }
+        }
+      }
+    }
+  ]
+}

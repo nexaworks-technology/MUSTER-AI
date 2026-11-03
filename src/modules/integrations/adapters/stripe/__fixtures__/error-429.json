@@ -1,0 +1,23 @@
+{
+  "provider": "stripe",
+  "description": "Stripe answers HTTP 429 to everything.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/v1/customers"
+      },
+      "response": {
+        "status": 429,
+        "headers": {
+          "Retry-After": "30"
+        },
+        "body": {
+          "error": {
+            "type": "rate_limit_error"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "provider": "stripe",
+  "description": "Stripe answers HTTP 403 to everything.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/v1/customers"
+      },
+      "response": {
+        "status": 403,
+        "headers": {},
+        "body": {
+          "error": {
+            "type": "invalid_request_error",
+            "message": "The provided key does not have the required permissions"
+          }
+        }
+      }
+    }
+  ]
+}

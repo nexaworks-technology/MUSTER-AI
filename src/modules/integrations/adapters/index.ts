@@ -1,5 +1,6 @@
 import type { IntegrationProvider } from "@prisma/client";
 import type { IntegrationAdapter } from "../adapter";
+import { stripeAdapter } from "./stripe";
 
 /**
  * Adapter registry. Each launch connector registers here once it has fixtures and contract tests
@@ -10,7 +11,9 @@ import type { IntegrationAdapter } from "../adapter";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyAdapter = IntegrationAdapter<any>;
 
-export const ADAPTERS: Partial<Record<IntegrationProvider, AnyAdapter>> = {};
+export const ADAPTERS: Partial<Record<IntegrationProvider, AnyAdapter>> = {
+  STRIPE: stripeAdapter,
+};
 
 export class AdapterMissingError extends Error {
   constructor(provider: IntegrationProvider) {

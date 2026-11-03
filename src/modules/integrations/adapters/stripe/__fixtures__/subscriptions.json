@@ -1,0 +1,100 @@
+{
+  "provider": "stripe",
+  "description": "Subscriptions: one active monthly, one past due, one weekly plan our model does not support (rejected with a reason).",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/v1/subscriptions"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "object": "list",
+          "data": [
+            {
+              "id": "sub_sundial",
+              "object": "subscription",
+              "customer": "cus_sundial",
+              "status": "active",
+              "items": {
+                "object": "list",
+                "data": [
+                  {
+                    "price": {
+                      "id": "price_starter_m",
+                      "object": "price",
+                      "nickname": "Starter monthly",
+                      "product": "prod_starter",
+                      "unit_amount": 20000,
+                      "currency": "usd",
+                      "recurring": {
+                        "interval": "month"
+                      }
+                    },
+                    "quantity": 1,
+                    "current_period_end": 1795824000
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sub_orchard",
+              "object": "subscription",
+              "customer": "cus_orchard",
+              "status": "past_due",
+              "items": {
+                "object": "list",
+                "data": [
+                  {
+                    "price": {
+                      "id": "price_starter_y",
+                      "object": "price",
+                      "nickname": "Starter yearly",
+                      "product": "prod_starter",
+                      "unit_amount": 180000,
+                      "currency": "usd",
+                      "recurring": {
+                        "interval": "year"
+                      }
+                    },
+                    "quantity": 1,
+                    "current_period_end": 1803859200
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sub_weekly",
+              "object": "subscription",
+              "customer": "cus_orchard",
+              "status": "active",
+              "items": {
+                "object": "list",
+                "data": [
+                  {
+                    "price": {
+                      "id": "price_weekly",
+                      "object": "price",
+                      "nickname": "Weekly add-on",
+                      "product": "prod_starter",
+                      "unit_amount": 500,
+                      "currency": "usd",
+                      "recurring": {
+                        "interval": "week"
+                      }
+                    },
+                    "quantity": 1,
+                    "current_period_end": 1794182400
+                  }
+                ]
+              }
+            }
+          ],
+          "has_more": false,
+          "url": "/v1/x"
+        }
+      }
+    }
+  ]
+}

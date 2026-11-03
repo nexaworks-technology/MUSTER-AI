@@ -1,0 +1,27 @@
+{
+  "id": "evt_sundial_failed_1",
+  "object": "event",
+  "type": "invoice.payment_failed",
+  "created": 1793631600,
+  "data": {
+    "object": {
+      "id": "in_sundial_dec",
+      "object": "invoice",
+      "customer": "cus_sundial",
+      "customer_email": "billing@sundial-fitness.test",
+      "subscription": "sub_sundial",
+      "number": "SUNDIAL-0011",
+      "amount_due": 20000,
+      "currency": "usd",
+      "created": 1793491200,
+      "due_date": null,
+      "status": "open",
+      "attempt_count": 1,
+      "status_transitions": {
+        "paid_at": null
+      },
+      "charge": null,
+      "customer_name": "Sundial Fitness"
+    }
+  }
+}

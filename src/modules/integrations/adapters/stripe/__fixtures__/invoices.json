@@ -1,0 +1,122 @@
+{
+  "provider": "stripe",
+  "description": "Invoices: paid, failed twice (expanded failed charge), open, a draft (skipped) and one for an unmatched customer.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/v1/invoices"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "object": "list",
+          "data": [
+            {
+              "id": "in_sundial_oct",
+              "object": "invoice",
+              "customer": "cus_sundial",
+              "customer_email": null,
+              "subscription": "sub_sundial",
+              "number": "SUNDIAL-0009",
+              "amount_due": 20000,
+              "currency": "usd",
+              "created": 1790553600,
+              "due_date": null,
+              "status": "paid",
+              "attempt_count": 1,
+              "status_transitions": {
+                "paid_at": 1790557200
+              },
+              "charge": {
+                "id": "ch_ok",
+                "object": "charge",
+                "status": "succeeded",
+                "created": 1790557200
+              }
+            },
+            {
+              "id": "in_sundial_nov",
+              "object": "invoice",
+              "customer": "cus_sundial",
+              "customer_email": null,
+              "subscription": "sub_sundial",
+              "number": "SUNDIAL-0010",
+              "amount_due": 20000,
+              "currency": "usd",
+              "created": 1793145600,
+              "due_date": null,
+              "status": "open",
+              "attempt_count": 2,
+              "status_transitions": {
+                "paid_at": null
+              },
+              "charge": {
+                "id": "ch_fail",
+                "object": "charge",
+                "status": "failed",
+                "created": 1793350800
+              }
+            },
+            {
+              "id": "in_orchard_1",
+              "object": "invoice",
+              "customer": "cus_orchard",
+              "customer_email": null,
+              "subscription": "sub_orchard",
+              "number": "ORCH-0101",
+              "amount_due": 180000,
+              "currency": "usd",
+              "created": 1792454400,
+              "due_date": null,
+              "status": "open",
+              "attempt_count": 0,
+              "status_transitions": {
+                "paid_at": null
+              },
+              "charge": null
+            },
+            {
+              "id": "in_draft",
+              "object": "invoice",
+              "customer": "cus_orchard",
+              "customer_email": null,
+              "subscription": null,
+              "number": "DRAFT",
+              "amount_due": 100,
+              "currency": "usd",
+              "created": 1793491200,
+              "due_date": null,
+              "status": "draft",
+              "attempt_count": 0,
+              "status_transitions": {
+                "paid_at": null
+              },
+              "charge": null
+            },
+            {
+              "id": "in_unknowngym",
+              "object": "invoice",
+              "customer": "cus_unknowngym",
+              "customer_email": null,
+              "subscription": null,
+              "number": "UGYM-1",
+              "amount_due": 9900,
+              "currency": "usd",
+              "created": 1791590400,
+              "due_date": null,
+              "status": "paid",
+              "attempt_count": 1,
+              "status_transitions": {
+                "paid_at": 1791594000
+              },
+              "charge": null
+            }
+          ],
+          "has_more": false,
+          "url": "/v1/x"
+        }
+      }
+    }
+  ]
+}
