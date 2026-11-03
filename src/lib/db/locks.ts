@@ -19,3 +19,15 @@ export async function withDatabaseLock<T>(
     { maxWait: timeoutMs, timeout: timeoutMs },
   );
 }
+
+/**
+ * A transaction-level advisory lock inside the caller's (tenant) transaction: concurrent callers
+ * with the same name queue behind it until that transaction ends. Used by integration ingest so
+ * two syncs of one integration cannot both create the same new record.
+ */
+export async function lockInTransaction(
+  tx: { $executeRaw: (q: TemplateStringsArray, ...v: unknown[]) => Promise<number> },
+  name: string,
+): Promise<void> {
+  await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${name}))`;
+}
