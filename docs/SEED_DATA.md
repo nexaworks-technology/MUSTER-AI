@@ -157,7 +157,7 @@ proving row ids.
 - Juniper Vet's plan is seeded open like the others; the seed's nightly pass finds value reached on **day 37** from
   its usage (the proving `UsageDaily`/`FeatureUsageDaily` rows are the evidence). §7's table says day 38: no
   threshold lands on 38 without reshaping the M3 usage stories, so the data-derived day 37 stands (M6-LOG,
-  Q-57). The historical plans' evidence is the usage row of the recorded day (seed-only history, not re-derived).
+  Q-58). The historical plans' evidence is the usage row of the recorded day (seed-only history, not re-derived).
 - Goals: Saltmarsh has 2 stated goals and Pinecrest 1, sourced to the account (CRM deal notes). Saltmarsh's
   "1 promised integration" needs the Promise model (M9) and is not seeded in M6.
 - Resulting states (asserted by `prisma/seed/__tests__/seed-onboarding.int.test.ts`): Pinecrest STALLED "SSO setup
