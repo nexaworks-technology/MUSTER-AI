@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { rawDb } from "@/lib/db/raw";
 import { scopedDb, TenantViolationError } from "@/lib/db/scoped";
 import { createTestWorkspace } from "@/test/fixtures";
+import { expectUpdateIsolated } from "./update-attack";
 
 /**
  * Rule 2: cross-tenant access must be impossible by construction. These tests try to break it
@@ -476,16 +477,12 @@ describe("tenant isolation — M2 models (Rule 2)", () => {
       const d = A.db[c.delegate] as unknown as {
         findMany: () => Promise<Array<{ workspaceId: string }>>;
         findUnique: (a: { where: { id: string } }) => Promise<unknown>;
-        updateMany: (a: {
-          where: { id: string };
-          data: Record<string, unknown>;
-        }) => Promise<{ count: number }>;
         deleteMany: (a: { where: { id: string } }) => Promise<{ count: number }>;
       };
       const bId = c.row(b2).id;
       expect((await d.findMany()).every((r) => r.workspaceId === A.workspace.id)).toBe(true);
       expect(await d.findUnique({ where: { id: bId } })).toBeNull();
-      expect((await d.updateMany({ where: { id: bId }, data: {} })).count).toBe(0);
+      await expectUpdateIsolated(c.delegate, d, bId, c.row(a2).id);
       expect((await d.deleteMany({ where: { id: bId } })).count).toBe(0);
     });
 
