@@ -62,6 +62,15 @@ export const requestApprovalInput = z.object({
   triggeringText: z.array(z.string()).default([]),
   stepTags: z.array(z.string()).default([]),
   sourceKey: z.string().min(1),
+  /** WRITE_BACK only (M5): the change the integrations gate will push once approved. */
+  writeBack: z
+    .object({
+      integrationId: z.string().min(1),
+      field: z.string().min(1),
+      accountId: z.string().min(1),
+      value: z.string().min(1),
+    })
+    .optional(),
   email: z
     .object({
       contactId: z.string().min(1),
@@ -118,7 +127,10 @@ export async function requestApproval(ctx: TenantContext, raw: RequestApprovalIn
         workspaceId: ctx.workspaceId,
         accountId: account.id,
         kind: input.kind as ApprovalKind,
-        payload: json({ ...(input.email ? { subject: input.email.subject } : {}) }),
+        payload: json({
+          ...(input.email ? { subject: input.email.subject } : {}),
+          ...(input.writeBack ? { writeBack: input.writeBack } : {}),
+        }),
         reason: input.reason,
         proof: json(input.proof),
         signalId: input.signalId ?? null,
@@ -304,6 +316,8 @@ export interface DecideOptions {
 export interface DecisionResult {
   approval: Approval;
   send?: DispatchResult | { status: "NOT_SENT"; reasons: string[] };
+  /** WRITE_BACK approvals (M5): what the write-back gate did once approved. */
+  writeBack?: { status: "PUSHED" | "REFUSED" | "FAILED" | "ALREADY_PUSHED"; plain: string };
 }
 
 async function loadPending(actor: Actor, approvalId: string, via: DecisionChannel) {
@@ -316,6 +330,17 @@ async function loadPending(actor: Actor, approvalId: string, via: DecisionChanne
   if (a.isSensitive && via === "SLACK")
     throw new ApprovalStateError("Sensitive items are decided in the app, never from Slack.");
   return a;
+}
+
+/** An approved WRITE_BACK goes through the integrations gate, which re-checks it (Rule 7). */
+async function writeBackIfApproved(
+  actor: Actor,
+  a: Approval,
+): Promise<DecisionResult["writeBack"]> {
+  if (a.kind !== "WRITE_BACK") return undefined;
+  // Loaded on use: integrations depends on approvals for requestApproval.
+  const { executeApprovedWriteBack } = await import("@/modules/integrations/service");
+  return executeApprovedWriteBack(actor, a.id);
 }
 
 async function sendIfEmail(
@@ -378,7 +403,11 @@ export async function approve(
       { type: "Approval", id: approval.id },
       opts.clock,
     );
-  return { approval, send: await sendIfEmail(actor, approval, opts.dispatch) };
+  return {
+    approval,
+    send: await sendIfEmail(actor, approval, opts.dispatch),
+    writeBack: await writeBackIfApproved(actor, approval),
+  };
 }
 
 /** Edit then approve: the edit becomes version n+1; the earlier versions stay as they were. */

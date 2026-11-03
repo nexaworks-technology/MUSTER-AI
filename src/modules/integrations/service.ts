@@ -24,6 +24,12 @@ export {
   testConnection,
 } from "./connections.service";
 export { OAUTH_NONCE_COOKIE, OAuthStateError } from "./oauth";
+export {
+  executeApprovedWriteBack,
+  requestWriteBack,
+  setWriteBack,
+  WriteBackRefusedError,
+} from "./writeback.service";
 export { PROVIDER_NAMES } from "./providers";
 export {
   processWebhookEvent,
