@@ -58,7 +58,7 @@ export function AiText({
           ? ` · model confidence ${Math.round(run.confidence * 100)}% (the model's own estimate)`
           : ""}
         {" · "}
-        <Link href={`/settings/ai-team/runs/${run.id}` as Route} className="underline">
+        <Link href={`/agent-runs/${run.id}` as Route} className="underline">
           What it read
         </Link>
       </p>

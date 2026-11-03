@@ -151,6 +151,24 @@ export async function runAgent(
   if (run.status !== "QUEUED" && run.status !== "RUNNING")
     return { kind: "run", runId: run.id, status: run.status, reused };
 
+  // An Admin can switch an agent off for this workspace (Settings › AI team).
+  const definition = await db.agentDefinition.findUnique({
+    where: { workspaceId_agentKey: { workspaceId: ctx.workspaceId, agentKey: def.key } },
+    select: { enabled: true },
+  });
+  if (definition && !definition.enabled)
+    return finish(
+      ctx,
+      def,
+      run,
+      {
+        status: "SKIPPED",
+        errorCode: "DISABLED",
+        errorDetail: "This agent is switched off for the workspace.",
+      },
+      reused,
+    );
+
   const settings = await getSettingsData(ctx.workspaceId);
   if ((await spentToday(ctx, clock)) >= settings.ai.dailyTokenBudget)
     return finish(

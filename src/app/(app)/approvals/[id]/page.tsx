@@ -89,7 +89,7 @@ export default async function ApprovalPage({ params }: { params: Promise<{ id: s
           <p className="text-muted-foreground text-sm">
             Drafted by the{" "}
             <Link
-              href={`/settings/ai-team/runs/${a.proposedByRun.id}` as Route}
+              href={`/agent-runs/${a.proposedByRun.id}` as Route}
               className="underline"
             >
               {a.proposedByRun.agentKey} agent (what it read)

@@ -76,3 +76,10 @@ export {
   type CheckInResult,
 } from "./checkin";
 export { outreach, outreachOutput, outreachInput } from "./definitions/outreach";
+export {
+  listAgentTeam,
+  setAgentEnabled,
+  getRunDetail,
+  AgentRunNotFoundError,
+  type RunDetail,
+} from "./team";

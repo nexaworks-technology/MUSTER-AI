@@ -122,7 +122,7 @@ export async function resolveProof(
           ? {
               ...r,
               label: `Agent run (${a.agentKey})`,
-              href: `/settings/ai-team/runs/${a.id}`,
+              href: `/agent-runs/${a.id}`,
               missing: false,
             }
           : gone(r);

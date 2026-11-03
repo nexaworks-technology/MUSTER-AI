@@ -4,6 +4,8 @@ import { rawDb } from "@/lib/db/raw";
 import { scopedDb } from "@/lib/db/scoped";
 import { createTestAdmin } from "@/test/fixtures";
 import { healthAnalyst } from "@/modules/agents/service";
+import { exportAudit } from "@/modules/audit/service";
+import { writeAudit } from "@/lib/audit";
 import { ApprovalNotFoundError, approve, getApproval, reject } from "@/modules/approvals/service";
 import { expectUpdateIsolated } from "./update-attack";
 
@@ -329,5 +331,24 @@ describe("tenant isolation — M4 agent, approval and outbound models (Rule 2)",
     );
     expect(built.bundle).toEqual([]);
     expect(built.accountId).toBeUndefined();
+  });
+
+  it("the audit export contains only A's rows", async () => {
+    await writeAudit({
+      workspaceId: A.workspaceId,
+      actorType: "SYSTEM",
+      action: "test.mark",
+      summary: "A-only row",
+    });
+    await writeAudit({
+      workspaceId: B.workspaceId,
+      actorType: "SYSTEM",
+      action: "test.mark",
+      summary: "B-only row",
+    });
+    const out = await exportAudit(A.actor, { action: "test." }, "json");
+    const rows = JSON.parse(out.body) as Array<{ summary: string }>;
+    expect(rows.map((r) => r.summary)).toEqual(["A-only row"]);
+    expect(out.body).not.toContain("B-only row");
   });
 });
