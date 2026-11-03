@@ -1,0 +1,44 @@
+{
+  "name": "day 19 is inside the cohort's range",
+  "bundle": {
+    "onboarding": {
+      "planId": "p1",
+      "startDate": "2026-09-30",
+      "valueReachedAt": null,
+      "steps": [],
+      "ttv": {
+        "state": "NOT_REACHED",
+        "days": 19,
+        "verdict": "IN_PROGRESS",
+        "reason": "Day 33 and value not reached yet. Similar accounts (Mid-touch accounts on the Growth plan, 6 peers) reach it by day 21; 3 in 4 by day 25.",
+        "ownTargetDays": 60,
+        "cohort": {
+          "key": "tier=MID_TOUCH|plan=Growth",
+          "label": "Mid-touch accounts on the Growth plan",
+          "size": 6,
+          "medianDays": 21,
+          "p75Days": 25,
+          "fellBack": false
+        },
+        "sources": [
+          {
+            "sourceType": "OnboardingPlan",
+            "sourceId": "peer-plan-1",
+            "value": 21,
+            "date": null
+          }
+        ]
+      }
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 30,
+          "toDaysAgo": 1,
+          "value": 3
+        }
+      ]
+    }
+  },
+  "expect": []
+}

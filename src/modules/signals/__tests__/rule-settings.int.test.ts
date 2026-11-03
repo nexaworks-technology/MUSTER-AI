@@ -33,7 +33,7 @@ beforeAll(async () => {
 describe("Settings › Signals", () => {
   it("lists every rule with its four spec fields; CSMs cannot open it", async () => {
     const rules = await listRuleSettings(admin);
-    expect(rules).toHaveLength(15);
+    expect(rules).toHaveLength(20);
     expect(rules[0]).toMatchObject({
       ruleKey: "usage_drop_vs_normal",
       label: "Usage drop vs normal",

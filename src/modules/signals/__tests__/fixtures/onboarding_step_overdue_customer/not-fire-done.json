@@ -1,0 +1,31 @@
+{
+  "name": "a customer step done late is not overdue",
+  "bundle": {
+    "onboarding": {
+      "planId": "p1",
+      "startDate": "2026-09-30",
+      "valueReachedAt": null,
+      "steps": [
+        {
+          "id": "s-sso",
+          "title": "SSO setup",
+          "ownerSide": "CUSTOMER",
+          "dueDate": "2026-10-21",
+          "doneDate": "2026-10-30",
+          "blockedReason": null
+        }
+      ],
+      "ttv": null
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 30,
+          "toDaysAgo": 1,
+          "value": 3
+        }
+      ]
+    }
+  },
+  "expect": []
+}

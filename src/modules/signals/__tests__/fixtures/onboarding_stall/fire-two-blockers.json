@@ -1,0 +1,63 @@
+{
+  "name": "our overdue step leads, the customer's comes second (D2), critical with two",
+  "bundle": {
+    "onboarding": {
+      "planId": "p1",
+      "startDate": "2026-09-30",
+      "valueReachedAt": null,
+      "steps": [
+        {
+          "id": "s-sso",
+          "title": "SSO setup",
+          "ownerSide": "CUSTOMER",
+          "dueDate": "2026-10-21",
+          "doneDate": null,
+          "blockedReason": null
+        },
+        {
+          "id": "s-guide",
+          "title": "Send admin guide",
+          "ownerSide": "US",
+          "dueDate": "2026-10-29",
+          "doneDate": null,
+          "blockedReason": null
+        }
+      ],
+      "ttv": null
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 30,
+          "toDaysAgo": 1,
+          "value": 3
+        }
+      ]
+    },
+    "featureUsage": [
+      {
+        "featureKey": "dashboards",
+        "series": [
+          {
+            "fromDaysAgo": 30,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      }
+    ],
+    "keyFeatures": [
+      {
+        "featureKey": "dashboards",
+        "label": "Dashboards"
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "onboarding_stall:a1:p1",
+      "severity": "CRITICAL",
+      "title": "Onboarding stalled: Send admin guide (us) overdue 4 days"
+    }
+  ]
+}

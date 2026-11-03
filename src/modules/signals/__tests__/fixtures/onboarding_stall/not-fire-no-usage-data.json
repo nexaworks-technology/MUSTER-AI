@@ -1,0 +1,30 @@
+{
+  "name": "no usage data at all never stalls (Rule 4)",
+  "bundle": {
+    "onboarding": {
+      "planId": "p1",
+      "startDate": "2026-09-30",
+      "valueReachedAt": null,
+      "steps": [
+        {
+          "id": "s1",
+          "title": "Training",
+          "ownerSide": "US",
+          "dueDate": "2026-11-10",
+          "doneDate": null,
+          "blockedReason": null
+        }
+      ],
+      "ttv": null
+    },
+    "usage": null,
+    "featureUsage": null,
+    "keyFeatures": [
+      {
+        "featureKey": "dashboards",
+        "label": "Dashboards"
+      }
+    ]
+  },
+  "expect": []
+}

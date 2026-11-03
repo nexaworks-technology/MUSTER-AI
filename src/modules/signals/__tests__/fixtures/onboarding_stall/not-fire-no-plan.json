@@ -1,0 +1,16 @@
+{
+  "name": "no onboarding plan",
+  "bundle": {
+    "onboarding": null,
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 60,
+          "toDaysAgo": 40,
+          "value": 3
+        }
+      ]
+    }
+  },
+  "expect": []
+}

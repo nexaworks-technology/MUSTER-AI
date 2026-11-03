@@ -1,0 +1,33 @@
+{
+  "name": "no logins for 16 days is critical",
+  "bundle": {
+    "onboarding": {
+      "planId": "p1",
+      "startDate": "2026-09-30",
+      "valueReachedAt": null,
+      "steps": [],
+      "ttv": null
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 30,
+          "toDaysAgo": 16,
+          "value": 4
+        },
+        {
+          "fromDaysAgo": 15,
+          "toDaysAgo": 1,
+          "value": 0
+        }
+      ]
+    }
+  },
+  "expect": [
+    {
+      "dedupeKey": "onboarding_no_activity:a1:p1",
+      "severity": "CRITICAL",
+      "title": "No one has used the product for 16 days"
+    }
+  ]
+}

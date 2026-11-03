@@ -9,9 +9,13 @@ import { chooseCohort, percentile, type CohortAttrs } from "@/modules/health/ser
  * group with at least minPeers, falling back to tier). The fallback and the peer count are said in
  * the reason. It is a measurement: nothing here touches health scores.
  */
+/** Proof for a figure: one record, or a range of an account's daily rows (signal Evidence shape). */
 export interface Source {
   sourceType: string;
-  sourceId: string;
+  sourceId?: string;
+  accountId?: string;
+  from?: CalendarDate;
+  to?: CalendarDate;
   value: number | string | null;
   date: CalendarDate | null;
 }

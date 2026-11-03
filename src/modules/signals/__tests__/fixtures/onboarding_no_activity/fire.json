@@ -1,0 +1,33 @@
+{
+  "name": "Cobalt Ridge: kickoff done, no logins for 9 days",
+  "bundle": {
+    "onboarding": {
+      "planId": "p1",
+      "startDate": "2026-09-30",
+      "valueReachedAt": null,
+      "steps": [],
+      "ttv": null
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 20,
+          "toDaysAgo": 9,
+          "value": 4
+        },
+        {
+          "fromDaysAgo": 8,
+          "toDaysAgo": 1,
+          "value": 0
+        }
+      ]
+    }
+  },
+  "expect": [
+    {
+      "dedupeKey": "onboarding_no_activity:a1:p1",
+      "severity": "WARN",
+      "title": "No one has used the product for 9 days"
+    }
+  ]
+}

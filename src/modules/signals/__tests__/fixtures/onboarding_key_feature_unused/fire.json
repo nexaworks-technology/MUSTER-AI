@@ -1,0 +1,50 @@
+{
+  "name": "Pinecrest: Data connectors never used by day 33",
+  "bundle": {
+    "onboarding": {
+      "planId": "p1",
+      "startDate": "2026-09-30",
+      "valueReachedAt": null,
+      "steps": [],
+      "ttv": null
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 30,
+          "toDaysAgo": 1,
+          "value": 3
+        }
+      ]
+    },
+    "featureUsage": [
+      {
+        "featureKey": "dashboards",
+        "series": [
+          {
+            "fromDaysAgo": 30,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      }
+    ],
+    "keyFeatures": [
+      {
+        "featureKey": "dashboards",
+        "label": "Dashboards"
+      },
+      {
+        "featureKey": "data_connectors",
+        "label": "Data connectors"
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "onboarding_key_feature_unused:a1:p1:data_connectors",
+      "severity": "WARN",
+      "title": "Data connectors not used by day 33 (expected by day 30)"
+    }
+  ]
+}

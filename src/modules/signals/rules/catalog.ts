@@ -94,6 +94,28 @@ export const PARAMS = {
     })
     .prefault({}),
   outside_event: z.object({ newWithinDays: days.default(30) }).prefault({}),
+  // M6: onboarding (D4). The thresholds feed the shared stall definition in onboarding/stall.ts.
+  onboarding_stall: z
+    .object({
+      stepOverdueDays: days.default(3),
+      noActivityDays: days.default(7),
+      keyFeatureByDay: days.default(30),
+    })
+    .prefault({}),
+  onboarding_step_overdue_customer: z
+    .object({ stepOverdueDays: days.default(3), criticalDays: days.default(14) })
+    .refine((p) => p.criticalDays > p.stepOverdueDays, {
+      message: "Critical must be more days overdue than warn",
+    })
+    .prefault({}),
+  onboarding_no_activity: z
+    .object({ noActivityDays: days.default(7), criticalDays: days.default(14) })
+    .refine((p) => p.criticalDays > p.noActivityDays, {
+      message: "Critical must be more quiet days than warn",
+    })
+    .prefault({}),
+  onboarding_key_feature_unused: z.object({ keyFeatureByDay: days.default(30) }).prefault({}),
+  onboarding_ttv_late: z.object({}).prefault({}),
 } as const;
 
 export type RuleKey = keyof typeof PARAMS;
@@ -279,6 +301,68 @@ export const RULES: readonly RuleMeta[] = [
       "Varies: an acquisition or a new leader can change a renewal within a quarter.",
     falseAlarmCauses:
       "Old news re-reported, or news about a different company with a similar name.",
+  },
+  // ─── M6: onboarding (spec §6D "adoption stall in onboarding", §6G1) ───
+  {
+    key: "onboarding_stall",
+    label: "Onboarding stalled",
+    category: "USAGE",
+    polarity: "RISK",
+    meaning: "A new customer's onboarding has stopped moving, with the likely blocker named.",
+    howDetected:
+      "From the onboarding plan: a step past due by 3 days or more (ours first, then the customer's), no one using the product for 7 days, a key feature not used by day 30, or time to value past what 3 in 4 similar accounts take. The first of these is shown as the likely blocker.",
+    typicalLeadTime:
+      "Weeks before the customer decides the product is not working for them; most onboarding churn starts here.",
+    falseAlarmCauses:
+      "A plan whose dates were never updated after a deliberate pause, or usage data that stopped arriving.",
+  },
+  {
+    key: "onboarding_step_overdue_customer",
+    label: "Customer onboarding step overdue",
+    category: "USAGE",
+    polarity: "RISK",
+    meaning: "A step the customer owns in their onboarding plan is past its due date.",
+    howDetected:
+      "An open customer-side step 3 days or more past due; critical at 14 days. A blocked step shows its reason.",
+    typicalLeadTime: "Days to weeks: an IT task like SSO can hold the whole rollout.",
+    falseAlarmCauses:
+      "The step was done but nobody marked it, or the plan's dates are out of date.",
+  },
+  {
+    key: "onboarding_no_activity",
+    label: "No activity during onboarding",
+    category: "USAGE",
+    polarity: "RISK",
+    meaning: "Nobody at a new customer has used the product recently.",
+    howDetected:
+      "No active user for 7 days during an open onboarding plan (or since the start); critical at 14 days.",
+    typicalLeadTime: "Early: a new customer who stops logging in rarely comes back unprompted.",
+    falseAlarmCauses:
+      "A planned pause (holiday, data migration), or usage data that stopped arriving.",
+  },
+  {
+    key: "onboarding_key_feature_unused",
+    label: "Key feature unused in onboarding",
+    category: "USAGE",
+    polarity: "RISK",
+    meaning: "A key feature of the customer's plan has not been used by the day it usually is.",
+    howDetected:
+      "No use of a key feature in the account's plan between the plan's start and day 30.",
+    typicalLeadTime: "Weeks: value usually depends on the key features being set up.",
+    falseAlarmCauses:
+      "The feature is not relevant to this customer's use case, or it is used through an API we do not track.",
+  },
+  {
+    key: "onboarding_ttv_late",
+    label: "Time to value late",
+    category: "USAGE",
+    polarity: "RISK",
+    meaning: "The customer has not reached first value by the time 3 in 4 similar accounts have.",
+    howDetected:
+      "Days since the plan started, compared with the time to value of completed plans among similar accounts (same tier, plan and size where there are enough of them), or the plan's own target when there is no history.",
+    typicalLeadTime: "Weeks to months before renewal confidence drops.",
+    falseAlarmCauses:
+      "A larger rollout than usual, or a value definition that does not fit this customer.",
   },
 ];
 

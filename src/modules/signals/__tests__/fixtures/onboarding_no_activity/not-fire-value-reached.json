@@ -1,0 +1,22 @@
+{
+  "name": "value already reached",
+  "bundle": {
+    "onboarding": {
+      "planId": "p1",
+      "startDate": "2026-09-30",
+      "valueReachedAt": "2026-10-20",
+      "steps": [],
+      "ttv": null
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 30,
+          "toDaysAgo": 20,
+          "value": 4
+        }
+      ]
+    }
+  },
+  "expect": []
+}

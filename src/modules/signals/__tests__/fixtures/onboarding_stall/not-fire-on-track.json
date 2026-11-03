@@ -1,0 +1,49 @@
+{
+  "name": "steps not yet due, people using the product",
+  "bundle": {
+    "onboarding": {
+      "planId": "p1",
+      "startDate": "2026-09-30",
+      "valueReachedAt": null,
+      "steps": [
+        {
+          "id": "s1",
+          "title": "Training",
+          "ownerSide": "US",
+          "dueDate": "2026-11-10",
+          "doneDate": null,
+          "blockedReason": null
+        }
+      ],
+      "ttv": null
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 30,
+          "toDaysAgo": 1,
+          "value": 3
+        }
+      ]
+    },
+    "featureUsage": [
+      {
+        "featureKey": "dashboards",
+        "series": [
+          {
+            "fromDaysAgo": 30,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      }
+    ],
+    "keyFeatures": [
+      {
+        "featureKey": "dashboards",
+        "label": "Dashboards"
+      }
+    ]
+  },
+  "expect": []
+}

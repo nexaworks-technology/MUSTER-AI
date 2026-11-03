@@ -1,0 +1,38 @@
+{
+  "name": "a customer step 15 days overdue is critical",
+  "asOf": "2026-11-05",
+  "bundle": {
+    "onboarding": {
+      "planId": "p1",
+      "startDate": "2026-09-30",
+      "valueReachedAt": null,
+      "steps": [
+        {
+          "id": "s-sso",
+          "title": "SSO setup",
+          "ownerSide": "CUSTOMER",
+          "dueDate": "2026-10-21",
+          "doneDate": null,
+          "blockedReason": null
+        }
+      ],
+      "ttv": null
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 30,
+          "toDaysAgo": 1,
+          "value": 3
+        }
+      ]
+    }
+  },
+  "expect": [
+    {
+      "dedupeKey": "onboarding_step_overdue_customer:a1:s-sso",
+      "severity": "CRITICAL",
+      "title": "SSO setup (customer) overdue 15 days"
+    }
+  ]
+}

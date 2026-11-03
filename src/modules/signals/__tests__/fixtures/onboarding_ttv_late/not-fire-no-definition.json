@@ -1,0 +1,30 @@
+{
+  "name": "no value definition is never late",
+  "bundle": {
+    "onboarding": {
+      "planId": "p1",
+      "startDate": "2026-09-30",
+      "valueReachedAt": null,
+      "steps": [],
+      "ttv": {
+        "state": "NO_DEFINITION",
+        "days": null,
+        "verdict": null,
+        "reason": "No value definition for this plan",
+        "ownTargetDays": 60,
+        "cohort": null,
+        "sources": []
+      }
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 30,
+          "toDaysAgo": 1,
+          "value": 3
+        }
+      ]
+    }
+  },
+  "expect": []
+}

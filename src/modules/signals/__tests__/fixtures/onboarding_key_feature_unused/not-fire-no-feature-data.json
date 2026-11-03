@@ -1,0 +1,29 @@
+{
+  "name": "no feature data: a note, never a signal (Rule 4)",
+  "bundle": {
+    "onboarding": {
+      "planId": "p1",
+      "startDate": "2026-09-30",
+      "valueReachedAt": null,
+      "steps": [],
+      "ttv": null
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 30,
+          "toDaysAgo": 1,
+          "value": 3
+        }
+      ]
+    },
+    "featureUsage": null,
+    "keyFeatures": [
+      {
+        "featureKey": "data_connectors",
+        "label": "Data connectors"
+      }
+    ]
+  },
+  "expect": []
+}

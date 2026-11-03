@@ -65,6 +65,8 @@ export const BLOCKER_ORDER: readonly BlockerKind[] = [
 
 export interface Blocker {
   kind: BlockerKind;
+  /** What the blocker is about: the step id, or the feature key. */
+  ref?: string;
   text: string;
   days: number;
   sources: Source[];
@@ -89,6 +91,7 @@ export function overdueSteps(
     .filter(({ days }) => days >= p.stepOverdueDays)
     .map(({ s, days }) => ({
       kind: side === "US" ? ("STEP_OVERDUE_US" as const) : ("STEP_OVERDUE_CUSTOMER" as const),
+      ref: s.id,
       text: `${s.title} (${side === "US" ? "us" : "customer"}) overdue ${days} days${s.blockedReason ? `: ${s.blockedReason}` : ""}`,
       days,
       sources: [{ sourceType: "OnboardingStep", sourceId: s.id, value: days, date: s.dueDate }],
@@ -131,9 +134,13 @@ export function keyFeaturesUnused(f: OnboardingFacts, p: StallParams): Blocker[]
     .filter((k) => !used.has(k.featureKey))
     .map((k) => ({
       kind: "KEY_FEATURE_UNUSED" as const,
+      ref: k.featureKey,
       text: `${k.label} not used by day ${day} (expected by day ${p.keyFeatureByDay})`,
       days: day - p.keyFeatureByDay,
-      sources: [{ sourceType: "FeatureCatalog", sourceId: k.featureKey, value: 0, date: f.asOf }],
+      // Proof of absence: the account's feature rows over the whole plan show no use.
+      sources: [
+        { sourceType: "FeatureUsageDaily", from: f.startDate, to: f.asOf, value: 0, date: f.asOf },
+      ],
     }));
 }
 
@@ -172,4 +179,36 @@ export function detectStall(f: OnboardingFacts, p: StallParams): StallResult {
     (a, b) => BLOCKER_ORDER.indexOf(a.kind) - BLOCKER_ORDER.indexOf(b.kind) || b.days - a.days,
   );
   return { stalled: blockers.length > 0, reason: blockers[0]?.text ?? null, blockers, missing };
+}
+
+/** What the signal bundle carries for an account with an open plan (loaded by the onboarding module). */
+export interface OnboardingPlanFacts {
+  planId: string;
+  startDate: CalendarDate;
+  valueReachedAt: CalendarDate | null;
+  steps: OnboardingFacts["steps"];
+  ttv: TtvResult | null;
+}
+
+/** The facts stall.ts reads, from a signal bundle: usage comes from the bundle itself (D4). */
+export function factsFromBundle(b: {
+  asOf: CalendarDate;
+  onboarding?: OnboardingPlanFacts | null;
+  usage: Array<{ id: string; date: CalendarDate; activeUsers: number }> | null;
+  featureUsage: Array<{
+    id?: string;
+    featureKey: string;
+    date: CalendarDate;
+    users: number;
+  }> | null;
+  keyFeatures: Array<{ featureKey: string; label: string }>;
+}): OnboardingFacts | null {
+  if (!b.onboarding) return null;
+  return {
+    ...b.onboarding,
+    asOf: b.asOf,
+    usage: b.usage,
+    featureUsage: b.featureUsage,
+    keyFeatures: b.keyFeatures,
+  };
 }

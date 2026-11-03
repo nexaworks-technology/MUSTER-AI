@@ -11,6 +11,17 @@ import {
   type AccountBundle,
   type SourceRef,
 } from "@/modules/health/service";
+import {
+  DEFAULT_STALL_PARAMS,
+  detectStall,
+  factsFromBundle,
+  keyFeaturesUnused,
+  noActivity,
+  overdueSteps,
+  ttvLate,
+  type Blocker,
+  type OnboardingPlanFacts,
+} from "@/modules/onboarding/service";
 import { parseParams, RULE_BY_KEY, type ParamsOf, type RuleKey } from "./catalog";
 
 /**
@@ -23,6 +34,8 @@ export interface SignalBundle extends AccountBundle {
   invoiceFailureCounts: Record<string, number>;
   /** null = no meeting data source yet (the meeting rule is dormant, D-61). */
   meetings: Array<{ id: string; date: CalendarDate }> | null;
+  /** M6: the account's open onboarding plan, or absent / null when it has none. */
+  onboarding?: OnboardingPlanFacts | null;
 }
 
 export type Severity = "INFO" | "WARN" | "CRITICAL";
@@ -403,7 +416,99 @@ const EVALUATORS: { [K in RuleKey]: Evaluator<K> } = {
 
   // Entered by people with a dated public source (INTERP-6); never raised by an evaluator.
   outside_event: () => [],
+
+  // ─── M6: onboarding, all through the one stall definition (onboarding/stall.ts, D4) ───
+  onboarding_stall: (b, p) => {
+    const f = factsFromBundle(b);
+    if (!f) return [];
+    const r = detectStall(f, p);
+    if (!r.stalled) return [];
+    return [
+      {
+        dedupeKey: `onboarding_stall:${b.accountId}:${f.planId}`,
+        severity: r.blockers.length > 1 ? "CRITICAL" : "WARN",
+        title: `Onboarding stalled: ${r.reason}`,
+        explanation: `Likely blocker: ${r.reason}.${
+          r.blockers.length > 1
+            ? ` Also: ${r.blockers
+                .slice(1)
+                .map((x) => x.text)
+                .join("; ")}.`
+            : ""
+        }`,
+        evidence: r.blockers.flatMap((x) => evidenceOf(b, x)),
+        values: { blockers: r.blockers.length, first: r.blockers[0]!.kind },
+      },
+    ];
+  },
+  onboarding_step_overdue_customer: (b, p) => {
+    const f = factsFromBundle(b);
+    if (!f) return [];
+    return overdueSteps(f, "CUSTOMER", {
+      ...DEFAULT_STALL_PARAMS,
+      stepOverdueDays: p.stepOverdueDays,
+    }).map((x) => ({
+      dedupeKey: `onboarding_step_overdue_customer:${b.accountId}:${x.ref}`,
+      severity: x.days >= p.criticalDays ? "CRITICAL" : "WARN",
+      title: x.text,
+      explanation: `The customer owns this onboarding step and it is ${x.days} days past its due date.`,
+      evidence: evidenceOf(b, x),
+      values: { days: x.days },
+    }));
+  },
+  onboarding_no_activity: (b, p) => {
+    const f = factsFromBundle(b);
+    if (!f) return [];
+    const x = noActivity(f, { ...DEFAULT_STALL_PARAMS, noActivityDays: p.noActivityDays });
+    if (!x) return [];
+    return [
+      {
+        dedupeKey: `onboarding_no_activity:${b.accountId}:${f.planId}`,
+        severity: x.days >= p.criticalDays ? "CRITICAL" : "WARN",
+        title: x.text,
+        explanation: `${x.text}, during onboarding (plan started ${formatDay(f.startDate)}).`,
+        evidence: evidenceOf(b, x),
+        values: { days: x.days },
+      },
+    ];
+  },
+  onboarding_key_feature_unused: (b, p) => {
+    const f = factsFromBundle(b);
+    if (!f) return [];
+    return keyFeaturesUnused(f, {
+      ...DEFAULT_STALL_PARAMS,
+      keyFeatureByDay: p.keyFeatureByDay,
+    }).map((x) => ({
+      dedupeKey: `onboarding_key_feature_unused:${b.accountId}:${f.planId}:${x.ref}`,
+      severity: "WARN",
+      title: x.text,
+      explanation: `${x.text}. It is a key feature of the account's plan.`,
+      evidence: evidenceOf(b, x),
+      values: { day: x.days + p.keyFeatureByDay },
+    }));
+  },
+  onboarding_ttv_late: (b) => {
+    const f = factsFromBundle(b);
+    if (!f || f.valueReachedAt) return [];
+    const x = ttvLate(f);
+    if (!x) return [];
+    return [
+      {
+        dedupeKey: `onboarding_ttv_late:${b.accountId}:${f.planId}`,
+        severity: "WARN",
+        title: `Time to value late: day ${x.days}`,
+        explanation: x.text,
+        evidence: evidenceOf(b, x),
+        values: { days: x.days, p75: f.ttv?.cohort?.p75Days ?? f.ttv?.ownTargetDays ?? null },
+      },
+    ];
+  },
 };
+
+/** Blocker sources as signal evidence; ranges are about this account. */
+function evidenceOf(b: SignalBundle, x: Blocker): Evidence[] {
+  return x.sources.map((s) => (s.sourceId ? s : { ...s, accountId: b.accountId }));
+}
 
 function renewal(
   key: "renewal_window_90" | "renewal_window_60" | "renewal_window_30",

@@ -1,0 +1,40 @@
+{
+  "name": "day 13 is before the key-feature day",
+  "bundle": {
+    "onboarding": {
+      "planId": "p1",
+      "startDate": "2026-10-20",
+      "valueReachedAt": null,
+      "steps": [],
+      "ttv": null
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 30,
+          "toDaysAgo": 1,
+          "value": 3
+        }
+      ]
+    },
+    "featureUsage": [
+      {
+        "featureKey": "dashboards",
+        "series": [
+          {
+            "fromDaysAgo": 30,
+            "toDaysAgo": 1,
+            "value": 2
+          }
+        ]
+      }
+    ],
+    "keyFeatures": [
+      {
+        "featureKey": "data_connectors",
+        "label": "Data connectors"
+      }
+    ]
+  },
+  "expect": []
+}

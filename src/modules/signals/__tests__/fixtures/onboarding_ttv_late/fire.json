@@ -1,0 +1,50 @@
+{
+  "name": "day 33, past what 3 in 4 similar accounts take",
+  "bundle": {
+    "onboarding": {
+      "planId": "p1",
+      "startDate": "2026-09-30",
+      "valueReachedAt": null,
+      "steps": [],
+      "ttv": {
+        "state": "NOT_REACHED",
+        "days": 33,
+        "verdict": "LATE",
+        "reason": "Day 33 and value not reached yet. Similar accounts (Mid-touch accounts on the Growth plan, 6 peers) reach it by day 21; 3 in 4 by day 25.",
+        "ownTargetDays": 60,
+        "cohort": {
+          "key": "tier=MID_TOUCH|plan=Growth",
+          "label": "Mid-touch accounts on the Growth plan",
+          "size": 6,
+          "medianDays": 21,
+          "p75Days": 25,
+          "fellBack": false
+        },
+        "sources": [
+          {
+            "sourceType": "OnboardingPlan",
+            "sourceId": "peer-plan-1",
+            "value": 21,
+            "date": null
+          }
+        ]
+      }
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 30,
+          "toDaysAgo": 1,
+          "value": 3
+        }
+      ]
+    }
+  },
+  "expect": [
+    {
+      "dedupeKey": "onboarding_ttv_late:a1:p1",
+      "severity": "WARN",
+      "title": "Time to value late: day 33"
+    }
+  ]
+}
