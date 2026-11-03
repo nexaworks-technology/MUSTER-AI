@@ -49,7 +49,7 @@ describe("Slack contract", () => {
     const url = new URL(auth.authorizeUrl({ redirectUri: "https://app.test/cb", state: "s.t" }));
     expect(url.searchParams.get("scope")).toBe("chat:write,im:write,users:read,users:read.email");
     expect(await auth.exchange("c", "https://app.test/cb", world())).toEqual({
-      accessToken: "fixture-slack-bot-token",
+      accessToken: "fixture-slack-bot-token-not-a-secret",
     });
   });
 
@@ -57,7 +57,7 @@ describe("Slack contract", () => {
     const r = await slackAdapter.testConnection({
       workspaceId: "w",
       integrationId: "i",
-      credentials: { accessToken: "fixture-slack-bot-token" },
+      credentials: { accessToken: "fixture-slack-bot-token-not-a-secret" },
       config: {},
       transport: world(),
       clock: () => NOW,
@@ -67,10 +67,10 @@ describe("Slack contract", () => {
 
   it("pages users.list by cursor", async () => {
     const t = createFixtureTransport(loadFixture("slack", "users"));
-    const first = await slackApi(t, "xoxb", "users.list", { limit: 200 }, usersPage);
+    const first = await slackApi(t, "fixture-slack-token", "users.list", { limit: 200 }, usersPage);
     const second = await slackApi(
       t,
-      "xoxb",
+      "fixture-slack-token",
       "users.list",
       { limit: 200, cursor: first.response_metadata!.next_cursor },
       usersPage,
@@ -101,9 +101,13 @@ describe("Slack contract", () => {
     ],
   ])("%s (Slack's ok:false) → HTTP %s in plain words", async (fixture, method, status, plain) => {
     const t = createFixtureTransport(loadFixture("slack", fixture));
-    const err = await slackApi(t, "xoxb", method, {}, z.object({ ok: z.literal(true) })).catch(
-      (e: unknown) => e,
-    );
+    const err = await slackApi(
+      t,
+      "fixture-slack-token",
+      method,
+      {},
+      z.object({ ok: z.literal(true) }),
+    ).catch((e: unknown) => e);
     expect((err as ProviderHttpError).status).toBe(status);
     expect(slackAdapter.describeError(err).plain).toBe(plain);
   });

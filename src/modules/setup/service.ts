@@ -71,8 +71,13 @@ export async function getSetupState(actor: Actor) {
         m.status === "DRAFT" &&
         (!active?.activatedAt || m.createdAt > active.activatedAt),
     ) ?? null;
-  const keptDefault =
-    (await db.auditLog.count({ where: { action: KEPT_DEFAULT, targetType: "HealthModel" } })) > 0;
+
+  // Kept for THIS proposal only: a later back-test asks again.
+  const keptDefault = proposal
+    ? (await db.auditLog.count({
+        where: { action: KEPT_DEFAULT, targetType: "HealthModel", targetId: proposal.id },
+      })) > 0
+    : false;
   return {
     setupPending: workspace.setupPending,
     baseCurrency: workspace.baseCurrency,

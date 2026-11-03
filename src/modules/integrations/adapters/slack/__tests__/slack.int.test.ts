@@ -38,7 +38,7 @@ async function setup(label: string) {
       workspaceId: ws,
       provider: "SLACK",
       externalAccountId: `T${randomUUID().slice(0, 8).toUpperCase()}`,
-      credentialsEnc: sealCredentials({ accessToken: "xoxb-test" }),
+      credentialsEnc: sealCredentials({ accessToken: "fixture-slack-bot-token" }),
     },
   });
   const transport = () => {

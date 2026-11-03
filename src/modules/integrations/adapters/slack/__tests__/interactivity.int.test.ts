@@ -42,7 +42,7 @@ async function setup(label: string, team: string) {
       workspaceId: ws,
       provider: "SLACK",
       externalAccountId: team,
-      credentialsEnc: sealCredentials({ accessToken: "xoxb-test" }),
+      credentialsEnc: sealCredentials({ accessToken: "fixture-slack-bot-token" }),
     },
   });
   const csm = await member(ws, `${label}-csm`, "CSM", "OWN");

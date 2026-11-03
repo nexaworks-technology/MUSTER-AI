@@ -1,0 +1,24 @@
+{
+  "provider": "chargebee",
+  "description": "The key cb_rejected_key_for_demo is refused (401), so the demo and e2e can show the plain-words error; any other key gets the normal world.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/api/v2/customers",
+        "headers": {
+          "authorization": "Basic Y2JfcmVqZWN0ZWRfa2V5X2Zvcl9kZW1vOg=="
+        }
+      },
+      "response": {
+        "status": 401,
+        "headers": {},
+        "body": {
+          "message": "Sorry, authentication failed. Invalid api key",
+          "api_error_code": "api_authentication_failed",
+          "http_status_code": 401
+        }
+      }
+    }
+  ]
+}

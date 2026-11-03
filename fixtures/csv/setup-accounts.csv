@@ -1,0 +1,3 @@
+account_id,name,tier,domain,stage,plan,industry,employee_band
+JN-1,Wren Analytics,Mid-touch,wren-analytics.test,Adopting,Growth,Software,51-200
+JN-2,Tamarack Clinics,Long-tail,tamarack-clinics.test,Onboarding,Starter,Healthcare,1-50
