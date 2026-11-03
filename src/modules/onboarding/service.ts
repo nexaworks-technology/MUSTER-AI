@@ -26,3 +26,15 @@ export {
   type TtvPeer,
   type TtvResult,
 } from "./ttv";
+export { evaluateOnboarding, type OnboardingEvaluation } from "./evaluate";
+export { onboardingFactsFor, TTV_MIN_PEERS } from "./facts";
+export {
+  condition,
+  describeCondition,
+  templateInput,
+  valueDefinition,
+  type Condition,
+  type TemplateInput,
+  type TemplateStep,
+} from "./schemas";
+export { firstMet, type UsageData } from "./value";

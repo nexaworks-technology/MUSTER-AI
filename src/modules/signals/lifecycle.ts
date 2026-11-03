@@ -4,6 +4,7 @@ import { utcMidnight, type CalendarDate, type Clock } from "@/lib/dates";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { writeOutboxEvent } from "@/lib/jobs/outbox";
 import { loadBundles, loadContext } from "@/modules/health/service";
+import { onboardingFactsFor, type OnboardingPlanFacts } from "@/modules/onboarding/service";
 import { syncSignalRules } from "./rule-rows";
 import { RULE_BY_KEY, type RuleKey } from "./rules/catalog";
 import {
@@ -37,6 +38,8 @@ export async function evaluateAndStore(
   accountIds: string[],
   asOf: CalendarDate,
   clock: Clock,
+  /** M6: onboarding facts the nightly chunk already computed; loaded here when absent. */
+  onboarding?: Map<string, OnboardingPlanFacts>,
 ): Promise<EvaluateResult> {
   const db = scopedDb(ctx);
   const ids = [...new Set(accountIds)];
@@ -44,7 +47,7 @@ export async function evaluateAndStore(
   if (ids.length === 0) return result;
   await syncSignalRules(ctx);
 
-  const [rules, bundles, failures, existing, accounts] = await Promise.all([
+  const [rules, bundles, failures, existing, accounts, onboardingFacts] = await Promise.all([
     db.signalRule.findMany({ where: { enabled: true, dormantReason: null } }),
     loadBundles(db, await loadContext(ctx), asOf, ids),
     db.invoice.findMany({
@@ -59,6 +62,7 @@ export async function evaluateAndStore(
       where: { id: { in: ids } },
       select: { id: true, arrMinor: true, arrCurrency: true },
     }),
+    onboarding ?? onboardingFactsFor(db, ids, asOf),
   ]);
   const failureCounts = Object.fromEntries(failures.map((f) => [f.id, f.failureCount]));
   const latest = new Map<string, Signal>();
@@ -70,7 +74,12 @@ export async function evaluateAndStore(
   for (const accountId of ids) {
     const base = bundles.get(accountId);
     if (!base) continue;
-    const bundle: SignalBundle = { ...base, invoiceFailureCounts: failureCounts, meetings: null };
+    const bundle: SignalBundle = {
+      ...base,
+      invoiceFailureCounts: failureCounts,
+      meetings: null,
+      onboarding: onboardingFacts.get(accountId) ?? null,
+    };
     const seen = new Set<string>();
     const evaluatedRules = new Set<string>();
 

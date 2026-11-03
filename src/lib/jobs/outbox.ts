@@ -115,4 +115,7 @@ export const AWAITING_CONSUMER: string[] = [
   "task.overdue",
   /** M5: written at the end of every integration sync; consumed by plays (M8). */
   "sync.completed",
+  /** M6: onboarding plan changes; the Onboarding Manager (M6 Session B) and plays (M8) consume them. */
+  "onboarding.stalled",
+  "onboarding.valueReached",
 ];

@@ -13,7 +13,9 @@ import {
   storeUsageBaselines,
 } from "@/modules/health/service";
 import { addNightlySyncFlow } from "@/modules/integrations/service";
+import { evaluateOnboarding } from "@/modules/onboarding/service";
 import { evaluateAndStore } from "./lifecycle";
+import { parseParams } from "./rules/catalog";
 
 /**
  * The nightly run (ARCHITECTURE §1.2, M3 rule 9), as queue jobs:
@@ -100,7 +102,16 @@ export async function kickoff(raw: unknown, deps: PipelineDeps) {
 async function evaluateCore(data: ChunkData, clock: Clock) {
   const ctx = { workspaceId: data.workspaceId };
   await storeUsageBaselines(ctx, data.asOf, data.accountIds);
-  return evaluateAndStore(ctx, data.accountIds, data.asOf, clock);
+  // M6 `onboarding.evaluate`: step completions, value reached and stall status, then the signal
+  // rules read the same facts (D4). Its thresholds are the onboarding_stall rule's settings.
+  const onboarding = await evaluateOnboarding(ctx, data.accountIds, data.asOf, async () => {
+    const row = await scopedDb(ctx).signalRule.findUnique({
+      where: { workspaceId_ruleKey: { workspaceId: ctx.workspaceId, ruleKey: "onboarding_stall" } },
+      select: { params: true },
+    });
+    return parseParams("onboarding_stall", row?.params);
+  });
+  return evaluateAndStore(ctx, data.accountIds, data.asOf, clock, onboarding.facts);
 }
 
 export async function evaluateChunk(raw: unknown, deps: PipelineDeps) {
