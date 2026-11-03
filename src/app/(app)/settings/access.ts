@@ -7,7 +7,6 @@ import { requireSession, resolveWorkspaceContext, type WorkspaceContext } from "
 /** Settings tabs and the permission each needs. A member sees only the tabs they may use. */
 export const SETTINGS_TABS: ReadonlyArray<{ label: string; href: Route; permission: Permission }> =
   [
-    { label: "Setup", href: "/setup", permission: "workspace:manageSettings" },
     { label: "Users", href: "/settings/users", permission: "workspace:manageUsers" },
     { label: "Workspace", href: "/settings/workspace", permission: "workspace:manageSettings" },
     { label: "Import", href: "/settings/import", permission: "data:import" },
@@ -18,6 +17,8 @@ export const SETTINGS_TABS: ReadonlyArray<{ label: string; href: Route; permissi
     { label: "Health model", href: "/settings/health-model", permission: "healthModel:propose" },
     { label: "AI team", href: "/settings/ai-team", permission: "audit:view" },
     { label: "Audit", href: "/settings/audit", permission: "audit:view" },
+    // Last on purpose: /settings opens the first allowed tab, which stays Users for Admins.
+    { label: "Setup", href: "/setup", permission: "workspace:manageSettings" },
   ];
 
 export const allowedSettingsTabs = (member: MemberAccess) =>
