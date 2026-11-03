@@ -14,6 +14,7 @@ import { adapterFor } from "./adapters";
 import { openCredentials } from "./credentials";
 import { ingestBatch } from "./ingest.service";
 import { recordSourceFor } from "./providers";
+import { notifySignalsOpened, type SlackDeps } from "./slack/service";
 
 /**
  * Webhook intake (M5 §2, rule 4: webhooks are untrusted input).
@@ -28,7 +29,7 @@ import { recordSourceFor } from "./providers";
  * verified event is a no-op. Processing ingests the event's records through the one ingest path
  * and evaluates the affected account's signals inside the same job (ARCHITECTURE §5.2).
  */
-export interface WebhookDeps {
+export interface WebhookDeps extends Pick<SlackDeps, "delivery" | "transport"> {
   clock?: Clock;
   adapter?: (provider: IntegrationProvider) => IntegrationAdapter<unknown>;
   storage?: Pick<ReturnType<typeof getStorage>, "put" | "get" | "ensureBucket">;
@@ -182,8 +183,26 @@ export async function processWebhookEvent(
     if (accountIds.size && normalized?.realtimeCustomerExternalId) {
       const clock = deps.clock ?? businessClock;
       const asOf = todayIn((await loadContext(ctx)).timeZone, clock);
+      const since = realClock();
       opened = (await evaluateAndStore(ctx, [...accountIds], asOf, clock)).opened;
       await enqueueAccountEvaluation(ctx, [...accountIds], `webhook-${event.eventType}`, clock);
+      if (opened) {
+        // Big signals reach the account owner in Slack right away (no-op without Slack; D-95).
+        const fresh = await db.signal.findMany({
+          where: { accountId: { in: [...accountIds] }, status: "OPEN", createdAt: { gte: since } },
+          select: { id: true },
+        });
+        await notifySignalsOpened(
+          ctx,
+          fresh.map((f) => f.id),
+          deps,
+        ).catch((err: unknown) =>
+          logger.warn(
+            { workspaceId, err: err instanceof Error ? err.name : "unknown" },
+            "slack signal notice failed",
+          ),
+        );
+      }
     }
     const status = normalized ? "PROCESSED" : "IGNORED";
     await db.webhookEvent.update({

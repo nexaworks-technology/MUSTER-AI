@@ -1,0 +1,101 @@
+{
+  "provider": "slack",
+  "description": "Slack members over two pages: Aisha and Leo with verified emails, Priya unverified, a bot, Slackbot, someone outside Larkspur.",
+  "interactions": [
+    {
+      "note": "page 2",
+      "request": {
+        "method": "POST",
+        "path": "/api/users.list",
+        "bodyIncludes": "\"cursor\":\"dXNlcjpVMDJQ\""
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "ok": true,
+          "members": [
+            {
+              "id": "U0LEO",
+              "deleted": false,
+              "is_bot": false,
+              "is_email_confirmed": true,
+              "profile": {
+                "email": "leo@larkspur.test",
+                "real_name": "U0LEO"
+              }
+            },
+            {
+              "id": "U0GUEST",
+              "deleted": false,
+              "is_bot": false,
+              "is_email_confirmed": true,
+              "profile": {
+                "email": "guest@elsewhere.test",
+                "real_name": "U0GUEST"
+              }
+            }
+          ],
+          "response_metadata": {
+            "next_cursor": ""
+          }
+        }
+      }
+    },
+    {
+      "note": "page 1",
+      "request": {
+        "method": "POST",
+        "path": "/api/users.list"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "ok": true,
+          "members": [
+            {
+              "id": "U0AISHA",
+              "deleted": false,
+              "is_bot": false,
+              "is_email_confirmed": true,
+              "profile": {
+                "email": "aisha@larkspur.test",
+                "real_name": "U0AISHA"
+              }
+            },
+            {
+              "id": "U0PRIYA",
+              "deleted": false,
+              "is_bot": false,
+              "is_email_confirmed": false,
+              "profile": {
+                "email": "admin@larkspur.test",
+                "real_name": "U0PRIYA"
+              }
+            },
+            {
+              "id": "U0BOT",
+              "deleted": false,
+              "is_bot": true,
+              "is_email_confirmed": true,
+              "profile": {
+                "email": "bot@larkspur.test",
+                "real_name": "U0BOT"
+              }
+            },
+            {
+              "id": "USLACKBOT",
+              "deleted": false,
+              "is_bot": false,
+              "profile": {}
+            }
+          ],
+          "response_metadata": {
+            "next_cursor": "dXNlcjpVMDJQ"
+          }
+        }
+      }
+    }
+  ]
+}

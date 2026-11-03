@@ -1,0 +1,22 @@
+{
+  "provider": "slack",
+  "description": "Slack answers HTTP 429 with Retry-After.",
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/api/users.list"
+      },
+      "response": {
+        "status": 429,
+        "headers": {
+          "Retry-After": "3"
+        },
+        "body": {
+          "ok": false,
+          "error": "ratelimited"
+        }
+      }
+    }
+  ]
+}

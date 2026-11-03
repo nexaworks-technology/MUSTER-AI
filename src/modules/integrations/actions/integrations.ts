@@ -12,7 +12,7 @@ import {
   disconnect,
   testConnection,
 } from "../connections.service";
-import { runSyncNow } from "../status.service";
+import { relinkSlackMembers, runSyncNow } from "../status.service";
 import { setWriteBack, WriteBackRefusedError } from "../writeback.service";
 
 /**
@@ -100,5 +100,14 @@ export async function writeBackAction(integrationId: string, formData: FormData)
       fields: enabled ? formData.getAll("fields").map(String) : [],
     });
     return { writeback: enabled ? "on" : "off" };
+  });
+}
+
+export async function linkSlackMembersAction() {
+  return run(async () => {
+    const r = await relinkSlackMembers(await actor());
+    return {
+      tested: `Linked ${r.linked} Slack member${r.linked === 1 ? "" : "s"} by verified email; ${r.unmatched} not matched.`,
+    };
   });
 }

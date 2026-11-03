@@ -98,6 +98,8 @@ export async function dispatchOutbox(
 export const OUTBOX_ROUTES: OutboxRoutes = {
   /** M4: a band change asks the Health Analyst for a narrative (it decides and dedupes). */
   "health.bandChanged": { queue: "agents", job: "health-analyst.consider" },
+  /** M5: an approval request is DM'd to its assignee in Slack when Slack is connected. */
+  "approval.requested": { queue: "outbound", job: "slack.approvalRequested" },
 };
 
 /**

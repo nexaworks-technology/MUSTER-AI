@@ -243,7 +243,10 @@ describe("tenant isolation — M5 integration models (Rule 2)", () => {
 
   it("workspace A cannot read or act on B's integration through any Settings action's service", async () => {
     const cards = await listIntegrations(A.actor);
-    expect(cards.map((c) => c.integration?.id).filter(Boolean)).toEqual([A.integration.id]);
+    const shown = cards.map((c) => c.integration?.id).filter(Boolean);
+    expect(shown.sort()).toEqual([A.integration.id, A.slack.id].sort()); // A's own rows only
+    expect(shown).not.toContain(B.integration.id);
+    expect(shown).not.toContain(B.slack.id);
     const bId = B.integration.id;
     await expect(testConnection(A.actor, bId)).rejects.toThrow("This integration does not exist.");
     await expect(runSyncNow(A.actor, bId)).rejects.toThrow("This integration does not exist.");

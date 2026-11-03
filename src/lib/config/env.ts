@@ -83,6 +83,11 @@ export const envSchema = z
     SLACK_CLIENT_ID: optionalString,
     SLACK_CLIENT_SECRET: optionalString,
     SLACK_SIGNING_SECRET: optionalString,
+    /**
+     * How Slack messages leave (D4, D-95): "log" writes them to `.dev-slack/` (development, test,
+     * e2e, demo); "live" posts with the workspace's bot token. "log" is refused in production.
+     */
+    SLACK_DELIVERY: z.enum(["log", "live"]).default("log"),
     /** Used only by the dev `pnpm demo:webhook` script; real integrations keep their own (D3). */
     STRIPE_WEBHOOK_SECRET: optionalString,
 
@@ -115,6 +120,13 @@ export const envSchema = z
         code: "custom",
         path: ["INTEGRATIONS_TRANSPORT"],
         message: "the fixture integrations transport is test-only and refused in production",
+      });
+    }
+    if (env.NODE_ENV === "production" && env.SLACK_DELIVERY === "log") {
+      ctx.addIssue({
+        code: "custom",
+        path: ["SLACK_DELIVERY"],
+        message: "the log-only Slack delivery is for development and test only",
       });
     }
     if (env.NODE_ENV === "production" && env.EMAIL_TRANSPORT === "log") {

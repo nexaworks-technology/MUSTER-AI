@@ -30,3 +30,4 @@ blob-report/
 # Recorded-provider fixtures written by scripts/recorded-agents.ts (e2e and demo replay)
 .dev-recordings/
 .dev-mail-customer/
+.dev-slack/

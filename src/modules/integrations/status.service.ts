@@ -7,6 +7,7 @@ import type { Actor } from "@/modules/accounts/service";
 import { ADAPTERS } from "./adapters";
 import { ConnectError } from "./connections.service";
 import { PROVIDER_NAMES } from "./providers";
+import { linkSlackMembers } from "./slack/service";
 import { enqueueSync } from "./sync.jobs";
 
 /**
@@ -45,6 +46,8 @@ export interface ProviderCard {
   authKind: "oauth2" | "apiKey";
   hasWebhooks: boolean;
   writeBackFields: ReadonlyArray<{ key: string; label: string }>;
+  /** Slack only: members linked by verified email. */
+  slackLinked: number | null;
   integration: {
     id: string;
     status: "CONNECTED" | "ERROR" | "DISCONNECTED";
@@ -90,6 +93,7 @@ export async function listIntegrations(actor: Actor): Promise<ProviderCard[]> {
         distinct: ["integrationId"],
       })
     : [];
+  const slackLinked = await db.slackUserLink.count();
   const order: IntegrationProvider[] = ["HUBSPOT", "SALESFORCE", "STRIPE", "CHARGEBEE", "SLACK"];
   return order
     .filter((p) => ADAPTERS[p])
@@ -104,6 +108,7 @@ export async function listIntegrations(actor: Actor): Promise<ProviderCard[]> {
         authKind: adapter.auth.kind,
         hasWebhooks: Boolean(adapter.webhook),
         writeBackFields: adapter.writeBack?.fields ?? [],
+        slackLinked: provider === "SLACK" ? slackLinked : null,
         integration: row
           ? {
               ...row,
@@ -126,6 +131,14 @@ export async function listIntegrations(actor: Actor): Promise<ProviderCard[]> {
     });
 }
 
+/** "Link Slack members" (Admin): re-reads Slack's members and links verified emails. */
+export async function relinkSlackMembers(actor: Actor) {
+  requirePermission(actor, "integrations:manage");
+  const r = await linkSlackMembers(actor);
+  if (r.notConnected) throw new ConnectError("Slack is not connected.");
+  return r;
+}
+
 /** "Run sync now": Admin only, own integration only, connected only. */
 export async function runSyncNow(actor: Actor, integrationId: string) {
   requirePermission(actor, "integrations:manage");
@@ -134,6 +147,7 @@ export async function runSyncNow(actor: Actor, integrationId: string) {
     select: { id: true, status: true, provider: true },
   });
   if (!row) throw new ConnectError("This integration does not exist.");
+  if (row.provider === "SLACK") throw new ConnectError("Slack has nothing to sync.");
   if (row.status === "DISCONNECTED")
     throw new ConnectError(`${PROVIDER_NAMES[row.provider]} is disconnected. Connect it first.`);
   return enqueueSync(actor, row.id, "MANUAL");

@@ -911,6 +911,10 @@ enum NotificationType {
   TASK_ASSIGNED
   TASK_OVERDUE
   APPROVAL_ASSIGNED
+  /// M5 (Slack): a big signal opened on an account the member owns.
+  SIGNAL_OPENED
+  /// M5 (Slack): the member's morning digest (refId = business date).
+  DAILY_DIGEST
 }
 
 /// [W] A unit of work for one member (spec §6F3). Agents and plays create tasks from M4/M8.

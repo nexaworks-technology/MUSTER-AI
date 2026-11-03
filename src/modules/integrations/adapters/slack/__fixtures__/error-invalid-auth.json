@@ -1,0 +1,34 @@
+{
+  "provider": "slack",
+  "description": "Slack answers ok:false invalid_auth (HTTP 200, as Slack does).",
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/api/auth.test"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "ok": false,
+          "error": "invalid_auth"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/api/users.list"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "ok": false,
+          "error": "invalid_auth"
+        }
+      }
+    }
+  ]
+}

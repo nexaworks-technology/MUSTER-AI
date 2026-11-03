@@ -33,6 +33,14 @@ export {
 export { PROVIDER_NAMES } from "./providers";
 export { listIntegrations, runSyncNow, type ProviderCard } from "./status.service";
 export {
+  handleSlackInteraction,
+  linkSlackMembers,
+  notifyApprovalRequested,
+  notifySignalsOpened,
+  sendDigestIfDue,
+  SENSITIVE_DECISIONS_FROM_SLACK,
+} from "./slack/service";
+export {
   processWebhookEvent,
   receiveWebhook,
   type WebhookProcessResult,

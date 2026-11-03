@@ -3,6 +3,7 @@ import type { IntegrationAdapter } from "../adapter";
 import { chargebeeAdapter } from "./chargebee";
 import { hubspotAdapter } from "./hubspot";
 import { salesforceAdapter } from "./salesforce";
+import { slackAdapter } from "./slack";
 import { stripeAdapter } from "./stripe";
 
 /**
@@ -19,6 +20,7 @@ export const ADAPTERS: Partial<Record<IntegrationProvider, AnyAdapter>> = {
   SALESFORCE: salesforceAdapter,
   STRIPE: stripeAdapter,
   CHARGEBEE: chargebeeAdapter,
+  SLACK: slackAdapter,
 };
 
 export class AdapterMissingError extends Error {

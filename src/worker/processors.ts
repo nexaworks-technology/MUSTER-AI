@@ -12,7 +12,12 @@ import {
   sweepAllHealthNarratives,
 } from "@/modules/agents/service";
 import { importJobPayload, runImportJob } from "@/modules/imports/service";
-import { processWebhookEvent, runSync } from "@/modules/integrations/service";
+import {
+  notifyApprovalRequested,
+  processWebhookEvent,
+  runSync,
+  sendDigestIfDue,
+} from "@/modules/integrations/service";
 import { evaluateSevenDayCheckpoints } from "@/modules/outcomes/service";
 import { escalateOverdueTasks } from "@/modules/tasks/service";
 import { rebuildWorkspaceToday } from "@/modules/today/service";
@@ -58,6 +63,12 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
     /** M5: one verified webhook event: ingest, then real-time evaluation of its account. */
     async "webhook.process"(job) {
       return processWebhookEvent(job.data);
+    },
+  },
+  /** M5: internal Slack deliveries (never customer contact; D4). */
+  outbound: {
+    async "slack.approvalRequested"(job) {
+      return notifyApprovalRequested(job.data);
     },
   },
   /** M3: the nightly run and the real-time hook (signals → health), scoped by payload. */
@@ -106,8 +117,16 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
     /** M4: every member's Today, re-ranked (pages also rebuild a stale Today on read). */
     async "today.rebuildAll"() {
       const out: Record<string, number> = {};
-      for (const w of await listActiveWorkspaces())
+      for (const w of await listActiveWorkspaces()) {
         out[w.slug] = await rebuildWorkspaceToday({ workspaceId: w.id });
+        // M5 (D-95): the Slack morning digest follows the Today rebuild, once per business date.
+        await sendDigestIfDue({ workspaceId: w.id, timezone: w.timezone }).catch((err: unknown) =>
+          logger.warn(
+            { workspaceId: w.id, err: err instanceof Error ? err.name : "unknown" },
+            "slack digest failed",
+          ),
+        );
+      }
       return out;
     },
   },

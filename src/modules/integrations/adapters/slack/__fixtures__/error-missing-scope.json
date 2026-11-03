@@ -1,0 +1,21 @@
+{
+  "provider": "slack",
+  "description": "Slack answers ok:false missing_scope.",
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/api/users.list"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "ok": false,
+          "error": "missing_scope",
+          "needed": "users:read.email"
+        }
+      }
+    }
+  ]
+}

@@ -12,6 +12,8 @@ import { loadConnection } from "./connection";
 import { sealCredentials, type Credentials } from "./credentials";
 import { newNonce, signState, verifyState } from "./oauth";
 import { PROVIDER_NAMES } from "./providers";
+import { linkSlackMembers } from "./slack/service";
+import { findSlackIntegrationByTeam } from "@/lib/db/inbound";
 import { transportFor, type HttpTransport } from "./transport";
 
 /**
@@ -179,6 +181,7 @@ async function saveConnection(
   });
   // Record which provider account was connected, so webhooks and the UI can name it.
   const check = await testConnection(actor, integration.id, deps).catch(() => null);
+  if (provider === "SLACK" && check?.ok) await linkSlackMembers(actor, deps).catch(() => null); // shown as "0 linked" if it fails
   return { integrationId: integration.id, check };
 }
 
@@ -209,6 +212,27 @@ export async function testConnection(actor: Actor, integrationId: string, deps: 
       ? { status: "CONNECTED", lastErrorPlain: null, externalAccountId: result.externalAccountId }
       : { status: "ERROR", lastErrorPlain: result.message },
   });
+  // A Slack team must belong to exactly one workspace, or clicks could not be routed (D-93).
+  const row = await db.integration.findUniqueOrThrow({
+    where: { id: integrationId },
+    select: { provider: true, externalAccountId: true },
+  });
+  if (
+    result.ok &&
+    row.provider === "SLACK" &&
+    row.externalAccountId &&
+    !(await findSlackIntegrationByTeam(row.externalAccountId))
+  ) {
+    result = {
+      ok: false,
+      message:
+        "This Slack workspace is already connected to another NexaWorks workspace, so Approve and Reject from Slack are off until it is disconnected there.",
+    };
+    await db.integration.update({
+      where: { id: integrationId },
+      data: { status: "ERROR", lastErrorPlain: result.message },
+    });
+  }
   return { ok: result.ok, message: result.message };
 }
 

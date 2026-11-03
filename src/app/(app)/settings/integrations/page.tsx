@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatDateTime } from "@/lib/format";
 import {
+  linkSlackMembersAction,
   connectApiKeyAction,
   disconnectAction,
   runSyncNowAction,
@@ -106,7 +107,7 @@ function ProviderSection({ card, tz }: { card: ProviderCard; tz: string }) {
         <h3 id={headingId} className="font-semibold">
           {card.name}{" "}
           <span className="text-muted-foreground text-xs font-normal">
-            {card.category === "CRM" ? "CRM" : "Billing"}
+            {card.category === "CRM" ? "CRM" : card.category === "CHAT" ? "Team chat" : "Billing"}
           </span>
         </h3>
         <span className="text-sm" data-testid={`status-${card.provider}`}>
@@ -122,15 +123,29 @@ function ProviderSection({ card, tz }: { card: ProviderCard; tz: string }) {
         </Alert>
       ) : null}
 
-      {connected ? <SyncStatus card={card} tz={tz} /> : null}
+      {connected && card.provider !== "SLACK" ? <SyncStatus card={card} tz={tz} /> : null}
+      {connected && card.provider === "SLACK" ? (
+        <p className="text-sm" data-testid="slack-linked">
+          {card.slackLinked} member{card.slackLinked === 1 ? "" : "s"} linked by verified email.
+          Approvals, big signals and a morning digest (from 07:00) go to them as direct messages.
+          Sensitive approvals show &quot;Open in app to review&quot; and cannot be decided from
+          Slack.
+        </p>
+      ) : null}
 
       {!connected ? <ConnectForm card={card} /> : null}
 
       {connected && i ? (
         <div className="flex flex-wrap gap-3">
-          <form action={runSyncNowAction.bind(null, i.id)}>
-            <Button type="submit">Run sync now</Button>
-          </form>
+          {card.provider === "SLACK" ? (
+            <form action={linkSlackMembersAction}>
+              <Button type="submit">Link Slack members</Button>
+            </form>
+          ) : (
+            <form action={runSyncNowAction.bind(null, i.id)}>
+              <Button type="submit">Run sync now</Button>
+            </form>
+          )}
           <form action={testConnectionAction.bind(null, i.id)}>
             <Button type="submit" variant="outline">
               Test connection
@@ -220,8 +235,9 @@ function ConnectForm({ card }: { card: ProviderCard }) {
     return (
       <div className="space-y-2">
         <p className="text-sm">
-          You will sign in to {card.name} and allow read access. Nothing is written back unless you
-          turn it on later.
+          {card.provider === "SLACK"
+            ? "You will add the NexaWorks app to your Slack. It reads member emails to link your team and sends them direct messages; it never messages customers."
+            : `You will sign in to ${card.name} and allow read access. Nothing is written back unless you turn it on later.`}
         </p>
         <a
           href={`/api/integrations/${card.provider.toLowerCase()}/connect`}

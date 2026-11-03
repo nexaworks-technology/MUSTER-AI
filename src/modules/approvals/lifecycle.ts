@@ -1,6 +1,7 @@
 import type { Approval, ApprovalKind, Prisma } from "@prisma/client";
 import { z } from "zod";
 import { writeAudit } from "@/lib/audit";
+import { writeOutboxEvent } from "@/lib/jobs/outbox";
 import { can, ForbiddenError, requirePermission } from "@/lib/auth/permissions";
 import { businessClock, type Clock } from "@/lib/dates";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
@@ -181,6 +182,12 @@ export async function requestApproval(ctx: TenantContext, raw: RequestApprovalIn
         },
       });
     }
+    // M5: Slack delivers the request to the assignee (no-op without Slack; D-95).
+    await writeOutboxEvent(tx, {
+      workspaceId: ctx.workspaceId,
+      type: "approval.requested",
+      payload: { approvalId: approval.id },
+    });
     if (assigneeId)
       await tx.notification.create({
         data: {
