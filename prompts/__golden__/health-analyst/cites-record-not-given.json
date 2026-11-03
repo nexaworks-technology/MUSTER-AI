@@ -1,0 +1,111 @@
+{
+  "case": "cites-record-not-given",
+  "description": "ADVERSARIAL: an item cites a reason id the run was not given.",
+  "agent": "health-analyst",
+  "bundle": [
+    {
+      "sourceType": "HealthScoreSnapshot",
+      "sourceId": "snap_bw",
+      "fields": {
+        "account": "Brightwell Logistics",
+        "asOf": "Nov 2, 2026",
+        "overall": 67.6,
+        "level": "Watch"
+      }
+    },
+    {
+      "sourceType": "HealthReason",
+      "sourceId": "r_users",
+      "fields": {
+        "pillar": "adoption",
+        "kind": "evidence",
+        "message": "Typical weekday active users fell from 40 to 20.4 (−49%) against this account's normal (Jul 21 – Oct 19, 2026)",
+        "value": 20.4,
+        "baseline": 40,
+        "period": "Jul 21, 2026 – Oct 19, 2026"
+      }
+    },
+    {
+      "sourceType": "HealthReason",
+      "sourceId": "r_seats",
+      "fields": {
+        "pillar": "adoption",
+        "kind": "evidence",
+        "message": "10% of 207 seats active in the last 28 days, against 31% for 9 High-touch accounts",
+        "value": 0.1,
+        "baseline": null,
+        "period": "Oct 5, 2026 – Nov 1, 2026"
+      }
+    },
+    {
+      "sourceType": "HealthReason",
+      "sourceId": "r_champ",
+      "fields": {
+        "pillar": "relationship",
+        "kind": "evidence",
+        "message": "Champion Maya Ortiz: email bounced (Oct 27, 2026)",
+        "value": null,
+        "baseline": null,
+        "period": null
+      }
+    },
+    {
+      "sourceType": "HealthReason",
+      "sourceId": "r_sent",
+      "fields": {
+        "pillar": "sentiment",
+        "kind": "missing data",
+        "message": "Sentiment excluded: no data. Its 10% weight is spread across the pillars that have data.",
+        "value": null,
+        "baseline": null,
+        "period": null
+      }
+    },
+    {
+      "sourceType": "Signal",
+      "sourceId": "sig_drop",
+      "fields": {
+        "title": "Usage drop vs normal",
+        "explanation": "Weekday active users are 49% below this account's normal.",
+        "severity": "critical",
+        "polarity": "risk",
+        "firstSeen": "Oct 20, 2026"
+      }
+    }
+  ],
+  "output": {
+    "reasoningSummary": "Usage fell by about half and the champion's email bounced, so the account may be drifting without a contact.",
+    "confidence": 0.72,
+    "citations": [
+      {
+        "sourceType": "HealthScoreSnapshot",
+        "sourceId": "snap_bw"
+      },
+      {
+        "sourceType": "HealthReason",
+        "sourceId": "r_users",
+        "quote": "fell from 40 to 20.4"
+      },
+      {
+        "sourceType": "HealthReason",
+        "sourceId": "r_champ",
+        "quote": "email bounced"
+      },
+      {
+        "sourceType": "Signal",
+        "sourceId": "sig_drop"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "text": "Usage is slipping.",
+        "citesReasonIds": ["r_other_account"],
+        "citesSignalIds": []
+      }
+    ]
+  },
+  "expect": {
+    "status": "UNCITED"
+  }
+}

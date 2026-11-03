@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { AiText } from "@/components/app/ai-text";
 import { LineChart } from "@/components/app/line-chart";
 import { PulseControls } from "@/components/app/pulse-controls";
 import { RecomputeButton } from "@/components/app/recompute-button";
 import { DisagreementMark, RISK_WORDS, RiskBadge } from "@/components/app/risk-badge";
 import { formatCalendarDate, formatDateTime } from "@/lib/format";
+import { healthNarrative } from "@/modules/agents/service";
 import { getAccountHealth, type AccountHealth } from "@/modules/health/service";
 import { loadAccount } from "../data";
 
@@ -40,7 +42,7 @@ const pts = (n: number) => `${n > 0 ? "+" : n < 0 ? "−" : ""}${Math.abs(n).toF
 
 type Reason = NonNullable<AccountHealth["snapshot"]>["reasons"][number];
 
-function ReasonItem({ r, main }: { r: Reason; main: boolean }) {
+function ReasonItem({ r, main, linked }: { r: Reason; main: boolean; linked: boolean }) {
   const facts = [
     r.value !== null ? `value ${show(r.input, r.value)}` : null,
     r.baseline !== null ? `baseline ${show(r.input, r.baseline)}` : null,
@@ -51,7 +53,13 @@ function ReasonItem({ r, main }: { r: Reason; main: boolean }) {
     r.kind === "EVIDENCE" ? `impact ${pts(r.impact)}` : null,
   ].filter(Boolean);
   return (
-    <li className="space-y-1 p-3" data-testid="health-reason" data-kind={r.kind}>
+    <li
+      id={`reason-${r.id}`}
+      className={`scroll-mt-20 space-y-1 p-3 ${linked ? "bg-muted" : ""}`}
+      data-testid="health-reason"
+      data-kind={r.kind}
+      aria-current={linked ? "true" : undefined}
+    >
       <p className={r.kind === "MISSING_DATA" ? "text-muted-foreground" : ""}>
         {main ? <span className="font-semibold">Main reason: </span> : null}
         {r.message}
@@ -76,10 +84,21 @@ function ReasonItem({ r, main }: { r: Reason; main: boolean }) {
   );
 }
 
-export default async function HealthPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function HealthPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { id } = await params;
+  const linkedRaw = (await searchParams).reason;
+  const linked = Array.isArray(linkedRaw) ? linkedRaw[0] : linkedRaw;
   const { ctx, account } = await loadAccount(id);
-  const health = await getAccountHealth(ctx, account.id);
+  const [health, narrative] = await Promise.all([
+    getAccountHealth(ctx, account.id),
+    healthNarrative(ctx, account.id),
+  ]);
   if (!health) notFound();
   const { snapshot: s, pulse, model, history } = health;
   const tz = ctx.workspace.timezone;
@@ -147,6 +166,43 @@ export default async function HealthPage({ params }: { params: Promise<{ id: str
         {account.canEdit ? <PulseControls accountId={account.id} /> : null}
       </section>
 
+      <section
+        aria-labelledby="narrative-heading"
+        className="space-y-2"
+        data-testid="health-narrative"
+      >
+        <h2 id="narrative-heading" className="text-base font-semibold">
+          What the Health Analyst sees
+        </h2>
+        {!narrative.configured && !narrative.run ? (
+          <p className="text-muted-foreground text-sm" data-testid="ai-not-configured">
+            AI is not configured. The scores and reasons below are computed without AI.
+          </p>
+        ) : narrative.run ? (
+          <AiText
+            run={narrative.run}
+            items={narrative.items}
+            emptyText={`Nothing here needs action. ${narrative.reasoningSummary ?? ""}`.trim()}
+          />
+        ) : (
+          <p className="text-muted-foreground text-sm">
+            No narrative yet. One is written when the band or the main reason changes.
+          </p>
+        )}
+        {narrative.missing.length ? (
+          <p className="text-muted-foreground text-xs">
+            Not on file: {narrative.missing.join("; ")}.
+          </p>
+        ) : null}
+        {narrative.latestAttempt ? (
+          <p className="text-muted-foreground text-xs" data-testid="narrative-failed">
+            The latest attempt did not succeed (
+            {narrative.latestAttempt.status.toLowerCase().replaceAll("_", " ")}), so nothing from it
+            is shown.
+          </p>
+        ) : null}
+      </section>
+
       {s ? (
         <section aria-labelledby="pillars" className="space-y-2">
           <h2 id="pillars" className="text-base font-semibold">
@@ -163,6 +219,7 @@ export default async function HealthPage({ params }: { params: Promise<{ id: str
               return (
                 <details
                   key={key}
+                  open={reasons.some((r) => r.id === linked) || undefined}
                   className="border-border rounded-md border open:col-span-full"
                   data-testid={`pillar-${key}`}
                 >
@@ -184,7 +241,12 @@ export default async function HealthPage({ params }: { params: Promise<{ id: str
                   </summary>
                   <ul className="divide-border border-border divide-y border-t text-sm">
                     {reasons.map((r) => (
-                      <ReasonItem key={r.id} r={r} main={r.id === s.riskReasonId} />
+                      <ReasonItem
+                        key={r.id}
+                        r={r}
+                        main={r.id === s.riskReasonId}
+                        linked={r.id === linked}
+                      />
                     ))}
                   </ul>
                 </details>

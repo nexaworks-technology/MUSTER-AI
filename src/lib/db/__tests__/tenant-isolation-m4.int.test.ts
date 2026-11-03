@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { rawDb } from "@/lib/db/raw";
 import { scopedDb } from "@/lib/db/scoped";
 import { createTestAdmin } from "@/test/fixtures";
+import { healthAnalyst } from "@/modules/agents/service";
 import { ApprovalNotFoundError, approve, getApproval, reject } from "@/modules/approvals/service";
 import { expectUpdateIsolated } from "./update-attack";
 
@@ -307,5 +308,26 @@ describe("tenant isolation — M4 agent, approval and outbound models (Rule 2)",
     expect((await B.db.approval.findUniqueOrThrow({ where: { id: pending.id } })).status).toBe(
       "PENDING",
     );
+  });
+
+  it("A's agent context builder cannot load B's records", async () => {
+    const snap = await B.db.healthModel.create({
+      data: {
+        workspaceId: B.workspaceId,
+        version: 1,
+        status: "ACTIVE",
+        proposedBy: "SYSTEM_DEFAULT",
+        pillarWeights: {},
+        componentConfig: {},
+        thresholds: { healthyMin: 70, watchMin: 45 },
+      },
+    });
+    const built = await healthAnalyst.buildContext(
+      A.db,
+      { accountId: B.account.id, snapshotId: snap.id },
+      A.actor,
+    );
+    expect(built.bundle).toEqual([]);
+    expect(built.accountId).toBeUndefined();
   });
 });

@@ -24,7 +24,11 @@ export function evaluateOutput(
     };
   const output = parsed.data;
   const extra = def.extraCitations?.(output) ?? [];
-  const problems = [...checkCitations(output.citations, bundle), ...checkCitations(extra, bundle)];
+  const problems = [
+    ...checkCitations(output.citations, bundle),
+    ...checkCitations(extra, bundle),
+    ...(def.uncited?.(output) ?? []),
+  ];
   const cited = citedRecords([...output.citations, ...extra], bundle);
   problems.push(...checkNumbers(def.narrative?.(output) ?? [], cited));
   if (problems.length) return { status: "UNCITED", problems };

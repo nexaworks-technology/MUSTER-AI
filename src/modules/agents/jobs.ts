@@ -2,7 +2,9 @@ import { z } from "zod";
 import { getQueue } from "@/lib/jobs/queues";
 import type { TenantContext } from "@/lib/db/scoped";
 import { runAgent, type Trigger } from "./executor";
+import { processConsider, sweepHealthNarratives } from "./definitions/health-analyst-trigger";
 import { getAgent } from "./registry";
+import { listActiveWorkspaces } from "@/lib/db/workspace";
 
 /**
  * The `agents.run` job (M4 §2). The payload names the workspace, the agent and its trigger; the
@@ -34,4 +36,14 @@ export async function enqueueAgent(
 export async function processAgentRun(raw: unknown) {
   const p = agentRunPayload.parse(raw);
   return runAgent({ workspaceId: p.workspaceId }, getAgent(p.agentKey), p.input, p.trigger);
+}
+
+export { processConsider };
+
+/** Every active workspace: consider each current snapshot that has no narrative run yet. */
+export async function sweepAllHealthNarratives() {
+  const out: Record<string, { considered: number; ran: number }> = {};
+  for (const w of await listActiveWorkspaces())
+    out[w.slug] = await sweepHealthNarratives({ workspaceId: w.id });
+  return out;
 }

@@ -94,17 +94,17 @@ export async function dispatchOutbox(
   });
 }
 
-/** Routes registered so far. M1 introduces no domain events; later milestones add theirs here. */
-export const OUTBOX_ROUTES: OutboxRoutes = {};
+/** Routes registered so far. Each milestone adds the events it starts consuming. */
+export const OUTBOX_ROUTES: OutboxRoutes = {
+  /** M4: a band change asks the Health Analyst for a narrative (it decides and dedupes). */
+  "health.bandChanged": { queue: "agents", job: "health-analyst.consider" },
+};
 
 /**
  * Event types written before anything consumes them (D-66): kept as records, not claimed by the
  * dispatcher (no retries, no warnings) until the milestone that consumes them registers a route
  * and removes them from this list. M3: signal.opened / signal.resolved / health.bandChanged
- * (consumed by the Health Analyst and play triggers, M4/M8).
+ * (consumed by the Health Analyst and play triggers, M4/M8). M4 consumes health.bandChanged;
+ * signal.opened / signal.resolved wait for plays (M8).
  */
-export const AWAITING_CONSUMER: string[] = [
-  "signal.opened",
-  "signal.resolved",
-  "health.bandChanged",
-];
+export const AWAITING_CONSUMER: string[] = ["signal.opened", "signal.resolved"];

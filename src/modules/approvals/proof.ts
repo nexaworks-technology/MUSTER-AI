@@ -111,7 +111,7 @@ export async function resolveProof(
           ? {
               ...r,
               label: `Health reason: ${h.message}`,
-              href: `/accounts/${h.snapshot.accountId}/health#reason-${h.id}`,
+              href: `/accounts/${h.snapshot.accountId}/health?reason=${h.id}#reason-${h.id}`,
               missing: false,
             }
           : gone(r);

@@ -41,4 +41,22 @@ export async function renderableRun(ctx: TenantContext, runId: string): Promise<
   return scopedDb(ctx).agentRun.findFirst({ where: { id: runId, status: "SUCCEEDED" } });
 }
 
-export { enqueueAgent, processAgentRun, agentRunPayload } from "./jobs";
+export {
+  enqueueAgent,
+  processAgentRun,
+  agentRunPayload,
+  processConsider,
+  sweepAllHealthNarratives,
+} from "./jobs";
+export {
+  considerHealthNarrative,
+  needsNarrative,
+  topReasonKey,
+  sweepHealthNarratives,
+} from "./definitions/health-analyst-trigger";
+export {
+  healthAnalyst,
+  healthAnalystOutput,
+  type HealthAnalystOutput,
+} from "./definitions/health-analyst";
+export { healthNarrative, type Narrative } from "./narrative";

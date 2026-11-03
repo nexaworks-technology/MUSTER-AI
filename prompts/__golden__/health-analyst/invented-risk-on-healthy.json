@@ -1,0 +1,62 @@
+{
+  "case": "invented-risk-on-healthy",
+  "description": "ADVERSARIAL: the model invents a risk on a healthy account that no record supports (a number not in any cited record).",
+  "agent": "health-analyst",
+  "bundle": [
+    {
+      "sourceType": "HealthScoreSnapshot",
+      "sourceId": "snap_mf",
+      "fields": {
+        "account": "Marlow & Finch",
+        "asOf": "Nov 2, 2026",
+        "overall": 97,
+        "level": "Healthy"
+      }
+    },
+    {
+      "sourceType": "HealthReason",
+      "sourceId": "r_mf1",
+      "fields": {
+        "pillar": "adoption",
+        "kind": "evidence",
+        "message": "Typical weekday active users are at this account's normal (38 vs 37)",
+        "value": 38,
+        "baseline": 37,
+        "period": "Jul 21, 2026 – Oct 19, 2026"
+      }
+    },
+    {
+      "sourceType": "HealthReason",
+      "sourceId": "r_mf2",
+      "fields": {
+        "pillar": "commercial",
+        "kind": "evidence",
+        "message": "All invoices in the last 90 days were paid on time (3).",
+        "value": 3,
+        "baseline": null,
+        "period": null
+      }
+    }
+  ],
+  "output": {
+    "reasoningSummary": "Usage may be falling.",
+    "confidence": 0.4,
+    "citations": [
+      {
+        "sourceType": "HealthScoreSnapshot",
+        "sourceId": "snap_mf"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "text": "Usage dropped 30% this month.",
+        "citesReasonIds": ["r_mf1"],
+        "citesSignalIds": []
+      }
+    ]
+  },
+  "expect": {
+    "status": "UNCITED"
+  }
+}

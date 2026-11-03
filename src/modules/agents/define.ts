@@ -52,6 +52,8 @@ export interface AgentDef<I = unknown, O extends BaseAgentOutput = BaseAgentOutp
   buildContext: (db: ScopedDb, input: I, ctx: TenantContext) => Promise<BuiltContext>;
   /** Extra citations carried in agent-specific fields (e.g. citesReasonIds). */
   extraCitations?: (output: O) => Array<{ sourceType: string; sourceId: string }>;
+  /** Claims the agent made without naming any evidence (each one makes the run UNCITED). */
+  uncited?: (output: O) => string[];
   /** Narrative strings whose numbers must appear in cited records (founder point 6). */
   narrative?: (output: O) => string[];
   forbiddenNumericFields: readonly string[];

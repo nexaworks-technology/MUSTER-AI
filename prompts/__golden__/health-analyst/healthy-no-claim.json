@@ -1,0 +1,65 @@
+{
+  "case": "healthy-no-claim",
+  "description": "ADVERSARIAL: a healthy account whose data supports no claim. The correct answer is no items, not an invented risk.",
+  "agent": "health-analyst",
+  "bundle": [
+    {
+      "sourceType": "HealthScoreSnapshot",
+      "sourceId": "snap_mf",
+      "fields": {
+        "account": "Marlow & Finch",
+        "asOf": "Nov 2, 2026",
+        "overall": 97,
+        "level": "Healthy"
+      }
+    },
+    {
+      "sourceType": "HealthReason",
+      "sourceId": "r_mf1",
+      "fields": {
+        "pillar": "adoption",
+        "kind": "evidence",
+        "message": "Typical weekday active users are at this account's normal (38 vs 37)",
+        "value": 38,
+        "baseline": 37,
+        "period": "Jul 21, 2026 – Oct 19, 2026"
+      }
+    },
+    {
+      "sourceType": "HealthReason",
+      "sourceId": "r_mf2",
+      "fields": {
+        "pillar": "commercial",
+        "kind": "evidence",
+        "message": "All invoices in the last 90 days were paid on time (3).",
+        "value": 3,
+        "baseline": null,
+        "period": null
+      }
+    }
+  ],
+  "output": {
+    "reasoningSummary": "Usage is at its normal and invoices are paid on time; nothing here needs action.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "HealthScoreSnapshot",
+        "sourceId": "snap_mf"
+      },
+      {
+        "sourceType": "HealthReason",
+        "sourceId": "r_mf1"
+      },
+      {
+        "sourceType": "HealthReason",
+        "sourceId": "r_mf2"
+      }
+    ],
+    "proposedActions": [],
+    "items": []
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "items": 0
+  }
+}

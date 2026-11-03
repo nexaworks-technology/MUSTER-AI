@@ -1,11 +1,12 @@
 import { loadPrompt } from "@/lib/ai";
 import type { AnyAgentDef } from "./define";
+import { M4_AGENTS } from "./definitions";
 
 /**
  * Every agent the product runs (ARCHITECTURE §6.2). Only the spec's 13 agents + Ask AI may be
  * added (D-30). Definitions register themselves here as their milestone ships them.
  */
-const AGENTS = new Map<string, AnyAgentDef>();
+const AGENTS = new Map<string, AnyAgentDef>(M4_AGENTS.map((d) => [d.key, d]));
 
 export function registerAgent(def: AnyAgentDef): AnyAgentDef {
   const existing = AGENTS.get(def.key);

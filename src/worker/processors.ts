@@ -5,7 +5,11 @@ import { logger } from "@/lib/logger";
 import { systemClock } from "@/lib/dates";
 import { listActiveWorkspaces } from "@/lib/db/workspace";
 import { getQueue } from "@/lib/jobs/queues";
-import { processAgentRun } from "@/modules/agents/service";
+import {
+  processAgentRun,
+  processConsider,
+  sweepAllHealthNarratives,
+} from "@/modules/agents/service";
 import { importJobPayload, runImportJob } from "@/modules/imports/service";
 import { createPipelineProcessors } from "@/modules/signals/service";
 
@@ -49,6 +53,12 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
     async "agents.run"(job) {
       return processAgentRun(job.data);
     },
+    async "health-analyst.consider"(job) {
+      return processConsider(job.data);
+    },
+    async "health-analyst.sweep"() {
+      return sweepAllHealthNarratives();
+    },
   },
   maintenance: {
     async "nightly.schedules"() {
@@ -71,6 +81,8 @@ export const SCHEDULES = [
   { queue: "maintenance", id: "outbox-dispatch", job: "outbox.dispatch", everyMs: 5_000 },
   // New workspaces get their nightly run within the hour (and at worker start, see index.ts).
   { queue: "maintenance", id: "nightly-schedules", job: "nightly.schedules", everyMs: 3_600_000 },
+  // M4: narratives for snapshots no event covers (first snapshot, top-reason change).
+  { queue: "agents", id: "health-analyst-sweep", job: "health-analyst.sweep", everyMs: 900_000 },
 ] as const;
 
 export function processorFor(queue: QueueName): Processor | undefined {
