@@ -9,11 +9,13 @@ import {
   connectApiKeyAction,
   disconnectAction,
   runSyncNowAction,
+  saveSegmentSecretAction,
   testConnectionAction,
   writeBackAction,
 } from "@/modules/integrations/actions/integrations";
 import { listIntegrations, type ProviderCard } from "@/modules/integrations/service";
 import { requireSettingsAccess } from "../access";
+import { UsageKeyPanel } from "./usage-key-panel";
 
 export const metadata: Metadata = { title: "Integrations" };
 
@@ -31,7 +33,16 @@ const STATUS: Record<"CONNECTED" | "ERROR" | "DISCONNECTED", string> = {
 const statusLabel = (provider: string, status: keyof typeof STATUS) =>
   provider === "SLACK" && status === "CONNECTED"
     ? "Connected · messages your team"
-    : STATUS[status];
+    : provider === "USAGE_API" && status === "CONNECTED"
+      ? "Connected · receives your events"
+      : STATUS[status];
+
+const CATEGORY: Record<string, string> = {
+  CRM: "CRM",
+  CHAT: "Team chat",
+  USAGE: "Product usage",
+  BILLING: "Billing",
+};
 
 const connectedNotice = (provider: string, name: string) =>
   provider === "SLACK"
@@ -49,6 +60,10 @@ const KEY_HELP: Record<string, string> = {
   STRIPE:
     "Create a restricted key in Stripe with read access to Customers, Subscriptions and Invoices.",
   CHARGEBEE: "Create a read-only API key in Chargebee and enter your site name.",
+  MIXPANEL:
+    "Create a service account in Mixpanel (Project settings › Service accounts) with the Consumer role, and enter its user name, secret and your project id. We read event counts per account; events are folded into daily totals and not kept.",
+  AMPLITUDE:
+    "Enter the project's API key and secret key (Settings › Projects). We read daily totals per account through the Dashboard API; Amplitude cannot give us individual people, so the power-user list needs the Usage API or Mixpanel.",
 };
 
 /**
@@ -122,7 +137,7 @@ function ProviderSection({ card, tz }: { card: ProviderCard; tz: string }) {
         <h3 id={headingId} className="font-semibold">
           {card.name}{" "}
           <span className="text-muted-foreground text-xs font-normal">
-            {card.category === "CRM" ? "CRM" : card.category === "CHAT" ? "Team chat" : "Billing"}
+            {CATEGORY[card.category] ?? "Billing"}
           </span>
         </h3>
         <span className="text-sm" data-testid={`status-${card.provider}`}>
@@ -138,7 +153,10 @@ function ProviderSection({ card, tz }: { card: ProviderCard; tz: string }) {
         </Alert>
       ) : null}
 
-      {connected && card.provider !== "SLACK" ? <SyncStatus card={card} tz={tz} /> : null}
+      {connected && card.provider === "USAGE_API" ? <UsageApiStatus card={card} tz={tz} /> : null}
+      {connected && card.provider !== "SLACK" && card.provider !== "USAGE_API" ? (
+        <SyncStatus card={card} tz={tz} />
+      ) : null}
       {connected && card.provider === "SLACK" ? (
         <p className="text-sm" data-testid="slack-linked">
           {card.slackLinked} member{card.slackLinked === 1 ? "" : "s"} linked by verified email.
@@ -148,9 +166,13 @@ function ProviderSection({ card, tz }: { card: ProviderCard; tz: string }) {
         </p>
       ) : null}
 
-      {!connected ? <ConnectForm card={card} /> : null}
+      {card.provider === "USAGE_API" ? (
+        <UsageApiPanel card={card} tz={tz} connected={Boolean(connected)} />
+      ) : null}
 
-      {connected && i ? (
+      {!connected && card.provider !== "USAGE_API" ? <ConnectForm card={card} /> : null}
+
+      {connected && i && card.provider !== "USAGE_API" ? (
         <div className="flex flex-wrap gap-3">
           {card.provider === "SLACK" ? (
             <form action={linkSlackMembersAction}>
@@ -196,6 +218,112 @@ function ProviderSection({ card, tz }: { card: ProviderCard; tz: string }) {
         </details>
       ) : null}
     </section>
+  );
+}
+
+function UsageApiStatus({ card, tz }: { card: ProviderCard; tz: string }) {
+  const u = card.usageApi!;
+  if (!u.lastBatch)
+    return (
+      <p className="text-sm" data-testid="usage-last-batch">
+        No events have been applied yet. Send one with your key, below.
+      </p>
+    );
+  return (
+    <div className="space-y-1 text-sm" data-testid="usage-last-batch">
+      <p>
+        Last batch applied {formatDateTime(u.lastBatch.appliedAt, tz)}: {u.lastBatch.events} event
+        {u.lastBatch.events === 1 ? "" : "s"} folded into daily totals and discarded. {u.batches}{" "}
+        batch{u.batches === 1 ? "" : "es"} in all.
+      </p>
+      {u.lastBatch.unmatched.length > 0 ? (
+        <details>
+          <summary className="cursor-pointer">
+            {u.lastBatch.unmatched.length} group{u.lastBatch.unmatched.length === 1 ? "" : "s"}{" "}
+            matched no account
+          </summary>
+          <ul className="mt-1 list-disc space-y-1 pl-5">
+            {u.lastBatch.unmatched.map((m, n) => (
+              <li key={n}>{m.reason}</li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
+      {u.lastBatch.skipped.length > 0 ? (
+        <details>
+          <summary className="cursor-pointer">
+            {u.lastBatch.skipped.length} day{u.lastBatch.skipped.length === 1 ? "" : "s"} left as
+            they were
+          </summary>
+          <ul className="mt-1 list-disc space-y-1 pl-5">
+            {u.lastBatch.skipped.map((m, n) => (
+              <li key={n}>{m}</li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
+    </div>
+  );
+}
+
+function UsageApiPanel({
+  card,
+  tz,
+  connected,
+}: {
+  card: ProviderCard;
+  tz: string;
+  connected: boolean;
+}) {
+  const u = card.usageApi!;
+  return (
+    <div className="space-y-3">
+      <p className="text-muted-foreground text-sm">
+        Send product events from your own backend, or through Segment. Events are folded into daily
+        totals per account, person and feature, then discarded: we do not keep raw events, so event
+        level questions need your own analytics tool. Send them to{" "}
+        <code className="break-all">{u.endpoint}/track</code>, <code>/identify</code> or{" "}
+        <code>/batch</code> with <code>Authorization: Bearer &lt;key&gt;</code>. Each event needs a
+        <code> userId</code> and a <code>groupId</code> that matches an account (by account id, CRM
+        id or domain).
+      </p>
+      <UsageKeyPanel
+        last4={u.keyLast4}
+        rotatedAtText={u.keyRotatedAt ? formatDateTime(u.keyRotatedAt, tz) : null}
+      />
+      <details>
+        <summary className="cursor-pointer text-sm">
+          Segment: {u.hasSegmentSecret ? "shared secret saved" : "no shared secret yet"}
+        </summary>
+        <form action={saveSegmentSecretAction} className="mt-2 space-y-2">
+          <p className="text-muted-foreground text-sm">
+            Add a Webhooks destination in Segment pointing at{" "}
+            <code className="break-all">{u.segmentUrl ?? `${u.endpoint}/batch?integration=…`}</code>{" "}
+            with a shared secret, and enter the same secret here. Segment signs each request with it
+            and we check the signature.
+          </p>
+          <div className="space-y-1">
+            <Label htmlFor="usage-segment-secret">Shared secret</Label>
+            <Input
+              id="usage-segment-secret"
+              name="secret"
+              type="password"
+              autoComplete="off"
+              minLength={8}
+              required
+            />
+          </div>
+          <Button type="submit" variant="outline" size="sm">
+            Save shared secret
+          </Button>
+        </form>
+      </details>
+      {connected ? null : (
+        <p className="text-muted-foreground text-sm">
+          Nothing is connected until you generate a key or save a Segment secret.
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -263,9 +391,76 @@ function ConnectForm({ card }: { card: ProviderCard }) {
       </div>
     );
   const p = card.provider;
+  const usage = p === "MIXPANEL" || p === "AMPLITUDE";
   return (
     <form action={connectApiKeyAction.bind(null, p)} className="space-y-3">
       <p className="text-muted-foreground text-sm">{KEY_HELP[p]}</p>
+      {usage ? (
+        <div className="space-y-1">
+          <Label htmlFor={`${p}-user`}>
+            {p === "MIXPANEL" ? "Service account user name" : "API key"}
+          </Label>
+          <Input id={`${p}-user`} name="username" autoComplete="off" required />
+        </div>
+      ) : null}
+      {p === "MIXPANEL" ? (
+        <div className="space-y-1">
+          <Label htmlFor={`${p}-project`}>Project id</Label>
+          <Input
+            id={`${p}-project`}
+            name="projectId"
+            inputMode="numeric"
+            autoComplete="off"
+            required
+          />
+        </div>
+      ) : null}
+      {usage ? (
+        <div className="space-y-1">
+          <Label htmlFor={`${p}-region`}>Data region</Label>
+          <select
+            id={`${p}-region`}
+            name="region"
+            defaultValue="US"
+            className="border-input h-9 rounded-md border bg-transparent px-2 text-sm"
+          >
+            <option value="US">US</option>
+            <option value="EU">EU</option>
+          </select>
+        </div>
+      ) : null}
+      {usage ? (
+        <div className="space-y-1">
+          <Label htmlFor={`${p}-account`}>
+            {p === "MIXPANEL"
+              ? "Event property that holds the account (default account_id)"
+              : "Property that holds the account (default gp:account_id)"}
+          </Label>
+          <Input id={`${p}-account`} name="accountProperty" autoComplete="off" />
+        </div>
+      ) : null}
+      {p === "MIXPANEL" ? (
+        <div className="space-y-1">
+          <Label htmlFor={`${p}-feature`}>
+            Event property that names the feature (default feature)
+          </Label>
+          <Input id={`${p}-feature`} name="featureProperty" autoComplete="off" />
+        </div>
+      ) : null}
+      {p === "AMPLITUDE" ? (
+        <div className="space-y-1">
+          <Label htmlFor={`${p}-features`}>
+            Features: one per line, as feature_key=Amplitude event name (optional)
+          </Label>
+          <textarea
+            id={`${p}-features`}
+            name="features"
+            rows={3}
+            className="border-input w-full rounded-md border bg-transparent px-3 py-2 text-sm"
+            placeholder="dashboards=Dashboard Viewed"
+          />
+        </div>
+      ) : null}
       {p === "CHARGEBEE" ? (
         <div className="space-y-1">
           <Label htmlFor={`${p}-site`}>Site name</Label>
@@ -273,7 +468,13 @@ function ConnectForm({ card }: { card: ProviderCard }) {
         </div>
       ) : null}
       <div className="space-y-1">
-        <Label htmlFor={`${p}-key`}>API key</Label>
+        <Label htmlFor={`${p}-key`}>
+          {p === "MIXPANEL"
+            ? "Service account secret"
+            : p === "AMPLITUDE"
+              ? "Secret key"
+              : "API key"}
+        </Label>
         <Input id={`${p}-key`} name="apiKey" type="password" autoComplete="off" required />
       </div>
       {card.hasWebhooks ? (

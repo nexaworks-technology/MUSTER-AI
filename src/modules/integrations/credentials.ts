@@ -14,6 +14,8 @@ export const credentialsSchema = z.object({
   /** Salesforce: the org's API host. */
   instanceUrl: z.url().optional(),
   apiKey: z.string().min(1).optional(),
+  /** Mixpanel: the service account's user name. Amplitude: the project API key (the "user" half). */
+  username: z.string().min(1).optional(),
   /** Chargebee: the site name (`<site>.chargebee.com`). */
   site: z
     .string()

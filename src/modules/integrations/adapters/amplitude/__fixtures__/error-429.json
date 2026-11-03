@@ -1,0 +1,21 @@
+{
+  "provider": "amplitude",
+  "description": "Amplitude asks us to slow down.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/api/2/events/segmentation"
+      },
+      "response": {
+        "status": 429,
+        "headers": {
+          "Retry-After": "30"
+        },
+        "body": {
+          "error": "Too many requests"
+        }
+      }
+    }
+  ]
+}

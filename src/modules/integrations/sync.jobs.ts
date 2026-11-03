@@ -39,8 +39,11 @@ export type SyncRunPayload = z.infer<typeof syncRunPayload>;
 
 const PROBLEM_CAP = 50;
 const ACCOUNT_ID_CAP = 1_000;
-/** Data providers only: Slack writes no records, so it never runs a sync. */
-const SYNCABLE = ["HUBSPOT", "SALESFORCE", "STRIPE", "CHARGEBEE"] as const;
+/**
+ * Providers that are read on a schedule. Slack writes no records, and the Usage API is pushed to
+ * (its events arrive as `usage.aggregate` jobs), so neither runs a sync.
+ */
+const SYNCABLE = ["HUBSPOT", "SALESFORCE", "STRIPE", "CHARGEBEE", "MIXPANEL", "AMPLITUDE"] as const;
 
 export interface SyncOutcome {
   status: "SUCCEEDED" | "FAILED" | "SKIPPED";

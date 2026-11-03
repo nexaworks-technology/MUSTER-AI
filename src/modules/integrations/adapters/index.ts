@@ -1,10 +1,13 @@
 import type { IntegrationProvider } from "@prisma/client";
 import type { IntegrationAdapter } from "../adapter";
 import { chargebeeAdapter } from "./chargebee";
+import { amplitudeAdapter } from "./amplitude";
 import { hubspotAdapter } from "./hubspot";
+import { mixpanelAdapter } from "./mixpanel";
 import { salesforceAdapter } from "./salesforce";
 import { slackAdapter } from "./slack";
 import { stripeAdapter } from "./stripe";
+import { usageApiAdapter } from "./usage-api";
 
 /**
  * Adapter registry. Each launch connector registers here once it has fixtures and contract tests
@@ -21,6 +24,9 @@ export const ADAPTERS: Partial<Record<IntegrationProvider, AnyAdapter>> = {
   STRIPE: stripeAdapter,
   CHARGEBEE: chargebeeAdapter,
   SLACK: slackAdapter,
+  USAGE_API: usageApiAdapter,
+  MIXPANEL: mixpanelAdapter,
+  AMPLITUDE: amplitudeAdapter,
 };
 
 export class AdapterMissingError extends Error {

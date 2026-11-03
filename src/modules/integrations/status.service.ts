@@ -5,6 +5,7 @@ import { requirePermission } from "@/lib/auth/permissions";
 import { scopedDb } from "@/lib/db/scoped";
 import type { Actor } from "@/modules/accounts/service";
 import { ADAPTERS } from "./adapters";
+import { openCredentials } from "./credentials";
 import { ConnectError } from "./connections.service";
 import { PROVIDER_NAMES } from "./providers";
 import { linkSlackMembers } from "./slack/service";
@@ -48,6 +49,21 @@ export interface ProviderCard {
   writeBackFields: ReadonlyArray<{ key: string; label: string }>;
   /** Slack only: members linked by verified email. */
   slackLinked: number | null;
+  /** Usage API only: the key (never the key itself), the Segment address and the last batch. */
+  usageApi: {
+    keyLast4: string | null;
+    keyRotatedAt: Date | null;
+    hasSegmentSecret: boolean;
+    endpoint: string;
+    segmentUrl: string | null;
+    batches: number;
+    lastBatch: {
+      appliedAt: Date;
+      events: number;
+      unmatched: Array<{ groupId: string | null; reason: string }>;
+      skipped: string[];
+    } | null;
+  } | null;
   integration: {
     id: string;
     status: "CONNECTED" | "ERROR" | "DISCONNECTED";
@@ -94,7 +110,18 @@ export async function listIntegrations(actor: Actor): Promise<ProviderCard[]> {
       })
     : [];
   const slackLinked = await db.slackUserLink.count();
-  const order: IntegrationProvider[] = ["HUBSPOT", "SALESFORCE", "STRIPE", "CHARGEBEE", "SLACK"];
+  const usageRow = rows.find((r) => r.provider === "USAGE_API");
+  const usageApi = usageRow ? await usageApiInfo(actor, usageRow.id) : null;
+  const order: IntegrationProvider[] = [
+    "HUBSPOT",
+    "SALESFORCE",
+    "STRIPE",
+    "CHARGEBEE",
+    "USAGE_API",
+    "MIXPANEL",
+    "AMPLITUDE",
+    "SLACK",
+  ];
   return order
     .filter((p) => ADAPTERS[p])
     .map((provider) => {
@@ -109,6 +136,18 @@ export async function listIntegrations(actor: Actor): Promise<ProviderCard[]> {
         hasWebhooks: Boolean(adapter.webhook),
         writeBackFields: adapter.writeBack?.fields ?? [],
         slackLinked: provider === "SLACK" ? slackLinked : null,
+        usageApi:
+          provider === "USAGE_API"
+            ? (usageApi ?? {
+                keyLast4: null,
+                keyRotatedAt: null,
+                hasSegmentSecret: false,
+                endpoint: `${env().APP_URL}/api/usage/v1`,
+                segmentUrl: null,
+                batches: 0,
+                lastBatch: null,
+              })
+            : null,
         integration: row
           ? {
               ...row,
@@ -131,6 +170,43 @@ export async function listIntegrations(actor: Actor): Promise<ProviderCard[]> {
     });
 }
 
+const unmatchedSchema = z
+  .array(z.object({ groupId: z.string().nullable(), reason: z.string() }))
+  .catch([]);
+const skippedSchema = z.array(z.string()).catch([]);
+
+async function usageApiInfo(
+  actor: Actor,
+  integrationId: string,
+): Promise<ProviderCard["usageApi"]> {
+  const db = scopedDb(actor);
+  const [row, batches, last] = await Promise.all([
+    db.integration.findUniqueOrThrow({
+      where: { id: integrationId },
+      select: { credentialsEnc: true, ingestKeyLast4: true, ingestKeyRotatedAt: true },
+    }),
+    db.usageIngestBatch.count({ where: { integrationId } }),
+    db.usageIngestBatch.findFirst({ where: { integrationId }, orderBy: { appliedAt: "desc" } }),
+  ]);
+  const base = `${env().APP_URL}/api/usage/v1`;
+  return {
+    keyLast4: row.ingestKeyLast4,
+    keyRotatedAt: row.ingestKeyRotatedAt,
+    hasSegmentSecret: Boolean(openCredentials(row.credentialsEnc).webhookSecret),
+    endpoint: base,
+    segmentUrl: `${base}/batch?integration=${integrationId}`,
+    batches,
+    lastBatch: last
+      ? {
+          appliedAt: last.appliedAt,
+          events: last.events,
+          unmatched: unmatchedSchema.parse(last.unmatched),
+          skipped: skippedSchema.parse(last.skipped),
+        }
+      : null,
+  };
+}
+
 /** "Link Slack members" (Admin): re-reads Slack's members and links verified emails. */
 export async function relinkSlackMembers(actor: Actor) {
   requirePermission(actor, "integrations:manage");
@@ -148,6 +224,10 @@ export async function runSyncNow(actor: Actor, integrationId: string) {
   });
   if (!row) throw new ConnectError("This integration does not exist.");
   if (row.provider === "SLACK") throw new ConnectError("Slack has nothing to sync.");
+  if (row.provider === "USAGE_API")
+    throw new ConnectError(
+      "The Usage API is pushed to: it receives events and has nothing to sync.",
+    );
   if (row.status === "DISCONNECTED")
     throw new ConnectError(`${PROVIDER_NAMES[row.provider]} is disconnected. Connect it first.`);
   return enqueueSync(actor, row.id, "MANUAL");

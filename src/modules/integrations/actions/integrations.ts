@@ -13,6 +13,7 @@ import {
   testConnection,
 } from "../connections.service";
 import { relinkSlackMembers, runSyncNow } from "../status.service";
+import { issueUsageApiKey, saveSegmentSecret } from "../usage-api";
 import { setWriteBack, WriteBackRefusedError } from "../writeback.service";
 
 /**
@@ -51,7 +52,7 @@ async function run(fn: () => Promise<Result>): Promise<never> {
 }
 
 const id = z.string().min(1).max(60);
-const apiKeyProvider = z.enum(["STRIPE", "CHARGEBEE"]);
+const apiKeyProvider = z.enum(["STRIPE", "CHARGEBEE", "MIXPANEL", "AMPLITUDE"]);
 
 export async function connectApiKeyAction(provider: string, formData: FormData) {
   const p = apiKeyProvider.parse(provider);
@@ -59,13 +60,68 @@ export async function connectApiKeyAction(provider: string, formData: FormData) 
     const v = String(formData.get(k) ?? "").trim();
     return v === "" ? undefined : v;
   };
+  // Usage connectors carry settings next to the key: a project, a region, property names.
+  const config: Record<string, unknown> = {};
+  for (const k of ["projectId", "region", "accountProperty", "featureProperty", "sessionEvent"]) {
+    const v = optional(k);
+    if (v !== undefined) config[k] = v;
+  }
+  const featureLines = optional("features");
+  if (featureLines !== undefined)
+    config.features = Object.fromEntries(
+      featureLines
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean)
+        .map((l) => {
+          const at = l.indexOf("=");
+          return [l.slice(0, at < 0 ? undefined : at).trim(), at < 0 ? "" : l.slice(at + 1).trim()];
+        }),
+    );
   return run(async () => {
     await connectWithApiKey(await actor(), p, {
       apiKey: String(formData.get("apiKey") ?? ""),
       site: optional("site"),
       webhookSecret: optional("webhookSecret"),
+      username: optional("username"),
+      config,
     });
     return { connected: p.toLowerCase() };
+  });
+}
+
+/** The Usage API key is returned once, to the form that asked for it: never in a URL or a cookie. */
+export interface UsageKeyState {
+  key?: string;
+  last4?: string;
+  rotated?: boolean;
+  error?: string;
+}
+
+export async function issueUsageKeyAction(
+  _prev: UsageKeyState,
+  _formData: FormData,
+): Promise<UsageKeyState> {
+  try {
+    const issued = await issueUsageApiKey(await actor());
+    revalidatePath(PAGE);
+    return { key: issued.key, last4: issued.last4, rotated: issued.rotated };
+  } catch (e) {
+    if (e instanceof ForbiddenError) notFound();
+    throw e;
+  }
+}
+
+export async function saveSegmentSecretAction(formData: FormData) {
+  return run(async (): Promise<Result> => {
+    try {
+      await saveSegmentSecret(await actor(), String(formData.get("secret") ?? ""));
+    } catch (e) {
+      if (e instanceof Error && e.message.startsWith("The shared secret"))
+        return { error: e.message };
+      throw e;
+    }
+    return { tested: "Saved the Segment shared secret." };
   });
 }
 

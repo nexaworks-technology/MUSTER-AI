@@ -3,7 +3,7 @@ import { localDate, realClock } from "@/lib/dates";
 import { scopedDb } from "@/lib/db/scoped";
 import { loadContext } from "@/modules/health/service";
 import { ingestBatch } from "../ingest.service";
-import type { NormalizedUsageDay } from "../normalized";
+import { foldUsage } from "./fold";
 
 /**
  * The `usage.aggregate` worker job (M6 B1, D-23, Q-33): folds one batch of validated events into
@@ -39,13 +39,6 @@ export interface AggregateResult {
   counts?: { created: number; updated: number; unchanged: number; conflicts: number };
 }
 
-const normalizeName = (s: string) =>
-  s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_|_$/g, "");
-const SESSION_EVENTS = new Set(["session_started", "session_start"]);
-
 export async function aggregateUsage(raw: unknown): Promise<AggregateResult> {
   const p = aggregatePayload.parse(raw);
   const ctx = { workspaceId: p.workspaceId };
@@ -65,63 +58,18 @@ export async function aggregateUsage(raw: unknown): Promise<AggregateResult> {
   const emails = new Map<string, string>();
   for (const e of p.events) if (e.kind === "identify" && e.email) emails.set(e.userId, e.email);
 
-  type Day = NormalizedUsageDay & {
-    userMap: Map<string, { events: number; sessions: number }>;
-    featureMap: Map<string, { people: Set<string>; events: number }>;
-  };
-  const days = new Map<string, Day>();
-  for (const e of p.events) {
-    if (e.kind !== "track") continue;
-    const date = localDate(new Date(e.at), timeZone);
-    const key = `${e.groupRef}|${date}`;
-    const day =
-      days.get(key) ??
-      days
-        .set(key, {
-          accountExternalId: e.groupRef,
-          date,
-          mode: "ADD",
-          events: 0,
-          sessions: 0,
-          users: [],
-          features: [],
-          userMap: new Map(),
-          featureMap: new Map(),
-        })
-        .get(key)!;
-    const name = normalizeName(e.event ?? "");
-    const session = SESSION_EVENTS.has(name);
-    day.events += 1;
-    if (session) day.sessions += 1;
-    const user = day.userMap.get(e.userId) ?? { events: 0, sessions: 0 };
-    user.events += 1;
-    if (session) user.sessions += 1;
-    day.userMap.set(e.userId, user);
-    const feature = e.feature ?? (known.has(name) ? name : undefined);
-    if (feature) {
-      const f = day.featureMap.get(feature) ?? { people: new Set<string>(), events: 0 };
-      f.people.add(e.userId);
-      f.events += 1;
-      day.featureMap.set(feature, f);
-    }
-  }
-  const records: NormalizedUsageDay[] = [...days.values()].map((d) => ({
-    accountExternalId: d.accountExternalId,
-    date: d.date,
-    mode: "ADD",
-    events: d.events,
-    sessions: d.sessions,
-    users: [...d.userMap].map(([externalUserId, u]) => ({
-      externalUserId,
-      email: emails.get(externalUserId),
-      ...u,
-    })),
-    features: [...d.featureMap].map(([featureKey, f]) => ({
-      featureKey,
-      users: f.people.size,
-      events: f.events,
-    })),
-  }));
+  const records = foldUsage(
+    p.events
+      .filter((e) => e.kind === "track")
+      .map((e) => ({
+        groupRef: e.groupRef,
+        userId: e.userId,
+        date: localDate(new Date(e.at), timeZone),
+        name: e.event,
+        feature: e.feature,
+      })),
+    { mode: "ADD", known, emails },
+  );
 
   const result = await ingestBatch(
     { workspaceId: p.workspaceId, integrationId: p.integrationId, source: "USAGE_API" },

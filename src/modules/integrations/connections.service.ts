@@ -1,4 +1,4 @@
-import type { IntegrationProvider } from "@prisma/client";
+import type { IntegrationProvider, Prisma } from "@prisma/client";
 import { z } from "zod";
 import { writeAudit } from "@/lib/audit";
 import { env } from "@/lib/config/env";
@@ -92,7 +92,17 @@ export const apiKeyInput = z.object({
     .regex(/^[a-z0-9-]{1,63}$/, "Use only the site name, e.g. acme-test.")
     .optional(),
   webhookSecret: z.string().trim().min(8).max(500).optional(),
+  /** Mixpanel: the service account's user name. Amplitude: the project API key. */
+  username: z.string().trim().min(1).max(200).optional(),
+  /** The connection's own settings (project id, region, property names); checked by the adapter. */
+  config: z.record(z.string(), z.unknown()).optional(),
 });
+
+/** Providers whose key comes with a second half. */
+const NEEDS_USERNAME: Partial<Record<IntegrationProvider, string>> = {
+  MIXPANEL: "Enter the service account's user name.",
+  AMPLITUDE: "Enter the project's API key as well as its secret key.",
+};
 
 /** API-key providers (Stripe, Chargebee): validate the key with the provider, then store it sealed. */
 export async function connectWithApiKey(
@@ -106,14 +116,22 @@ export async function connectWithApiKey(
   const adapter = (deps.adapter ?? adapterFor)(provider);
   if (adapter.auth.kind !== "apiKey")
     throw new ConnectError(`${PROVIDER_NAMES[provider]} connects by signing in.`);
+  if (NEEDS_USERNAME[provider] && !input.username)
+    throw new ConnectError(NEEDS_USERNAME[provider]!);
+  const settings = adapter.configSchema.safeParse(input.config ?? {});
+  if (!settings.success)
+    throw new ConnectError(
+      settings.error.issues[0]?.message ?? "Check the settings and try again.",
+    );
   const credentials: Credentials = {
     apiKey: input.apiKey,
+    username: input.username,
     site: input.site,
     webhookSecret: input.webhookSecret,
   };
   const transport = (deps.transport ?? transportFor)(provider);
   try {
-    await adapter.auth.validate(credentials, transport);
+    await adapter.auth.validate(credentials, transport, settings.data);
   } catch (err) {
     const d = adapter.describeError(err);
     await writeAudit({
@@ -126,7 +144,7 @@ export async function connectWithApiKey(
     });
     throw new ConnectError([d.plain, d.action].filter(Boolean).join(" "));
   }
-  return saveConnection(actor, provider, credentials, [], deps);
+  return saveConnection(actor, provider, credentials, [], deps, settings.data);
 }
 
 async function saveConnection(
@@ -135,6 +153,7 @@ async function saveConnection(
   credentials: Credentials,
   scopes: string[],
   deps: ConnectDeps,
+  config?: unknown,
 ) {
   const db = scopedDb(actor);
   const existing = await db.integration.findUnique({
@@ -150,6 +169,7 @@ async function saveConnection(
             status: "CONNECTED",
             credentialsEnc: sealed,
             scopes,
+            ...(config === undefined ? {} : { config: config as Prisma.InputJsonObject }),
             disconnectedAt: null,
             lastErrorPlain: null,
           },
@@ -160,6 +180,7 @@ async function saveConnection(
             provider,
             credentialsEnc: sealed,
             scopes,
+            ...(config === undefined ? {} : { config: config as Prisma.InputJsonObject }),
             connectedByMembershipId: actor.membershipId,
             connectedAt: (deps.clock ?? realClock)(),
           },

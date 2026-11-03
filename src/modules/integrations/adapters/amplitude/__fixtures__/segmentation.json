@@ -1,0 +1,175 @@
+{
+  "provider": "amplitude",
+  "description": "Event segmentation by account for five days: active people, events, sessions and two feature events. One group matches no account; '(none)' is events with no account.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/api/2/events/segmentation",
+        "query": {
+          "e": "{\"event_type\":\"_active\"}",
+          "m": "uniques"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "data": {
+            "series": [
+              [2, 2, 0, 0, 1],
+              [0, 1, 0, 0, 0],
+              [4, 4, 4, 4, 4]
+            ],
+            "seriesMeta": ["pinecrest-health.test", "unknown-co.test", "(none)"],
+            "xValues": ["2026-10-29", "2026-10-30", "2026-10-31", "2026-11-01", "2026-11-02"]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/api/2/events/segmentation",
+        "query": {
+          "e": "{\"event_type\":\"_all\"}",
+          "m": "totals"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "data": {
+            "series": [
+              [3, 3, 0, 0, 1],
+              [0, 1, 0, 0, 0],
+              [9, 9, 9, 9, 9]
+            ],
+            "seriesMeta": ["pinecrest-health.test", "unknown-co.test", "(none)"],
+            "xValues": ["2026-10-29", "2026-10-30", "2026-10-31", "2026-11-01", "2026-11-02"]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/api/2/events/segmentation",
+        "query": {
+          "e": "{\"event_type\":\"Session Started\"}",
+          "m": "totals"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "data": {
+            "series": [[1, 1, 0, 0, 1]],
+            "seriesMeta": ["pinecrest-health.test"],
+            "xValues": ["2026-10-29", "2026-10-30", "2026-10-31", "2026-11-01", "2026-11-02"]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/api/2/events/segmentation",
+        "query": {
+          "e": "{\"event_type\":\"Dashboard Viewed\"}",
+          "m": "uniques"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "data": {
+            "series": [[1, 2, 0, 0, 0]],
+            "seriesMeta": ["pinecrest-health.test"],
+            "xValues": ["2026-10-29", "2026-10-30", "2026-10-31", "2026-11-01", "2026-11-02"]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/api/2/events/segmentation",
+        "query": {
+          "e": "{\"event_type\":\"Dashboard Viewed\"}",
+          "m": "totals"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "data": {
+            "series": [[1, 2, 0, 0, 0]],
+            "seriesMeta": ["pinecrest-health.test"],
+            "xValues": ["2026-10-29", "2026-10-30", "2026-10-31", "2026-11-01", "2026-11-02"]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/api/2/events/segmentation",
+        "query": {
+          "e": "{\"event_type\":\"Data Connector Added\"}",
+          "m": "uniques"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "data": {
+            "series": [[1, 0, 0, 0, 0]],
+            "seriesMeta": ["pinecrest-health.test"],
+            "xValues": ["2026-10-29", "2026-10-30", "2026-10-31", "2026-11-01", "2026-11-02"]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/api/2/events/segmentation",
+        "query": {
+          "e": "{\"event_type\":\"Data Connector Added\"}",
+          "m": "totals"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "data": {
+            "series": [[1, 0, 0, 0, 0]],
+            "seriesMeta": ["pinecrest-health.test"],
+            "xValues": ["2026-10-29", "2026-10-30", "2026-10-31", "2026-11-01", "2026-11-02"]
+          }
+        }
+      }
+    }
+  ]
+}

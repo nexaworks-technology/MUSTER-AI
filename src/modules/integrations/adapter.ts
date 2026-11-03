@@ -20,6 +20,8 @@ export interface AdapterContext<Cfg> {
   config: Cfg;
   transport: HttpTransport;
   clock: Clock;
+  /** The business "now" (D-81): usage connectors date their windows with it. Tests may omit it. */
+  businessClock?: Clock;
 }
 
 export interface ConnectionCheck {
@@ -45,8 +47,11 @@ export type AdapterAuth =
     }
   | {
       kind: "apiKey";
-      /** Throws ProviderHttpError when the key is refused. */
-      validate(credentials: Credentials, transport: HttpTransport): Promise<void>;
+      /**
+       * Throws ProviderHttpError when the key is refused. `config` is the connection's own
+       * settings, already parsed with the adapter's configSchema (e.g. a Mixpanel project id).
+       */
+      validate(credentials: Credentials, transport: HttpTransport, config?: unknown): Promise<void>;
     };
 
 /** The raw request a webhook route received. Nothing in it is trusted until `verify` passes. */

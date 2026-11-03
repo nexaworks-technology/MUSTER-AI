@@ -1,5 +1,5 @@
 import type { Integration, IntegrationProvider } from "@prisma/client";
-import { realClock, type Clock } from "@/lib/dates";
+import { businessClock, realClock, type Clock } from "@/lib/dates";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { logger } from "@/lib/logger";
 import type { AdapterContext, IntegrationAdapter } from "./adapter";
@@ -16,6 +16,8 @@ import { transportFor, type HttpTransport } from "./transport";
 export interface ConnectionDeps {
   /** Wall-clock time for token expiry (never the business clock: tokens expire in real time). */
   clock?: Clock;
+  /** The business "now" for usage windows (D-81); defaults to the business clock. */
+  businessClock?: Clock;
   transport?: (provider: IntegrationProvider) => HttpTransport;
   adapter?: (provider: IntegrationProvider) => IntegrationAdapter<unknown>;
 }
@@ -71,6 +73,7 @@ export async function loadConnection(
       config: adapter.configSchema.parse(integration.config),
       transport,
       clock,
+      businessClock: deps.businessClock ?? businessClock,
     },
   };
 }

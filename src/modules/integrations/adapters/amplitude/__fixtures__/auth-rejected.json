@@ -1,0 +1,22 @@
+{
+  "provider": "amplitude",
+  "description": "The API key rejected-key-demo is refused (401); any other key gets the normal world.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/api/2/events/segmentation",
+        "headers": {
+          "authorization": "Basic cmVqZWN0ZWQta2V5LWRlbW86YW1fcmVqZWN0ZWRfc2VjcmV0X2Zvcl9kZW1v"
+        }
+      },
+      "response": {
+        "status": 401,
+        "headers": {},
+        "body": {
+          "error": "Invalid API key"
+        }
+      }
+    }
+  ]
+}

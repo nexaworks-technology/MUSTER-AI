@@ -1,0 +1,17 @@
+{
+  "provider": "mixpanel",
+  "description": "A 200 whose body is not newline-delimited events.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/api/2.0/export"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": "<html>maintenance</html>"
+      }
+    }
+  ]
+}

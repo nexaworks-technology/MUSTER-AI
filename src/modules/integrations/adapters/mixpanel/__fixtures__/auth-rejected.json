@@ -1,0 +1,22 @@
+{
+  "provider": "mixpanel",
+  "description": "The service account rejected-sa.demo is refused (401), so the demo and e2e can show the plain-words error; any other account gets the normal world.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/api/2.0/export",
+        "headers": {
+          "authorization": "Basic cmVqZWN0ZWQtc2EuZGVtbzptcF9yZWplY3RlZF9zZWNyZXRfZm9yX2RlbW8="
+        }
+      },
+      "response": {
+        "status": 401,
+        "headers": {},
+        "body": {
+          "error": "Invalid service account credentials"
+        }
+      }
+    }
+  ]
+}

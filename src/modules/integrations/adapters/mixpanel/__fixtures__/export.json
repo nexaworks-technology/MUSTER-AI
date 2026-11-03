@@ -1,0 +1,22 @@
+{
+  "provider": "mixpanel",
+  "description": "Raw event export for project 3412345: nine events over three days. Every date range gets the same body; the adapter keeps only events inside the range it asked for. One group matches no account, one event has no account at all.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/api/2.0/export",
+        "query": {
+          "project_id": "3412345"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "text/plain"
+        },
+        "body": "{\"event\":\"Session Started\",\"properties\":{\"time\":1793264400,\"distinct_id\":\"u-pine-1\",\"$user_id\":\"u-pine-1\",\"$insert_id\":\"ins-1\",\"account_id\":\"pinecrest-health.test\"}}\n{\"event\":\"Opened\",\"properties\":{\"time\":1793264700,\"distinct_id\":\"u-pine-1\",\"$user_id\":\"u-pine-1\",\"$insert_id\":\"ins-2\",\"account_id\":\"pinecrest-health.test\",\"feature\":\"dashboards\"}}\n{\"event\":\"Opened\",\"properties\":{\"time\":1793265000,\"distinct_id\":\"u-pine-2\",\"$user_id\":\"u-pine-2\",\"$insert_id\":\"ins-3\",\"account_id\":\"pinecrest-health.test\",\"feature\":\"data_connectors\"}}\n{\"event\":\"Session Started\",\"properties\":{\"time\":1793354400,\"distinct_id\":\"u-pine-1\",\"$user_id\":\"u-pine-1\",\"$insert_id\":\"ins-4\",\"account_id\":\"pinecrest-health.test\"}}\n{\"event\":\"Opened\",\"properties\":{\"time\":1793354520,\"distinct_id\":\"u-pine-1\",\"$user_id\":\"u-pine-1\",\"$insert_id\":\"ins-5\",\"account_id\":\"pinecrest-health.test\",\"feature\":\"dashboards\"}}\n{\"event\":\"Opened\",\"properties\":{\"time\":1793354580,\"distinct_id\":\"u-pine-2\",\"$user_id\":\"u-pine-2\",\"$insert_id\":\"ins-6\",\"account_id\":\"pinecrest-health.test\",\"feature\":\"dashboards\"}}\n{\"event\":\"Opened\",\"properties\":{\"time\":1793358000,\"distinct_id\":\"u-x\",\"$user_id\":\"u-x\",\"$insert_id\":\"ins-7\",\"account_id\":\"unknown-co.test\"}}\n{\"event\":\"Page View\",\"properties\":{\"time\":1793361600,\"distinct_id\":\"anon-77\",\"$user_id\":\"anon-77\",\"$insert_id\":\"ins-8\"}}\n{\"event\":\"Session Started\",\"properties\":{\"time\":1793606400,\"distinct_id\":\"u-pine-1\",\"$user_id\":\"u-pine-1\",\"$insert_id\":\"ins-9\",\"account_id\":\"pinecrest-health.test\"}}\n"
+      }
+    }
+  ]
+}

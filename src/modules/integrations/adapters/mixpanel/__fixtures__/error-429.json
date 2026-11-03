@@ -1,0 +1,21 @@
+{
+  "provider": "mixpanel",
+  "description": "A rate-limited export: 429 with Retry-After.",
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/api/2.0/export"
+      },
+      "response": {
+        "status": 429,
+        "headers": {
+          "Retry-After": "60"
+        },
+        "body": {
+          "error": "rate limit exceeded"
+        }
+      }
+    }
+  ]
+}
