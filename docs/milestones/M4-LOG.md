@@ -163,6 +163,25 @@ The audit covers every `new Date()`, `Date.now()` and former `systemClock` under
 - `src/lib/dates/__tests__/business-clock.test.ts` proves the fake value is ignored without the flag, with any other flag value, and in production; refuses a malformed value; and shows `realClock` is never faked.
 - `src/worker/__tests__/business-clock.int.test.ts` shows that under the fake clock the nightly kickoff and a re-score date 2026-11-02, audit rows keep real time, and both e2e servers carry the pin.
 
+## Job and run ids (Q-49 round 4, D-81 extended): classification
+
+Found by the third e2e: under the frozen business clock, `manual-${clock().getTime()}` and `${workspace}.backtest.${clock().getTime()}` were identical for two requests in one frozen instant, so the queue dropped the second as a duplicate. Rule: a timestamp in an id follows the same two-category rule as a timestamp in logic.
+
+| Id (where) | Names | Class | Treatment |
+|---|---|---|---|
+| `nightly-${asOf}` default run id (`signals/pipeline.ts` kickoff) | one nightly run for a business date | **Dedupe-intended** | unchanged (business date) |
+| `${ws}.evaluate.${asOf}.${run}.${chunk}`, `${ws}.score.${asOf}.${runId}.${chunk}` (kickoff, evaluate stage) | one chunk of one run on one business date | **Dedupe-intended** | unchanged |
+| `${ws}.${agentKey}.${trigger.type}.${trigger.id}` (`agents/jobs.ts`) | one agent run per trigger | **Dedupe-intended** | unchanged |
+| `import-${importJobId}` (`imports/service.ts`) | one import job | **Dedupe-intended** | unchanged |
+| `outbox-${event.id}` (`lib/jobs/outbox.ts`) | one outbox event | **Dedupe-intended** | unchanged |
+| `nightly-${workspaceId}` and the `SCHEDULES` ids (worker schedulers) | stable scheduler names | **Dedupe-intended** | unchanged |
+| agent `idempotencyKey`, side-effect `sourceKey`s | database keys, not queue ids | n/a | unchanged |
+| `manual-${clock().getTime()}` + `${ws}.kickoff.${run}` (`enqueueWorkspaceRun`: "Recompute now" and every model activation) | one request | **Uniqueness-intended: the bug** | `realClock` time + `randomUUID` |
+| `${ws}.backtest.${clock().getTime()}` (`enqueueBacktest`) | one back-test request | **Uniqueness-intended: the bug** | `realClock` time + `randomUUID` |
+| `rt-<reason>-${clock().getTime()}-${Math.random()}` (`enqueueAccountEvaluation`: Pulse, payment, escalation hooks) | one hook firing | **Uniqueness-intended** | its clock part was frozen too (only a random suffix kept it unique); now `realClock` time + `randomUUID`. Its **asOf** stays on the business clock. |
+| `cli-${Date.now()}` (`scripts/jobs-nightly.ts`) | one CLI invocation | **Uniqueness-intended** | already real time; unchanged |
+| `runId: "seed"` (`runNightlyInline`) | never enqueued | n/a | unchanged |
+
 ## Decisions and questions
 
 - **New decisions:**

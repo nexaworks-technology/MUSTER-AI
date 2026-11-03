@@ -1,6 +1,7 @@
 import type { Job } from "bullmq";
 import { z } from "zod";
 import { businessClock, todayIn, type Clock } from "@/lib/dates";
+import { backtestJobId, manualRunId, realtimeRunId } from "@/lib/jobs/ids";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { writeOutboxEvent } from "@/lib/jobs/outbox";
 import { getQueue, type QueueName } from "@/lib/jobs/queues";
@@ -176,7 +177,8 @@ export async function enqueueAccountEvaluation(
   clock: Clock = businessClock,
 ) {
   const asOf = todayIn((await loadContext(ctx)).timeZone, clock);
-  const run = `rt-${reason.replace(/[^\w-]/g, "-").slice(0, 30)}-${clock().getTime()}-${Math.random().toString(36).slice(2, 8)}`;
+  // The asOf is a business date (clock); the run id is one enqueue event (real time + random).
+  const run = realtimeRunId(reason);
   const payload: ChunkData = {
     workspaceId: ctx.workspaceId,
     asOf,
@@ -194,8 +196,9 @@ export async function enqueueAccountEvaluation(
 }
 
 /** "Recompute now" for the whole workspace: a kickoff with its own run id. */
-export async function enqueueWorkspaceRun(ctx: TenantContext, clock: Clock = businessClock) {
-  const run = `manual-${clock().getTime()}`;
+export async function enqueueWorkspaceRun(ctx: TenantContext) {
+  // One request = one job, even in one instant (never the business clock; see lib/jobs/ids).
+  const run = manualRunId();
   await add(
     "signals",
     "nightly.kickoff",
@@ -206,8 +209,8 @@ export async function enqueueWorkspaceRun(ctx: TenantContext, clock: Clock = bus
 }
 
 /** Queue a back-test + proposal run for the workspace. */
-export async function enqueueBacktest(ctx: TenantContext, clock: Clock = businessClock) {
-  const id = `${ctx.workspaceId}.backtest.${clock().getTime()}`;
+export async function enqueueBacktest(ctx: TenantContext) {
+  const id = backtestJobId(ctx.workspaceId);
   await getQueue("health").add(
     "health.backtest",
     { workspaceId: ctx.workspaceId },
