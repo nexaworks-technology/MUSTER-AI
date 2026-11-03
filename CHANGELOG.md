@@ -49,3 +49,29 @@ All notable user-facing changes. Format: [Keep a Changelog](https://keepachangel
   and activates a version; old scores keep the version they were made with.
 - Health and signals refresh every night at 02:00 in the workspace's time zone, and right away after a
   Pulse, a payment change or a ticket escalation. "Recompute now" runs the same job on demand.
+- Today: the page you land on after signing in. What needs you today, from your own accounts only:
+  tasks due or overdue, new signals, approvals waiting for you and renewals in the next 90 days, ranked
+  by account value × urgency with the reason on every item ("$142k ARR × overdue 2 days"). Without
+  revenue access the order is the same and no value is shown. Meetings show "No calendar connected"
+  until a calendar is.
+- Approvals: every draft waiting for a human yes or no, with its reason and links to its proof.
+  Approve, edit then approve (the edit is kept as a new version, the original is never overwritten), or
+  reject with a note; approve or reject several at once after confirming the exact list. Anything about
+  cancellation, pricing, legal, security, a complaint or an escalation is marked "Sensitive" and "Always
+  human": it can never be sent automatically or approved in bulk.
+- Draft check-in: from any open signal or ticket, write a check-in email (or let the AI draft one when AI
+  is configured). It goes to Approvals; nothing reaches a customer until someone approves it, and every
+  send passes the send checks (approved text, sources, unsubscribed or bounced addresses never emailed).
+  Automatic sending stays off.
+- Health Analyst: on an account's Health tab, the AI's top one or two risks or opportunities in plain
+  words, each linked to the exact health reason or signal behind it, with the model's own confidence and
+  a "What it read" link. Any number it writes must appear in a record it cites; anything uncited is never
+  shown. Without an AI key the tab says "AI is not configured".
+- Sentiment: customer ticket messages labelled by AI from verified quotes now feed the Sentiment part of
+  health as data; the score itself stays a formula.
+- Overdue tasks escalate to CS Leaders, who see them on their Today and in notifications.
+- Settings › Audit: every human and AI decision, filterable by person or agent, action, target and date;
+  Admins export CSV or JSON, and each export is itself recorded.
+- Settings › AI team: each agent's job, model tier, prompt version and recent runs, with a switch for
+  Admins. Each run shows what it read, what it decided and what it did, and a run that failed shows why
+  and nothing of its output.
