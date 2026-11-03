@@ -73,6 +73,11 @@ questions/milestone logs · Tests live beside the module they test; e2e in `e2e/
 9. SECRETS: never print, log, commit or echo a secret value. Refer to env vars by name.
    `.env.example` lists names only.
 
+THE PRECISE AI CLAIM (D-75): no LLM produces a health, risk, forecast or money NUMBER; those stay
+deterministic code. LLM-labelled extractions may feed components as DATA (e.g. Sentiment) only when
+every label's verbatim quote is verified against its source text first; an unverifiable quote is
+discarded and logged, never repaired. Numbers in AI narrative must appear in a record it cites.
+
 ## Working method (every session, every milestone)
 EXPLORE → PLAN → BUILD ONE THIN SLICE AT A TIME → VERIFY WITH `pnpm gate` + the milestone's
 acceptance checks → UPDATE DOCS (plan checkbox, milestone log, CHANGELOG entry if user-facing)

@@ -27,6 +27,8 @@ export interface StructuredResult<T> {
   inputTokens: number;
   outputTokens: number;
   latencyMs: number;
+  /** Why the output did not match the schema (issue paths and expectations), for the one repair call. */
+  validationError?: string;
 }
 
 export interface AiProvider {
@@ -39,5 +41,30 @@ export class AiNotConfiguredError extends Error {
   constructor(detail: string) {
     super(`AI is not configured: ${detail}`);
     this.name = "AiNotConfiguredError";
+  }
+}
+
+/**
+ * A provider failure worth retrying (429, 5xx, timeouts, dropped connections). The executor
+ * retries these with backoff and jitter (D-74); every other provider error fails the run at once.
+ */
+export class AiTransientError extends Error {
+  constructor(
+    readonly code: string,
+    detail: string,
+  ) {
+    super(`AI provider unavailable (${code}): ${detail}`);
+    this.name = "AiTransientError";
+  }
+}
+
+/** A provider failure that will not clear by retrying (bad request, auth, permission). */
+export class AiProviderError extends Error {
+  constructor(
+    readonly code: string,
+    detail: string,
+  ) {
+    super(`AI provider error (${code}): ${detail}`);
+    this.name = "AiProviderError";
   }
 }

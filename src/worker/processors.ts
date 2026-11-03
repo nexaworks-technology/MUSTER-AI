@@ -5,6 +5,7 @@ import { logger } from "@/lib/logger";
 import { systemClock } from "@/lib/dates";
 import { listActiveWorkspaces } from "@/lib/db/workspace";
 import { getQueue } from "@/lib/jobs/queues";
+import { processAgentRun } from "@/modules/agents/service";
 import { importJobPayload, runImportJob } from "@/modules/imports/service";
 import { createPipelineProcessors } from "@/modules/signals/service";
 
@@ -43,6 +44,12 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
   /** M3: the nightly run and the real-time hook (signals → health), scoped by payload. */
   signals: pipeline.signals,
   health: pipeline.health,
+  /** M4: one agent run per job, scoped by the payload's workspaceId (ARCHITECTURE §1.3). */
+  agents: {
+    async "agents.run"(job) {
+      return processAgentRun(job.data);
+    },
+  },
   maintenance: {
     async "nightly.schedules"() {
       return { workspaces: await syncNightlySchedules() };

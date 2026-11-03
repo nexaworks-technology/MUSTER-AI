@@ -14,8 +14,10 @@ const files = (dir: string): string[] =>
     return /\.(ts|tsx)$/.test(f) ? [p] : [];
   });
 
+// Any way of reaching the module: `from "…"` (import/export), a side-effect `import "…"`, a dynamic
+// `import("…")` and `require("…")` (M4 rule 2, review N2).
 const AI =
-  /from\s+["'](@\/lib\/ai(\/.*)?|@anthropic-ai\/[^"']+|openai|[^"']*\/lib\/ai(\/[^"']*)?)["']/;
+  /(?:\bfrom\s+|\bimport\s*\(?\s*|\brequire\s*\(\s*)["'](@\/lib\/ai(\/[^"']*)?|@anthropic-ai\/[^"']+|openai|[^"']*\/lib\/ai(\/[^"']*)?)["']/;
 
 describe("health and signals use no AI", () => {
   for (const mod of ["health", "signals"])
@@ -29,5 +31,11 @@ describe("health and signals use no AI", () => {
     expect(AI.test('import { complete } from "@/lib/ai";')).toBe(true);
     expect(AI.test('import Anthropic from "@anthropic-ai/sdk";')).toBe(true);
     expect(AI.test('import { scopedDb } from "@/lib/db/scoped";')).toBe(false);
+    expect(AI.test('import "@/lib/ai";')).toBe(true);
+    expect(AI.test('const ai = await import("@/lib/ai");')).toBe(true);
+    expect(AI.test("const m = await import('../../lib/ai/anthropic');")).toBe(true);
+    expect(AI.test('const ai = require("@/lib/ai");')).toBe(true);
+    expect(AI.test('export { complete } from "@/lib/ai";')).toBe(true);
+    expect(AI.test('import { aiText } from "@/lib/aide";')).toBe(false);
   });
 });

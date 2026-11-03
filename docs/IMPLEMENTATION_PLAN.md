@@ -120,7 +120,7 @@ Scope discipline:
 **Deliverables:**
 - **Models.** AgentDefinition, AgentRun, Approval, OutboundMessage, EmailSuppression, TodayItem, Notification.
 - **`defineAgent` framework.**
-  - ContextBundle, prompt loader, model tiers via env, structured output via tool schema from Zod.
+  - ContextBundle, prompt loader, model tiers via env, structured output from the Zod schema via `output_config.format` (D-35; supersedes "via tool schema").
   - Repair-once, then the citation validator (ids in bundle + verbatim quotes) and the forbidden-numeric overwrite (all test-first).
   - Idempotent runs, retry policy, side-effect keys, per-workspace token budget.
   - `RecordedProvider` for tests; "AI is not configured" state when no key.

@@ -33,10 +33,27 @@ export function createRecordedProvider(dir: string, nodeEnv = process.env.NODE_E
           `no recording for ${request.promptRef} at ${path.relative(process.cwd(), file)}`,
         );
       }
-      const parsed = request.schema.safeParse(JSON.parse(raw));
+      const recorded = JSON.parse(raw) as unknown;
+      // A recording may stand for a refusal: { "__stopReason": "refusal" } (tests only).
+      if (
+        recorded !== null &&
+        typeof recorded === "object" &&
+        (recorded as { __stopReason?: unknown }).__stopReason === "refusal"
+      )
+        return {
+          output: null,
+          stopReason: "refusal",
+          model: "recorded",
+          requestId: null,
+          inputTokens: 0,
+          outputTokens: 0,
+          latencyMs: 0,
+        };
+      const parsed = request.schema.safeParse(recorded);
       return {
         output: parsed.success ? parsed.data : null,
-        stopReason: "end_turn",
+        stopReason: parsed.success ? "end_turn" : "invalid_output",
+        ...(parsed.success ? {} : { validationError: parsed.error.message.slice(0, 2_000) }),
         model: "recorded",
         requestId: null,
         inputTokens: 0,

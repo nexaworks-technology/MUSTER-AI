@@ -84,6 +84,41 @@ export const workspaceSettingsData = z.object({
       staleAfterDays: z.number().int().min(30).max(730).default(180),
     })
     .prefault({}),
+  ai: z
+    .object({
+      /** Tokens (input + output) all agents may use per workspace per calendar day (§6.3). */
+      dailyTokenBudget: z.number().int().min(0).default(2_000_000),
+    })
+    .prefault({}),
+  outbound: z
+    .object({
+      /**
+       * The auto-send kill switch (guard 8). Forced off until M8: any stored value reads as false,
+       * and no screen can change it. Human-approved sends do not depend on it.
+       */
+      autoSendEnabled: z.literal(false).catch(false).default(false),
+      /** Quiet hours in the customer's local time: [start, end) wraps midnight (guard 3). */
+      quietStartHour: z.number().int().min(0).max(23).default(19),
+      quietEndHour: z.number().int().min(0).max(23).default(8),
+      quietOnWeekends: z.boolean().default(true),
+      contactCooldownHours: z.number().int().min(1).default(72),
+      otherPlayCooldownHours: z.number().int().min(1).default(48),
+    })
+    .prefault({}),
+  approvals: z
+    .object({
+      /** The highest level any action may reach in this workspace (ARCHITECTURE §7.3). */
+      workspaceCeiling: z
+        .enum([
+          "NOTIFY_ONLY",
+          "DRAFT_FOR_APPROVAL",
+          "DRAFT_IN_MAILBOX",
+          "DO_AUTOMATICALLY",
+          "SEND_AUTOMATICALLY",
+        ])
+        .default("DO_AUTOMATICALLY"),
+    })
+    .prefault({}),
 });
 
 export type WorkspaceSettingsData = z.infer<typeof workspaceSettingsData>;
