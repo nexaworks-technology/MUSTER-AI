@@ -23,7 +23,7 @@ Scope discipline:
 - [x] M3: Health & Signals (2026-11-03, see `docs/milestones/M3-LOG.md`; Q-44, Q-45 open)
 - [x] M4: Agent Framework, Today & Approvals
 - [x] M5: Integrations Core
-- [ ] M6: Onboarding & Adoption
+- [x] M6: Onboarding & Adoption
 - [ ] M7: Renewals, Revenue & Expansion
 - [ ] M8: Plays Engine
 - [ ] M9: Conversations, Inbox, Promises & Sentiment

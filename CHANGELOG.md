@@ -6,6 +6,19 @@ All notable user-facing changes. Format: [Keep a Changelog](https://keepachangel
 
 ### Added
 
+- Onboarding: every new customer has a plan built from a template, with steps owned by us or the customer. A
+  step is done only when a person marks it or the product itself shows it (with the usage days as proof).
+  The Onboarding screen lists every account being onboarded, stalled first, with the likely blocker in plain
+  words ("SSO setup (customer) overdue 12 days") and time to value against similar accounts. The account's
+  Onboarding tab adds the Sales handoff, each item with its source and "Not found in CRM" where it is missing.
+- Adoption (a tab beside Usage): "3 of 5 features in your plan have never been used", seats, power users and
+  use against the account's own normal and similar accounts, every figure linked to the days behind it.
+- Usage API: send product events to `/api/usage/v1/track`, `identify` or `batch` with a key made in Settings ›
+  Integrations (shown once, rotatable), or through Segment. Events are folded into daily totals and not kept.
+  Mixpanel and Amplitude connect there too.
+- Onboarding Manager and Adoption Coach drafts: a check-in for a stalled step and a nudge about plan features not
+  yet used wait in Approvals; nothing is sent without a person. A stalled plan also tells its owner in the bell.
+
 - Integrations (Settings › Integrations, Admins): connect HubSpot, Salesforce, Stripe, Chargebee and Slack.
   Every connection reads only; each one shows when it last synced, what it added, updated or could not use,
   and any error in plain words. Run a sync now, test the connection, or disconnect (saved keys are deleted).
