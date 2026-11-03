@@ -38,3 +38,9 @@ export {
   type TemplateStep,
 } from "./schemas";
 export { firstMet, type UsageData } from "./value";
+export {
+  assembleHandoff,
+  type HandoffInput,
+  type HandoffItem,
+  type HandoffSource,
+} from "./handoff";
