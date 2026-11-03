@@ -67,3 +67,14 @@ describe("business today in job and worker paths, under the fake clock", () => {
     expect(row.createdAt.toISOString().startsWith("2026-11-02T17:00")).toBe(false);
   });
 });
+
+describe("the e2e harness pins the clock to the seed's day", () => {
+  it("both the app and the worker get the fake clock, set to SEED_TODAY at midday New York", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { SEED_TODAY } = await import("../../../prisma/seed/demo/dates");
+    const cfg = readFileSync(`${process.cwd()}/playwright.config.ts`, "utf8");
+    expect(cfg).toContain('APP_FAKE_NOW: "2026-11-02T17:00:00Z"');
+    expect(SEED_TODAY).toBe("2026-11-02");
+    expect(cfg.match(/\.\.\.E2E_FAKE_CLOCK/g)).toHaveLength(2);
+  });
+});

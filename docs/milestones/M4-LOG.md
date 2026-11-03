@@ -117,6 +117,52 @@ The three causes:
 
    Re-running the gate needs this state cleaned. Stopping it from recurring needs the e2e worker not to register real-clock nightly schedules, which means a founder-approved change to `playwright.config.ts` (Q-49).
 
+## Clock seam (Q-49 round 3, D-81): audit of real-time reads
+
+The audit covers every `new Date()`, `Date.now()` and former `systemClock` under `src/modules`, `src/lib/jobs` and the worker entry.
+
+**(a) Business "today", now routed through `businessClock`:**
+- the injected default clock of every service that took `systemClock`:
+  - `worker/processors.ts` pipeline (nightly kickoff, chunk evaluate and score, and the run a model activation or "Recompute now" queues);
+  - `signals/pipeline.ts` (`enqueueAccountEvaluation`, `enqueueWorkspaceRun`, `enqueueBacktest`);
+  - `signals/service.ts` (`createOutsideSignal`);
+  - `health/service.ts` (Health tab and overview reads, Pulse, `recomputeAccounts`);
+  - `health/actions/model.ts` (`saveModelEdit`);
+  - `agents/executor.ts` (daily token budget);
+  - `approvals/lifecycle.ts` (decision time);
+  - `outbound/dispatch.ts` (send guards, `sentAt`);
+  - `outcomes/service.ts` (acted / checkpoint);
+  - `tasks/escalation.ts`;
+  - `today/service.ts`;
+- `lib/dates` `todayIn` default;
+- `imports/writers.ts` role `validFrom` and outside-signal `now` (the import job runs on the worker);
+- `billing/service.ts` `recomputeCommercials` `asOf` (ARR and renewal "as of today"; also run by the import job).
+
+**(b) Real time, unchanged, with the reason:**
+- *Token expiry and acceptance:* `settings/service.ts` invitation `expiresAt` / `revokedAt` / `acceptedAt`.
+- *Record timestamps of a user's action:*
+  - `tasks/service.ts` `completedAt`;
+  - `signals/service.ts` `acknowledgedAt` / `markedFalseAt`;
+  - `notifications/service.ts` `readAt`;
+  - `accounts/data-quality-service.ts` `fixedAt` / `validTo`;
+  - `accounts/service.ts` `stageChangedAt`.
+- *Model lifecycle audit stamps:* `health/backtest-service.ts` and `health/service.ts` `activatedAt` / `retiredAt`.
+- *Run bookkeeping and durations:* `agents/executor.ts` `startedAt` / `finishedAt` / `latencyMs`.
+- *Import job bookkeeping:* `imports/service.ts` `confirmedAt` / `startedAt` / `finishedAt`.
+- *Infrastructure:* `lib/jobs/outbox.ts` `availableAt` / `processedAt`.
+- *Export file name:* `audit/service.ts` export date stamp.
+- *Liveness log:* `worker/processors.ts` heartbeat.
+- *Request-path reads outside the job and worker scope of this fix, unchanged:*
+  - `contacts/service.ts` champion change time;
+  - `usage`, `support`, `billing` (page reads), `timeline`, `segments` "now";
+  - `accounts/service.ts` missing-data `now`;
+  - `accounts/data-quality-service.ts` scan default;
+  - `approvals/schemas.ts` `waitingFor`.
+
+**Tests:**
+- `src/lib/dates/__tests__/business-clock.test.ts` proves the fake value is ignored without the flag, with any other flag value, and in production; refuses a malformed value; and shows `realClock` is never faked.
+- `src/worker/__tests__/business-clock.int.test.ts` shows that under the fake clock the nightly kickoff and a re-score date 2026-11-02, audit rows keep real time, and both e2e servers carry the pin.
+
 ## Decisions and questions
 
 - **New decisions:**

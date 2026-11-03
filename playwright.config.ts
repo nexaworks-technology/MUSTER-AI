@@ -11,6 +11,10 @@ const PORT = Number(process.env.E2E_PORT ?? 3100);
 // The app (`next dev`, always NODE_ENV=development) and the worker must share one queue prefix,
 // distinct from dev's, so a running dev worker can never take e2e jobs.
 const E2E_QUEUE_PREFIX = "nexaworks-e2e";
+// The e2e world is frozen at the seed's day (SEED_TODAY 2026-11-02): both servers read business
+// "today" from this instant, midday Nov 2 in America/New_York (Q-49, D-81). Test-only flags,
+// ignored in production.
+const E2E_FAKE_CLOCK = { ALLOW_FAKE_CLOCK: "true", APP_FAKE_NOW: "2026-11-02T17:00:00Z" };
 
 export default defineConfig({
   testDir: "./e2e",
@@ -46,6 +50,7 @@ export default defineConfig({
         APP_URL: `http://localhost:${PORT}`,
         EMAIL_TRANSPORT: "log",
         QUEUE_PREFIX: E2E_QUEUE_PREFIX,
+        ...E2E_FAKE_CLOCK,
       },
     },
     // CSV imports run on the worker (D-47), so e2e starts it too, against the same database.
@@ -61,6 +66,7 @@ export default defineConfig({
         QUEUE_PREFIX: E2E_QUEUE_PREFIX,
         // No real-clock nightly runs against the seeded workspace, which stays "as of" SEED_TODAY.
         NIGHTLY_SCHEDULES: "off",
+        ...E2E_FAKE_CLOCK,
       },
     },
   ],
