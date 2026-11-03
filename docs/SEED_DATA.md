@@ -71,7 +71,7 @@ It is the "other tenant" for isolation tests and e2e "cannot see" checks.
 | **Orchard Lane Bakery Supply** | Long-tail · none · $1.8k | Payment failed yesterday. The contact was emailed by another play **2 days ago**. | M8 guard: held (contact emailed < 3 days) → Approvals |
 | **Marlow & Finch** | High · Leo · $98k | Goal stated on a call: *"Our goal is to cut month-end close to 3 days."* Healthy. QBR due this month. | M9 goal extraction, M10 QBR draft + success plan, QBR Due play |
 | **Tidewater Clinics** | High · Leo · $121k | Healthy by score, but Leo's Pulse is **"Worried"** (comment: "New VP is skeptical"). | M3 score/CSM disagreement |
-| **Ashgrove Manufacturing** | Mid · Aisha · $22k | At Risk by score (support spike) but Aisha's Pulse is **"Actually fine"** (comment: "Spike was one migration, resolved"). | M3 disagreement, false-alarm marking |
+| **Ashgrove Manufacturing** | Mid · Aisha · $22k | **Healthy by score** (96.9; the closed, un-escalated migration spike is outside the spec's Support inputs, so it does not lower Support). Aisha's Pulse is **"Actually fine"** (comment: "Spike was one migration, resolved"), which agrees with the score, so it is not a disagreement. *Corrected 2026-11-03 (Q-45).* | M3 Pulse agreeing with the score; the disagreement demo is Tidewater plus a live Worried Pulse |
 | **Redfern Outdoor** | Long-tail · none · $3.6k | No logins in 24 days; previously weekly. | Engagement loss signal, Re-engagement play, Digital CSM |
 | **Glenmore Foods** | Mid · Aisha · $16k | No decision maker known; no meeting in 63 days. | Relationship gap, "no meeting in X days" |
 | **Fairhaven Dental Group / Kestrel Robotics / Bluefin Charters** | various | Missing contract / renewal date / owner (see above) | M2 missing-data helper; health shows "No contract on file" and is **not** lowered |
@@ -146,7 +146,7 @@ Onboarding templates: "Mid-touch standard (60d)", "High-touch guided (90d)", "Lo
 - **12 renewed accounts.** These are active accounts whose last renewal was 1–11 months ago. 10 were healthy throughout. **2 had a temporary dip**
   (one migration support spike, one seasonal usage dip) that a naive model flags. They are the false-alarm test cases.
 - **Expected back-test result.** It is captured in the golden fixture `src/modules/health/__tests__/fixtures/backtest-seed.json`.
-  The default model catches 8 of 12 churns with median lead ≈ 40 days and 2 false alarms out of 12 renewals. The fixture asserts the exact numbers produced by the seed.
+  Measured on the seed (the fixture asserts these exact numbers; nothing is tuned to a target, D-59): the default model catches **0 of 12** churns with 0 false alarms out of 12 renewals; the back-test proposal (Adoption 70 %, Healthy from 60, Watch from 55) catches **4 of 12, on average 28 days early, with 0 false alarms**. *Corrected 2026-11-03 (Q-43, Q-44); the earlier "8 of 12" was a design expectation, not a measurement.*
   If the engine changes, the fixture changes only with a written reason in the milestone log.
 
 ## 9. Surveys
