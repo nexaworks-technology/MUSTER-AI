@@ -9,9 +9,13 @@ import type { IntegrationAdapter } from "../adapter";
 import type { ConnectionDeps } from "../connection";
 import { sealCredentials } from "../credentials";
 import { describeProviderError } from "../errors";
-import { createFixtureTransport, type FixtureInteraction } from "../fixture-transport";
+import {
+  createFixtureTransport,
+  type FixtureInteraction,
+  type FixtureTransport,
+} from "../fixture-transport";
 import { runSync } from "../sync.jobs";
-import { requestJson, type HttpTransport } from "../transport";
+import { requestJson } from "../transport";
 
 /**
  * M5 §5 sync tests: cursor resume, a failed page that records errorPlain and keeps the cursor,
@@ -61,7 +65,7 @@ const get = (after: string | undefined, status: number, body: unknown): FixtureI
 
 function deps(
   interactions: FixtureInteraction[],
-): ConnectionDeps & { transport: () => HttpTransport } {
+): ConnectionDeps & { transport: () => FixtureTransport } {
   const t = createFixtureTransport(interactions);
   return { adapter: () => fakeAdapter, transport: () => t };
 }
