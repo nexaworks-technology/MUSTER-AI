@@ -11,6 +11,7 @@ import {
   sweepAllHealthNarratives,
 } from "@/modules/agents/service";
 import { importJobPayload, runImportJob } from "@/modules/imports/service";
+import { escalateOverdueTasks } from "@/modules/tasks/service";
 import { rebuildWorkspaceToday } from "@/modules/today/service";
 import { createPipelineProcessors } from "@/modules/signals/service";
 
@@ -73,6 +74,13 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
     async "outbox.dispatch"() {
       return dispatchOutbox(OUTBOX_ROUTES);
     },
+    /** M4: overdue tasks escalate to the CS Leaders (§6F3); idempotent per task. */
+    async "tasks.escalateOverdue"() {
+      const out: Record<string, number> = {};
+      for (const w of await listActiveWorkspaces())
+        out[w.slug] = (await escalateOverdueTasks({ workspaceId: w.id })).escalated;
+      return out;
+    },
     /** M4: every member's Today, re-ranked (pages also rebuild a stale Today on read). */
     async "today.rebuildAll"() {
       const out: Record<string, number> = {};
@@ -91,6 +99,7 @@ export const SCHEDULES = [
   { queue: "maintenance", id: "nightly-schedules", job: "nightly.schedules", everyMs: 3_600_000 },
   // M4: narratives for snapshots no event covers (first snapshot, top-reason change).
   { queue: "agents", id: "health-analyst-sweep", job: "health-analyst.sweep", everyMs: 900_000 },
+  { queue: "maintenance", id: "task-escalation", job: "tasks.escalateOverdue", everyMs: 3_600_000 },
   { queue: "maintenance", id: "today-rebuild", job: "today.rebuildAll", everyMs: 3_600_000 },
 ] as const;
 

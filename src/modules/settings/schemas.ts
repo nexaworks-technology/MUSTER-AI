@@ -84,6 +84,12 @@ export const workspaceSettingsData = z.object({
       staleAfterDays: z.number().int().min(30).max(730).default(180),
     })
     .prefault({}),
+  tasks: z
+    .object({
+      /** An open task this many days past its due date escalates to the CS Leaders (§6F3). */
+      escalateAfterDays: z.number().int().min(1).max(60).default(1),
+    })
+    .prefault({}),
   ai: z
     .object({
       /** Tokens (input + output) all agents may use per workspace per calendar day (§6.3). */

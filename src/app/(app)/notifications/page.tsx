@@ -47,8 +47,10 @@ export default async function NotificationsPage() {
                     n.refType === "Note"
                       ? `/accounts/${n.accountId}/notes`
                       : n.refType === "Task"
-                        ? "/tasks"
-                        : `/accounts/${n.accountId}`
+                        ? `/accounts/${n.accountId}/tasks#task-${n.refId}`
+                        : n.refType === "Approval"
+                          ? `/approvals/${n.refId}`
+                          : `/accounts/${n.accountId}`
                   }
                   className="shrink-0 text-xs underline"
                 >

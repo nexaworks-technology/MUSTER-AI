@@ -181,3 +181,5 @@ export async function taskTimeline(
     ])
     .filter((i) => i.at <= upTo);
 }
+
+export { escalateOverdueTasks } from "./escalation";
