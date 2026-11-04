@@ -1,0 +1,60 @@
+[setup] scratch database nexaworks_scratch_m9_1793818001951
+WARNING:  no privileges were granted for "public"
+[setup] migrating
+Environment variables loaded from .env
+[setup] seeding the demo workspace (the Watcher reads the story records)
+
+------------------------------------------------------------------------------
+1. The Watcher read a seeded call; the promise carries its verified quote
+------------------------------------------------------------------------------
+call:        Halden Retail — export follow-up
+agent run:   watcher 1.1.0, prompt watcher-extraction@1.1.0, SUCCEEDED
+extraction:  PROMISE  “Engineering will have the CSV export fix to you by October 24.”  (confidence 0.93)
+verbatim in the call text: true
+story-source runs that dropped a quote: 0
+
+------------------------------------------------------------------------------
+2. Halden's promise reads Late, computed by code from the date
+------------------------------------------------------------------------------
+promise:     CSV export fix (US, due 2026-10-24)
+status:      LATE — 9 days late: it was due on 2026-10-24 and nothing shows it was done.
+proof:       CALL_TRANSCRIPT seed57a9be237992bbea6ecca, quote “Engineering will have the CSV export fix to you by October 24.”
+
+------------------------------------------------------------------------------
+3. Promise Late is publishable and enters on its signal
+------------------------------------------------------------------------------
+status before: DRAFT
+publish:       PUBLISHED
+signal:        WARN “Promise late: CSV export fix (9 days)”
+entered play:  yes (1 run)
+run:           RUNNING; steps: 
+
+------------------------------------------------------------------------------
+4. A reply drafted from a sensitive message is capped at draft-for-approval
+------------------------------------------------------------------------------
+agent run:     SUCCEEDED
+approval:      PENDING, level DRAFT_FOR_APPROVAL, sensitive=true (cancellation)
+draft:         AWAITING_APPROVAL, to the requester, proof cites ["seedad089bda00cd5006c4694"]
+forced AUTO dispatch: result HELD; emails sent: 0
+
+------------------------------------------------------------------------------
+5. Northgate: the late promise and the renewal concern, with their sources
+------------------------------------------------------------------------------
+promise:       API limit increase live: LATE — 3 days late: it was due on 2026-10-30 and nothing shows it was done.
+               “We'll have the API limit increase live by October 30.” (CALL_TRANSCRIPT)
+signal:        budget_concern WARN — Budget concern raised
+               source CallTranscript seed1a36b7c9f7fe7104c6c8e 2026-10-15 “Budget is tight next year, so every tool is being reviewed.”
+signal:        promise_late WARN — Promise late: API limit increase live (3 days)
+               source Promise cmw2gxg1600dorfduuunuhj4o 2026-10-30 
+               source CallTranscript seed1a36b7c9f7fe7104c6c8e  
+signal:        renewal_concern CRITICAL — Customer raised a renewal concern
+               source CallTranscript seed1a36b7c9f7fe7104c6c8e 2026-10-15 “We need to see the API limits fixed before we sign again.”
+renewal confidence unchanged by M9: 70 (HIGH), the shipped model counts health band and notice only (D-118/D-120)
+
+------------------------------------------------------------------------------
+Risk 1: seeded health numbers against the M8 baseline
+------------------------------------------------------------------------------
+snapshots matching the baseline (overall, adoption, sentiment, risk level): 60 of 60
+renewal confidences matching: 58 of 58; Northgate 70
+[cleanup] dropped nexaworks_scratch_m9_1793818001951
+DONE 0
