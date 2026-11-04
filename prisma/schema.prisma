@@ -124,6 +124,10 @@ model Workspace {
   renewalOutcomes     RenewalOutcome[]
   expansionOpps       ExpansionOpportunity[]
   documents           Document[]
+  plays               Play[]
+  playVersions        PlayVersion[]
+  playRuns            PlayRun[]
+  playStepRuns        PlayStepRun[]
 }
 
 // ─── Global identity (Auth.js) ───────────────────────────────────────────────
@@ -218,6 +222,7 @@ model Membership {
   uploadedFiles       FileObject[]           @relation("FileUploader")
   importJobs          ImportJob[]            @relation("ImportCreator")
   missingPrompts      MissingDataPrompt[]    @relation("PromptAskedTo")
+  publishedPlayVersions PlayVersion[]        @relation("PlayVersionPublisher")
   healthModelsMade    HealthModel[]          @relation("HealthModelCreator")
   healthModelsOked    HealthModel[]          @relation("HealthModelApprover")
   pulses              CsmPulse[]             @relation("PulseAuthor")
@@ -458,6 +463,7 @@ model Account {
   renewalOutcomes  RenewalOutcome[]
   expansionOpps    ExpansionOpportunity[]
   documents        Document[]
+  playRuns         PlayRun[]
 
   @@unique([workspaceId, id])
   @@index([workspaceId, renewalDate])
@@ -977,6 +983,7 @@ model Task {
   owner     Membership  @relation("TaskOwner", fields: [workspaceId, ownerMembershipId], references: [workspaceId, id], onDelete: Restrict)
   createdBy Membership? @relation("TaskCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: SetNull)
   agentRun  AgentRun?   @relation("TaskAgentRun", fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
+  playStepRuns PlayStepRun[]
 
   @@unique([workspaceId, id])
   @@index([workspaceId, ownerMembershipId, status, dueAt])
@@ -1584,6 +1591,7 @@ model Signal {
   approvals        Approval[]
   outboundMessages OutboundMessage[]
   tasks            Task[]
+  playRuns         PlayRun[]
   agentRun         AgentRun?         @relation("SignalAgentRun", fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
 
   @@unique([workspaceId, id])
@@ -1726,6 +1734,7 @@ model AgentRun {
   outcomeRecords   OutcomeRecord[]   @relation("OutcomeAgentRun")
   goals            Goal[]            @relation("GoalAgentRun")
   documents        Document[]        @relation("DocumentAgentRun")
+  playStepRuns     PlayStepRun[]
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, idempotencyKey])
@@ -1750,6 +1759,7 @@ enum ApprovalStatus {
   REJECTED
   EXPIRED
   SUPERSEDED
+  AUTO_RECORDED
 }
 
 /// ARCHITECTURE §7.3, in order (lowest first).
@@ -1806,6 +1816,7 @@ model Approval {
   signal           Signal?           @relation(fields: [workspaceId, signalId], references: [workspaceId, id], onDelete: Restrict)
   outboundMessages OutboundMessage[]
   revisions        DraftRevision[]
+  playStepRuns     PlayStepRun[]
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, sourceKey])
@@ -1887,6 +1898,7 @@ model OutboundMessage {
   agentRun  AgentRun?       @relation(fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
   createdBy Membership?     @relation("OutboundCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: Restrict)
   revisions DraftRevision[]
+  playStepRuns PlayStepRun[]
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, sourceKey])
@@ -2513,4 +2525,135 @@ model Document {
 
   @@unique([workspaceId, id])
   @@index([workspaceId, accountId, kind])
+}
+
+// ─── M8: Plays Engine (spec §5, ARCHITECTURE §3.2) ────────────────────────────
+
+enum PlayStatus {
+  DRAFT
+  PUBLISHED
+  PAUSED
+  KILLED
+}
+
+enum PlayRunStatus {
+  RUNNING
+  WAITING
+  COMPLETED
+  EXITED
+  FAILED
+}
+
+enum PlayStepRunStatus {
+  PENDING
+  WAITING_APPROVAL
+  DONE
+  SKIPPED
+  FAILED
+}
+
+/// [W] A play definition and lifecycle state (spec §5, ARCHITECTURE §3.2).
+model Play {
+  id               String       @id @default(cuid())
+  workspaceId      String
+  key              String
+  name             String
+  description      String?
+  category         String       @default("general")
+  status           PlayStatus   @default(DRAFT)
+  isSeeded         Boolean      @default(false)
+  currentVersionId String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  workspace      Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  currentVersion PlayVersion?  @relation("PlayCurrentVersion", fields: [workspaceId, currentVersionId], references: [workspaceId, id], onDelete: SetNull)
+  versions       PlayVersion[] @relation("PlayVersions")
+  runs           PlayRun[]
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, key])
+  @@index([workspaceId, status])
+}
+
+/// [W] An immutable version of a Play's definition (spec §5, ARCHITECTURE §3.2).
+model PlayVersion {
+  id            String    @id @default(cuid())
+  workspaceId   String
+  playId        String
+  version       Int
+  definition    Json
+  safetyCheck   Json?
+  publishedById String?
+  publishedAt   DateTime?
+  createdAt     DateTime  @default(now())
+
+  workspace      Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  play           Play        @relation("PlayVersions", fields: [workspaceId, playId], references: [workspaceId, id], onDelete: Cascade)
+  publishedBy    Membership? @relation("PlayVersionPublisher", fields: [workspaceId, publishedById], references: [workspaceId, id], onDelete: SetNull)
+  runs           PlayRun[]
+  currentForPlay Play[]      @relation("PlayCurrentVersion")
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, playId, version])
+  @@index([workspaceId, playId])
+}
+
+/// [W] A running execution of a play for an account (spec §5, ARCHITECTURE §3.2).
+/// Unique on (playId, accountId, triggerRef) per D2; at most one OPEN run per play+account.
+model PlayRun {
+  id            String        @id @default(cuid())
+  workspaceId   String
+  playId        String
+  playVersionId String
+  accountId     String
+  triggerRef    String
+  signalId      String?
+  status        PlayRunStatus @default(RUNNING)
+  enteredAt     DateTime      @default(now())
+  exitedAt      DateTime?
+  exitReason    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  workspace Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  play      Play          @relation(fields: [workspaceId, playId], references: [workspaceId, id], onDelete: Cascade)
+  version   PlayVersion   @relation(fields: [workspaceId, playVersionId], references: [workspaceId, id], onDelete: Restrict)
+  account   Account       @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  signal    Signal?       @relation(fields: [workspaceId, signalId], references: [workspaceId, id], onDelete: SetNull)
+  stepRuns  PlayStepRun[]
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, playId, accountId, triggerRef])
+  @@index([workspaceId, playId, accountId, status])
+  @@index([workspaceId, status])
+}
+
+/// [W] Execution record of an individual step in a play run (spec §5, ARCHITECTURE §3.2).
+model PlayStepRun {
+  id                String            @id @default(cuid())
+  workspaceId       String
+  playRunId         String
+  stepKey           String
+  handler           String
+  status            PlayStepRunStatus @default(PENDING)
+  scheduledFor      DateTime?
+  approvalId        String?
+  taskId            String?
+  outboundMessageId String?
+  agentRunId        String?
+  result            Json?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  workspace       Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  playRun         PlayRun          @relation(fields: [workspaceId, playRunId], references: [workspaceId, id], onDelete: Cascade)
+  approval        Approval?        @relation(fields: [workspaceId, approvalId], references: [workspaceId, id], onDelete: SetNull)
+  task            Task?            @relation(fields: [workspaceId, taskId], references: [workspaceId, id], onDelete: SetNull)
+  outboundMessage OutboundMessage? @relation(fields: [workspaceId, outboundMessageId], references: [workspaceId, id], onDelete: SetNull)
+  agentRun        AgentRun?        @relation(fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: SetNull)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, playRunId, stepKey])
+  @@index([workspaceId, status, scheduledFor])
 }
