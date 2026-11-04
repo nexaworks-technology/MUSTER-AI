@@ -130,3 +130,86 @@ Full `pnpm test:e2e` (the one): **69 passed / 3 failed / 65 skipped** (baseline 
 | `m4-today-approvals` "Draft check-in on the usage drop…" expected level text "Draft for approval", got "Draft for approval · Always human" | The M9 seed gave Brightwell a COMPLAINT extraction (a call line about flaky reports); M8's gate flags every draft to an account with a complaint on record as sensitive. A seed-data side effect in M9's own code, not a behaviour to change | Seed answer for that call line is a THEME (the same quote), not a COMPLAINT: reports being flaky is a problem theme, not a complaint to us. No pre-M9 test touched |
 | `m7-renewals-revenue` Northgate brief expected "2 open risk signals" | **D9 listed**: Northgate's seeded open-signal count moved because the new rules fire honestly (same cause as `seed-brief`); the same spec also pins "not connected yet" for the promise metric (**D9 listed**) | e2e expectations → "6 open risk signals" and "1 promise made: 1 late, 0 open, 0 kept" |
 | `m9-inbox-promises` Quillmark: `SENT` count expected 0, got 1 | My own assertion was wrong in a shared database: the M4 spec earlier in the run legitimately sends one message through dispatch | The assertion now compares the message count before and after the click |
+
+## Session B — what was built
+
+| Slice | Commit | What it is | Evidence |
+|---|---|---|---|
+| Approvals | `80a3269` | Three founder-approved test edits, Promise Late live, Engagement Loss relabelled, question renumbering | `promise-late-play.int.test.ts` (2), `seeded-plays`, `safety`, `seed.int` |
+| B1 | `503946a` | `/inbox`, Unmatched queue (assign / dismiss, audited), Account 360 › Conversations labels from Extraction | `labels` (14), `list.int` (8), `conversation-labels.int` (4); both query-budget tests (2 vs 5, 2 vs 8) |
+| B2 | `20a6ba2` | Support Risk Agent; inbox reply drafts through Approvals; sensitive gate by construction | `support-risk.int` (5), `sensitive-inbox.test` (6 inbound topics: draft only, capped, AUTO dispatch sends nothing, DB refuses the lift) |
+| B3 | `9f5e079` | `/promises` + account tab, manual entry / owner / kept-with-note, Promise Keeper, handoff promises, brief promise metric, signal evidence links | `promise-surfaces.int` (7), `handoff.test` (+6), `brief-promises` (3), `promise-keeper.int` (4), `evidence-m9.int` (1) |
+| B4 | `138c1a2` | Champion Guard: ranked candidates by code, agent drafts one intro, People-tab card | `champion-candidates` (8), `champion-guard.int` (7) |
+| B5 | `e13b7a9` | `/health/sentiment`, account tone panel | `sentiment.int` (7) incl. query budget |
+| B6, B7 | — | **Not built: the pre-approved slip to a third session (D-150, Q-79)** | — |
+| B8 | `642a080` | Nav (Inbox, Promises), `SHIPPED_MILESTONE = 9`, the M9 row in `features.test.ts` only, `e2e/m9-inbox-promises.spec.ts` (10), `e2e/a11y-m9.spec.ts` | targeted e2e green (desktop 10/10, axe desktop + 375 px) |
+| Close | `43806df`, `729bc63`, `bd5d39a`, this commit | Fresh-database demo scripts, fixes from the close runs, docs | below |
+
+## Session B — red-first evidence
+
+Written and run **before** the implementation, in the table above ("Session B — red-first evidence"): B1 (three files red), B2 (`Cannot find module '../definitions/support-risk'`), B3 (16 failures + two missing modules), B4 and B5 (modules missing). No lapse this session. B8 (screens, e2e) and the close fixes are integration work, not engine modules.
+
+## Close — the Tier-2 pair
+
+| Run | Result |
+|---|---|
+| **One full `pnpm test:e2e`** | 69 passed / **3 failed** / 65 skipped (3.3 min). All three read together, then fixed (table "full e2e, batch 1" above): a seed side effect in M9's own code (Brightwell's flaky-reports line recorded as a complaint made M4's draft sensitive: it is a theme now), the **D9-listed** Northgate counts in the M7 spec, and my own sent-count assertion. Batch 1 re-run of only those three files on a re-seeded test database: **26 passed / 0 failed** |
+| **One full `pnpm gate`** | typecheck ✓, lint ✓ (0 warnings; secret scan 1,271 files, none), **tests 232 files / 2,254: 2,251 passed, 3 failed** (all mine, read together: `seed-m9` run count and renewal comparison counted rows other specs add in the shared database; the title-change trigger stored the server's local clock on this UTC+5:30 machine). Batch 1: new migration `20261107110000_m9_title_trigger_utc`, both seed checks restricted to the seed's own rows; re-run of only the failed files (`seed-m9`, `people-signals`, `tenant-isolation-m9`, `model-registry`) **176 / 176 passed**. Build ✓ (46 static routes; `/inbox`, `/inbox/unmatched`, `/promises`, `/accounts/[id]/promises`, `/health/sentiment` compiled) |
+| Failure batches used | e2e 1 of 2, gate 1 of 2. No product-logic, spec or founder-decision failure |
+
+**Regression statement.** Against the M8 baseline (gate 200 files / 1,840 tests; e2e 75 / 0 / 55) and Session A's mid-run (218 files / 2,163): the gate is 232 files / 2,254 tests, every pre-M9 test passes except the edits logged in the tables above (three founder-approved, the D9-listed ones, the standing-rule counts); e2e passes with the same logged edits. No assertion was loosened to get green: each edit states file, old, new, reason.
+
+**Risk 1, repeated at close.** On a brand-new scratch database seeded with the final code (`docs/milestones/m9-evidence/demo-fresh-db.txt`): snapshots matching the M8 baseline (overall, adoption, sentiment, risk level) **60 of 60**; renewal confidences **58 of 58**; Northgate **70 (HIGH)**; the full set (all six pillars, band, the seven-way tie) is asserted by `seed-m9.int.test.ts`, green in the gate. Nothing moved.
+
+## Fresh-database demo (M9.md §7), on a new scratch database
+
+`pnpm exec tsx --env-file=.env scripts/demo-m9.ts` (creates `nexaworks_scratch_m9_<ts>`, migrates, seeds, runs, drops it; recorded in `docs/milestones/m9-evidence/demo-fresh-db.txt`):
+
+1. The real Watcher (1.1.0) read Halden's call: the PROMISE extraction's quote is verbatim in the call text (checked), and no story-source run dropped a quote.
+2. Halden's promise reads **LATE: 9 days late**, with its call quote as proof.
+3. Promise Late was DRAFT, **publishes**, and **enters on the open `promise_late` signal** (1 run).
+4. A reply drafted from Quillmark's cancel-and-export ticket: approval **PENDING, DRAFT_FOR_APPROVAL, sensitive (cancellation)**; the draft cites the customer's message; forcing it to AUTO dispatch is **HELD, 0 emails sent**.
+5. Northgate: late promise (3 days) with its quote, `renewal_concern` CRITICAL and `budget_concern` WARN, each citing the call and its quote; confidence still 70.
+
+## Acceptance table
+
+| # | Check | Status | Evidence |
+|---|---|---|---|
+| 1 | `pnpm gate` green | **PASS** (with one failure batch) | above |
+| 2 | `pnpm test:e2e` incl. `m9-inbox-promises.spec.ts` | **PASS** (with one failure batch) | above; desktop 10/10 |
+| 3 | Invented / paraphrased quotes dropped | PASS | `extraction-validate.test.ts`, 52 negative goldens, seed run: 0 dropped |
+| 4 | Golden replay for every kind | PASS | 13 kinds × 4 fixtures (3 positive + 1 negative each) in `extraction-golden-m9` |
+| 5 | Live extraction eval | **DEFERRED** | no `ANTHROPIC_API_KEY`; `pnpm eval` prints DEFERRED |
+| 6 | Every new rule has fire + not-fire fixtures | PASS | `fixtures/<rule>/`: promise_late 11, promise_no_owner 8, competitor 8, budget 4, cancel 4, export 3, complaint_repeated 8, repeat_problem 8, angry 8, renewal_concern 4, no_reply 8, goal_stated 3, champion_silent 11, role_change 7, new_decision_maker 5, email_engagement_stops 7 |
+| 7 | Inbound cancel/export never auto-replies | PASS | `sensitive-inbox.test.ts` (6 topics), e2e Quillmark, demo step 4 |
+| 8 | Unmatched mail never on a wrong account | PASS | `matching.test.ts` (13), `inbox.int.test.ts`, e2e Unmatched |
+| 9 | Late promises first; rows carry quote + source | PASS | `promise-service`, `promise-surfaces.int`, e2e `/promises`; screenshot not taken (the e2e asserts the text and link) |
+| 10 | Every theme ≥ 1 quote with a source link | PASS | `sentiment.int` (every theme), e2e (every theme on the page) |
+| 11 | AI text backed by a SUCCEEDED run with citations | PASS | DB CHECKs: AI promise, goal, extraction carry run + quote; drafts, tasks and approvals name `agentRunId`; UNCITED runs write nothing (tested) |
+| 12 | Adapters read-only; draft-in-mailbox refused without write-back | **NOT BUILT** | B6/B7 slipped (D-150) |
+| 13 | Adapter contract tests on recorded fixtures | **NOT BUILT** | same |
+| 14 | Live sandbox sync Zendesk/Freshdesk/Gmail/Graph | **DEFERRED** (and not built) | no sandbox credentials; adapters pending |
+| 15 | Tenant suite covers Promise, InboxItem, Extraction, Goal | PASS | `tenant-isolation-m9.int.test.ts` (+ UnmatchedInbound) |
+| 16 | Screens within query budgets | PASS | inbox list, promises list, sentiment, conversation labels, inbox sync, evaluate chunk (≤ 90): equal counts at 2 vs 5 (or 8) |
+| 17 | axe on inbox, promises, sentiment at desktop + 375 px | PASS | `a11y-m9.spec.ts`, both projects |
+| 18 | Promise Late + Champion Loss pass the safety check | PASS | `promise-late-play.int.test.ts`, Plays screen; demo step 3 |
+| 19 | No secrets in repo or logs | PASS, with a finding | scan clean (1,271 files); **Q-78**: M8's demo script held real local DB passwords (now read from env; still in git history) |
+| 20 | Sales handoff lists promises and call goals with sources; absent ones "Not found in CRM" | PASS (tests) | `handoff.test.ts` (+6). The panel renders items generically; not separately screenshotted on Saltmarsh |
+
+**Per-connector status:** Zendesk, Freshdesk, Gmail, Microsoft Graph: **not built** (pre-approved slip, D-150). What exists: providers and sources in the schema, `receiveInboundMail` + matching + bounce handling + the Unmatched queue they feed, recorded-fixture machinery from M5. Live checks: DEFERRED.
+
+## Session B — decisions and questions added
+
+D-147–D-150 in `DECISIONS.md`; Q-78–Q-81 in `QUESTIONS.md` (the Session A questions are Q-73–Q-77 after the renumbering).
+
+## Session B — deferrals
+
+- **Third session (short): B6 + B7.** Brief: `NormalizedBatch` gains `tickets` and `mail` kinds and a conversation ingest beside `ingest.service.ts` (matched → Conversation + Message + Ticket via `ExternalRef`; unmatched tickets → `UnmatchedInbound`; **mailbox mail with no known contact or account domain is discarded without being stored**, D3); Zendesk (API token, incremental cursor, HMAC webhook), Freshdesk (API key; no native webhook signing, so refuse unless a shared-secret header matches: log it), Gmail (OAuth, history cursor), Graph (OAuth, delta token); recorded fixtures labelled "authored from docs, not captured"; contract tests; `describeError`; "draft in mailbox" refused without write-back (D-116, Q-23). Then the close pair again, the acceptance rows 12–14, the plan checkbox, and M9 is marked complete.
+- M10: calendar-dependent rules, Engagement Loss, QBR Due, Business Review Follow-up; extraction entry point for call summaries is `watcher` (`runAgent` with `{ sourceType: "CALL_TRANSCRIPT", chunkIndex }`) and `chunkTranscript` (`conversations/service`); kinds with weak precision: not measured (no live eval).
+- M12: live checks; Q-80 / Q-81 when you decide.
+
+## Session B — notes
+
+- **The plan checkbox stays unticked** (`IMPLEMENTATION_PLAN.md`): M9 is not complete until acceptance #12–#14 are met.
+- One existing M6 handoff case was replaced (it pinned "no promises item"); the other pre-M9 edits are logged above. The `watcher` prompt bump invalidated the M4 e2e recordings for the Watcher without breaking a spec (the specs do not depend on them).
+- Dropped and recreated the disposable `nexaworks_test` database twice more (a stale Brightwell extraction and the e2e leftovers); it is regenerated by the test setup.

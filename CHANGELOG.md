@@ -6,6 +6,13 @@ All notable user-facing changes. Format: [Keep a Changelog](https://keepachangel
 
 ### Added
 
+- Inbox: customer emails and tickets on your accounts with what was read from each (intent, tone, themes), every label next to its exact quote; sensitive ones (cancel, pricing, legal, security, complaint, escalation) say "Always goes to a human". "Draft a reply" goes to Approvals, never out. An Unmatched queue holds mail nobody could place, never guessed: you place it (audited) or dismiss it.
+- Promise Tracker: promises our team and our customers made, read from calls, emails and notes with the exact words, late ones first; status is worked out from dates and records. Add one by hand, give it an owner, say how it was kept. Promise Keeper makes an internal chase task for each late promise of ours. The Sales handoff and the renewal brief now carry promises.
+- Sentiment & themes (Health): tone of customer messages and the problems they keep raising, each with quotes and links to where they were said. Only ticket tone feeds the health score.
+- Champion Guard: when a champion bounces, leaves or goes quiet, the People tab names the next-best contacts and why, and drafts an introduction for approval.
+- Signals read from conversations: competitor named, budget concern, cancellation or data-export language, repeated complaint or problem, frustrated messages, renewal concern, unanswered important messages, stated goals; and from people: champion quiet, champion's role changed, new decision maker, customer emails stopped; and promises late or without an owner. The Promise Late play is now active.
+- Note: the Zendesk, Freshdesk, Gmail and Microsoft connectors that feed the Inbox automatically are not in this release yet; mail and tickets already in the workspace appear in it.
+
 - Plays Engine: automated, repeatable play definitions with pre-publish safety checks in plain words, step-level approval resolver, runtime frequency caps, and version history.
 - 15 Seeded Plays: 11 active plays (including Champion Loss, Payment Failed, Cancellation Save) and 4 dormant plays clearly labeled with their future milestone detectors (Promise Late, Engagement Loss, QBR Due, Business Review Follow-up).
 - Guarded Auto-Send: Admin-only master switch with typed confirmation (`ENABLE AUTO-SEND`), executing approved actions through a verified proof path without altering the single send choke point.

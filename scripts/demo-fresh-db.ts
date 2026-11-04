@@ -23,10 +23,14 @@ import type { DispatchDeps } from "../src/modules/outbound/service";
 
 const PG_HOST = "localhost";
 const PG_PORT = "5432";
-const OWNER_USER = "nexaworks_owner";
-const OWNER_PASS = "$Q78_REDACTED_OWNER";
-const APP_USER = "app_user";
-const APP_PASS = "$Q78_REDACTED_APP";
+// Credentials come from the environment's own database URLs (run with `--env-file=.env`); none is
+// written here (CLAUDE.md rule 9).
+const ownerUrl = new URL(process.env.DATABASE_URL_MIGRATE ?? "");
+const appUrl = new URL(process.env.DATABASE_URL ?? "");
+const OWNER_USER = decodeURIComponent(ownerUrl.username);
+const OWNER_PASS = decodeURIComponent(ownerUrl.password);
+const APP_USER = decodeURIComponent(appUrl.username);
+const APP_PASS = decodeURIComponent(appUrl.password);
 
 const SCRATCH_DB = `nexaworks_scratch_m8_${Date.now()}`;
 const SCRATCH_URL = `postgresql://${APP_USER}:${APP_PASS}@localhost:${PG_PORT}/${SCRATCH_DB}`;
