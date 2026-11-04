@@ -55,12 +55,13 @@ test.describe("M9 Conversations, Inbox, Promises & Sentiment", () => {
     const row = page.getByTestId("inbox-item").filter({ hasText: "Exporting our data" });
     await expect(row.getByTestId("sensitive")).toContainText("Sensitive");
     await expect(row.getByText("No auto-send option, ever.")).toBeVisible();
+    // Earlier specs in the same run may have sent messages; what matters is that this click sent none.
+    const count = () =>
+      inWorkspace(WS, (tx, ws) => tx.outboundMessage.count({ where: { workspaceId: ws } }));
+    const before = await count();
     await row.getByTestId("draft-reply").click();
     await expect(page.getByTestId("draft-note")).toContainText("AI is not switched on");
-    const sent = await inWorkspace(WS, (tx, ws) =>
-      tx.outboundMessage.count({ where: { workspaceId: ws, status: "SENT" } }),
-    );
-    expect(sent).toBe(0);
+    expect(await count()).toBe(before);
   });
 
   test("Unmatched: an email nobody could place waits, and placing it is audited and leaves the queue", async ({

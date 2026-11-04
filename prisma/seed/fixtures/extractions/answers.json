@@ -93,7 +93,7 @@
       }
      },
      {
-      "kind": "COMPLAINT",
+      "kind": "THEME",
       "quote": "Honestly the scheduled reports have been flaky since September.",
       "confidence": 0.82,
       "payload": {

@@ -137,10 +137,10 @@ test.describe("M7 renewals and revenue", () => {
     await expect(metrics.locator('[data-metric="renewal.arr"]')).toContainText("$142,000.00");
     await expect(metrics.locator('[data-metric="health.band"]')).toContainText("Healthy");
     await expect(metrics.locator('[data-metric="risks.count"]')).toContainText(
-      "2 open risk signals",
+      "6 open risk signals",
     );
     await expect(metrics.locator('[data-metric="promises.status"]')).toContainText(
-      "not connected yet",
+      "1 promise made: 1 late, 0 open, 0 kept",
     );
     await expect(
       metrics

@@ -120,3 +120,13 @@ Pre-M9 test change (registry constant, standing pre-approval): `src/modules/agen
 | `src/modules/onboarding/__tests__/handoff.test.ts` ("has no promises item in M6") | no item whose key includes "promise" | the `promises_made` item exists and says "Not found in CRM" when there are none | M9.md #20 removes the M6 log-only line; this one case pinned the absence (same file as D9's added handoff cases; flagged for ratification) | D9 file, one existing case |
 | B4 | `champion-candidates.test.ts` (8), `champion-guard.int.test.ts` (7) | `Cannot find module '../champion-candidates'` / `'../champion-guard.service'` (no tests ran) |
 | B5 | `sentiment/__tests__/sentiment.int.test.ts` (7) | `Cannot find module '../service'` (no tests ran) |
+
+## Session B — full e2e, batch 1 (cause read from all three failures first)
+
+Full `pnpm test:e2e` (the one): **69 passed / 3 failed / 65 skipped** (baseline 75 / 0 / 55 plus the M9 files; the skip count grows because M9's flow specs are desktop-only and the serial flow stops after a failure). All three failures read together before any edit:
+
+| Failure | Cause | Fix |
+|---|---|---|
+| `m4-today-approvals` "Draft check-in on the usage drop…" expected level text "Draft for approval", got "Draft for approval · Always human" | The M9 seed gave Brightwell a COMPLAINT extraction (a call line about flaky reports); M8's gate flags every draft to an account with a complaint on record as sensitive. A seed-data side effect in M9's own code, not a behaviour to change | Seed answer for that call line is a THEME (the same quote), not a COMPLAINT: reports being flaky is a problem theme, not a complaint to us. No pre-M9 test touched |
+| `m7-renewals-revenue` Northgate brief expected "2 open risk signals" | **D9 listed**: Northgate's seeded open-signal count moved because the new rules fire honestly (same cause as `seed-brief`); the same spec also pins "not connected yet" for the promise metric (**D9 listed**) | e2e expectations → "6 open risk signals" and "1 promise made: 1 late, 0 open, 0 kept" |
+| `m9-inbox-promises` Quillmark: `SENT` count expected 0, got 1 | My own assertion was wrong in a shared database: the M4 spec earlier in the run legitimately sends one message through dispatch | The assertion now compares the message count before and after the click |
