@@ -1,0 +1,7 @@
+{
+  "name": "Text facts not loaded: nothing fires",
+  "bundle": {
+    "text": null
+  },
+  "expect": []
+}

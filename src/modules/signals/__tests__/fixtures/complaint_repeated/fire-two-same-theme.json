@@ -1,0 +1,44 @@
+{
+  "name": "Halden: two CSV-export complaints in 30 days (warn)",
+  "bundle": {
+    "text": [
+      {
+        "id": "e23",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m23",
+        "date": "2026-10-13",
+        "quote": "This is the third time the CSV export has failed on us.",
+        "channel": "EMAIL",
+        "conversationId": "c23",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      },
+      {
+        "id": "e24",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m24",
+        "date": "2026-10-30",
+        "quote": "The export is broken again.",
+        "channel": "EMAIL",
+        "conversationId": "c24",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "complaint_repeated:a1:csv_export",
+      "severity": "WARN",
+      "title": "2 complaints about csv export in 30 days"
+    }
+  ]
+}

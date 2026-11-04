@@ -1,0 +1,23 @@
+{
+  "name": "Over 30 days ago",
+  "bundle": {
+    "text": [
+      {
+        "id": "e86",
+        "kind": "GOAL",
+        "sourceType": "MESSAGE",
+        "sourceId": "m86",
+        "date": "2026-09-23",
+        "quote": "We want every lead on the product.",
+        "channel": "EMAIL",
+        "conversationId": "c86",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": []
+}

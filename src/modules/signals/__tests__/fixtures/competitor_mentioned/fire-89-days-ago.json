@@ -1,0 +1,28 @@
+{
+  "name": "89 days ago is inside the 90-day window",
+  "bundle": {
+    "text": [
+      {
+        "id": "e6",
+        "kind": "COMPETITOR",
+        "sourceType": "MESSAGE",
+        "sourceId": "m6",
+        "date": "2026-08-05",
+        "quote": "Dashwell sent a quote",
+        "channel": "EMAIL",
+        "conversationId": "c6",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": "Dashwell",
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "competitor_mentioned:a1:dashwell",
+      "severity": "WARN"
+    }
+  ]
+}

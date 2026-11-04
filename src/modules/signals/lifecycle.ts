@@ -7,6 +7,7 @@ import { loadBundles, loadContext } from "@/modules/health/service";
 import { onboardingFactsFor, type OnboardingPlanFacts } from "@/modules/onboarding/service";
 import { loadExpansionFacts } from "./expansion-facts";
 import { loadPromiseFacts } from "./promise-facts";
+import { loadTextFacts } from "./text-facts";
 import { syncSignalRules } from "./rule-rows";
 import { RULE_BY_KEY, type RuleKey } from "./rules/catalog";
 import {
@@ -49,9 +50,10 @@ export async function evaluateAndStore(
   if (ids.length === 0) return result;
   await syncSignalRules(ctx);
 
+  const healthCtx = await loadContext(ctx);
   const [rules, bundles, failures, existing, accounts, onboardingFacts] = await Promise.all([
     db.signalRule.findMany({ where: { enabled: true, dormantReason: null } }),
-    loadBundles(db, await loadContext(ctx), asOf, ids),
+    loadBundles(db, healthCtx, asOf, ids),
     db.invoice.findMany({
       where: { accountId: { in: ids }, failureCount: { gt: 0 } },
       select: { id: true, failureCount: true },
@@ -73,6 +75,7 @@ export async function evaluateAndStore(
     new Map([...bundles].flatMap(([id, b]) => (b.contract ? [[id, b.contract.id] as const] : []))),
   );
   const promises = await loadPromiseFacts(db, ids);
+  const text = await loadTextFacts(db, asOf, ids, healthCtx.timeZone);
   const failureCounts = Object.fromEntries(failures.map((f) => [f.id, f.failureCount]));
   const latest = new Map<string, Signal>();
   for (const s of existing) if (!latest.has(s.dedupeKey)) latest.set(s.dedupeKey, s);
@@ -90,6 +93,7 @@ export async function evaluateAndStore(
       onboarding: onboardingFacts.get(accountId) ?? null,
       expansion: expansion.get(accountId) ?? null,
       promises: promises.get(accountId) ?? [],
+      text: text.get(accountId) ?? [],
     };
     const seen = new Set<string>();
     const evaluatedRules = new Set<string>();

@@ -1,0 +1,23 @@
+{
+  "name": "Export language alone is not cancel language",
+  "bundle": {
+    "text": [
+      {
+        "id": "e18",
+        "kind": "EXPORT_LANGUAGE",
+        "sourceType": "MESSAGE",
+        "sourceId": "m18",
+        "date": "2026-10-30",
+        "quote": "can we export our data",
+        "channel": "EMAIL",
+        "conversationId": "c18",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": []
+}

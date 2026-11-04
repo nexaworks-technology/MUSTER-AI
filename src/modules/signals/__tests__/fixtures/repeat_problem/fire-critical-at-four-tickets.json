@@ -1,0 +1,73 @@
+{
+  "name": "Four tickets: critical",
+  "bundle": {
+    "text": [
+      {
+        "id": "e42",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m42",
+        "date": "2026-10-08",
+        "quote": "csv export fails",
+        "channel": "TICKET",
+        "conversationId": "t25",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      },
+      {
+        "id": "e43",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m43",
+        "date": "2026-10-15",
+        "quote": "csv export fails",
+        "channel": "TICKET",
+        "conversationId": "t18",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      },
+      {
+        "id": "e44",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m44",
+        "date": "2026-10-24",
+        "quote": "csv export fails",
+        "channel": "TICKET",
+        "conversationId": "t9",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      },
+      {
+        "id": "e45",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m45",
+        "date": "2026-10-31",
+        "quote": "csv export fails",
+        "channel": "TICKET",
+        "conversationId": "t2",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "repeat_problem:a1:csv_export",
+      "severity": "CRITICAL"
+    }
+  ]
+}

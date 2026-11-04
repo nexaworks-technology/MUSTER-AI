@@ -1,0 +1,29 @@
+{
+  "name": "Northgate: budget is tight next year (warn)",
+  "bundle": {
+    "text": [
+      {
+        "id": "e10",
+        "kind": "BUDGET_CONCERN",
+        "sourceType": "CALL_TRANSCRIPT",
+        "sourceId": "m10",
+        "date": "2026-10-15",
+        "quote": "Budget is tight next year, so every tool is being reviewed.",
+        "channel": null,
+        "conversationId": null,
+        "direction": null,
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "budget_concern:a1",
+      "severity": "WARN",
+      "title": "Budget concern raised"
+    }
+  ]
+}

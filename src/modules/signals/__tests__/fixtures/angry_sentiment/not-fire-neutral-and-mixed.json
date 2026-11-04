@@ -1,0 +1,38 @@
+{
+  "name": "Neutral and mixed do not count",
+  "bundle": {
+    "text": [
+      {
+        "id": "e64",
+        "kind": "SENTIMENT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m64",
+        "date": "2026-10-30",
+        "quote": "I am honestly fed up.",
+        "channel": "TICKET",
+        "conversationId": "c64",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": "NEUTRAL"
+      },
+      {
+        "id": "e65",
+        "kind": "SENTIMENT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m65",
+        "date": "2026-10-31",
+        "quote": "I am honestly fed up.",
+        "channel": "TICKET",
+        "conversationId": "c65",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": "MIXED"
+      }
+    ]
+  },
+  "expect": []
+}

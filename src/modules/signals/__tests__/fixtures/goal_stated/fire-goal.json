@@ -1,0 +1,29 @@
+{
+  "name": "Marlow & Finch: a stated goal (info, opportunity)",
+  "bundle": {
+    "text": [
+      {
+        "id": "e85",
+        "kind": "GOAL",
+        "sourceType": "CALL_TRANSCRIPT",
+        "sourceId": "m85",
+        "date": "2026-10-08",
+        "quote": "Our goal is to cut month-end close to 3 days.",
+        "channel": null,
+        "conversationId": null,
+        "direction": null,
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "goal_stated:a1:e85",
+      "severity": "INFO",
+      "title": "Customer stated a goal"
+    }
+  ]
+}

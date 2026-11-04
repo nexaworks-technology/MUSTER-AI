@@ -1,0 +1,31 @@
+{
+  "name": "Open with one negative left: stays",
+  "bundle": {
+    "text": [
+      {
+        "id": "e72",
+        "kind": "SENTIMENT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m72",
+        "date": "2026-10-31",
+        "quote": "I am honestly fed up.",
+        "channel": "TICKET",
+        "conversationId": "c72",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": "NEGATIVE"
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "angry_sentiment:a1",
+      "severity": "WARN"
+    }
+  ],
+  "open": [
+    "angry_sentiment:a1"
+  ]
+}

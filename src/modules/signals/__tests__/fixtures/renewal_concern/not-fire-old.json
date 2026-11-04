@@ -1,0 +1,23 @@
+{
+  "name": "Over 90 days ago",
+  "bundle": {
+    "text": [
+      {
+        "id": "e76",
+        "kind": "RENEWAL_CONCERN",
+        "sourceType": "MESSAGE",
+        "sourceId": "m76",
+        "date": "2026-07-25",
+        "quote": "doubts",
+        "channel": "EMAIL",
+        "conversationId": "c76",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": []
+}

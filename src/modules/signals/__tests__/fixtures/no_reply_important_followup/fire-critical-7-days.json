@@ -1,0 +1,39 @@
+{
+  "name": "Seven days with no reply: critical",
+  "bundle": {
+    "text": [
+      {
+        "id": "e78",
+        "kind": "INTENT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m1",
+        "date": "2026-10-26",
+        "quote": "Can you tell me why the export failed?",
+        "channel": "EMAIL",
+        "conversationId": "cx",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": "complaint",
+        "label": null
+      }
+    ],
+    "messages": [
+      {
+        "id": "m1",
+        "conversationId": "cx",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-10-26",
+        "fromContactId": null,
+        "isBounce": false
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "no_reply_important_followup:a1:m1",
+      "severity": "CRITICAL"
+    }
+  ]
+}

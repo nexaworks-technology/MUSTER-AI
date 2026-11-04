@@ -1,0 +1,23 @@
+{
+  "name": "60 days ago is outside",
+  "bundle": {
+    "text": [
+      {
+        "id": "e17",
+        "kind": "CANCEL_LANGUAGE",
+        "sourceType": "MESSAGE",
+        "sourceId": "m17",
+        "date": "2026-09-03",
+        "quote": "we may cancel",
+        "channel": "EMAIL",
+        "conversationId": "c17",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": []
+}

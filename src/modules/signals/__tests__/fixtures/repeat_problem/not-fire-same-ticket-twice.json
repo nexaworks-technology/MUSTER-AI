@@ -1,0 +1,38 @@
+{
+  "name": "Two complaints inside one ticket are one ticket",
+  "bundle": {
+    "text": [
+      {
+        "id": "e46",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m46",
+        "date": "2026-10-28",
+        "quote": "csv export fails",
+        "channel": "TICKET",
+        "conversationId": "t1",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      },
+      {
+        "id": "e47",
+        "kind": "THEME",
+        "sourceType": "MESSAGE",
+        "sourceId": "m47",
+        "date": "2026-10-29",
+        "quote": "csv export fails",
+        "channel": "TICKET",
+        "conversationId": "t1",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": []
+}

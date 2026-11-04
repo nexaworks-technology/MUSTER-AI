@@ -1,0 +1,29 @@
+{
+  "name": "Export language alone is a warn",
+  "bundle": {
+    "text": [
+      {
+        "id": "e19",
+        "kind": "EXPORT_LANGUAGE",
+        "sourceType": "MESSAGE",
+        "sourceId": "m19",
+        "date": "2026-10-27",
+        "quote": "We need to take a full copy of our data out.",
+        "channel": "EMAIL",
+        "conversationId": "c19",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "export_language:a1",
+      "severity": "WARN",
+      "title": "Customer asked how to take their data out"
+    }
+  ]
+}

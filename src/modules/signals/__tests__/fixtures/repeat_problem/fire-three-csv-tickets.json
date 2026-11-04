@@ -1,0 +1,59 @@
+{
+  "name": "Halden: the CSV problem in three different tickets (warn)",
+  "bundle": {
+    "text": [
+      {
+        "id": "e39",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m39",
+        "date": "2026-10-08",
+        "quote": "csv export fails",
+        "channel": "TICKET",
+        "conversationId": "t1",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      },
+      {
+        "id": "e40",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m40",
+        "date": "2026-10-21",
+        "quote": "csv export fails",
+        "channel": "TICKET",
+        "conversationId": "t2",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      },
+      {
+        "id": "e41",
+        "kind": "THEME",
+        "sourceType": "MESSAGE",
+        "sourceId": "m41",
+        "date": "2026-10-30",
+        "quote": "csv export fails",
+        "channel": "TICKET",
+        "conversationId": "t3",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "repeat_problem:a1:csv_export",
+      "severity": "WARN",
+      "title": "csv export problem in 3 tickets"
+    }
+  ]
+}

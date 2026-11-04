@@ -1,0 +1,44 @@
+{
+  "name": "Two negative customer messages in 14 days (warn)",
+  "bundle": {
+    "text": [
+      {
+        "id": "e57",
+        "kind": "SENTIMENT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m57",
+        "date": "2026-10-23",
+        "quote": "I am honestly fed up.",
+        "channel": "TICKET",
+        "conversationId": "c57",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": "NEGATIVE"
+      },
+      {
+        "id": "e58",
+        "kind": "SENTIMENT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m58",
+        "date": "2026-10-31",
+        "quote": "I am honestly fed up.",
+        "channel": "TICKET",
+        "conversationId": "c58",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": "NEGATIVE"
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "angry_sentiment:a1",
+      "severity": "WARN",
+      "title": "2 customer messages read as negative in 14 days"
+    }
+  ]
+}

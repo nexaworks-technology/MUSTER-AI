@@ -210,9 +210,10 @@ describe("nightly pipeline through the real queue", () => {
     // people, their contact emails, credits on contracts, credits used, open seats/users goals).
     // and (M7 B2) one for expansion.sync's live expansion signals (four more only in a chunk that has
     // some), and (M9) four for promises.sync (current extractions and their runs, promises, the
-    // brokenAfterDays rule row) and one for the promise facts. Fixed per chunk; it must never scale
+    // brokenAfterDays rule row) and one for the promise facts, and (M9 text rules) five for the text facts (current extractions and
+    // their runs, the theme setting, and the dates of the messages, calls and notes). Fixed per chunk; it must never scale
     // with accounts.
-    expect(five.queries).toBeLessThanOrEqual(84);
+    expect(five.queries).toBeLessThanOrEqual(89);
   });
 
   it("the real-time hook evaluates one account through the queue at once", async () => {

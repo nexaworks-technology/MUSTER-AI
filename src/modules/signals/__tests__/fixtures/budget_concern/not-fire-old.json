@@ -1,0 +1,23 @@
+{
+  "name": "Over 90 days ago",
+  "bundle": {
+    "text": [
+      {
+        "id": "e13",
+        "kind": "BUDGET_CONCERN",
+        "sourceType": "MESSAGE",
+        "sourceId": "m13",
+        "date": "2026-07-05",
+        "quote": "money is tight",
+        "channel": "EMAIL",
+        "conversationId": "c13",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": []
+}

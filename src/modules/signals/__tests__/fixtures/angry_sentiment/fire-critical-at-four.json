@@ -1,0 +1,73 @@
+{
+  "name": "Four negative: critical",
+  "bundle": {
+    "text": [
+      {
+        "id": "e59",
+        "kind": "SENTIMENT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m59",
+        "date": "2026-10-21",
+        "quote": "I am honestly fed up.",
+        "channel": "TICKET",
+        "conversationId": "c59",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": "NEGATIVE"
+      },
+      {
+        "id": "e60",
+        "kind": "SENTIMENT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m60",
+        "date": "2026-10-25",
+        "quote": "I am honestly fed up.",
+        "channel": "TICKET",
+        "conversationId": "c60",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": "NEGATIVE"
+      },
+      {
+        "id": "e61",
+        "kind": "SENTIMENT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m61",
+        "date": "2026-10-29",
+        "quote": "I am honestly fed up.",
+        "channel": "TICKET",
+        "conversationId": "c61",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": "NEGATIVE"
+      },
+      {
+        "id": "e62",
+        "kind": "SENTIMENT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m62",
+        "date": "2026-11-01",
+        "quote": "I am honestly fed up.",
+        "channel": "TICKET",
+        "conversationId": "c62",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": "NEGATIVE"
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "angry_sentiment:a1",
+      "severity": "CRITICAL"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "name": "Second negative 14 days ago: outside the 14-day window",
+  "bundle": {
+    "text": [
+      {
+        "id": "e66",
+        "kind": "SENTIMENT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m66",
+        "date": "2026-10-19",
+        "quote": "I am honestly fed up.",
+        "channel": "TICKET",
+        "conversationId": "c66",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": "NEGATIVE"
+      },
+      {
+        "id": "e67",
+        "kind": "SENTIMENT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m67",
+        "date": "2026-10-31",
+        "quote": "I am honestly fed up.",
+        "channel": "TICKET",
+        "conversationId": "c67",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": "NEGATIVE"
+      }
+    ]
+  },
+  "expect": []
+}

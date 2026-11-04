@@ -1,5 +1,6 @@
 import { renewalSettings } from "@/modules/renewals/schemas";
 import { z } from "zod";
+import { DEFAULT_THEMES, themeSettingSchema } from "@/modules/conversations/schemas";
 import { MIN_PASSWORD_LENGTH } from "@/lib/auth/constants";
 
 const ROLE = z.enum(["ADMIN", "CS_LEADER", "CSM", "VIEWER"]);
@@ -111,6 +112,10 @@ export const workspaceSettingsData = z.object({
       contactCooldownHours: z.number().int().min(1).default(72),
       otherPlayCooldownHours: z.number().int().min(1).default(48),
     })
+    .prefault({}),
+  /** M9: the fixed theme list that complaints and repeat problems group by (D5; audited when edited). */
+  extraction: z
+    .object({ themes: themeSettingSchema.default([...DEFAULT_THEMES]) })
     .prefault({}),
   /** M7: the renewal radar's horizon and the confidence model's weights (audited when edited). */
   renewals: renewalSettings,

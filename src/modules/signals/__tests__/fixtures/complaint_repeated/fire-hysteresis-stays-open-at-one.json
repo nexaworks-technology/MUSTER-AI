@@ -1,0 +1,31 @@
+{
+  "name": "Open at one remaining complaint: stays (clear level 1)",
+  "bundle": {
+    "text": [
+      {
+        "id": "e35",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m35",
+        "date": "2026-10-31",
+        "quote": "export failed",
+        "channel": "EMAIL",
+        "conversationId": "c35",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "complaint_repeated:a1:csv_export",
+      "severity": "WARN"
+    }
+  ],
+  "open": [
+    "complaint_repeated:a1:csv_export"
+  ]
+}

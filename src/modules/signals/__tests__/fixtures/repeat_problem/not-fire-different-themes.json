@@ -1,0 +1,38 @@
+{
+  "name": "Two tickets, two themes",
+  "bundle": {
+    "text": [
+      {
+        "id": "e52",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m52",
+        "date": "2026-10-28",
+        "quote": "csv export fails",
+        "channel": "TICKET",
+        "conversationId": "t1",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      },
+      {
+        "id": "e53",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m53",
+        "date": "2026-10-29",
+        "quote": "csv export fails",
+        "channel": "TICKET",
+        "conversationId": "t2",
+        "direction": "INBOUND",
+        "theme": "billing",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": []
+}

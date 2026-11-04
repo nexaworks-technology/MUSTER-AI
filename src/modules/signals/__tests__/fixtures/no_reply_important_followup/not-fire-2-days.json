@@ -1,0 +1,34 @@
+{
+  "name": "2 days: still within our reply window",
+  "bundle": {
+    "text": [
+      {
+        "id": "e80",
+        "kind": "INTENT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m1",
+        "date": "2026-10-31",
+        "quote": "Can you tell me why the export failed?",
+        "channel": "EMAIL",
+        "conversationId": "cx",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": "question",
+        "label": null
+      }
+    ],
+    "messages": [
+      {
+        "id": "m1",
+        "conversationId": "cx",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-10-31",
+        "fromContactId": null,
+        "isBounce": false
+      }
+    ]
+  },
+  "expect": []
+}

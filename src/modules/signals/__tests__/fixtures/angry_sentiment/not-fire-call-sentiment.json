@@ -1,0 +1,38 @@
+{
+  "name": "Call sentiment is shown elsewhere, never raised here",
+  "bundle": {
+    "text": [
+      {
+        "id": "e70",
+        "kind": "SENTIMENT",
+        "sourceType": "CALL_TRANSCRIPT",
+        "sourceId": "m70",
+        "date": "2026-10-30",
+        "quote": "x",
+        "channel": null,
+        "conversationId": null,
+        "direction": null,
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": "NEGATIVE"
+      },
+      {
+        "id": "e71",
+        "kind": "SENTIMENT",
+        "sourceType": "CALL_TRANSCRIPT",
+        "sourceId": "m71",
+        "date": "2026-10-31",
+        "quote": "y",
+        "channel": null,
+        "conversationId": null,
+        "direction": null,
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": "NEGATIVE"
+      }
+    ]
+  },
+  "expect": []
+}

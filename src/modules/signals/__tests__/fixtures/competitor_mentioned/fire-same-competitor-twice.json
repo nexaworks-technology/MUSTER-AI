@@ -1,0 +1,44 @@
+{
+  "name": "The same competitor named twice, different case: one signal",
+  "bundle": {
+    "text": [
+      {
+        "id": "e2",
+        "kind": "COMPETITOR",
+        "sourceType": "MESSAGE",
+        "sourceId": "m2",
+        "date": "2026-10-03",
+        "quote": "we trialled Tallyfield",
+        "channel": "EMAIL",
+        "conversationId": "c2",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": "Tallyfield",
+        "intent": null,
+        "label": null
+      },
+      {
+        "id": "e3",
+        "kind": "COMPETITOR",
+        "sourceType": "MESSAGE",
+        "sourceId": "m3",
+        "date": "2026-10-28",
+        "quote": "tallyfield quoted us less",
+        "channel": "EMAIL",
+        "conversationId": "c3",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": "TALLYFIELD",
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "competitor_mentioned:a1:tallyfield",
+      "severity": "WARN",
+      "title": "TALLYFIELD mentioned 2 times"
+    }
+  ]
+}

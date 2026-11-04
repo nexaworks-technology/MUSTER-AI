@@ -1,0 +1,43 @@
+{
+  "name": "We replied in the thread the same day",
+  "bundle": {
+    "text": [
+      {
+        "id": "e81",
+        "kind": "INTENT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m1",
+        "date": "2026-10-27",
+        "quote": "Can you tell me why the export failed?",
+        "channel": "EMAIL",
+        "conversationId": "cx",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": "question",
+        "label": null
+      }
+    ],
+    "messages": [
+      {
+        "id": "m1",
+        "conversationId": "cx",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-10-27",
+        "fromContactId": null,
+        "isBounce": false
+      },
+      {
+        "id": "m2",
+        "conversationId": "cx",
+        "channel": "EMAIL",
+        "direction": "OUTBOUND",
+        "date": "2026-10-27",
+        "fromContactId": null,
+        "isBounce": false
+      }
+    ]
+  },
+  "expect": []
+}

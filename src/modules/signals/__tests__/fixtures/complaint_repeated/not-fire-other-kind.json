@@ -1,0 +1,38 @@
+{
+  "name": "Theme extractions are not complaints",
+  "bundle": {
+    "text": [
+      {
+        "id": "e37",
+        "kind": "THEME",
+        "sourceType": "MESSAGE",
+        "sourceId": "m37",
+        "date": "2026-10-28",
+        "quote": "export",
+        "channel": "EMAIL",
+        "conversationId": "c37",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      },
+      {
+        "id": "e38",
+        "kind": "THEME",
+        "sourceType": "MESSAGE",
+        "sourceId": "m38",
+        "date": "2026-10-29",
+        "quote": "export",
+        "channel": "EMAIL",
+        "conversationId": "c38",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": []
+}

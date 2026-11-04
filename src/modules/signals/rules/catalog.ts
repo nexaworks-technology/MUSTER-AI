@@ -147,6 +147,58 @@ export const PARAMS = {
     .object({ brokenAfterDays: brokenAfterDaysSchema.default(DEFAULT_BROKEN_AFTER_DAYS) })
     .prefault({}),
   promise_no_owner: z.object({ dueWithinDays: days.default(7) }).prefault({}),
+  // M9: text rules. Every one reads verified extractions only (D-75); windows are in days.
+  competitor_mentioned: z.object({ windowDays: days.default(90) }).prefault({}),
+  budget_concern: z.object({ windowDays: days.default(90) }).prefault({}),
+  cancel_language: z.object({ windowDays: days.default(60) }).prefault({}),
+  export_language: z.object({ windowDays: days.default(60) }).prefault({}),
+  complaint_repeated: z
+    .object({
+      fireAt: z.number().int().min(2).max(50).default(2),
+      clearAt: z.number().int().min(1).max(49).default(1),
+      criticalAt: z.number().int().min(2).max(100).default(4),
+      windowDays: days.default(30),
+    })
+    .refine((p) => p.clearAt < p.fireAt && p.fireAt <= p.criticalAt, {
+      message: "Clear count < fire count ≤ critical count",
+    })
+    .prefault({}),
+  repeat_problem: z
+    .object({
+      fireTickets: z.number().int().min(2).max(50).default(2),
+      clearTickets: z.number().int().min(1).max(49).default(1),
+      criticalTickets: z.number().int().min(2).max(100).default(4),
+      windowDays: days.default(30),
+    })
+    .refine((p) => p.clearTickets < p.fireTickets && p.fireTickets <= p.criticalTickets, {
+      message: "Clear count < fire count ≤ critical count",
+    })
+    .prefault({}),
+  angry_sentiment: z
+    .object({
+      fireAt: z.number().int().min(2).max(50).default(2),
+      clearAt: z.number().int().min(1).max(49).default(1),
+      criticalAt: z.number().int().min(2).max(100).default(4),
+      windowDays: days.default(14),
+    })
+    .refine((p) => p.clearAt < p.fireAt && p.fireAt <= p.criticalAt, {
+      message: "Clear count < fire count ≤ critical count",
+    })
+    .prefault({}),
+  renewal_concern: z
+    .object({ windowDays: days.default(90), criticalRenewalWithinDays: days.default(60) })
+    .prefault({}),
+  no_reply_important_followup: z
+    .object({
+      replyWithinDays: days.default(3),
+      criticalAfterDays: days.default(7),
+      lookbackDays: days.default(30),
+    })
+    .refine((p) => p.criticalAfterDays > p.replyWithinDays, {
+      message: "Critical must be later than the reply window",
+    })
+    .prefault({}),
+  goal_stated: z.object({ windowDays: days.default(30) }).prefault({}),
 } as const;
 
 export type RuleKey = keyof typeof PARAMS;
@@ -453,6 +505,119 @@ export const RULES: readonly RuleMeta[] = [
       "A promise our side made, not yet kept, due within 7 days or already late, with no owner assigned.",
     typicalLeadTime: "Days: an unowned promise is the one that gets missed.",
     falseAlarmCauses: "The owner is known to the team but was never entered in the tracker.",
+  },
+  // ─── M9: text rules (spec §6D "Calls & email", "Support"). Read from verified quotes only. ───
+  {
+    key: "competitor_mentioned",
+    label: "Competitor mentioned",
+    category: "CALLS_EMAIL",
+    polarity: "RISK",
+    meaning: "The customer named a competing product in a call, email or ticket.",
+    howDetected:
+      "A verified COMPETITOR extraction (the model's label, kept only because its quote appears word for word in the source) within the last 90 days. One signal per competitor named.",
+    typicalLeadTime: "Weeks to months before a renewal decision.",
+    falseAlarmCauses:
+      "A comparison the customer's team made years ago, or a competitor named by our own CSM rather than by them.",
+  },
+  {
+    key: "budget_concern",
+    label: "Budget concern",
+    category: "CALLS_EMAIL",
+    polarity: "RISK",
+    meaning: "The customer said money is tight or software spend is under review.",
+    howDetected:
+      "A verified BUDGET_CONCERN extraction within the last 90 days, shown with its quote.",
+    typicalLeadTime: "One to two quarters before a renewal is cut or downgraded.",
+    falseAlarmCauses: "A company-wide remark that does not touch this contract.",
+  },
+  {
+    key: "cancel_language",
+    label: "Cancellation language",
+    category: "CALLS_EMAIL",
+    polarity: "RISK",
+    meaning: "The customer talked about cancelling, not renewing or terminating.",
+    howDetected:
+      "A verified CANCEL_LANGUAGE extraction within the last 60 days. Always critical; anything sent in reply goes to a person, never automatically.",
+    typicalLeadTime: "Days to weeks.",
+    falseAlarmCauses: "A hypothetical (\"if we ever cancelled…\") or a question about the process asked for a colleague.",
+  },
+  {
+    key: "export_language",
+    label: "Data-export language",
+    category: "CALLS_EMAIL",
+    polarity: "RISK",
+    meaning: "The customer asked how to take their data out.",
+    howDetected:
+      "A verified EXPORT_LANGUAGE extraction within the last 60 days. Critical when the same account also shows cancellation language.",
+    typicalLeadTime: "Often the last step before leaving.",
+    falseAlarmCauses: "A routine backup or an analyst building their own model from exports.",
+  },
+  {
+    key: "complaint_repeated",
+    label: "Same complaint, again",
+    category: "SUPPORT",
+    polarity: "RISK",
+    meaning: "The customer has complained about the same theme more than once.",
+    howDetected:
+      "At least 2 verified COMPLAINT extractions with the same theme from the fixed theme list in 30 days; critical at 4. Once open it stays until 1 or fewer remain. The theme `other` never groups.",
+    typicalLeadTime: "Weeks: repeated complaints are the best text signal of a lost renewal.",
+    falseAlarmCauses:
+      "Two people reporting one incident, or a theme label that is too coarse.",
+  },
+  {
+    key: "repeat_problem",
+    label: "Repeat problem in support",
+    category: "SUPPORT",
+    polarity: "RISK",
+    meaning: "The same kind of problem has come back in more than one support ticket.",
+    howDetected:
+      "At least 2 different tickets in 30 days whose customer messages carry the same theme (verified COMPLAINT or THEME extractions); critical at 4 tickets. Once open it stays until 1 or fewer remain.",
+    typicalLeadTime: "Weeks before the customer escalates.",
+    falseAlarmCauses: "Several tickets for one outage, or a broad theme such as reporting.",
+  },
+  {
+    key: "angry_sentiment",
+    label: "Frustrated customer messages",
+    category: "SUPPORT",
+    polarity: "RISK",
+    meaning: "Several recent customer messages read as negative.",
+    howDetected:
+      "At least 2 customer messages in 14 days whose overall tone was labelled negative, each label backed by a verified quote; critical at 4. Once open it stays until 1 or fewer remain. Never part of the health score for email or calls.",
+    typicalLeadTime: "Days.",
+    falseAlarmCauses: "Blunt but not unhappy writing, or one incident discussed in several messages.",
+  },
+  {
+    key: "renewal_concern",
+    label: "Renewal concern raised",
+    category: "CALLS_EMAIL",
+    polarity: "RISK",
+    meaning: "The customer tied their renewal to a condition or doubted its value.",
+    howDetected:
+      "A verified RENEWAL_CONCERN extraction within the last 90 days; critical when the renewal date is within 60 days.",
+    typicalLeadTime: "Weeks to a quarter.",
+    falseAlarmCauses: "A condition that has since been met but not recorded.",
+  },
+  {
+    key: "no_reply_important_followup",
+    label: "No reply to an important message",
+    category: "CALLS_EMAIL",
+    polarity: "RISK",
+    meaning: "A customer question, request or complaint has had no answer from us.",
+    howDetected:
+      "An inbound message whose verified intent is a question, request, complaint, pricing, cancellation, legal, security or escalation, with no message from us in the same thread on or after its day, 3 days or more ago; critical at 7 days.",
+    typicalLeadTime: "Days: silence after a complaint is how a small problem becomes a big one.",
+    falseAlarmCauses: "Answered by phone or in another channel that was not logged.",
+  },
+  {
+    key: "goal_stated",
+    label: "Customer stated a goal",
+    category: "CALLS_EMAIL",
+    polarity: "OPPORTUNITY",
+    meaning: "The customer told us what they want to achieve.",
+    howDetected:
+      "A verified GOAL extraction in the last 30 days, kept as a Goal with its quote. Tie the account's plan to it.",
+    typicalLeadTime: "Whenever it is said: the best moment to align the success plan.",
+    falseAlarmCauses: "An aspiration rather than a commitment, or a goal that belongs to another team.",
   },
 ];
 

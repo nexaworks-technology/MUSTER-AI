@@ -1,0 +1,23 @@
+{
+  "name": "Other kinds do not raise it",
+  "bundle": {
+    "text": [
+      {
+        "id": "e9",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m9",
+        "date": "2026-10-30",
+        "quote": "Tallyfield is mentioned here",
+        "channel": "EMAIL",
+        "conversationId": "c9",
+        "direction": "INBOUND",
+        "theme": "billing",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": []
+}

@@ -1,0 +1,38 @@
+{
+  "name": "The second complaint is 30 days ago: outside the 30-day window",
+  "bundle": {
+    "text": [
+      {
+        "id": "e33",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m33",
+        "date": "2026-10-03",
+        "quote": "export failed",
+        "channel": "EMAIL",
+        "conversationId": "c33",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      },
+      {
+        "id": "e34",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m34",
+        "date": "2026-10-31",
+        "quote": "export failed",
+        "channel": "EMAIL",
+        "conversationId": "c34",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": []
+}

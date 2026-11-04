@@ -1,0 +1,29 @@
+{
+  "name": "Concern raised, no renewal date on file (warn)",
+  "bundle": {
+    "text": [
+      {
+        "id": "e73",
+        "kind": "RENEWAL_CONCERN",
+        "sourceType": "CALL_TRANSCRIPT",
+        "sourceId": "m73",
+        "date": "2026-10-19",
+        "quote": "We need to see the API limits fixed before we sign again.",
+        "channel": null,
+        "conversationId": null,
+        "direction": null,
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "renewal_concern:a1",
+      "severity": "WARN",
+      "title": "Customer raised a renewal concern"
+    }
+  ]
+}

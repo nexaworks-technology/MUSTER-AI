@@ -1,0 +1,29 @@
+{
+  "name": "Brightwell: the CFO named Tallyfield on a call 12 days ago (warn)",
+  "bundle": {
+    "text": [
+      {
+        "id": "e1",
+        "kind": "COMPETITOR",
+        "sourceType": "CALL_TRANSCRIPT",
+        "sourceId": "m1",
+        "date": "2026-10-21",
+        "quote": "Our CFO asked us to look at Tallyfield before renewal.",
+        "channel": null,
+        "conversationId": null,
+        "direction": null,
+        "theme": null,
+        "competitor": "Tallyfield",
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "competitor_mentioned:a1:tallyfield",
+      "severity": "WARN",
+      "title": "Tallyfield mentioned"
+    }
+  ]
+}

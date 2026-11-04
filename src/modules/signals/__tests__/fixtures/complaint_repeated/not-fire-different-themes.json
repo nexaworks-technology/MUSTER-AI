@@ -1,0 +1,38 @@
+{
+  "name": "Two complaints with DIFFERENT themes do not fire",
+  "bundle": {
+    "text": [
+      {
+        "id": "e29",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m29",
+        "date": "2026-10-28",
+        "quote": "export failed",
+        "channel": "EMAIL",
+        "conversationId": "c29",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      },
+      {
+        "id": "e30",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m30",
+        "date": "2026-10-29",
+        "quote": "we were charged twice",
+        "channel": "EMAIL",
+        "conversationId": "c30",
+        "direction": "INBOUND",
+        "theme": "billing",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": []
+}

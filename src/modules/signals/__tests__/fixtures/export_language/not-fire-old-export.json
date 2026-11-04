@@ -1,0 +1,23 @@
+{
+  "name": "Over 60 days",
+  "bundle": {
+    "text": [
+      {
+        "id": "e22",
+        "kind": "EXPORT_LANGUAGE",
+        "sourceType": "MESSAGE",
+        "sourceId": "m22",
+        "date": "2026-08-24",
+        "quote": "export our data",
+        "channel": "EMAIL",
+        "conversationId": "c22",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": []
+}

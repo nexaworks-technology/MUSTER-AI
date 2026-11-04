@@ -1,0 +1,43 @@
+{
+  "name": "Export plus cancel on one account is critical",
+  "bundle": {
+    "text": [
+      {
+        "id": "e20",
+        "kind": "EXPORT_LANGUAGE",
+        "sourceType": "MESSAGE",
+        "sourceId": "m20",
+        "date": "2026-10-29",
+        "quote": "How do I export all our data before we cancel at the end of the term?",
+        "channel": "EMAIL",
+        "conversationId": "c20",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": null
+      },
+      {
+        "id": "e21",
+        "kind": "CANCEL_LANGUAGE",
+        "sourceType": "MESSAGE",
+        "sourceId": "m21",
+        "date": "2026-10-29",
+        "quote": "before we cancel at the end of the term",
+        "channel": "EMAIL",
+        "conversationId": "c21",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "export_language:a1",
+      "severity": "CRITICAL"
+    }
+  ]
+}

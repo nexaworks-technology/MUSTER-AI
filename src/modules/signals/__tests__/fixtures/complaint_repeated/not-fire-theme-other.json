@@ -1,0 +1,38 @@
+{
+  "name": "`other` never groups, so two of them do not fire",
+  "bundle": {
+    "text": [
+      {
+        "id": "e31",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m31",
+        "date": "2026-10-28",
+        "quote": "something odd",
+        "channel": "EMAIL",
+        "conversationId": "c31",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": null
+      },
+      {
+        "id": "e32",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m32",
+        "date": "2026-10-29",
+        "quote": "something else odd",
+        "channel": "EMAIL",
+        "conversationId": "c32",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": []
+}

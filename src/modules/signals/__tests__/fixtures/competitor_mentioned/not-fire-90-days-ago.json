@@ -1,0 +1,23 @@
+{
+  "name": "90 days ago is outside the window",
+  "bundle": {
+    "text": [
+      {
+        "id": "e7",
+        "kind": "COMPETITOR",
+        "sourceType": "MESSAGE",
+        "sourceId": "m7",
+        "date": "2026-08-04",
+        "quote": "Dashwell sent a quote",
+        "channel": "EMAIL",
+        "conversationId": "c7",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": "Dashwell",
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": []
+}

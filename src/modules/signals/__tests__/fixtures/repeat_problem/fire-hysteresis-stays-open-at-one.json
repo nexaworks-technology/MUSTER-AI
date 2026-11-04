@@ -1,0 +1,31 @@
+{
+  "name": "Open with one ticket left: stays",
+  "bundle": {
+    "text": [
+      {
+        "id": "e54",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m54",
+        "date": "2026-10-31",
+        "quote": "csv export fails",
+        "channel": "TICKET",
+        "conversationId": "t1",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "repeat_problem:a1:csv_export",
+      "severity": "WARN"
+    }
+  ],
+  "open": [
+    "repeat_problem:a1:csv_export"
+  ]
+}

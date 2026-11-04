@@ -1,0 +1,34 @@
+{
+  "name": "Renewal in 120 days stays a warn",
+  "bundle": {
+    "text": [
+      {
+        "id": "e75",
+        "kind": "RENEWAL_CONCERN",
+        "sourceType": "MESSAGE",
+        "sourceId": "m75",
+        "date": "2026-10-28",
+        "quote": "not sure about value",
+        "channel": "EMAIL",
+        "conversationId": "c75",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ],
+    "contract": {
+      "id": "k1",
+      "seatsPurchased": 40,
+      "startDate": "2026-03-01",
+      "renewalDate": "2027-03-02"
+    }
+  },
+  "expect": [
+    {
+      "dedupeKey": "renewal_concern:a1",
+      "severity": "WARN"
+    }
+  ]
+}

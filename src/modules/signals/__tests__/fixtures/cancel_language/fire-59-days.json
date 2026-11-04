@@ -1,0 +1,28 @@
+{
+  "name": "59 days ago is inside the 60-day window",
+  "bundle": {
+    "text": [
+      {
+        "id": "e16",
+        "kind": "CANCEL_LANGUAGE",
+        "sourceType": "MESSAGE",
+        "sourceId": "m16",
+        "date": "2026-09-04",
+        "quote": "we may cancel",
+        "channel": "EMAIL",
+        "conversationId": "c16",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "cancel_language:a1",
+      "severity": "CRITICAL"
+    }
+  ]
+}

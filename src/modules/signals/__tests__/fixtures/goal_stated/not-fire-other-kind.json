@@ -1,0 +1,23 @@
+{
+  "name": "A sentiment is not a goal",
+  "bundle": {
+    "text": [
+      {
+        "id": "e87",
+        "kind": "SENTIMENT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m87",
+        "date": "2026-10-30",
+        "quote": "I like it",
+        "channel": "EMAIL",
+        "conversationId": "c87",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": "POSITIVE"
+      }
+    ]
+  },
+  "expect": []
+}

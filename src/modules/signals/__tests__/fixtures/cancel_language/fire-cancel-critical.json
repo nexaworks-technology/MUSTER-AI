@@ -1,0 +1,29 @@
+{
+  "name": "Quillmark: cancel language is always critical",
+  "bundle": {
+    "text": [
+      {
+        "id": "e15",
+        "kind": "CANCEL_LANGUAGE",
+        "sourceType": "MESSAGE",
+        "sourceId": "m15",
+        "date": "2026-10-29",
+        "quote": "How do I export all our data before we cancel at the end of the term?",
+        "channel": "EMAIL",
+        "conversationId": "c15",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "cancel_language:a1",
+      "severity": "CRITICAL",
+      "title": "Customer talked about cancelling"
+    }
+  ]
+}

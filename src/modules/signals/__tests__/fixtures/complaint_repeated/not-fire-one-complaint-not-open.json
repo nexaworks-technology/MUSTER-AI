@@ -1,0 +1,23 @@
+{
+  "name": "One complaint, not open: below the fire level",
+  "bundle": {
+    "text": [
+      {
+        "id": "e36",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m36",
+        "date": "2026-10-31",
+        "quote": "export failed",
+        "channel": "EMAIL",
+        "conversationId": "c36",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": []
+}

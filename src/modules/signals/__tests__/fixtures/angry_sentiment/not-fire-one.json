@@ -1,0 +1,23 @@
+{
+  "name": "One negative message is not a pattern",
+  "bundle": {
+    "text": [
+      {
+        "id": "e63",
+        "kind": "SENTIMENT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m63",
+        "date": "2026-10-31",
+        "quote": "I am honestly fed up.",
+        "channel": "TICKET",
+        "conversationId": "c63",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": "NEGATIVE"
+      }
+    ]
+  },
+  "expect": []
+}

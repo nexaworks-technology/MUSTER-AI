@@ -1,0 +1,23 @@
+{
+  "name": "A competitor label with no name is not a signal",
+  "bundle": {
+    "text": [
+      {
+        "id": "e8",
+        "kind": "COMPETITOR",
+        "sourceType": "MESSAGE",
+        "sourceId": "m8",
+        "date": "2026-10-30",
+        "quote": "we are looking around",
+        "channel": "EMAIL",
+        "conversationId": "c8",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": []
+}

@@ -10,11 +10,12 @@
 | A2 (goldens) | `extraction-golden-m9.test.ts` | Not red by design: the M4 validator already enforced the contract, so the 52 per-kind fixtures (12 item kinds × 3 positive + 1 negative, SENTIMENT 3 + 1) pass on first run. They are regression nets, not new behaviour. |
 | A3 | `extract-plan.test.ts`, `watcher-m9.int.test.ts` | `Cannot find module '../extract'`; Watcher int: 3 failed (call chunks not read, our own message labelled, prompt still 1.0.0) |
 | A4 | `promise-status.test.ts`, `promise-service.test.ts`, `promise-sync.int.test.ts`, 19 fixtures in `fixtures/promise_late/` and `fixtures/promise_no_owner/` | `Cannot find module '../status'`, `'../service'`, `'@/modules/conversations/current'`; rules golden: 19 failed (no evaluator) |
+| A5 | 68 fixtures in `fixtures/<ruleKey>/` for the 10 text rules, `rules-text.test.ts`, `text-signals.int.test.ts` | **Process lapse, disclosed:** the evaluators in `rules/text.ts` were written before the fixtures, so there was no natural red. Red evidence was obtained afterwards by stubbing every text evaluator to `[]` and running `rules.test.ts`: **27 failed / 196 passed** (all 27 fire cases fail, every not-fire case passes vacuously); with the real evaluators **223 / 223**. The stub was reverted before commit. |
 
 ## Session A — pre-M9 test changes (standing pre-approval; every one logged)
 
 | File | Old | New | Reason | Class |
 |---|---|---|---|---|
 | `src/modules/agents/__tests__/watcher.int.test.ts` (lines 108–109) | rows carry promptVersion `"1.0.0"` | `"1.1.0"` | M9.md requires the Watcher prompt version bump (full Watcher); the guard — every Extraction row records the prompt version of its run — still holds | registry/version constant (judgement call: a version string, not a count; flagged for the founder) |
-| `src/modules/signals/__tests__/rule-settings.int.test.ts` | catalogue lists 23 rules | 25 (A4: `promise_late`, `promise_no_owner`; see later rows for A5/A6) | catalogue count equals registered items | count |
-| `src/modules/signals/__tests__/pipeline.int.test.ts` | chunk query budget ≤ 80 | ≤ 84 | `promises.sync` (4 reads) + promise facts (1) added to the evaluate chunk; the guard `queries(5 accounts) === queries(2 accounts)` still passes | budget |
+| `src/modules/signals/__tests__/rule-settings.int.test.ts` | catalogue lists 23 rules | 35 after A5 (A4: `promise_late`, `promise_no_owner`; A5: 10 text rules); A6 adds more, final number in the last row | catalogue count equals registered items | count |
+| `src/modules/signals/__tests__/pipeline.int.test.ts` | chunk query budget ≤ 80 | ≤ 89 after A5 (84 after A4) | `promises.sync` (4 reads) + promise facts (1) + text facts (5) added to the evaluate chunk; the guard `queries(5 accounts) === queries(2 accounts)` still passes | budget |

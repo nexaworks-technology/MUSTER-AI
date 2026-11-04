@@ -1,0 +1,38 @@
+{
+  "name": "Our own messages carry no customer tone",
+  "bundle": {
+    "text": [
+      {
+        "id": "e68",
+        "kind": "SENTIMENT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m68",
+        "date": "2026-10-30",
+        "quote": "I am honestly fed up.",
+        "channel": "TICKET",
+        "conversationId": "c68",
+        "direction": "OUTBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": "NEGATIVE"
+      },
+      {
+        "id": "e69",
+        "kind": "SENTIMENT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m69",
+        "date": "2026-10-31",
+        "quote": "I am honestly fed up.",
+        "channel": "TICKET",
+        "conversationId": "c69",
+        "direction": "OUTBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": "NEGATIVE"
+      }
+    ]
+  },
+  "expect": []
+}

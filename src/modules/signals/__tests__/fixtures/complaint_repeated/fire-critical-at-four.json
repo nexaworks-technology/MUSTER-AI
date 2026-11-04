@@ -1,0 +1,73 @@
+{
+  "name": "Four complaints on one theme: critical",
+  "bundle": {
+    "text": [
+      {
+        "id": "e25",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m25",
+        "date": "2026-10-08",
+        "quote": "export failed",
+        "channel": "EMAIL",
+        "conversationId": "c25",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      },
+      {
+        "id": "e26",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m26",
+        "date": "2026-10-15",
+        "quote": "export failed",
+        "channel": "EMAIL",
+        "conversationId": "c26",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      },
+      {
+        "id": "e27",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m27",
+        "date": "2026-10-24",
+        "quote": "export failed",
+        "channel": "EMAIL",
+        "conversationId": "c27",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      },
+      {
+        "id": "e28",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m28",
+        "date": "2026-10-31",
+        "quote": "export failed",
+        "channel": "EMAIL",
+        "conversationId": "c28",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "complaint_repeated:a1:csv_export",
+      "severity": "CRITICAL"
+    }
+  ]
+}

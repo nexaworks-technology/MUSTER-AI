@@ -1,0 +1,23 @@
+{
+  "name": "Other kinds do not raise it",
+  "bundle": {
+    "text": [
+      {
+        "id": "e14",
+        "kind": "GOAL",
+        "sourceType": "MESSAGE",
+        "sourceId": "m14",
+        "date": "2026-10-30",
+        "quote": "cut costs",
+        "channel": "EMAIL",
+        "conversationId": "c14",
+        "direction": "INBOUND",
+        "theme": null,
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": []
+}

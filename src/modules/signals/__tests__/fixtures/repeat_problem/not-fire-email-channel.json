@@ -1,0 +1,38 @@
+{
+  "name": "Email is not support text",
+  "bundle": {
+    "text": [
+      {
+        "id": "e48",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m48",
+        "date": "2026-10-28",
+        "quote": "export",
+        "channel": "EMAIL",
+        "conversationId": "c1",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      },
+      {
+        "id": "e49",
+        "kind": "COMPLAINT",
+        "sourceType": "MESSAGE",
+        "sourceId": "m49",
+        "date": "2026-10-29",
+        "quote": "export",
+        "channel": "EMAIL",
+        "conversationId": "c2",
+        "direction": "INBOUND",
+        "theme": "csv_export",
+        "competitor": null,
+        "intent": null,
+        "label": null
+      }
+    ]
+  },
+  "expect": []
+}

@@ -23,6 +23,7 @@ import {
   type OnboardingPlanFacts,
 } from "@/modules/onboarding/service";
 import { promiseStatus, type PromiseEvidence } from "@/modules/promises/schemas";
+import { TEXT_EVALUATORS, type TextFact } from "./text";
 import { parseParams, RULE_BY_KEY, type ParamsOf, type RuleKey } from "./catalog";
 
 /**
@@ -57,6 +58,8 @@ export interface ExpansionFacts {
 }
 
 /** M9: one promise as the promise rules read it (dates and records only, never a stored status). */
+export type { TextFact };
+
 export interface PromiseFacts {
   id: string;
   party: "US" | "CUSTOMER" | "UNCLEAR";
@@ -80,6 +83,8 @@ export interface SignalBundle extends AccountBundle {
   expansion?: ExpansionFacts | null;
   /** M9: the account's promises; absent when not loaded (the promise rules then return nothing). */
   promises?: PromiseFacts[] | null;
+  /** M9: the account's verified text extractions, cut at the as-of date; absent = not loaded. */
+  text?: TextFact[] | null;
 }
 
 export type Severity = "INFO" | "WARN" | "CRITICAL";
@@ -668,6 +673,9 @@ const EVALUATORS: { [K in RuleKey]: Evaluator<K> } = {
 
   // Entered by people with a dated public source (INTERP-6); never raised by an evaluator.
   outside_event: () => [],
+
+  // ─── M9: text rules (rules/text.ts). Verified extractions only. ───
+  ...TEXT_EVALUATORS,
 
   // ─── M9: promises. Status comes from the one function in promises/status.ts (D1). ───
   promise_late: (b, p) =>
