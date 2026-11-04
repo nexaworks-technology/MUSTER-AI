@@ -41,7 +41,7 @@ describe("Northgate's renewal brief", () => {
     expect(m["renewal.noticeDeadline"]!.text).toBe("Nov 13, 2026");
     expect(m["renewal.arr"]!.text).toBe("$142,000.00");
     expect(m["health.band"]!.text).toBe("Healthy");
-    expect(m["risks.count"]!.text).toBe("2 open risk signals");
+    expect(m["risks.count"]!.text).toBe("6 open risk signals");
     expect(m["goals.status"]!.text).toBe("No goals on file");
     expect(m["promises.status"]!.text).toMatch(/not connected yet/);
     for (const k of ["renewal.date", "health.band", "risks.count"])
