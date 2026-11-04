@@ -330,6 +330,9 @@ export interface DecisionResult {
 async function loadPending(actor: Actor, approvalId: string, via: DecisionChannel) {
   requirePermission(actor, "approvals:decide");
   const a = await getApproval(actor, approvalId);
+  if (a.kind === "CAMPAIGN" && actor.role !== "ADMIN" && actor.role !== "CS_LEADER") {
+    throw new ForbiddenError("Only an Admin or CS Leader may decide a campaign approval.");
+  }
   if (a.status !== "PENDING")
     throw new ApprovalStateError(
       `This approval was already ${a.status.toLowerCase().replaceAll("_", " ")}.`,

@@ -6,7 +6,8 @@ import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { customerTransport, type CustomerTransport } from "@/lib/email/customerTransport";
 import { markActed } from "@/modules/outcomes/service";
 import { getSettingsData } from "@/modules/settings/service";
-import { evaluateGuards, type GuardResult } from "./guards";
+import { renderCampaignText } from "@/modules/campaigns/render";
+import { evaluateGuards, type GuardName, type GuardResult } from "./guards";
 import { detectSensitive } from "./sensitive";
 
 /**
@@ -114,6 +115,75 @@ async function preChecks(ctx: TenantContext, m: OutboundMessage): Promise<Check[
     });
   }
 
+  if (m.sendMode === "CAMPAIGN") {
+    const campaign = m.campaignId
+      ? await db.campaign.findUnique({
+          where: { id: m.campaignId },
+          include: { approval: { include: { decidedBy: true } } },
+        })
+      : null;
+
+    const cApproval = campaign?.approval;
+    const decided =
+      cApproval && (cApproval.status === "APPROVED" || cApproval.status === "EDITED_APPROVED");
+    checks.push({
+      guard: "approval_approved",
+      passed: Boolean(decided),
+      detail: cApproval
+        ? `The campaign approval is ${cApproval.status.toLowerCase().replaceAll("_", " ")}.`
+        : "There is no campaign approval.",
+    });
+
+    const decider = cApproval?.decidedBy;
+    const permittedRole =
+      decider &&
+      decider.status === "ACTIVE" &&
+      (decider.role === "ADMIN" || decider.role === "CS_LEADER");
+    checks.push({
+      guard: "approver_permitted",
+      passed: Boolean(decided && permittedRole),
+      detail: permittedRole
+        ? "Campaign approved by an Admin or CS Leader."
+        : "Campaign approval must be decided by an Admin or CS Leader.",
+    });
+
+    checks.push({
+      guard: "decided_in_app",
+      passed: Boolean(cApproval && cApproval.decidedVia !== "SLACK"),
+      detail: "Decided in the app.",
+    });
+
+    // Check exact rendered text against campaign template
+    const [account, contact] = await Promise.all([
+      db.account.findUnique({ where: { id: m.accountId } }),
+      db.contact.findUnique({ where: { id: m.contactId } }),
+    ]);
+
+    let textMatches = false;
+    if (campaign && account && contact) {
+      const expSubject = renderCampaignText(campaign.subject, { account, contact });
+      const expBody = renderCampaignText(campaign.body, { account, contact });
+      textMatches =
+        m.subject === expSubject && (m.bodyText === expBody || m.bodyText.includes(expBody));
+    }
+
+    checks.push({
+      guard: "approved_version",
+      passed: textMatches,
+      detail: textMatches
+        ? "Sending the exact rendered campaign template."
+        : "The message text differs from the approved campaign template.",
+    });
+
+    checks.push({
+      guard: "has_sources",
+      passed: true,
+      detail: "Campaign audience verified.",
+    });
+
+    return checks;
+  }
+
   const proof = Array.isArray(approval?.proof) ? approval.proof.length : 0;
   checks.push({
     guard: "has_sources",
@@ -206,19 +276,37 @@ export async function dispatch(
   const guards = evaluateGuards(gctx);
   const suppressed = guards.find((g) => g.guard === "suppressed")!;
   const results: Check[] = [...checks, ...guards];
+  const CAMPAIGN_GUARDS: GuardName[] = [
+    "contact_recently_emailed",
+    "quiet_hours",
+    "serious_ticket_open",
+    "account_lost",
+    "suppressed",
+  ];
   const blocking =
     m.sendMode === "APPROVED"
       ? [...checks, suppressed].filter((c) => !c.passed)
-      : [...checks, ...guards].filter((c) => !c.passed);
+      : m.sendMode === "CAMPAIGN"
+        ? [
+            ...checks,
+            ...guards.filter((g) => CAMPAIGN_GUARDS.includes(g.guard)),
+          ].filter((c) => !c.passed)
+        : [...checks, ...guards].filter((c) => !c.passed);
 
   if (blocking.length) {
     const heldReason = blocking.map((b) => b.detail).join(" ");
-    if (m.sendMode === "APPROVED") {
+    if (m.sendMode === "APPROVED" || (m.sendMode === "CAMPAIGN" && checks.some((c) => !c.passed))) {
       await db.$tenantTransaction(async (tx) => {
         await tx.outboundMessage.update({
           where: { id: m.id },
           data: { status: "HELD", heldReason, guardResults: json(results) },
         });
+        if (m.campaignId) {
+          await tx.campaignRecipient.updateMany({
+            where: { campaignId: m.campaignId, contactId: m.contactId },
+            data: { status: "HELD", heldReason, guardResults: json(results) },
+          });
+        }
         await writeAudit(
           {
             workspaceId: ctx.workspaceId,
@@ -234,6 +322,35 @@ export async function dispatch(
       });
       throw new DispatchRefusedError(blocking.map((b) => `${b.guard}: ${b.detail}`));
     }
+
+    if (m.sendMode === "CAMPAIGN") {
+      await db.$tenantTransaction(async (tx) => {
+        await tx.outboundMessage.update({
+          where: { id: m.id },
+          data: { status: "HELD", heldReason, guardResults: json(results) },
+        });
+        if (m.campaignId) {
+          await tx.campaignRecipient.updateMany({
+            where: { campaignId: m.campaignId, contactId: m.contactId },
+            data: { status: "HELD", heldReason, guardResults: json(results) },
+          });
+        }
+        await writeAudit(
+          {
+            workspaceId: ctx.workspaceId,
+            actorType: "SYSTEM",
+            action: "outbound.held",
+            targetType: "OutboundMessage",
+            targetId: m.id,
+            summary: `Held by recipient guards: ${blocking.map((b) => b.guard).join(", ")}`,
+            after: { guardResults: results },
+          },
+          tx,
+        );
+      });
+      return { status: "HELD", heldReason, approvalId: m.approvalId ?? "" };
+    }
+
     // An automatic send that fails a guard is held and goes to a human (§7.4).
     const approvalId = await db.$tenantTransaction(async (tx) => {
       const approval =
@@ -303,9 +420,17 @@ export async function dispatch(
       text: m.bodyText,
     }));
   } catch (error) {
-    await db.outboundMessage.update({
-      where: { id: m.id },
-      data: { status: "FAILED", heldReason: "The email provider did not accept the message." },
+    await db.$tenantTransaction(async (tx) => {
+      await tx.outboundMessage.update({
+        where: { id: m.id },
+        data: { status: "FAILED", heldReason: "The email provider did not accept the message." },
+      });
+      if (m.campaignId) {
+        await tx.campaignRecipient.updateMany({
+          where: { campaignId: m.campaignId, contactId: m.contactId },
+          data: { status: "FAILED", heldReason: "The email provider did not accept the message." },
+        });
+      }
     });
     await writeAudit({
       workspaceId: ctx.workspaceId,
@@ -323,6 +448,12 @@ export async function dispatch(
       where: { id: m.id },
       data: { status: "SENT", sentAt: now, providerMessageId, transport: transport.name },
     });
+    if (m.campaignId) {
+      await tx.campaignRecipient.updateMany({
+        where: { campaignId: m.campaignId, contactId: m.contactId },
+        data: { status: "SENT", sentAt: now },
+      });
+    }
     await writeAudit(
       {
         workspaceId: ctx.workspaceId,

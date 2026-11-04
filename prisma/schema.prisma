@@ -129,6 +129,8 @@ model Workspace {
   playRuns            PlayRun[]
   playStepRuns        PlayStepRun[]
   voiceSamples        VoiceSample[]
+  campaigns           Campaign[]
+  campaignRecipients  CampaignRecipient[]
 }
 
 // ─── Global identity (Auth.js) ───────────────────────────────────────────────
@@ -246,6 +248,7 @@ model Membership {
   expansionOwned      ExpansionOpportunity[] @relation("ExpansionOwner")
   slackLinks          SlackUserLink[]
   createdVoiceSamples VoiceSample[]          @relation("VoiceSampleCreator")
+  campaignsCreated    Campaign[]             @relation("CampaignCreator")
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, userId])
@@ -466,6 +469,7 @@ model Account {
   expansionOpps    ExpansionOpportunity[]
   documents        Document[]
   playRuns         PlayRun[]
+  campaignRecipients CampaignRecipient[]
 
   @@unique([workspaceId, id])
   @@index([workspaceId, renewalDate])
@@ -507,6 +511,7 @@ model Contact {
   tickets          Ticket[]
   outboundMessages OutboundMessage[]
   stepsOwned       OnboardingStep[]
+  campaignRecipients CampaignRecipient[]
 
   @@unique([workspaceId, id])
   @@index([workspaceId, accountId])
@@ -1071,6 +1076,7 @@ model Segment {
 
   workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   createdBy Membership? @relation("SegmentCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: SetNull)
+  campaigns Campaign[]
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, name])
@@ -1752,6 +1758,7 @@ enum ApprovalKind {
   ENROLL_PLAY
   BULK_ACTION
   WRITE_BACK
+  CAMPAIGN
 }
 
 enum ApprovalStatus {
@@ -1783,7 +1790,7 @@ enum DecisionChannel {
 model Approval {
   id                     String           @id @default(cuid())
   workspaceId            String
-  accountId              String
+  accountId              String?
   kind                   ApprovalKind
   payload                Json             @default("{}")
   proposedByAgentRunId   String?
@@ -1810,7 +1817,7 @@ model Approval {
   updatedAt              DateTime         @updatedAt
 
   workspace        Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  account          Account           @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  account          Account?          @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
   proposedByRun    AgentRun?         @relation(fields: [workspaceId, proposedByAgentRunId], references: [workspaceId, id], onDelete: NoAction)
   proposedBy       Membership?       @relation("ApprovalProposer", fields: [workspaceId, proposedByMembershipId], references: [workspaceId, id], onDelete: Restrict)
   decidedBy        Membership?       @relation("ApprovalDecider", fields: [workspaceId, decidedById], references: [workspaceId, id], onDelete: Restrict)
@@ -1819,6 +1826,7 @@ model Approval {
   outboundMessages OutboundMessage[]
   revisions        DraftRevision[]
   playStepRuns     PlayStepRun[]
+  campaign         Campaign?         @relation("CampaignApproval")
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, sourceKey])
@@ -1864,6 +1872,7 @@ enum OutboundStatus {
 enum SendMode {
   APPROVED
   AUTO
+  CAMPAIGN
 }
 
 /// [W] A customer email. Only src/modules/outbound/dispatch.ts can send one (Rule 3, §7.4).
@@ -1874,6 +1883,7 @@ model OutboundMessage {
   contactId             String
   toEmail               String
   approvalId            String?
+  campaignId            String?
   signalId              String?
   subject               String
   bodyText              String
@@ -1899,9 +1909,11 @@ model OutboundMessage {
   signal    Signal?         @relation(fields: [workspaceId, signalId], references: [workspaceId, id], onDelete: Restrict)
   agentRun  AgentRun?       @relation(fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
   createdBy Membership?     @relation("OutboundCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  campaign  Campaign?       @relation(fields: [workspaceId, campaignId], references: [workspaceId, id], onDelete: Cascade)
   revisions DraftRevision[]
   playStepRuns PlayStepRun[]
   voiceSamples VoiceSample[]
+  campaignRecipients CampaignRecipient[]
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, sourceKey])
@@ -2679,4 +2691,82 @@ model VoiceSample {
 
   @@unique([workspaceId, id])
   @@index([workspaceId, approvedForVoice])
+}
+
+// ─── M8: Campaigns ────────────────────────────────────────────────────────────
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  CANCELLED
+}
+
+enum CampaignRecipientStatus {
+  QUEUED
+  HELD
+  SENT
+  FAILED
+  BOUNCED
+}
+
+/// [W] A segment broadcast campaign (spec §6J2, ARCHITECTURE §3.2).
+model Campaign {
+  id              String            @id @default(cuid())
+  workspaceId     String
+  name            String
+  segmentId       String
+  subject         String
+  body            String
+  status          CampaignStatus    @default(DRAFT)
+  scheduledAt     DateTime?
+  pacePerHour     Int               @default(100)
+  approvalId      String?
+  createdById     String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  workspace       Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  segment         Segment           @relation(fields: [workspaceId, segmentId], references: [workspaceId, id], onDelete: Restrict)
+  approval        Approval?         @relation("CampaignApproval", fields: [workspaceId, approvalId], references: [workspaceId, id], onDelete: Restrict)
+  createdBy       Membership?       @relation("CampaignCreator", fields: [workspaceId, createdById], references: [workspaceId, id], onDelete: Restrict)
+  recipients      CampaignRecipient[]
+  outboundMessages OutboundMessage[]
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, approvalId])
+  @@index([workspaceId, status, scheduledAt])
+}
+
+/// [W] One recipient of a segment campaign with delivery tracking (spec §6J2, ARCHITECTURE §3.2).
+model CampaignRecipient {
+  id                String                  @id @default(cuid())
+  workspaceId       String
+  campaignId        String
+  contactId         String
+  accountId         String
+  outboundMessageId String?
+  status            CampaignRecipientStatus @default(QUEUED)
+  heldReason        String?
+  guardResults      Json                    @default("[]")
+  scheduledFor      DateTime?
+  sentAt            DateTime?
+  deliveredAt       DateTime?
+  openedAt          DateTime?
+  clickedAt         DateTime?
+  bouncedAt         DateTime?
+  unsubscribedAt    DateTime?
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  workspace         Workspace               @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  campaign          Campaign                @relation(fields: [workspaceId, campaignId], references: [workspaceId, id], onDelete: Cascade)
+  contact           Contact                 @relation(fields: [workspaceId, contactId], references: [workspaceId, id], onDelete: Cascade)
+  account           Account                 @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  outboundMessage   OutboundMessage?        @relation(fields: [workspaceId, outboundMessageId], references: [workspaceId, id], onDelete: SetNull)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, campaignId, contactId])
+  @@index([workspaceId, status, scheduledFor])
 }
