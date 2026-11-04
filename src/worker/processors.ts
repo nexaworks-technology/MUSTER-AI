@@ -9,6 +9,7 @@ import { getQueue } from "@/lib/jobs/queues";
 import {
   processAgentRun,
   processConsider,
+  sweepAllExpansionAgents,
   sweepAllHealthNarratives,
   sweepAllRenewalAgents,
 } from "@/modules/agents/service";
@@ -113,6 +114,10 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
     async "renewals.agentsSweep"() {
       return sweepAllRenewalAgents();
     },
+    /** M7: an open expansion opportunity with no run asks the Expansion Finder once. */
+    async "expansion.agentsSweep"() {
+      return sweepAllExpansionAgents();
+    },
     /** M6: first value reached tells the owner. */
     async "onboarding.valueReached"(job) {
       return onOnboardingValueReached(job.data);
@@ -176,6 +181,7 @@ export const SCHEDULES = [
   },
   // M7: the Renewal Manager for renewals inside their window that have no brief yet.
   { queue: "agents", id: "renewal-agents-sweep", job: "renewals.agentsSweep", everyMs: 900_000 },
+  { queue: "agents", id: "expansion-agents-sweep", job: "expansion.agentsSweep", everyMs: 900_000 },
   { queue: "maintenance", id: "task-escalation", job: "tasks.escalateOverdue", everyMs: 3_600_000 },
   { queue: "outcomes", id: "outcomes-checkpoint", job: "outcomes.checkpoint", everyMs: 21_600_000 },
   { queue: "maintenance", id: "today-rebuild", job: "today.rebuildAll", everyMs: 3_600_000 },

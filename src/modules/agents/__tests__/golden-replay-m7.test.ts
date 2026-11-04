@@ -7,7 +7,7 @@ import { getAgent } from "../registry";
  * the executor runs, with no network. Adversarial cases must come out UNCITED, INVALID_OUTPUT or
  * FAILED. (A separate file from the M4 and M6 replays so those files stay untouched.)
  */
-const MIN_CASES: Record<string, number> = { "renewal-manager": 8 };
+const MIN_CASES: Record<string, number> = { "renewal-manager": 8, "expansion-finder": 8 };
 
 for (const agent of Object.keys(MIN_CASES)) {
   const cases = loadGolden(agent);

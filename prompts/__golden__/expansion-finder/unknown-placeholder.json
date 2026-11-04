@@ -1,0 +1,93 @@
+{
+  "case": "unknown-placeholder",
+  "description": "ADVERSARIAL: a placeholder for a metric the system does not compute.",
+  "agent": "expansion-finder",
+  "bundle": [
+    {
+      "sourceType": "ExpansionOpportunity",
+      "sourceId": "opp_c",
+      "fields": {
+        "account": "Copperleaf Studios",
+        "status": "open"
+      }
+    },
+    {
+      "sourceType": "Signal",
+      "sourceId": "sig_seats",
+      "fields": {
+        "rule": "seats_near_limit",
+        "title": "52 of 40 seats in use",
+        "explanation": "52 people used the product in the last 28 days on a contract for 40 seats (130%)."
+      }
+    },
+    {
+      "sourceType": "Signal",
+      "sourceId": "sig_team",
+      "fields": {
+        "rule": "new_team_using",
+        "title": "13 new people started using the product",
+        "explanation": "13 people with no earlier activity first used the product between Oct 13, 2026 and Nov 1, 2026, after 60 days with 0 new people. No shared email subdomain is on file for them, so the team is not named."
+      }
+    },
+    {
+      "sourceType": "Contract",
+      "sourceId": "con_c",
+      "fields": {
+        "seatsPurchased": 40,
+        "creditsPurchased": null
+      }
+    },
+    {
+      "sourceType": "UsageDaily",
+      "sourceId": "use_c",
+      "fields": {
+        "date": "Nov 1, 2026",
+        "activeUsers": 52,
+        "seatsUsed": 52,
+        "creditsUsed": null
+      }
+    },
+    {
+      "sourceType": "Contact",
+      "sourceId": "con_iris",
+      "fields": {
+        "name": "Iris Tan",
+        "title": "Studio Operations Lead"
+      }
+    }
+  ],
+  "facts": {
+    "estimate": 1080000
+  },
+  "output": {
+    "reasoningSummary": "More people are using the product than the contract has seats for, and a new group of people started recently.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Signal",
+        "sourceId": "sig_seats"
+      },
+      {
+        "sourceType": "Contract",
+        "sourceId": "con_c"
+      },
+      {
+        "sourceType": "UsageDaily",
+        "sourceId": "use_c"
+      },
+      {
+        "sourceType": "Signal",
+        "sourceId": "sig_team"
+      }
+    ],
+    "proposedActions": [],
+    "narrative": "Size: {{metric.expansion.upsell}}.",
+    "conversation": {
+      "subject": "Your team's growth on Larkspur",
+      "body": "Hi Iris,\n\nI noticed 52 people have been using Larkspur recently, which is more than the 40 seats on your plan, and a group of new people has joined. That is great to see. How are the plans for the team going, and would a short call to talk through the options be useful?\n\nAisha"
+    }
+  },
+  "expect": {
+    "status": "INVALID_OUTPUT"
+  }
+}

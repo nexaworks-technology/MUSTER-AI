@@ -30,10 +30,21 @@ export type MetricTexts = Record<string, string>;
 
 const digitsOnly = (s: string) => s.replace(/[^\d]/g, "");
 
+export interface ValidateOptions {
+  /**
+   * "forbid" (default): any digit outside a placeholder is refused. "allow": digits are left to the
+   * agent number check (each must appear in a record the text cites); only the placeholder syntax
+   * and keys are checked here. Used where a narrative may repeat a usage count from its records
+   * but must never carry a money figure (that is a placeholder only).
+   */
+  numbers?: "forbid" | "allow";
+}
+
 export function validateNarrative(
   blocks: readonly NarrativeBlock[],
   allowedKeys: readonly string[],
   metricTexts: MetricTexts = {},
+  opts: ValidateOptions = {},
 ): NarrativeProblem[] {
   const allowed = new Set(allowedKeys);
   const problems: NarrativeProblem[] = [];
@@ -53,7 +64,7 @@ export function validateNarrative(
         kind: "MALFORMED",
         message: "a brace expression that is not a {{metric.key}} placeholder",
       });
-    for (const raw of new Set(rest.match(NUMBER) ?? [])) {
+    for (const raw of opts.numbers === "allow" ? [] : new Set(rest.match(NUMBER) ?? [])) {
       const match = Object.entries(metricTexts).find(
         ([, text]) => digitsOnly(text).includes(digitsOnly(raw)) && digitsOnly(raw).length > 0,
       );

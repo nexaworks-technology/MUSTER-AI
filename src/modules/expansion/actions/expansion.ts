@@ -8,6 +8,8 @@ import { ForbiddenError } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { AccountNotFoundError } from "@/modules/accounts/service";
 import { WriteBackRefusedError } from "@/modules/integrations/service";
+import { randomUUID } from "node:crypto";
+import { askExpansionFinder } from "@/modules/agents/service";
 import { exportOpportunity, ExpansionError, updateOpportunity } from "../read.service";
 
 const PAGE = z.enum(["/expansion"]).or(z.string().regex(/^\/accounts\/[\w-]+\/expansion$/));
@@ -56,5 +58,29 @@ export async function exportOpportunityAction(returnTo: string, id: string) {
   await run(returnTo, async () => {
     const r = await exportOpportunity(ctx, z.string().min(1).max(60).parse(id));
     return `Sent for approval: it will be created in ${r.crm} once an approver agrees.`;
+  });
+}
+
+/** Asks the Expansion Finder; its draft goes to Approvals, never to the customer. */
+export async function askExpansionFinderAction(returnTo: string, id: string) {
+  const ctx = await resolveWorkspaceContext(await requireSession());
+  if (!ctx) redirect("/");
+  await run(returnTo, async () => {
+    const r = await askExpansionFinder(ctx, {
+      opportunityId: z.string().min(1).max(60).parse(id),
+      nonce: randomUUID(),
+    });
+    switch (r.status) {
+      case "NOT_CONFIGURED":
+        return "AI is not configured for this workspace, so the Expansion Finder cannot draft.";
+      case "DRAFTED":
+        return r.approvalId
+          ? "Note written and the conversation draft is waiting in Approvals. Nothing was sent."
+          : "Note written. There was no contact to draft an email to.";
+      case "NO_SIGN":
+        return `The Expansion Finder found no real sign of expansion in the records${r.missing.length ? `: ${r.missing.join("; ")}` : ""}.`;
+      default:
+        return `The Expansion Finder's answer was not usable (${r.runStatus.toLowerCase().replace("_", " ")}), so nothing was written.`;
+    }
   });
 }

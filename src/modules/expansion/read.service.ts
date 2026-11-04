@@ -60,6 +60,8 @@ export interface OpportunityRow {
   status: (typeof STATUSES)[number];
   crmExternalId: string | null;
   whitespace: Whitespace | null;
+  /** The Expansion Finder's latest usable note, with the estimate placeholder filled by code. */
+  finder: { runId: string; note: string; approvalId: string | null } | null;
   canEdit: boolean;
   canExport: boolean;
   /** Present only with revenue access (spec §6N5). */
@@ -103,16 +105,51 @@ export function canWork(
   return actor.role === "CSM" && accountOwner === actor.membershipId;
 }
 
-function estimateWords(o: Db, extra: number | null): string {
-  if (!o.estimateMethod) return "No estimate: the account is not over a paid limit.";
+/** The estimate as the card reads it and as a sentence in a note reads it; both name the method. */
+function estimateParts(o: Db, extra: number | null): { text: string; phrase: string } {
+  if (!o.estimateMethod)
+    return {
+      text: "No estimate: the account is not over a paid limit.",
+      phrase: "no estimate, as the account is not over a paid limit",
+    };
   if (o.estimateMinor === null || !o.currency)
-    return "No price on file: this account's own subscription does not give a price per seat.";
+    return {
+      text: "No price on file: this account's own subscription does not give a price per seat.",
+      phrase: "not priced: no price on file for this account's own subscription",
+    };
   const total = formatMoney({ minor: o.estimateMinor, currency: o.currency });
-  if (o.estimateMethod === "SEATS_OVER_LIMIT" && extra && extra > 0) {
-    const per = formatMoney({ minor: o.estimateMinor / BigInt(extra), currency: o.currency });
-    return `Estimate: ${total} ARR (${extra} seats × ${per} per seat, from their subscription)`;
-  }
-  return `Estimate: ${total} ARR (next plan price minus current plan price, both from their subscriptions)`;
+  const how =
+    o.estimateMethod === "SEATS_OVER_LIMIT" && extra && extra > 0
+      ? `${extra} seats × ${formatMoney({ minor: o.estimateMinor / BigInt(extra), currency: o.currency })} per seat, from their subscription`
+      : "next plan price minus current plan price, both from their subscriptions";
+  return {
+    text: `Estimate: ${total} ARR (${how})`,
+    phrase: `an estimate of ${total} ARR (${how})`,
+  };
+}
+
+type FinderRun = {
+  id: string;
+  triggerId: string;
+  output: Prisma.JsonValue;
+  effects: Prisma.JsonValue;
+};
+
+const PLACEHOLDER = "{{metric.expansion.estimate}}";
+
+/** The latest usable note for an opportunity; the estimate placeholder is filled here, by code. */
+function finderFor(runs: FinderRun[], o: Db, phrase: string, visible: boolean) {
+  const run = runs.find((r) => r.triggerId === o.id || r.triggerId.startsWith(`${o.id}:`));
+  const note = (run?.output as { narrative?: string | null } | null)?.narrative;
+  if (!run || !note) return null;
+  const approval = (run.effects as Array<{ type: string; id: string }> | null)?.find(
+    (e) => e.type === "Approval",
+  );
+  return {
+    runId: run.id,
+    note: note.replaceAll(PLACEHOLDER, visible ? phrase : "Restricted"),
+    approvalId: approval?.id ?? null,
+  };
 }
 
 function toRow(
@@ -121,6 +158,7 @@ function toRow(
   signals: Map<string, SignalLite>,
   ws: Whitespace | null,
   exportable: boolean,
+  runs: FinderRun[],
 ): OpportunityRow {
   const sigs = o.signalIds.flatMap((id) => (signals.has(id) ? [signals.get(id)!] : []));
   const seats = sigs.find(
@@ -136,6 +174,7 @@ function toRow(
       ? v.used - v.seats
       : null;
   const canEdit = canWork(actor, o.account.ownerMembershipId);
+  const parts = estimateParts(o, extra);
   const base = {
     id: o.id,
     account: { id: o.account.id, name: o.account.name },
@@ -156,16 +195,24 @@ function toRow(
     status: o.status,
     crmExternalId: o.crmExternalId,
     whitespace: ws,
+    finder: finderFor(runs, o, parts.phrase, canSeeMoney(actor)),
     canEdit,
     canExport: canEdit && canSeeMoney(actor) && exportable && o.crmExternalId === null,
     estimateMinor: o.estimateMinor,
     currency: o.currency,
-    estimateText: estimateWords(o, extra),
+    estimateText: parts.text,
   };
   return redactMoney(actor, base, ["estimateMinor", "currency", "estimateText"] as const);
 }
 
 const CRM = ["HUBSPOT", "SALESFORCE"] as const;
+
+const finderRuns = (db: ReturnType<typeof scopedDb>, accountIds: string[]) =>
+  db.agentRun.findMany({
+    where: { agentKey: "expansion-finder", status: "SUCCEEDED", accountId: { in: accountIds } },
+    orderBy: [{ createdAt: "desc" }, { id: "asc" }],
+    select: { id: true, triggerId: true, output: true, effects: true },
+  });
 
 /** A fixed number of reads per page: rows, their signals, whitespace, and the connected CRMs. */
 export async function listOpportunities(
@@ -201,16 +248,19 @@ export async function listOpportunities(
       orderBy: { provider: "asc" },
     }),
   ]);
-  const [signals, ws] = await Promise.all([
+  const [signals, ws, runs] = await Promise.all([
     db.signal.findMany({
       where: { id: { in: rows.flatMap((r) => r.signalIds) } },
       select: { id: true, ruleKey: true, title: true, severity: true, status: true, values: true },
     }),
     loadWhitespace(db, [...new Set(rows.map((r) => r.account.id))], asOf),
+    finderRuns(db, [...new Set(rows.map((r) => r.account.id))]),
   ]);
   const sigById = new Map(signals.map((s) => [s.id, s]));
   return {
-    rows: rows.map((r) => toRow(actor, r, sigById, ws.get(r.account.id) ?? null, crm.length > 0)),
+    rows: rows.map((r) =>
+      toRow(actor, r, sigById, ws.get(r.account.id) ?? null, crm.length > 0, runs),
+    ),
     total,
     page: q.page,
     pages: Math.max(1, Math.ceil(total / PAGE)),
@@ -245,15 +295,18 @@ export async function getAccountExpansion(
     }),
     loadWhitespace(db, [accountId], asOf),
   ]);
-  const signals = await db.signal.findMany({
-    where: { id: { in: rows.flatMap((r) => r.signalIds) } },
-    select: { id: true, ruleKey: true, title: true, severity: true, status: true, values: true },
-  });
+  const [signals, runs] = await Promise.all([
+    db.signal.findMany({
+      where: { id: { in: rows.flatMap((r) => r.signalIds) } },
+      select: { id: true, ruleKey: true, title: true, severity: true, status: true, values: true },
+    }),
+    finderRuns(db, [accountId]),
+  ]);
   const sigById = new Map(signals.map((s) => [s.id, s]));
   return {
     account,
     whitespace: ws.get(accountId)!,
-    opportunities: rows.map((r) => toRow(actor, r, sigById, null, crm > 0)),
+    opportunities: rows.map((r) => toRow(actor, r, sigById, null, crm > 0, runs)),
   };
 }
 

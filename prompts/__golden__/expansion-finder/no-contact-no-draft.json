@@ -1,0 +1,85 @@
+{
+  "case": "no-contact-no-draft",
+  "description": "No draft when there is no contact or no basis for one; the note still stands.",
+  "agent": "expansion-finder",
+  "bundle": [
+    {
+      "sourceType": "ExpansionOpportunity",
+      "sourceId": "opp_c",
+      "fields": {
+        "account": "Copperleaf Studios",
+        "status": "open"
+      }
+    },
+    {
+      "sourceType": "Signal",
+      "sourceId": "sig_seats",
+      "fields": {
+        "rule": "seats_near_limit",
+        "title": "52 of 40 seats in use",
+        "explanation": "52 people used the product in the last 28 days on a contract for 40 seats (130%)."
+      }
+    },
+    {
+      "sourceType": "Signal",
+      "sourceId": "sig_team",
+      "fields": {
+        "rule": "new_team_using",
+        "title": "13 new people started using the product",
+        "explanation": "13 people with no earlier activity first used the product between Oct 13, 2026 and Nov 1, 2026, after 60 days with 0 new people. No shared email subdomain is on file for them, so the team is not named."
+      }
+    },
+    {
+      "sourceType": "Contract",
+      "sourceId": "con_c",
+      "fields": {
+        "seatsPurchased": 40,
+        "creditsPurchased": null
+      }
+    },
+    {
+      "sourceType": "UsageDaily",
+      "sourceId": "use_c",
+      "fields": {
+        "date": "Nov 1, 2026",
+        "activeUsers": 52,
+        "seatsUsed": 52,
+        "creditsUsed": null
+      }
+    }
+  ],
+  "facts": {
+    "estimate": 1080000
+  },
+  "output": {
+    "reasoningSummary": "More people are using the product than the contract has seats for, and a new group of people started recently.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Signal",
+        "sourceId": "sig_seats"
+      },
+      {
+        "sourceType": "Contract",
+        "sourceId": "con_c"
+      },
+      {
+        "sourceType": "UsageDaily",
+        "sourceId": "use_c"
+      },
+      {
+        "sourceType": "Signal",
+        "sourceId": "sig_team"
+      }
+    ],
+    "proposedActions": [],
+    "narrative": "52 people used the product in the last 28 days on a contract for 40 seats, and 13 of them started recently. That points to a team that has joined and may need more seats. Size: {{metric.expansion.estimate}}.",
+    "conversation": {
+      "subject": null,
+      "body": null
+    }
+  },
+  "expect": {
+    "status": "SUCCEEDED"
+  }
+}

@@ -88,7 +88,18 @@ export {
   onboardingManagerInput,
 } from "./definitions/onboarding-manager";
 export { askRenewalManager, type RenewalPlanResult } from "./renewal-plan";
+export { askExpansionFinder, type ExpansionAskResult } from "./expansion-plan";
+export {
+  sweepAllExpansionAgents,
+  sweepExpansionAgents,
+} from "./definitions/expansion-finder-trigger";
 export { sweepAllRenewalAgents, sweepRenewalAgents } from "./definitions/renewal-manager-trigger";
+export {
+  expansionFinder,
+  expansionFinderOutput,
+  expansionFinderInput,
+  ESTIMATE_KEY,
+} from "./definitions/expansion-finder";
 export {
   renewalManager,
   renewalManagerOutput,

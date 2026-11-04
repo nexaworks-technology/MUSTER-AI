@@ -132,6 +132,7 @@ describe("expansion on the seed", () => {
     const open = await countQueries(() => listOpportunities(a, { status: "OPEN" }, clock));
     const all = await countQueries(() => listOpportunities(a, { status: "ALL" }, clock));
     expect(open.queries).toBe(all.queries);
-    expect(open.queries).toBeLessThanOrEqual(14);
+    // rows, count, CRMs, signals, whitespace (6 reads) and the Finder's runs: fixed per page.
+    expect(open.queries).toBeLessThanOrEqual(15);
   });
 });

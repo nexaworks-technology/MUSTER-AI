@@ -2,6 +2,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import { formatCalendarDate } from "@/lib/format";
 import {
+  askExpansionFinderAction,
   exportOpportunityAction,
   updateOpportunityAction,
 } from "@/modules/expansion/actions/expansion";
@@ -180,6 +181,22 @@ export function OpportunityCard({
           : "none set"}
         {row.crmExternalId ? ` · In the CRM as ${row.crmExternalId}` : ""}
       </p>
+      {row.finder ? (
+        <div className="text-sm" data-testid="finder-note">
+          <h4 className="font-medium">Expansion Finder&apos;s note</h4>
+          <p>{row.finder.note}</p>
+          <p className="text-muted-foreground text-xs">
+            Written from the records above;{" "}
+            <Link href={`/agent-runs/${row.finder.runId}` as Route} className="underline">
+              see the run
+            </Link>
+            .{" "}
+            {row.finder.approvalId
+              ? "A conversation draft is in Approvals; nothing was sent."
+              : "There is no draft email."}
+          </p>
+        </div>
+      ) : null}
       {row.whitespace ? (
         <details>
           <summary className="cursor-pointer text-xs underline">Whitespace</summary>
@@ -195,6 +212,13 @@ export function OpportunityCard({
             <OpportunityControl row={row} returnTo={returnTo} members={members} />
           </div>
         </details>
+      ) : null}
+      {row.canEdit ? (
+        <form action={askExpansionFinderAction.bind(null, returnTo, row.id)}>
+          <button type="submit" className="border-input rounded-md border px-3 py-1 text-sm">
+            Ask the Expansion Finder to draft the conversation
+          </button>
+        </form>
       ) : null}
       {row.canExport && crmName ? (
         <form action={exportOpportunityAction.bind(null, returnTo, row.id)}>
