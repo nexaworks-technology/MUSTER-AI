@@ -73,7 +73,7 @@ export default async function CampaignDetailPage({ params }: CampaignDetailPageP
         <Card>
           <CardHeader className="py-3">
             <CardDescription className="text-xs">Queued</CardDescription>
-            <CardTitle className="text-xl font-bold text-amber-600">{campaign.stats.queued}</CardTitle>
+            <CardTitle className="text-xl font-bold text-amber-800 dark:text-amber-300">{campaign.stats.queued}</CardTitle>
           </CardHeader>
         </Card>
         <Card>

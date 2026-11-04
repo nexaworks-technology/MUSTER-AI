@@ -204,7 +204,7 @@ export default async function InspectPlayPage({
                         {v.publishedBy ? ` by ${v.publishedBy.user.name ?? v.publishedBy.user.email}` : ""}
                       </span>
                     ) : (
-                      <span className="text-amber-600 dark:text-amber-400 ml-2">Draft</span>
+                      <span className="text-amber-800 dark:text-amber-300 ml-2 font-medium">Draft</span>
                     )}
                   </div>
                   {v.version !== play.latestVersion?.version && (

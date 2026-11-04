@@ -40,7 +40,8 @@ test.describe("M8 Plays Engine and Campaigns", () => {
     await expect(page.getByRole("heading", { name: "Health Risk" })).toBeVisible();
 
     // Verify play detail shows triggers, steps, and results link
-    await expect(page.getByText(/Trigger/i)).toBeVisible();
+    await expect(page.getByText("What This Play Does")).toBeVisible();
+    await expect(page.getByText(/Trigger:/).first()).toBeVisible();
     const resultsLink = page.getByRole("link", { name: /View Results/i });
     await expect(resultsLink).toBeVisible();
     await resultsLink.click();
@@ -48,8 +49,8 @@ test.describe("M8 Plays Engine and Campaigns", () => {
     // Verify /plays/[id]/results page
     await expect(page).toHaveURL(/\/plays\/[a-z0-9]+\/results/);
     await expect(page.getByRole("heading", { name: /Results/i })).toBeVisible();
-    await expect(page.getByText(/Total Runs/i)).toBeVisible();
-    await expect(page.getByText(/Revenue Protected/i)).toBeVisible();
+    await expect(page.getByText(/Accounts Entered/i)).toBeVisible();
+    await expect(page.getByText(/Protected ARR/i)).toBeVisible();
   });
 
   test("campaigns tab navigates to campaigns view and new campaign form", async ({ page }) => {

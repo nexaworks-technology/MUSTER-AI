@@ -217,7 +217,7 @@ export default async function PlayResultsPage({
                         </Link>
                       </td>
                       <td className="py-2.5 pr-4 font-mono">{skip.stepKey}</td>
-                      <td className="py-2.5 pr-4 text-amber-700 dark:text-amber-400 font-medium">
+                      <td className="py-2.5 pr-4 text-amber-800 dark:text-amber-300 font-medium">
                         {skip.skipReason}
                       </td>
                       <td className="py-2.5 text-muted-foreground">
