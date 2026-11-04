@@ -9,6 +9,7 @@ const optionalText = z.preprocess(
 
 export const createTaskInput = z.object({
   accountId: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
+  signalId: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
   title: z.string().trim().min(1, "Give the task a title").max(200),
   detail: optionalText,
   ownerMembershipId: z.string().min(1, "Choose who owns the task"),

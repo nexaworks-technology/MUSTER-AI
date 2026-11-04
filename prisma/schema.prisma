@@ -955,6 +955,7 @@ model Task {
   id                    String       @id @default(cuid())
   workspaceId           String
   accountId             String?
+  signalId              String?
   title                 String
   detail                String?
   ownerMembershipId     String
@@ -972,6 +973,7 @@ model Task {
 
   workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   account   Account?    @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  signal    Signal?     @relation(fields: [workspaceId, signalId], references: [workspaceId, id], onDelete: Restrict)
   owner     Membership  @relation("TaskOwner", fields: [workspaceId, ownerMembershipId], references: [workspaceId, id], onDelete: Restrict)
   createdBy Membership? @relation("TaskCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: SetNull)
   agentRun  AgentRun?   @relation("TaskAgentRun", fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
@@ -979,6 +981,7 @@ model Task {
   @@unique([workspaceId, id])
   @@index([workspaceId, ownerMembershipId, status, dueAt])
   @@index([workspaceId, accountId])
+  @@index([workspaceId, signalId])
 }
 
 /// [W] A note template per call type (spec §6F4).
@@ -1580,6 +1583,7 @@ model Signal {
   outcome          OutcomeRecord?
   approvals        Approval[]
   outboundMessages OutboundMessage[]
+  tasks            Task[]
   agentRun         AgentRun?         @relation("SignalAgentRun", fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
 
   @@unique([workspaceId, id])

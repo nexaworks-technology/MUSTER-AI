@@ -245,12 +245,33 @@ export const onboardingManager = defineAgent({
             200,
           );
         const existing = await ctx.db.task.findFirst({ where: { agentRunId: ctx.runId } });
+        const signalId =
+          ctx.signalId ??
+          ctx.bundle.find((r) => r.sourceType === "Signal")?.sourceId ??
+          (await ctx.db.signal.findFirst({
+            where: {
+              accountId: ctx.accountId,
+              ruleKey: {
+                in: [
+                  "onboarding_stall",
+                  "onboarding_step_overdue_customer",
+                  "onboarding_step_overdue_internal",
+                  "onboarding_no_progress_7d",
+                  "onboarding_ttv_behind_p75",
+                ],
+              },
+              status: { in: ["OPEN", "ACKNOWLEDGED"] },
+            },
+            select: { id: true },
+          }))?.id ??
+          null;
         const task =
           existing ??
           (await ctx.db.task.create({
             data: {
               workspaceId: ctx.workspaceId,
               accountId: ctx.accountId,
+              signalId,
               title,
               detail: output.escalation.note,
               ownerMembershipId: ownerId,

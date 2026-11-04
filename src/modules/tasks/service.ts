@@ -1,6 +1,7 @@
 import type { z } from "zod";
 import { writeAudit } from "@/lib/audit";
 import { ForbiddenError, requirePermission } from "@/lib/auth/permissions";
+import { businessClock, type Clock } from "@/lib/dates";
 import { scopedDb, type ScopedDb } from "@/lib/db/scoped";
 import type { TimelineItem } from "@/modules/accounts/schemas";
 import {
@@ -10,6 +11,7 @@ import {
   requireEditableAccount,
   type Actor,
 } from "@/modules/accounts/service";
+import { markActed } from "@/modules/outcomes/service";
 import { createTaskInput } from "./schemas";
 
 /** Tasks (spec §6F3): manual create/assign/complete in M2; agents and plays create them later. */
@@ -34,6 +36,7 @@ export async function createTask(actor: Actor, raw: z.input<typeof createTaskInp
       data: {
         workspaceId: actor.workspaceId,
         accountId: input.accountId ?? null,
+        signalId: input.signalId ?? null,
         title: input.title,
         detail: input.detail ?? null,
         ownerMembershipId: owner.id,
@@ -78,7 +81,7 @@ export async function createTask(actor: Actor, raw: z.input<typeof createTaskInp
 }
 
 /** The owner, or anyone who can edit the task's account, may complete it. */
-export async function completeTask(actor: Actor, taskId: string) {
+export async function completeTask(actor: Actor, taskId: string, clock: Clock = businessClock) {
   const db = scopedDb(actor);
   const task = await db.task.findUnique({
     where: { id: taskId },
@@ -92,10 +95,10 @@ export async function completeTask(actor: Actor, taskId: string) {
       : actor.role === "ADMIN" || actor.role === "CS_LEADER");
   if (!allowed) throw new ForbiddenError("accounts:edit");
   if (task.status !== "OPEN") return task;
-  return db.$tenantTransaction(async (tx) => {
-    const done = await tx.task.update({
+  const done = await db.$tenantTransaction(async (tx) => {
+    const updated = await tx.task.update({
       where: { id: task.id },
-      data: { status: "DONE", completedAt: new Date() },
+      data: { status: "DONE", completedAt: clock() },
     });
     await writeAudit(
       {
@@ -109,8 +112,17 @@ export async function completeTask(actor: Actor, taskId: string) {
       },
       tx,
     );
-    return done;
+    return updated;
   });
+  if (task.signalId) {
+    await markActed(
+      actor,
+      { signalId: task.signalId },
+      { type: "Task", id: task.id },
+      clock,
+    );
+  }
+  return done;
 }
 
 const TASK_INCLUDE = {

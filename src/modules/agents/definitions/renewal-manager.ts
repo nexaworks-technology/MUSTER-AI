@@ -324,12 +324,25 @@ export const renewalManager = defineAgent({
       if (ownerId) {
         const existing = await ctx.db.task.findFirst({ where: { agentRunId: ctx.runId } });
         const title = `${output.nextStep.action} — by ${due}`.slice(0, 200);
+        const signalId =
+          ctx.signalId ??
+          ctx.bundle.find((r) => r.sourceType === "Signal")?.sourceId ??
+          (await ctx.db.signal.findFirst({
+            where: {
+              accountId: ctx.accountId,
+              ruleKey: { in: ["renewal_window_90", "renewal_window_60", "renewal_window_30"] },
+              status: { in: ["OPEN", "ACKNOWLEDGED"] },
+            },
+            select: { id: true },
+          }))?.id ??
+          null;
         const task =
           existing ??
           (await ctx.db.task.create({
             data: {
               workspaceId: ctx.workspaceId,
               accountId: ctx.accountId,
+              signalId,
               title,
               detail: `From the renewal plan for ${loaded.accountName}.`,
               ownerMembershipId: ownerId,

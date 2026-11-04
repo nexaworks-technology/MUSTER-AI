@@ -439,6 +439,10 @@ async function applyEffects(
     bundle: built.bundle,
     input,
     sourceKey: (index) => `${run.id}:${index}`,
+    signalId:
+      run.triggerType === "signal"
+        ? run.triggerId
+        : (built.bundle.find((r) => r.sourceType === "Signal")?.sourceId ?? null),
   });
   await db.agentRun.update({
     where: { id: run.id },

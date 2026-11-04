@@ -33,6 +33,7 @@ export interface ActContext {
   input: unknown;
   /** `runId:index`, unique on every side-effect table: a retried run never writes twice. */
   sourceKey: (index: number) => string;
+  signalId?: string | null;
 }
 
 export interface ActResult {
