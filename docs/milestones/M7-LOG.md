@@ -1,6 +1,6 @@
 # M7 — Renewals, Revenue & Expansion: Log
 
-**Status:** Session A **STOPPED after A4** on the founder's condition for the Northgate assertion (it must rank lowest in the next 90 days; it does not: a seven-way tie, see below). Earlier, after A3, the founder accepted the simple model and the "lowest in the window" demo. A5–A7 are not started; no mid-milestone full run was made. Session B not started.
+**Status:** **Session A complete (A1–A7 committed).** The one mid-milestone full `pnpm test` ran after A7: **167 files / 1,557 tests, all passed** (exit 0). No gate and no full e2e yet (both are the Session B close). Targeted e2e of the new spec only: `m7-renewals-revenue.spec.ts` 4/4. Session B not started.
 **Baseline:** `326a0cf` (M6 close + review fixes): gate 151 files / 1,456 tests, e2e 60 / 0 / 44, as reproduced by the independent review. No suite was run at baseline.
 **Carried, unchanged:** M1 #16 PARTIAL (Docker not installed). `NIGHTLY_SCHEDULES`, the fake-clock pin and every pin are untouched. No new dependencies.
 
@@ -12,6 +12,9 @@
 | A2 Confidence | `a500ade` | `confidence.ts` (eight factors, signed points, reasons, sources; null factors excluded; clamped; banded by settings), `champion.ts`, `inputs.ts`, `riskSignalsAsOf` in signals, weights as `WorkspaceSettings.renewals`. | `confidence.test.ts` (15), `champion.test.ts` (6); settings suite unchanged |
 | A4 Sync | `ee2b94f` | `renewals.sync` as a stage of the nightly score chunk (after health): Renewal rows for ACTIVE contracts renewing in the next year with confidence, reasons and sources; no row and no guess without a renewal date; idempotent; outcomes only from contract records (a later contract within the 31-day grace is RENEWED; an ENDED or CANCELLED contract with no successor is CHURNED) as append-only `RenewalOutcome` rows carrying the forecast as it stood; never opens signals. Pipeline query budget 68 → 71 (three fixed reads; equal at 2 vs 5 accounts; standing pre-approval, `pipeline.int.test.ts`). | `sync.int.test.ts` (6) |
 | A3 Back-test | `f323b7a` | `runRenewalBacktest`: 12 churns + 12 renewals scored as of 90/60/30 days before each outcome from cut bundles; factor vs simple model; calibration by band and score, Brier, AUC; `calibration.ts`; fixture `confidence-backtest-seed.json`. | `calibration.test.ts` (3), `seed-renewals.int.test.ts` (4: fixture exact and repeatable, shipping rule, no look-ahead) |
+| A5 Radar | `068454a` | `forecast.ts` (pure: sums by computed band and by human category with the contributing renewal ids; other currencies and no-ARR renewals listed apart; `disagreement`), `setForecastCategory` (the account's owner, a CS Leader or an Admin; audited with before and after; never touches the computed confidence), `listRenewals` (30/60/90/180/365 days, owner, band, page of 25, book scope, lowest confidence first then date, every reason with its sources), `/renewals` (forecast, list, "Why 70%" drill-down, category control, disagreement flag), Account 360 › Renewal tab, shared money-redaction helper `billing/redact.ts` (`redactFinancials` now goes through it), Renewals in the nav (`SHIPPED_MILESTONE` 7, features.test.ts M7 row). | `forecast.test.ts` (3), `seed-renewals-radar.int.test.ts` (4: the seven-way tie with ARR and date, Northgate's membership and reasons, no-revenue member gets no money, category set/audit/clear), `features.test.ts` (33) |
+| A6 Waterfall | `b8fa34e` | `waterfall.ts` (opening = events before the period per currency; new/expansion/contraction/churn/reactivation with event ids; closing = opening + movements in BigInt and checked against the sum of every event; sign anomalies shown), `arrMismatches` (events vs the contract in force; no-value contracts skipped), `syncArrChecks` as a stage of the nightly chunk opening `ARR_MISMATCH` items (money-free text; migration `20261105110000_m7_arr_mismatch`), `billingForecast.ts`. | `waterfall.test.ts` (8), `billingForecast.test.ts` (3), `sync.int.test.ts` (2: open, idempotent, resolve, reopen, dismissed stays; other workspace never read), `seed-revenue.int.test.ts` (2: the seed reconciles and closing ARR equals the contracts in force; no mismatches) |
+| A7 Revenue | `0b467eb` | `moneyAtRisk.ts` (open renewals in 30/90 days whose account is At Risk or whose confidence is LOW, with reasons), `coverage.ts` (no contact in N days; "no contact recorded" listed apart), `teamLoad.ts`, `getRevenueView`, `/revenue` (needs `revenue:view`, a 404 otherwise; Revenue in the nav only with it), `e2e/m7-renewals-revenue.spec.ts`. | `views.test.ts` (4), `seed-redaction-m7.int.test.ts` (5: every M7 read model without revenue access has no money key and no contract figure; `/revenue` refuses; query budgets fixed: `listRenewals` equal at 30 vs 365 days and ≤ 8, `getRevenueView` ≤ 10), e2e 4/4 |
 
 ## Back-test results (measured, never tuned; D-118)
 
@@ -75,10 +78,40 @@ Why: the shipped model counts two things, the health band and the notice deadlin
 
 The founder accepted asserting the tie. M7.md (demo step 2, the confidence test line) and SEED_DATA §5 no longer assert 38% / LOW for Northgate: Northgate is one of seven renewals tied at the lowest confidence (70) in the next 90 days, with its reasons as the data yields them; the LOW-band story arrives with M9/M10 data (promise extraction, call transcripts). The e2e asserts the tie group and Northgate's membership and reasons, nothing stronger.
 
+## Seed facts the screens rely on (as of 2026-11-02)
+
+- `/renewals` 90-day window, lowest first: the seven-way tie at 70 (table above), then four at 80. No renewal below 70 renews inside 90 days.
+- Revenue waterfall, 2026-08-01 to 2026-11-02 (USD): opening $1,930,500; new $229,000; churn −$211,000; closing **$1,948,500**, equal to the sum of the contracts in force; reconciled; **no ARR mismatches** in the seed.
+
+## Deviations and pre-M7 edits (all logged)
+
+| What | Why |
+|---|---|
+| `src/modules/signals/__tests__/pipeline.int.test.ts` query budget, **68 → 71 (A4) → 74 (A6)** | Fixed reads added to the nightly chunk: three for `renewals.sync` (contracts, renewal rows, settings) and three for the ARR cross-check (revenue events, contracts, open mismatch items). Equal at 2 vs 5 accounts still holds. Standing pre-approval (count/budget constants only); no logic changed. |
+| `src/modules/accounts/data-quality-service.ts`: the manual scan excludes `ARR_MISMATCH` as it already excludes `CONFLICT` | Otherwise the scan would resolve items the nightly stage owns. Data-quality tests unchanged and passing. |
+| `src/app/(app)/settings/data-quality/page.tsx`: label for the new kind | Type-exhaustive map. |
+| `src/modules/billing/service.ts`: re-exports `currentContract`, `deriveRevenueEvents`, `ContractFacts`, `canSeeMoney`, `redactMoney` | Module boundary: revenue reaches billing through its service. |
+| M7 seed-using tests live in `prisma/seed/__tests__/` (radar, revenue, redaction) rather than beside the modules | `vitest.config.ts` runs seed-dependent files serially in the demo-seed project; the config is untouched. The redaction enumeration is therefore `seed-redaction-m7.int.test.ts`, not `revenue/__tests__/redaction.int.test.ts`. |
+| The forecast "disagreement" compares the human category with the band's suggestion (HIGH→Commit, MEDIUM→Best case, LOW→At risk); Omitted is never a disagreement | Plain, deterministic; shown beside both values. |
+| Money at risk counts renewals in the window (not every At Risk account) | Each item is a renewal with an id and a date; stated on the page. |
+
+No pre-M7 test other than the budget constant was edited. No gate was run yet (Session B close).
+
 ## Decisions added so far
 
-D-118 (the simple model ships; the rule and the defaults), D-119 (one champion-silence definition; risk signals as of a date), D-120 (the outcome of the model choice, both models' calibration, as accepted by the founder).
+D-118 (the simple model ships; the rule and the defaults), D-119 (one champion-silence definition; risk signals as of a date), D-120 (the outcome of the model choice, both models' calibration, as accepted by the founder), D-121 (one money-redaction helper, `/revenue` all-or-nothing, the ARR cross-check as a nightly stage).
 
-## State for the next session
+## State for Session B
 
-Done: A1–A4. Not done: A5 (forecast, human category with disagreement, `/renewals`, Account 360 panel, the money-redaction helper), A6 (waterfall, billing forecast), A7 (`/revenue`, money at risk, coverage, team load, redaction enumeration test), the mid-milestone full `pnpm test`. `renewals/service.ts` is loaded on use from the pipeline (dynamic import) because the back-test reads the signals module.
+**Done and committed:** A1–A7 (list above). Tree clean at `0b467eb` plus the docs commit that carries this log. Dev and `_test` databases are migrated through `20261105110000`.
+
+**Session B, as planned (not started):**
+
+- **B1 Expansion rules and estimate.** Extend `seats_near_limit` for credits (D5: stop and report if it changes any pre-M7 rule behaviour or fixture); `SEATS_OVER_LIMIT` priced only from the account's own subscription/contract, `TIER_UPGRADE_DELTA` "No price on file" (D6); `GOAL_STATED_EXPANSION` only on Goal rows with `metricKey` explicitly seats/users, dormant until M9 otherwise, and say in the log whether any seeded goal qualifies (D7); new-team / fast-growth burst rule, ≥ 8 first-seen people within 21 days after a stable 60 days, audited settings (D8). Fixtures and audited thresholds for each; `estimate.ts` (a labelled estimate with its method, never a promised number).
+- **B2 Expansion service and screen.** `ExpansionOpportunity` service, `/expansion`, Expansion in the nav, whitespace panel with no money figure, CRM export through the write-back gate (D-116).
+- **B3 Documents and agents.** `Document` with locked metrics and a placeholder validator; the renewal-manager and expansion-finder agents (prompts with frontmatter, goldens, drafts to Approvals, `AgentRun` for everything).
+- **B4 Outcome checkpoints.** Revenue statuses added to the existing outcome checkpoint (30/90-day outcomes stay M11).
+- **B5 Seed and demo check.** Copperleaf: 12 seats at $900 derivable from its own records (stop and report if not); Northgate demo steps as the corrected M7.md describes (the tie, not LOW).
+- **B6 Close.** a11y-m7 spec, extend `m7-renewals-revenue.spec.ts` (expansion, brief, outcomes), then exactly one e2e (first) and one `pnpm gate`, milestone acceptance checklist with PASS/FAIL, CHANGELOG, plan checkbox. Live billing checks stay DEFERRED; Docker #16 stays PARTIAL.
+
+**Things Session B should know:** `renewals/service.ts` is loaded on use from the pipeline (dynamic import) because the back-test reads the signals module; `syncArrChecks` is imported statically (revenue has no cycle). The shipped model counts only health band and notice deadline, so the radar's confidence has two moving parts until M9 data arrives; the forecast category is the human's call and is shown beside it. `prettier --write` on the whole of `src` also rewrites three untouched files (`agent-runs/[id]/page.tsx`, `approvals/[id]/page.tsx`, `src/test/db-env.ts`): format only the files you changed.
