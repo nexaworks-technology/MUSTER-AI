@@ -91,6 +91,7 @@ describe("AI team", () => {
       "health-analyst",
       "onboarding-manager",
       "outreach",
+      "play-builder",
       "renewal-manager",
       "watcher",
     ]);
