@@ -130,11 +130,12 @@ export const watcher = defineAgent({
         () =>
           ctx.db.extraction.findUnique({
             where: {
-              workspaceId_sourceType_sourceId_promptVersion_itemIndex: {
+              workspaceId_sourceType_sourceId_promptVersion_chunkIndex_itemIndex: {
                 workspaceId: ctx.workspaceId,
                 sourceType,
                 sourceId: record.sourceId,
                 promptVersion: WATCHER_PROMPT.version,
+                chunkIndex: 0,
                 itemIndex,
               },
             },

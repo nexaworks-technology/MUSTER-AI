@@ -131,6 +131,9 @@ model Workspace {
   voiceSamples        VoiceSample[]
   campaigns           Campaign[]
   campaignRecipients  CampaignRecipient[]
+  promises            Promise[]
+  inboxItems          InboxItem[]
+  unmatchedInbounds   UnmatchedInbound[]
 }
 
 // ─── Global identity (Auth.js) ───────────────────────────────────────────────
@@ -212,43 +215,47 @@ model Membership {
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 
-  workspace           Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  invitationsCreated  Invitation[]           @relation("InvitedBy")
-  ownedAccounts       Account[]              @relation("AccountOwner")
-  sentMessages        Message[]              @relation("MessageFromMember")
-  ownedTasks          Task[]                 @relation("TaskOwner")
-  createdTasks        Task[]                 @relation("TaskCreator")
-  notes               Note[]                 @relation("NoteAuthor")
-  notifications       Notification[]         @relation("NotificationRecipient")
-  segments            Segment[]              @relation("SegmentCreator")
-  uploadedFiles       FileObject[]           @relation("FileUploader")
-  importJobs          ImportJob[]            @relation("ImportCreator")
-  missingPrompts      MissingDataPrompt[]    @relation("PromptAskedTo")
-  publishedPlayVersions PlayVersion[]        @relation("PlayVersionPublisher")
-  healthModelsMade    HealthModel[]          @relation("HealthModelCreator")
-  healthModelsOked    HealthModel[]          @relation("HealthModelApprover")
-  pulses              CsmPulse[]             @relation("PulseAuthor")
-  signalRulesEdited   SignalRule[]           @relation("SignalRuleEditor")
-  signalsAcked        Signal[]               @relation("SignalAcknowledger")
-  signalsFalse        Signal[]               @relation("SignalFalseAlarm")
-  signalsCreated      Signal[]               @relation("SignalCreator")
-  approvalsAssigned   Approval[]             @relation("ApprovalAssignee")
-  approvalsDecided    Approval[]             @relation("ApprovalDecider")
-  approvalsProposed   Approval[]             @relation("ApprovalProposer")
-  draftRevisions      DraftRevision[]        @relation("DraftEditor")
-  outboundCreated     OutboundMessage[]      @relation("OutboundCreator")
-  todayItems          TodayItem[]
-  integrationsMade    Integration[]          @relation("IntegrationConnector")
-  stepsOwned          OnboardingStep[]       @relation("StepOwner")
-  stepsCompleted      OnboardingStep[]       @relation("StepCompleter")
-  goalsCreated        Goal[]                 @relation("GoalCreator")
-  renewalsCategorised Renewal[]              @relation("RenewalCategoriser")
-  renewalOutcomesBy   RenewalOutcome[]       @relation("RenewalOutcomeRecorder")
-  expansionOwned      ExpansionOpportunity[] @relation("ExpansionOwner")
-  slackLinks          SlackUserLink[]
-  createdVoiceSamples VoiceSample[]          @relation("VoiceSampleCreator")
-  campaignsCreated    Campaign[]             @relation("CampaignCreator")
+  workspace             Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invitationsCreated    Invitation[]           @relation("InvitedBy")
+  ownedAccounts         Account[]              @relation("AccountOwner")
+  sentMessages          Message[]              @relation("MessageFromMember")
+  ownedTasks            Task[]                 @relation("TaskOwner")
+  createdTasks          Task[]                 @relation("TaskCreator")
+  notes                 Note[]                 @relation("NoteAuthor")
+  notifications         Notification[]         @relation("NotificationRecipient")
+  segments              Segment[]              @relation("SegmentCreator")
+  uploadedFiles         FileObject[]           @relation("FileUploader")
+  importJobs            ImportJob[]            @relation("ImportCreator")
+  missingPrompts        MissingDataPrompt[]    @relation("PromptAskedTo")
+  publishedPlayVersions PlayVersion[]          @relation("PlayVersionPublisher")
+  healthModelsMade      HealthModel[]          @relation("HealthModelCreator")
+  healthModelsOked      HealthModel[]          @relation("HealthModelApprover")
+  pulses                CsmPulse[]             @relation("PulseAuthor")
+  signalRulesEdited     SignalRule[]           @relation("SignalRuleEditor")
+  signalsAcked          Signal[]               @relation("SignalAcknowledger")
+  signalsFalse          Signal[]               @relation("SignalFalseAlarm")
+  signalsCreated        Signal[]               @relation("SignalCreator")
+  approvalsAssigned     Approval[]             @relation("ApprovalAssignee")
+  approvalsDecided      Approval[]             @relation("ApprovalDecider")
+  approvalsProposed     Approval[]             @relation("ApprovalProposer")
+  draftRevisions        DraftRevision[]        @relation("DraftEditor")
+  outboundCreated       OutboundMessage[]      @relation("OutboundCreator")
+  todayItems            TodayItem[]
+  integrationsMade      Integration[]          @relation("IntegrationConnector")
+  stepsOwned            OnboardingStep[]       @relation("StepOwner")
+  stepsCompleted        OnboardingStep[]       @relation("StepCompleter")
+  goalsCreated          Goal[]                 @relation("GoalCreator")
+  promisesOwned         Promise[]              @relation("PromiseOwner")
+  promisesCreated       Promise[]              @relation("PromiseCreator")
+  inboxAssigned         InboxItem[]            @relation("InboxAssignee")
+  unmatchedDecided      UnmatchedInbound[]     @relation("UnmatchedDecider")
+  renewalsCategorised   Renewal[]              @relation("RenewalCategoriser")
+  renewalOutcomesBy     RenewalOutcome[]       @relation("RenewalOutcomeRecorder")
+  expansionOwned        ExpansionOpportunity[] @relation("ExpansionOwner")
+  slackLinks            SlackUserLink[]
+  createdVoiceSamples   VoiceSample[]          @relation("VoiceSampleCreator")
+  campaignsCreated      Campaign[]             @relation("CampaignCreator")
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, userId])
@@ -371,6 +378,10 @@ enum RecordSource {
   USAGE_API
   MIXPANEL
   AMPLITUDE
+  ZENDESK
+  FRESHDESK
+  GMAIL
+  MICROSOFT_EMAIL
 }
 
 /// Who wrote a record. origin = AI requires agentRunId (Rule 5, DB CHECK).
@@ -431,44 +442,47 @@ model Account {
   createdAt               DateTime       @default(now())
   updatedAt               DateTime       @updatedAt
 
-  workspace        Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  owner            Membership?            @relation("AccountOwner", fields: [workspaceId, ownerMembershipId], references: [workspaceId, id], onDelete: Restrict)
-  contacts         Contact[]
-  stakeholderRoles StakeholderRole[]
-  contracts        Contract[]
-  subscriptions    Subscription[]
-  invoices         Invoice[]
-  revenueEvents    RevenueEvent[]
-  usageDaily       UsageDaily[]
-  userUsageDaily   UserUsageDaily[]
-  featureUsage     FeatureUsageDaily[]
-  conversations    Conversation[]
-  messages         Message[]
-  tickets          Ticket[]
-  transcripts      CallTranscript[]
-  tasks            Task[]
-  notes            Note[]
-  files            FileObject[]
-  missingPrompts   MissingDataPrompt[]
-  dataIssues       DataQualityIssue[]
-  healthSnapshots  HealthScoreSnapshot[]  @relation("AccountSnapshots")
-  currentHealth    HealthScoreSnapshot?   @relation("AccountCurrentSnapshot", fields: [workspaceId, currentHealthSnapshotId], references: [workspaceId, id], onDelete: NoAction)
-  pulses           CsmPulse[]
-  usageBaselines   UsageBaseline[]
-  signals          Signal[]
-  outcomes         OutcomeRecord[]
-  agentRuns        AgentRun[]
-  approvals        Approval[]
-  outboundMessages OutboundMessage[]
-  todayItems       TodayItem[]
-  extractions      Extraction[]
-  onboardingPlans  OnboardingPlan[]
-  goals            Goal[]
-  renewals         Renewal[]
-  renewalOutcomes  RenewalOutcome[]
-  expansionOpps    ExpansionOpportunity[]
-  documents        Document[]
-  playRuns         PlayRun[]
+  workspace          Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  owner              Membership?            @relation("AccountOwner", fields: [workspaceId, ownerMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  contacts           Contact[]
+  stakeholderRoles   StakeholderRole[]
+  contracts          Contract[]
+  subscriptions      Subscription[]
+  invoices           Invoice[]
+  revenueEvents      RevenueEvent[]
+  usageDaily         UsageDaily[]
+  userUsageDaily     UserUsageDaily[]
+  featureUsage       FeatureUsageDaily[]
+  conversations      Conversation[]
+  messages           Message[]
+  tickets            Ticket[]
+  transcripts        CallTranscript[]
+  tasks              Task[]
+  notes              Note[]
+  files              FileObject[]
+  missingPrompts     MissingDataPrompt[]
+  dataIssues         DataQualityIssue[]
+  healthSnapshots    HealthScoreSnapshot[]  @relation("AccountSnapshots")
+  currentHealth      HealthScoreSnapshot?   @relation("AccountCurrentSnapshot", fields: [workspaceId, currentHealthSnapshotId], references: [workspaceId, id], onDelete: NoAction)
+  pulses             CsmPulse[]
+  usageBaselines     UsageBaseline[]
+  signals            Signal[]
+  outcomes           OutcomeRecord[]
+  agentRuns          AgentRun[]
+  approvals          Approval[]
+  outboundMessages   OutboundMessage[]
+  todayItems         TodayItem[]
+  extractions        Extraction[]
+  onboardingPlans    OnboardingPlan[]
+  goals              Goal[]
+  promises           Promise[]
+  inboxItems         InboxItem[]
+  unmatchedInbound   UnmatchedInbound[]
+  renewals           Renewal[]
+  renewalOutcomes    RenewalOutcome[]
+  expansionOpps      ExpansionOpportunity[]
+  documents          Document[]
+  playRuns           PlayRun[]
   campaignRecipients CampaignRecipient[]
 
   @@unique([workspaceId, id])
@@ -490,6 +504,9 @@ model Contact {
   name            String
   email           String?
   title           String?
+  /// The title before the last change, and when it changed (M9, set by the database on a real change).
+  previousTitle   String?
+  titleChangedAt  DateTime?
   timezone        String?
   status          ContactStatus @default(ACTIVE)
   /// When `status` last changed (D-56). Set by the database on a real change unless given.
@@ -503,14 +520,14 @@ model Contact {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  workspace        Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  account          Account           @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
-  roles            StakeholderRole[]
-  usage            UserUsageDaily[]
-  messages         Message[]
-  tickets          Ticket[]
-  outboundMessages OutboundMessage[]
-  stepsOwned       OnboardingStep[]
+  workspace          Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account            Account             @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  roles              StakeholderRole[]
+  usage              UserUsageDaily[]
+  messages           Message[]
+  tickets            Ticket[]
+  outboundMessages   OutboundMessage[]
+  stepsOwned         OnboardingStep[]
   campaignRecipients CampaignRecipient[]
 
   @@unique([workspaceId, id])
@@ -984,12 +1001,12 @@ model Task {
   createdAt             DateTime     @default(now())
   updatedAt             DateTime     @updatedAt
 
-  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  account   Account?    @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
-  signal    Signal?     @relation(fields: [workspaceId, signalId], references: [workspaceId, id], onDelete: Restrict)
-  owner     Membership  @relation("TaskOwner", fields: [workspaceId, ownerMembershipId], references: [workspaceId, id], onDelete: Restrict)
-  createdBy Membership? @relation("TaskCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: SetNull)
-  agentRun  AgentRun?   @relation("TaskAgentRun", fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
+  workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account      Account?      @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  signal       Signal?       @relation(fields: [workspaceId, signalId], references: [workspaceId, id], onDelete: Restrict)
+  owner        Membership    @relation("TaskOwner", fields: [workspaceId, ownerMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  createdBy    Membership?   @relation("TaskCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: SetNull)
+  agentRun     AgentRun?     @relation("TaskAgentRun", fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
   playStepRuns PlayStepRun[]
 
   @@unique([workspaceId, id])
@@ -1741,6 +1758,7 @@ model AgentRun {
   signals          Signal[]          @relation("SignalAgentRun")
   outcomeRecords   OutcomeRecord[]   @relation("OutcomeAgentRun")
   goals            Goal[]            @relation("GoalAgentRun")
+  promises         Promise[]         @relation("PromiseAgentRun")
   documents        Document[]        @relation("DocumentAgentRun")
   playStepRuns     PlayStepRun[]
 
@@ -1902,17 +1920,18 @@ model OutboundMessage {
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
 
-  workspace Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  account   Account         @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
-  contact   Contact         @relation(fields: [workspaceId, contactId], references: [workspaceId, id], onDelete: Restrict)
-  approval  Approval?       @relation(fields: [workspaceId, approvalId], references: [workspaceId, id], onDelete: Restrict)
-  signal    Signal?         @relation(fields: [workspaceId, signalId], references: [workspaceId, id], onDelete: Restrict)
-  agentRun  AgentRun?       @relation(fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
-  createdBy Membership?     @relation("OutboundCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: Restrict)
-  campaign  Campaign?       @relation(fields: [workspaceId, campaignId], references: [workspaceId, id], onDelete: Cascade)
-  revisions DraftRevision[]
-  playStepRuns PlayStepRun[]
-  voiceSamples VoiceSample[]
+  workspace          Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account            Account             @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  contact            Contact             @relation(fields: [workspaceId, contactId], references: [workspaceId, id], onDelete: Restrict)
+  approval           Approval?           @relation(fields: [workspaceId, approvalId], references: [workspaceId, id], onDelete: Restrict)
+  signal             Signal?             @relation(fields: [workspaceId, signalId], references: [workspaceId, id], onDelete: Restrict)
+  agentRun           AgentRun?           @relation(fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
+  createdBy          Membership?         @relation("OutboundCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  campaign           Campaign?           @relation(fields: [workspaceId, campaignId], references: [workspaceId, id], onDelete: Cascade)
+  revisions          DraftRevision[]
+  playStepRuns       PlayStepRun[]
+  voiceSamples       VoiceSample[]
+  inboxItems         InboxItem[]         @relation("InboxDraft")
   campaignRecipients CampaignRecipient[]
 
   @@unique([workspaceId, id])
@@ -2015,6 +2034,8 @@ model Extraction {
   confidence    Float
   promptVersion String
   itemIndex     Int
+  /// Which chunk of a long source (a call transcript) this item came from; 0 for a short source (M9, D-M9).
+  chunkIndex    Int                  @default(0)
   /// e.g. "no_date" for a PROMISE whose date did not parse.
   flags         String[]
   origin        RecordOrigin         @default(AI)
@@ -2024,9 +2045,11 @@ model Extraction {
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   account   Account   @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
   agentRun  AgentRun  @relation(fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
+  goal      Goal?
+  promise   Promise?
 
   @@unique([workspaceId, id])
-  @@unique([workspaceId, sourceType, sourceId, promptVersion, itemIndex])
+  @@unique([workspaceId, sourceType, sourceId, promptVersion, chunkIndex, itemIndex])
   @@index([workspaceId, accountId, kind, createdAt])
   @@index([workspaceId, sourceType, sourceId])
 }
@@ -2043,6 +2066,10 @@ enum IntegrationProvider {
   USAGE_API
   MIXPANEL
   AMPLITUDE
+  ZENDESK
+  FRESHDESK
+  GOOGLE_EMAIL
+  MICROSOFT_EMAIL
 }
 
 enum IntegrationStatus {
@@ -2340,18 +2367,22 @@ model Goal {
   sourceType            String?
   sourceId              String?
   quote                 String?
+  /// The verified extraction this goal was made from (M9); at most one goal per extraction.
+  extractionId          String?
   origin                RecordOrigin @default(HUMAN)
   agentRunId            String?
   createdByMembershipId String?
   createdAt             DateTime     @default(now())
   updatedAt             DateTime     @updatedAt
 
-  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  account   Account     @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
-  agentRun  AgentRun?   @relation("GoalAgentRun", fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
-  createdBy Membership? @relation("GoalCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  workspace  Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account    Account     @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  extraction Extraction? @relation(fields: [workspaceId, extractionId], references: [workspaceId, id], onDelete: SetNull)
+  agentRun   AgentRun?   @relation("GoalAgentRun", fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
+  createdBy  Membership? @relation("GoalCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: Restrict)
 
   @@unique([workspaceId, id])
+  @@unique([workspaceId, extractionId])
   @@index([workspaceId, accountId])
 }
 
@@ -2569,17 +2600,17 @@ enum PlayStepRunStatus {
 
 /// [W] A play definition and lifecycle state (spec §5, ARCHITECTURE §3.2).
 model Play {
-  id               String       @id @default(cuid())
+  id               String     @id @default(cuid())
   workspaceId      String
   key              String
   name             String
   description      String?
-  category         String       @default("general")
-  status           PlayStatus   @default(DRAFT)
-  isSeeded         Boolean      @default(false)
+  category         String     @default("general")
+  status           PlayStatus @default(DRAFT)
+  isSeeded         Boolean    @default(false)
   currentVersionId String?
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
 
   workspace      Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   currentVersion PlayVersion?  @relation("PlayCurrentVersion", fields: [workspaceId, currentVersionId], references: [workspaceId, id], onDelete: SetNull)
@@ -2675,15 +2706,15 @@ model PlayStepRun {
 
 /// [W] Approved email voice sample for in-prompt few-shot styling (spec §5, ARCHITECTURE §3.2, Rule 8).
 model VoiceSample {
-  id                String           @id @default(cuid())
+  id                String   @id @default(cuid())
   workspaceId       String
   outboundMessageId String?
   subject           String
   bodyText          String
-  approvedForVoice  Boolean          @default(true)
+  approvedForVoice  Boolean  @default(true)
   createdById       String?
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   workspace       Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   outboundMessage OutboundMessage? @relation(fields: [workspaceId, outboundMessageId], references: [workspaceId, id], onDelete: SetNull)
@@ -2713,25 +2744,25 @@ enum CampaignRecipientStatus {
 
 /// [W] A segment broadcast campaign (spec §6J2, ARCHITECTURE §3.2).
 model Campaign {
-  id              String            @id @default(cuid())
-  workspaceId     String
-  name            String
-  segmentId       String
-  subject         String
-  body            String
-  status          CampaignStatus    @default(DRAFT)
-  scheduledAt     DateTime?
-  pacePerHour     Int               @default(100)
-  approvalId      String?
-  createdById     String?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  id          String         @id @default(cuid())
+  workspaceId String
+  name        String
+  segmentId   String
+  subject     String
+  body        String
+  status      CampaignStatus @default(DRAFT)
+  scheduledAt DateTime?
+  pacePerHour Int            @default(100)
+  approvalId  String?
+  createdById String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
-  workspace       Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  segment         Segment           @relation(fields: [workspaceId, segmentId], references: [workspaceId, id], onDelete: Restrict)
-  approval        Approval?         @relation("CampaignApproval", fields: [workspaceId, approvalId], references: [workspaceId, id], onDelete: Restrict)
-  createdBy       Membership?       @relation("CampaignCreator", fields: [workspaceId, createdById], references: [workspaceId, id], onDelete: Restrict)
-  recipients      CampaignRecipient[]
+  workspace        Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  segment          Segment             @relation(fields: [workspaceId, segmentId], references: [workspaceId, id], onDelete: Restrict)
+  approval         Approval?           @relation("CampaignApproval", fields: [workspaceId, approvalId], references: [workspaceId, id], onDelete: Restrict)
+  createdBy        Membership?         @relation("CampaignCreator", fields: [workspaceId, createdById], references: [workspaceId, id], onDelete: Restrict)
+  recipients       CampaignRecipient[]
   outboundMessages OutboundMessage[]
 
   @@unique([workspaceId, id])
@@ -2760,13 +2791,161 @@ model CampaignRecipient {
   createdAt         DateTime                @default(now())
   updatedAt         DateTime                @updatedAt
 
-  workspace         Workspace               @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  campaign          Campaign                @relation(fields: [workspaceId, campaignId], references: [workspaceId, id], onDelete: Cascade)
-  contact           Contact                 @relation(fields: [workspaceId, contactId], references: [workspaceId, id], onDelete: Cascade)
-  account           Account                 @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
-  outboundMessage   OutboundMessage?        @relation(fields: [workspaceId, outboundMessageId], references: [workspaceId, id], onDelete: SetNull)
+  workspace       Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  campaign        Campaign         @relation(fields: [workspaceId, campaignId], references: [workspaceId, id], onDelete: Cascade)
+  contact         Contact          @relation(fields: [workspaceId, contactId], references: [workspaceId, id], onDelete: Cascade)
+  account         Account          @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  outboundMessage OutboundMessage? @relation(fields: [workspaceId, outboundMessageId], references: [workspaceId, id], onDelete: SetNull)
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, campaignId, contactId])
   @@index([workspaceId, status, scheduledFor])
+}
+
+// ─── M9: promises, inbox ─────────────────────────────────────────────────────────────────
+
+enum PromiseParty {
+  US
+  CUSTOMER
+  /// The text does not say who promised (D11): shown as "Not clear from the text".
+  UNCLEAR
+}
+
+enum PromiseStatus {
+  OPEN
+  KEPT
+  LATE
+  BROKEN
+}
+
+/// [W] Something promised in a conversation, with its quote (M9, Rule 2). The LLM proposes it; the
+/// status is written only by the promise status function, from dates and fulfilment evidence.
+model Promise {
+  id                    String                @id @default(cuid())
+  workspaceId           String
+  accountId             String
+  party                 PromiseParty
+  /// What the model guessed when the text did not settle `party`; shown as a flagged suggestion.
+  suggestedParty        PromiseParty?
+  what                  String
+  /// The date the text names; null when it names none (never invented).
+  dueDate               DateTime?             @db.Date
+  ownerMembershipId     String?
+  status                PromiseStatus         @default(OPEN)
+  statusReason          String
+  statusComputedAt      DateTime              @default(now())
+  /// Fulfilment evidence a person (or a closed ticket) supplied: a record that shows it was kept.
+  evidenceType          String?
+  evidenceId            String?
+  keptAt                DateTime?
+  sourceType            ExtractionSourceType?
+  sourceId              String?
+  quote                 String?
+  extractionId          String?
+  /// sha256 of source + normalised quote (extraction origin) or a manual key: dedupe within an account.
+  dedupeKey             String
+  origin                RecordOrigin          @default(HUMAN)
+  agentRunId            String?
+  createdByMembershipId String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  workspace  Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account    Account     @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  owner      Membership? @relation("PromiseOwner", fields: [workspaceId, ownerMembershipId], references: [workspaceId, id], onDelete: SetNull)
+  createdBy  Membership? @relation("PromiseCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: SetNull)
+  extraction Extraction? @relation(fields: [workspaceId, extractionId], references: [workspaceId, id], onDelete: SetNull)
+  agentRun   AgentRun?   @relation("PromiseAgentRun", fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, accountId, dedupeKey])
+  @@unique([workspaceId, extractionId])
+  @@index([workspaceId, accountId, status])
+  @@index([workspaceId, status, dueDate])
+}
+
+enum InboxSourceType {
+  MESSAGE
+  TICKET
+}
+
+enum InboxStatus {
+  NEW
+  DRAFTED
+  REPLIED
+  CLOSED
+}
+
+enum InboxMatchedBy {
+  /// The record already carried its account (a ticket, a thread we sent).
+  SOURCE
+  CONTACT_EMAIL
+  DOMAIN
+  MANUAL
+}
+
+/// [W] Triage state for one inbound message or ticket on a known account (M9, Rule 4: a view, not a
+/// store). Intent and sentiment are read from Extraction; the text stays in its own record.
+model InboxItem {
+  id                     String          @id @default(cuid())
+  workspaceId            String
+  accountId              String
+  sourceType             InboxSourceType
+  sourceId               String
+  status                 InboxStatus     @default(NEW)
+  assigneeMembershipId   String?
+  draftOutboundMessageId String?
+  matchedBy              InboxMatchedBy
+  receivedAt             DateTime
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+
+  workspace Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account          @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  assignee  Membership?      @relation("InboxAssignee", fields: [workspaceId, assigneeMembershipId], references: [workspaceId, id], onDelete: SetNull)
+  draft     OutboundMessage? @relation("InboxDraft", fields: [workspaceId, draftOutboundMessageId], references: [workspaceId, id], onDelete: SetNull)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, sourceType, sourceId])
+  @@index([workspaceId, status, receivedAt])
+  @@index([workspaceId, accountId])
+}
+
+enum UnmatchedStatus {
+  PENDING
+  ASSIGNED
+  DISMISSED
+}
+
+/// [W] Inbound mail nobody could match to exactly one account (M9, D2). The text lives here only
+/// until a person assigns it (it then becomes a Conversation + Message and `bodyText` is cleared)
+/// or dismisses it. Never auto-assigned.
+model UnmatchedInbound {
+  id                    String          @id @default(cuid())
+  workspaceId           String
+  provider              RecordSource
+  externalId            String
+  fromAddress           String
+  toAddresses           String[]
+  subject               String?
+  /// Cleared (null) on assignment or dismissal so only one copy of the text ever exists.
+  bodyText              String?
+  receivedAt            DateTime
+  /// Why it could not be placed, in plain words ("2 accounts share acme.com").
+  reason                String
+  candidateAccountIds   String[]
+  status                UnmatchedStatus @default(PENDING)
+  assignedAccountId     String?
+  assignedMessageId     String?
+  decidedByMembershipId String?
+  decidedAt             DateTime?
+  createdAt             DateTime        @default(now())
+
+  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account?    @relation(fields: [workspaceId, assignedAccountId], references: [workspaceId, id], onDelete: SetNull)
+  decidedBy Membership? @relation("UnmatchedDecider", fields: [workspaceId, decidedByMembershipId], references: [workspaceId, id], onDelete: SetNull)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, provider, externalId])
+  @@index([workspaceId, status, receivedAt])
 }
