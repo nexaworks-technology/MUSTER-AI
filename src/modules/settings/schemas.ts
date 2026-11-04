@@ -100,10 +100,10 @@ export const workspaceSettingsData = z.object({
   outbound: z
     .object({
       /**
-       * The auto-send kill switch (guard 8). Forced off until M8: any stored value reads as false,
-       * and no screen can change it. Human-approved sends do not depend on it.
+       * The auto-send kill switch (guard 8). Enabled in M8 behind typed Admin confirmation.
+       * Human-approved sends do not depend on it.
        */
-      autoSendEnabled: z.literal(false).catch(false).default(false),
+      autoSendEnabled: z.boolean().default(false),
       /** Quiet hours in the customer's local time: [start, end) wraps midnight (guard 3). */
       quietStartHour: z.number().int().min(0).max(23).default(19),
       quietEndHour: z.number().int().min(0).max(23).default(8),

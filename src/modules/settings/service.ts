@@ -357,6 +357,116 @@ export async function updateWorkspaceProfile(
 
 // ─── Typed workspace settings ───────────────────────────────────────────────
 
+export const CONFIRM_ENABLE_AUTO_SEND = "ENABLE AUTO-SEND";
+
+export interface EnableAutoSendInput {
+  confirmation: string;
+}
+
+/**
+ * Admin-only: enables auto-send workspace-wide (spec §6J4, ARCHITECTURE §7.2).
+ * Requires typed confirmation "ENABLE AUTO-SEND" and writes an AuditLog row.
+ */
+export async function enableAutoSend(actor: Actor, input: EnableAutoSendInput) {
+  requirePermission(actor, "plays:enableAutoSend");
+  if (input.confirmation !== CONFIRM_ENABLE_AUTO_SEND) {
+    throw new Error(`Typed confirmation required: type "${CONFIRM_ENABLE_AUTO_SEND}" to enable.`);
+  }
+
+  const db = scopedDb(actor);
+  const existing = await getSettingsData(actor.workspaceId);
+  const updatedOutbound = {
+    ...existing.outbound,
+    autoSendEnabled: true,
+  };
+  const updatedApprovals = {
+    ...existing.approvals,
+    workspaceCeiling: "SEND_AUTOMATICALLY" as const,
+  };
+
+  const updatedData = {
+    ...existing,
+    outbound: updatedOutbound,
+    approvals: updatedApprovals,
+  };
+
+  await db.$tenantTransaction(async (tx) => {
+    await tx.workspaceSettings.upsert({
+      where: { workspaceId: actor.workspaceId },
+      create: {
+        workspaceId: actor.workspaceId,
+        data: updatedData,
+      },
+      update: {
+        data: updatedData,
+      },
+    });
+
+    await writeAudit(
+      {
+        workspaceId: actor.workspaceId,
+        actorType: "USER",
+        actorId: actor.userId,
+        action: "settings.auto_send_enabled",
+        targetType: "WorkspaceSettings",
+        targetId: actor.workspaceId,
+        summary: "Enabled auto-send for plays and outbound customer communications",
+        after: { autoSendEnabled: true },
+      },
+      tx,
+    );
+  });
+
+  return { autoSendEnabled: true };
+}
+
+/**
+ * Admin-only: disables auto-send workspace-wide (kill switch, guard 8).
+ */
+export async function disableAutoSend(actor: Actor) {
+  requirePermission(actor, "plays:enableAutoSend");
+  const db = scopedDb(actor);
+  const existing = await getSettingsData(actor.workspaceId);
+  const updatedOutbound = {
+    ...existing.outbound,
+    autoSendEnabled: false,
+  };
+
+  const updatedData = {
+    ...existing,
+    outbound: updatedOutbound,
+  };
+
+  await db.$tenantTransaction(async (tx) => {
+    await tx.workspaceSettings.upsert({
+      where: { workspaceId: actor.workspaceId },
+      create: {
+        workspaceId: actor.workspaceId,
+        data: updatedData,
+      },
+      update: {
+        data: updatedData,
+      },
+    });
+
+    await writeAudit(
+      {
+        workspaceId: actor.workspaceId,
+        actorType: "USER",
+        actorId: actor.userId,
+        action: "settings.auto_send_disabled",
+        targetType: "WorkspaceSettings",
+        targetId: actor.workspaceId,
+        summary: "Disabled auto-send for plays and outbound communications",
+        after: { autoSendEnabled: false },
+      },
+      tx,
+    );
+  });
+
+  return { autoSendEnabled: false };
+}
+
 /** Reads WorkspaceSettings.data with every default applied (no row = all defaults). */
 export async function getSettingsData(workspaceId: string): Promise<WorkspaceSettingsData> {
   const row = await scopedDb({ workspaceId }).workspaceSettings.findUnique({

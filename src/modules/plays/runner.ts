@@ -664,7 +664,15 @@ export async function executeStep(
             approvalId: approval.id,
           };
         } else if (dispatchResult.status === "HELD") {
-          // Held by guards -> approval created by dispatch
+          // Held by guards -> convert AUTO_RECORDED approval to PENDING DRAFT_FOR_APPROVAL
+          await db.approval.update({
+            where: { id: dispatchResult.approvalId },
+            data: {
+              status: "PENDING",
+              requiredLevel: "DRAFT_FOR_APPROVAL",
+              reason: `Held by the send guards: ${dispatchResult.heldReason}`,
+            },
+          });
           await db.playStepRun.update({
             where: { id: stepRun.id },
             data: {
