@@ -284,16 +284,15 @@ describe("Play safety gate (pre-publish hard gate, safety.ts)", () => {
   });
 
   it("refusal: dormant-trigger play cannot activate (D9)", async () => {
-    // 1. Promise Late (M9)
+    // 1. Promise Late is live since M9 (its detector exists): no dormancy refusal
     const promiseLatePlay: PlayDefinition = {
       ...validBasePlay,
       trigger: { type: "signal", ruleKey: "promise_late" },
     };
     const res1 = await validatePlaySafety(promiseLatePlay);
-    expect(res1.passed).toBe(false);
-    expect(res1.refusals.some((r) => r.includes("promise_late") && r.includes("M9"))).toBe(true);
+    expect(res1.refusals.some((r) => r.includes("no detector yet"))).toBe(false);
 
-    // 2. Engagement Loss (M9/M10)
+    // 2. Engagement Loss (M10, needs meetings)
     const engagementLossPlay: PlayDefinition = {
       ...validBasePlay,
       trigger: { type: "signal", ruleKey: "engagement_loss" },

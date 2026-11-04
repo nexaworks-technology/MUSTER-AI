@@ -507,17 +507,15 @@ export const SEEDED_PLAYS: SeededPlay[] = [
     },
   },
 
-  // 11. Promise Late (Dormant - M9)
+  // 11. Promise Late (live since M9: the promise_late detector exists, Promise Tracker)
   {
     key: "promise-late",
     name: "Promise Late",
-    description: "[Dormant - M9] Trigger promise_late has no detector yet (Promise Tracker, M9).",
+    description: "Triggers when a promise we made to the customer is past its due date.",
     category: "promises",
-    isDormant: true,
-    homeMilestone: "M9",
     definition: {
       name: "Promise Late",
-      description: "[Dormant - M9] Trigger promise_late has no detector yet (Promise Tracker, M9).",
+      description: "Triggers when a promise we made to the customer is past its due date.",
       category: "promises",
       trigger: { type: "signal", ruleKey: "promise_late" },
       steps: [
@@ -580,13 +578,13 @@ export const SEEDED_PLAYS: SeededPlay[] = [
   {
     key: "engagement-loss",
     name: "Engagement Loss",
-    description: "[Dormant - M9/M10] Trigger engagement_loss has no detector yet (Activity & Engagement, M9/M10).",
+    description: "[Dormant - M10 (needs meetings)] Trigger engagement_loss has no detector yet (Activity & Engagement, M10 (needs meetings)).",
     category: "risk",
     isDormant: true,
-    homeMilestone: "M9/M10",
+    homeMilestone: "M10 (needs meetings)",
     definition: {
       name: "Engagement Loss",
-      description: "[Dormant - M9/M10] Trigger engagement_loss has no detector yet (Activity & Engagement, M9/M10).",
+      description: "[Dormant - M10 (needs meetings)] Trigger engagement_loss has no detector yet (Activity & Engagement, M10 (needs meetings)).",
       category: "risk",
       trigger: { type: "signal", ruleKey: "engagement_loss" },
       steps: [

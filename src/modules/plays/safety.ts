@@ -44,8 +44,8 @@ const ALLOWED_MERGE_FIELDS = [
 ];
 
 const DORMANT_TRIGGERS: Record<string, string> = {
-  promise_late: "Trigger promise_late has no detector yet (Promise Tracker, M9).",
-  engagement_loss: "Trigger engagement_loss has no detector yet (Activity & Engagement, M9/M10).",
+  engagement_loss:
+    "Trigger engagement_loss has no detector yet (Activity & Engagement, M10 (needs meetings)).",
   "qbr.due": "Trigger qbr.due has no detector yet (QBR Due, M10).",
   "meeting.qbr_due": "Trigger meeting.qbr_due has no detector yet (QBR Due, M10).",
   "meeting.ended": "Trigger meeting.ended has no detector yet (Business Review Follow-up, M10).",

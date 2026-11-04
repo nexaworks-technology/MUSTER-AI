@@ -24,10 +24,10 @@ Run once, after A8 and before the close fixes (nothing edited during the run), t
 |---|---|---|---|
 | Baseline (M8 close) | 200 | 1,840 | green |
 | Full run | 218 | 2,163 | **3 failed**, 215 files / 2,160 tests passed (288 s) |
-| Failures read together | | | (1) `seed-brief` "2 open risk signals" → 6: **D9 pre-approved** (Northgate's open signals moved because the new rules fire honestly: renewal concern, budget concern, late promise, unowned promise). (2) `seed-renewals` back-test fixture: **a cause in M9's code**: M9's 16 rules entered `riskSignalsAsOf` and moved the *factor* model's recorded numbers (97 differences, none in the shipped simple model). Fixed in code, not in the test (D-145, pinned by `as-of-m9`). (3) `seed.int` "no derived AI data": **outside the D9 list, stopped (Q-66)**. |
-| Batch 1 re-run (`seed-renewals`, `seed-brief`, `seed.int`, `as-of-m9`) | 5 | 29 | 28 passed, **1 failed** (the Q-66 assertion, deliberately unedited) |
+| Failures read together | | | (1) `seed-brief` "2 open risk signals" → 6: **D9 pre-approved** (Northgate's open signals moved because the new rules fire honestly: renewal concern, budget concern, late promise, unowned promise). (2) `seed-renewals` back-test fixture: **a cause in M9's code**: M9's 16 rules entered `riskSignalsAsOf` and moved the *factor* model's recorded numbers (97 differences, none in the shipped simple model). Fixed in code, not in the test (D-145, pinned by `as-of-m9`). (3) `seed.int` "no derived AI data": **outside the D9 list, stopped (Q-73)**. |
+| Batch 1 re-run (`seed-renewals`, `seed-brief`, `seed.int`, `as-of-m9`) | 5 | 29 | 28 passed, **1 failed** (the Q-73 assertion, deliberately unedited) |
 
-Current expected state of the full suite: **218 files; every test passes except the one `seed.int.test.ts` assertion (Q-66)**. The full gate and e2e run once, at close, in Session B.
+Current expected state of the full suite: **218 files; every test passes except the one `seed.int.test.ts` assertion (Q-73)**. The full gate and e2e run once, at close, in Session B.
 
 ## Session A — red-first evidence (kept as run)
 
@@ -52,15 +52,15 @@ Current expected state of the full suite: **218 files; every test passes except 
 
 ## Session A — stopped items (founder decision needed; nothing worked around)
 
-1. **Q-66 — `seed.int.test.ts` "no derived AI data".** The assertion `message.count({ sentimentLabel: { not: null } }) === 0` now reads 2: the seeded Halden angry email and Marlow thank-you carry the label the real Watcher writes (D8 approved seeding extractions). Not in the D9 list, so **left failing and unedited**. One-line proposed edit and the alternative are in `docs/QUESTIONS.md`.
-2. **Q-67 — Promise Late play still dormant; Engagement Loss label (D7) not changed.** Both need edits to two pre-M9 tests outside D9 (`safety.test.ts` dormant-trigger case 1; `seeded-plays.test.ts` "4 dormant plays"). The detector now exists with fixtures, so M9 rule 2's condition for waking the play is met; the code change is ready (remove `promise_late` from `DORMANT_TRIGGERS`, play live, `homeMilestone` cleared, engagement-loss relabelled "M10 (needs meetings)") and was **not applied**. Acceptance #18 depends on this.
+1. **Q-73 — `seed.int.test.ts` "no derived AI data".** The assertion `message.count({ sentimentLabel: { not: null } }) === 0` now reads 2: the seeded Halden angry email and Marlow thank-you carry the label the real Watcher writes (D8 approved seeding extractions). Not in the D9 list, so **left failing and unedited**. One-line proposed edit and the alternative are in `docs/QUESTIONS.md`.
+2. **Q-74 — Promise Late play still dormant; Engagement Loss label (D7) not changed.** Both need edits to two pre-M9 tests outside D9 (`safety.test.ts` dormant-trigger case 1; `seeded-plays.test.ts` "4 dormant plays"). The detector now exists with fixtures, so M9 rule 2's condition for waking the play is met; the code change is ready (remove `promise_late` from `DORMANT_TRIGGERS`, play live, `homeMilestone` cleared, engagement-loss relabelled "M10 (needs meetings)") and was **not applied**. Acceptance #18 depends on this.
 
 ## Session A — notes the founder should know
 
-- **Risk 1 (health numbers):** checked, not tripped. Every account's overall score, all six pillars and risk level, and every renewal's confidence and band (Northgate's 70 and the seven-way tie included) equal the M8 baseline captured from a fresh-database seed (`prisma/seed/__tests__/fixtures/m8-health-baseline.json`). `inputsHash` is *not* comparable across seeds (14 of 60 differ between two seeds even with M9 switched off: clock-stamped dates, Q-70); that M9 adds nothing to the hash is proved at its source: only ticket-channel sentiment labels enter the bundle (`loader.ts` change, D-144, `sentiment-hash-m9.int.test.ts`).
+- **Risk 1 (health numbers):** checked, not tripped. Every account's overall score, all six pillars and risk level, and every renewal's confidence and band (Northgate's 70 and the seven-way tie included) equal the M8 baseline captured from a fresh-database seed (`prisma/seed/__tests__/fixtures/m8-health-baseline.json`). `inputsHash` is *not* comparable across seeds (14 of 60 differ between two seeds even with M9 switched off: clock-stamped dates, Q-77); that M9 adds nothing to the hash is proved at its source: only ticket-channel sentiment labels enter the bundle (`loader.ts` change, D-144, `sentiment-hash-m9.int.test.ts`).
 - **A real defect found in my own work and fixed (D-145):** M9's rules were silently entering the renewal back-test's signal set and moving the factor model's recorded numbers (Rule 6). Caught by the full run, fixed by exclusion, pinned.
 - **Process lapses, disclosed:** A5's evaluators were written before its fixtures (retroactive red evidence in the table above); A8's seed module was written before its test (an integration slice, not an engine module); a `prettier --write src/modules` slip reformatted ~40 unrelated files and was reverted before commit (only my files are formatted now).
-- **Test database:** the disposable `nexaworks_test` database was dropped and recreated twice (`pnpm services:native`), because my own failed seed attempts left FAILED Watcher runs that cannot be deleted (audit foreign key) and block the identical retry (Q-68). A fresh clone is unaffected. The first baseline I captured on the old database was polluted by leftover accounts from other test files and was discarded; the committed baseline is from a fresh database.
+- **Test database:** the disposable `nexaworks_test` database was dropped and recreated twice (`pnpm services:native`), because my own failed seed attempts left FAILED Watcher runs that cannot be deleted (audit foreign key) and block the identical retry (Q-75). A fresh clone is unaffected. The first baseline I captured on the old database was polluted by leftover accounts from other test files and was discarded; the committed baseline is from a fresh database.
 - **A4 ran on Sonnet:** the plan named Opus for the promise engine; `/model` was set to Sonnet before the go, so the extra care went into tests instead (status property test, evidence rules, dedupe, a lifecycle test).
 - **Tickets are read per message** (the thread), so `ExtractionSourceType.TICKET` stays unused; the "message.received / ticket.opened events" are replaced by the 15-minute `inbox.sync` job (D-143).
 
@@ -71,9 +71,9 @@ Built and tested, no screens yet. Session B (B1–B9) can rely on:
 - **Read model:** `currentExtractions(db, { kinds, accountIds })` (latest prompt version per source) from `conversations/service`; every B screen reads extractions through it.
 - **Promises:** `syncPromises`, `markPromiseKept`, `sortPromises`, `promiseStatus` (`promises/service`, `promises/schemas`). Statuses, evidence and `suggestedParty` are on the row. Handoff items (B3) read `Promise` rows and AI-origin `Goal` rows; the Saltmarsh promise's party is UNCLEAR with suggestion US (show "Not clear from the text").
 - **Inbox:** `receiveInboundMail`, `assignUnmatched`, `dismissUnmatched`, `syncInbox` (`inbox/service`), `InboxItem` + `UnmatchedInbound` tables, seeded Unmatched example (`seed-unmatched-1`). Sensitivity for drafts: `detectSensitive` (outbound/sensitive.ts) already maps INTENT/CANCEL/EXPORT/COMPLAINT extractions; B2 must wire it and add `sensitive-inbox.test.ts`.
-- **Signals:** 16 new rules in the catalogue (categories CALLS_EMAIL, PROMISES, SUPPORT, PEOPLE); the signals list page cannot filter to CALLS_EMAIL / PROMISES yet (Q-69).
+- **Signals:** 16 new rules in the catalogue (categories CALLS_EMAIL, PROMISES, SUPPORT, PEOPLE); the signals list page cannot filter to CALLS_EMAIL / PROMISES yet (Q-76).
 - **Health:** `sentiment_share` unchanged; the sentiment views must read Extraction (SENTIMENT rows exist for the two seeded emails and the Northgate and Brightwell calls).
-- **Pending founder answers** before B can finish acceptance: Q-66, Q-67.
+- **Pending founder answers** before B can finish acceptance: Q-73, Q-74.
 - **Query budgets to keep:** evaluate chunk ≤ 90 (pinned), `syncInbox` fixed reads (pinned).
 - **Connectors (B6/B7)** may slip to a short third session (pre-approved). Providers and record sources already exist in the schema and `providers.ts`; `receiveInboundMail` is the intake they feed.
 - **Changed to know:** `championState` lives in `health/champion.ts`; the evaluate chunk now runs `promises.sync` first; `agents:extract` / backfill now read call transcripts and outbound messages too.
@@ -85,3 +85,17 @@ Built and tested, no screens yet. Session B (B1–B9) can rely on:
 ## Deferrals out of Session A (each with its home)
 
 Session B: every screen (`/inbox`, Unmatched queue UI, `/promises`, Account 360 tabs, `/health/sentiment`), Support Risk Agent, reply drafts, Promise Keeper, Champion Guard, the handoff items, adapters, plays slice, e2e, the full gate and e2e, acceptance table, CHANGELOG. M10: calendar-dependent rules (`no_meeting_in_x_days` stays dormant), Engagement Loss. M12: live checks (Zendesk/Freshdesk/Gmail/Graph sandboxes, live eval `pnpm eval`, still DEFERRED without `ANTHROPIC_API_KEY`).
+
+# Session B
+
+## Session B — pre-M9 test changes (founder-approved at the start of Session B; every one logged)
+
+| File | Old | New | Reason | Class |
+|---|---|---|---|---|
+| `prisma/seed/__tests__/seed.int.test.ts` ("stores every planted line verbatim…") | seeded messages with a sentiment label: 0 | 2 | Halden's angry email and Marlow's thank-you carry the label the real Watcher wrote (D8); derived, not planted; ticket threads stay unlabelled | founder-approved (Q-73) |
+| `src/modules/plays/__tests__/safety.test.ts` (dormant-trigger, case 1) | `promise_late` refused, naming M9 | `promise_late` has no dormancy refusal | M9 rule 2: the detector exists, so the play's dormancy ends | founder-approved (Q-74) |
+| `src/modules/plays/__tests__/seeded-plays.test.ts` | "11 live" (promise-late absent); "4 dormant" incl. promise-late (M9) and engagement-loss (M9/M10) | "12 live" incl. promise-late; "3 dormant"; engagement-loss milestone "M10 (needs meetings)" | same; D7 relabel | founder-approved (Q-74) |
+
+Code with them: `promise_late` removed from `DORMANT_TRIGGERS`; Promise Late seeded live (still DRAFT until a human publishes); Engagement Loss relabelled; `seedPlaysForWorkspace` relabels a still-DRAFT, version-1 play of those two keys in existing workspaces (a workspace's edits are never overwritten). New test: `promise-late-play.int.test.ts` (acceptance #18: both plays pass the safety check; Promise Late publishes and enters on a `promise_late` signal).
+
+Question numbers: M9's Session A questions (Q-66–Q-70) collided with M6's Q-66/Q-68 and are renumbered **Q-73–Q-77** in `QUESTIONS.md`, `DECISIONS.md` and this log (Q-73 seed sentiment assertion, Q-74 Promise Late wake, Q-75 failed Watcher runs final, Q-76 signals category filter, Q-77 `inputsHash` unstable across seeds).

@@ -236,7 +236,9 @@ describe("seed v1 — conversations, tickets, transcripts (docs/SEED_DATA.md §5
       where: { bodyText: "How do I export all our data before we cancel at the end of the term?" },
     });
     expect(quillmark).not.toBeNull();
-    expect(await db.message.count({ where: { sentimentLabel: { not: null } } })).toBe(0);
+    // M9 (founder-approved, Q-73): Halden's angry email and Marlow's thank-you carry the label the real
+    // Watcher wrote (D8). Derived, not planted; ticket threads stay unlabelled (health, D-144).
+    expect(await db.message.count({ where: { sentimentLabel: { not: null } } })).toBe(2);
   });
 
   it("plants Halden's three repeat tickets and Northgate's open high-priority ticket", async () => {

@@ -33,7 +33,7 @@ describe("S7: The 15 Seeded Plays (spec §5, §6I1, D9)", () => {
     }
   });
 
-  it("11 live plays pass the safety check", async () => {
+  it("12 live plays pass the safety check (M9: Promise Late is live on its detector)", async () => {
     const liveKeys = [
       "health-risk",
       "renewal-risk",
@@ -45,6 +45,7 @@ describe("S7: The 15 Seeded Plays (spec §5, §6I1, D9)", () => {
       "expansion-opportunity",
       "payment-failed",
       "support-escalation",
+      "promise-late",
       "cancellation-save",
     ];
 
@@ -59,15 +60,11 @@ describe("S7: The 15 Seeded Plays (spec §5, §6I1, D9)", () => {
     }
   });
 
-  it("4 dormant plays fail safety check naming their exact missing detector and home milestone (D9)", async () => {
+  it("3 dormant plays fail safety check naming their exact missing detector and home milestone (D9)", async () => {
     const dormantExpectations: Record<string, { detector: string; milestone: string }> = {
-      "promise-late": {
-        detector: "promise_late",
-        milestone: "M9",
-      },
       "engagement-loss": {
         detector: "engagement_loss",
-        milestone: "M9/M10",
+        milestone: "M10 (needs meetings)",
       },
       "qbr-due": {
         detector: "qbr.due",
