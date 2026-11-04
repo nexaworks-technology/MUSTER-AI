@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CategoryControl, CategoryState, Reasons, BAND_WORDS } from "@/components/renewals/reasons";
 import { formatCalendarDate } from "@/lib/format";
 import { formatMoney } from "@/lib/money";
-import { getAccountRenewals } from "@/modules/renewals/service";
+import { CATEGORY_WORDS, getAccountRenewals } from "@/modules/renewals/service";
 import { loadAccount } from "../data";
 
 export const metadata: Metadata = { title: "Renewal" };
@@ -79,12 +79,32 @@ export default async function RenewalTab({
         ))
       )}
       {data.past.length ? (
-        <section>
-          <h2 className="text-sm font-medium">Earlier renewals</h2>
-          <ul className="text-sm">
+        <section aria-labelledby="past-h" data-testid="past-renewals">
+          <h2 id="past-h" className="text-sm font-medium">
+            Earlier renewals
+          </h2>
+          <ul className="space-y-1 text-sm">
             {data.past.map((p) => (
               <li key={p.id}>
                 {formatCalendarDate(p.renewalDate)}: {p.stage === "RENEWED" ? "Renewed" : "Churned"}
+                {p.outcome ? (
+                  <span className="text-muted-foreground block text-xs">
+                    Recorded {formatCalendarDate(p.outcome.occurredOn)}
+                    {p.outcome.detectedVia === "CONTRACT_RECORDS" ? " from contract records" : ""}.
+                    The forecast on {formatCalendarDate(p.outcome.forecast.asOf)} said{" "}
+                    {p.outcome.forecast.confidence}% ({BAND_WORDS[p.outcome.forecast.band]}{" "}
+                    confidence)
+                    {p.outcome.forecast.category
+                      ? `, and a person had it as ${CATEGORY_WORDS[p.outcome.forecast.category]}`
+                      : ""}
+                    .{" "}
+                    {!p.outcome.moneyVisible
+                      ? "Contract value: Restricted."
+                      : p.outcome.outcomeArrMinor != null && p.outcome.currency
+                        ? `Value after: ${formatMoney({ minor: p.outcome.outcomeArrMinor, currency: p.outcome.currency })}.`
+                        : "No contract value on file."}
+                  </span>
+                ) : null}
               </li>
             ))}
           </ul>

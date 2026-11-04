@@ -193,19 +193,65 @@ export async function getAccountRenewals(
   if (!account) throw new AccountNotFoundError();
   const ctx = await loadContext(actor);
   const asOf = todayIn(ctx.timeZone, clock);
-  const rows = await scopedDb(actor).renewal.findMany({
-    where: { accountId },
-    orderBy: { renewalDate: "desc" },
-    select: { ...rowSelect, stage: true },
-  });
+  const db = scopedDb(actor);
+  const [rows, outcomes] = await Promise.all([
+    db.renewal.findMany({
+      where: { accountId },
+      orderBy: { renewalDate: "desc" },
+      select: { ...rowSelect, stage: true },
+    }),
+    db.renewalOutcome.findMany({
+      where: { accountId },
+      orderBy: [{ occurredOn: "desc" }, { createdAt: "desc" }],
+    }),
+  ]);
   const open = rows.filter((r) => r.stage === "UPCOMING" || r.stage === "IN_PROGRESS");
+  // The effective outcome of a renewal is the one no other row corrects.
+  const corrected = new Set(outcomes.flatMap((o) => (o.supersedesId ? [o.supersedesId] : [])));
+  const outcomeOf = new Map(
+    outcomes.filter((o) => !corrected.has(o.id)).map((o) => [o.renewalId, o]),
+  );
   return {
     account,
     asOf,
     open: open.map((r) => toRow(actor, r, asOf)).reverse(),
     past: rows
       .filter((r) => !open.includes(r))
-      .map((r) => ({ id: r.id, renewalDate: r.renewalDate, stage: r.stage })),
+      .map((r) => {
+        const o = outcomeOf.get(r.id);
+        const base = {
+          id: r.id,
+          renewalDate: r.renewalDate,
+          stage: r.stage,
+          outcome: o
+            ? {
+                result: o.result,
+                occurredOn: o.occurredOn,
+                detectedVia: o.detectedVia,
+                // The forecast as it stood then, frozen on the outcome (never read from the live row).
+                forecast: {
+                  asOf: o.forecastAsOf,
+                  confidence: o.forecastConfidence,
+                  band: o.forecastBand,
+                  category: o.forecastCategory,
+                },
+                outcomeArrMinor: o.outcomeArrMinor,
+                currency: o.currency,
+                forecastArrAtRiskMinor: o.forecastArrAtRiskMinor,
+              }
+            : null,
+        };
+        return {
+          ...base,
+          outcome: base.outcome
+            ? redactMoney(actor, base.outcome, [
+                "outcomeArrMinor",
+                "currency",
+                "forecastArrAtRiskMinor",
+              ] as const)
+            : null,
+        };
+      }),
     canCategorise: account.canEdit && canCategorise(actor, account.ownerMembershipId),
   };
 }

@@ -3,6 +3,8 @@ import { ForbiddenError } from "@/lib/auth/permissions";
 import { scopedDb } from "@/lib/db/scoped";
 import type { Actor } from "@/modules/accounts/service";
 import { getAccountRenewals, listRenewals } from "@/modules/renewals/service";
+import { getRenewalBrief, createRenewalBrief, readDocument } from "@/modules/documents/service";
+import { getAccountExpansion, listOpportunities } from "@/modules/expansion/service";
 import { getRevenueView } from "@/modules/revenue/service";
 import { countQueries } from "@/test/query-counter";
 import { runSeed } from "../run";
@@ -113,6 +115,51 @@ describe("M7 reads without revenue access", () => {
     const v = await getRevenueView(admin, {}, clock);
     expect(v.waterfall.base.reconciled).toBe(true);
     expect(v.atRisk.map((r) => r.windowDays)).toEqual([30, 90]);
+  });
+});
+
+describe("M7 expansion and brief reads without revenue access (B2, B3)", () => {
+  const MONEY = /1080000|10,800|\$900|900\.00|142,000|14200000|\$\s?\d/;
+  it("every expansion and brief read model, as a member without revenue access, has no money key and no figure", async () => {
+    const admin = await actorFor("ADMIN", true);
+    const viewer = { ...admin, canViewRevenue: false } as Actor;
+    const north = await db().account.findFirstOrThrow({ where: { name: "Northgate Freight" } });
+    const copper = await db().account.findFirstOrThrow({ where: { name: "Copperleaf Studios" } });
+    const renewal = await db().renewal.findFirstOrThrow({
+      where: { accountId: north.id, stage: { in: ["UPCOMING", "IN_PROGRESS"] } },
+    });
+    await createRenewalBrief(admin, renewal.id, clock);
+    const withBrief = await db().renewal.findUniqueOrThrow({ where: { id: renewal.id } });
+    const reads: Array<[string, unknown]> = [
+      ["listOpportunities", await listOpportunities(viewer, {}, clock)],
+      ["getAccountExpansion", await getAccountExpansion(viewer, copper.id, clock)],
+      ["getRenewalBrief", await getRenewalBrief(viewer, renewal.id)],
+      ["readDocument", await readDocument(viewer, withBrief.briefDocumentId!)],
+    ];
+    for (const [label, payload] of reads) {
+      const offending = keysOf(payload).filter(
+        (k) =>
+          /minor|amount|currency|estimateText/i.test(k.split(".").at(-1)!) &&
+          !k.endsWith(".moneyVisible"),
+      );
+      expect(offending, `${label} money keys`).toEqual([]);
+      expect(json(payload), label).not.toMatch(MONEY);
+    }
+  });
+
+  it("the same reads carry the estimate and the contract value for a member with revenue access", async () => {
+    const admin = await actorFor("ADMIN", true);
+    const list = await listOpportunities(admin, {}, clock);
+    expect(list.rows.some((r) => typeof r.estimateMinor === "bigint")).toBe(true);
+  });
+
+  it("listOpportunities uses a fixed number of queries whatever the status filter", async () => {
+    const admin = await actorFor("ADMIN", true);
+    await listOpportunities(admin, {}, clock); // warm
+    const open = await countQueries(() => listOpportunities(admin, { status: "OPEN" }, clock));
+    const all = await countQueries(() => listOpportunities(admin, { status: "ALL" }, clock));
+    expect(all.queries).toBe(open.queries);
+    expect(open.queries).toBeLessThanOrEqual(15);
   });
 });
 
