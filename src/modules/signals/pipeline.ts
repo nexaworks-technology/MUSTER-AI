@@ -160,6 +160,11 @@ async function scoreCore(data: ChunkData) {
     });
   const counts = { CREATED: 0, REPLACED: 0, UNCHANGED: 0 };
   for (const r of results.values()) counts[r.outcome]++;
+  // M7 `renewals.sync`: confidence for renewals in the next year, and outcomes from contract
+  // records, after tonight's snapshots exist. Loaded on use: the renewals back-test reads the
+  // signals module.
+  const { syncRenewals } = await import("@/modules/renewals/service");
+  await syncRenewals(ctx, data.accountIds, data.asOf);
   return { ...counts, bandChanges: changed.length };
 }
 

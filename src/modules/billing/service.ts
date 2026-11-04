@@ -264,6 +264,8 @@ export function redactFinancials(
 
 export type BillingView = Awaited<ReturnType<typeof getBilling>>;
 
+export { RENEWAL_GRACE_DAYS } from "./revenue";
+
 /** Thrown for a forbidden write; re-exported so actions can map it to a plain message. */
 export { ForbiddenError };
 

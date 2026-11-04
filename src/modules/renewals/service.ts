@@ -37,3 +37,4 @@ export {
   renewalSettings,
   type ConfidenceConfig,
 } from "./schemas";
+export { syncRenewals, type SyncCounts } from "./sync.service";

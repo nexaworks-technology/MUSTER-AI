@@ -204,9 +204,10 @@ describe("nightly pipeline through the real queue", () => {
     // Measured constant (unchanged re-run of one chunk, any size): the point-in-time bundle is
     // loaded twice (signals, then health: ~18 set-based reads each), cohort peers three times
     // (baselines, signals, health: 4 each), workspace/settings lookups, rules, existing signals and
-    // snapshots, one baseline insert, and (M6) one read for open onboarding plans. Fixed per
-    // chunk; it must never scale with accounts.
-    expect(five.queries).toBeLessThanOrEqual(68);
+    // snapshots, one baseline insert, (M6) one read for open onboarding plans, and (M7) three for
+    // renewals.sync (contracts, renewal rows, settings). Fixed per chunk; it must never scale with
+    // accounts.
+    expect(five.queries).toBeLessThanOrEqual(71);
   });
 
   it("the real-time hook evaluates one account through the queue at once", async () => {
