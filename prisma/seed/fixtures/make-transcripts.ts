@@ -147,6 +147,11 @@ export const TRANSCRIPTS: TranscriptSpec[] = [
         speaker: "Dora Lindqvist",
         line: "Budget is tight next year, so every tool is being reviewed.",
       },
+      // M9 (D8): the late promise Northgate was missing. SEED_TODAY is 2026-11-02, so it is 3 days late.
+      {
+        speaker: "Leo Marsh",
+        line: "We'll have the API limit increase live by October 30.",
+      },
     ],
   },
   {

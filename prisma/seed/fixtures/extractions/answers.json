@@ -1,0 +1,311 @@
+{
+ "_comment": "Recorded Watcher answers for the seed's story sources (M9, D8). Matched by transcript title or exact text; quotes are checked by the real validator when the Watcher runs, so a wrong quote is dropped, never stored. Deliberately NO sentiment for ticket-thread messages: the Sentiment pillar reads those, and the seed must not move any health score (D4).",
+ "note": "CRM deal notes (Sales): signed the Growth plan. Sales promised a native Zendesk integration by the end of their first quarter.",
+ "answers": [
+  {
+   "match": {
+    "transcript": "Halden Retail — export follow-up"
+   },
+   "output": {
+    "reasoningSummary": "Labelled the record (recorded answer kept in the seed).",
+    "confidence": 0.82,
+    "proposedActions": [],
+    "items": [
+     {
+      "kind": "PROMISE",
+      "quote": "Engineering will have the CSV export fix to you by October 24.",
+      "confidence": 0.93,
+      "payload": {
+       "what": "CSV export fix",
+       "dueDate": "2026-10-24",
+       "party": "us"
+      }
+     }
+    ],
+    "sentiment": null
+   }
+  },
+  {
+   "match": {
+    "transcript": "Northgate Freight — quarterly review"
+   },
+   "output": {
+    "reasoningSummary": "Labelled the record (recorded answer kept in the seed).",
+    "confidence": 0.82,
+    "proposedActions": [],
+    "items": [
+     {
+      "kind": "RENEWAL_CONCERN",
+      "quote": "We need to see the API limits fixed before we sign again.",
+      "confidence": 0.92,
+      "payload": {
+       "summary": "Needs the API limits fixed before signing again"
+      }
+     },
+     {
+      "kind": "THEME",
+      "quote": "We need to see the API limits fixed before we sign again.",
+      "confidence": 0.8,
+      "payload": {
+       "theme": "api_limits"
+      }
+     },
+     {
+      "kind": "BUDGET_CONCERN",
+      "quote": "Budget is tight next year, so every tool is being reviewed.",
+      "confidence": 0.9,
+      "payload": {
+       "summary": "Budget is tight; every tool is under review"
+      }
+     },
+     {
+      "kind": "PROMISE",
+      "quote": "We'll have the API limit increase live by October 30.",
+      "confidence": 0.91,
+      "payload": {
+       "what": "API limit increase live",
+       "dueDate": "2026-10-30",
+       "party": "us"
+      }
+     }
+    ],
+    "sentiment": {
+     "label": "MIXED",
+     "quote": "Budget is tight next year, so every tool is being reviewed."
+    }
+   }
+  },
+  {
+   "match": {
+    "transcript": "Brightwell Logistics — monthly check-in"
+   },
+   "output": {
+    "reasoningSummary": "Labelled the record (recorded answer kept in the seed).",
+    "confidence": 0.82,
+    "proposedActions": [],
+    "items": [
+     {
+      "kind": "COMPETITOR",
+      "quote": "Our CFO asked us to look at Tallyfield before renewal.",
+      "confidence": 0.94,
+      "payload": {
+       "competitorName": "Tallyfield"
+      }
+     },
+     {
+      "kind": "COMPLAINT",
+      "quote": "Honestly the scheduled reports have been flaky since September.",
+      "confidence": 0.82,
+      "payload": {
+       "theme": "reporting"
+      }
+     }
+    ],
+    "sentiment": {
+     "label": "MIXED",
+     "quote": "Honestly the scheduled reports have been flaky since September."
+    }
+   }
+  },
+  {
+   "match": {
+    "transcript": "Copperleaf Studios — team rollout"
+   },
+   "output": {
+    "reasoningSummary": "Labelled the record (recorded answer kept in the seed).",
+    "confidence": 0.82,
+    "proposedActions": [],
+    "items": [
+     {
+      "kind": "GOAL",
+      "quote": "We want every studio lead on Larkspur by Q1.",
+      "confidence": 0.9,
+      "payload": {
+       "goal": "Every studio lead on Larkspur by Q1"
+      }
+     }
+    ],
+    "sentiment": null
+   }
+  },
+  {
+   "match": {
+    "transcript": "Marlow & Finch — month-end reporting"
+   },
+   "output": {
+    "reasoningSummary": "Labelled the record (recorded answer kept in the seed).",
+    "confidence": 0.82,
+    "proposedActions": [],
+    "items": [
+     {
+      "kind": "GOAL",
+      "quote": "Our goal is to cut month-end close to 3 days.",
+      "confidence": 0.93,
+      "payload": {
+       "goal": "Cut month-end close to 3 days"
+      }
+     }
+    ],
+    "sentiment": null
+   }
+  },
+  {
+   "match": {
+    "text": "Hi Leo,\n\nThis is the third time the export has failed during month-end. We are losing patience.\n\nElena"
+   },
+   "output": {
+    "reasoningSummary": "Labelled the record (recorded answer kept in the seed).",
+    "confidence": 0.82,
+    "proposedActions": [],
+    "items": [
+     {
+      "kind": "COMPLAINT",
+      "quote": "This is the third time the export has failed during month-end.",
+      "confidence": 0.93,
+      "payload": {
+       "theme": "csv_export"
+      }
+     },
+     {
+      "kind": "INTENT",
+      "quote": "This is the third time the export has failed during month-end. We are losing patience.",
+      "confidence": 0.9,
+      "payload": {
+       "intent": "complaint"
+      }
+     }
+    ],
+    "sentiment": {
+     "label": "NEGATIVE",
+     "quote": "We are losing patience."
+    }
+   }
+  },
+  {
+   "match": {
+    "text": "The CSV export of the stock report fails with a timeout when we run it at month-end."
+   },
+   "output": {
+    "reasoningSummary": "Labelled the record (recorded answer kept in the seed).",
+    "confidence": 0.82,
+    "proposedActions": [],
+    "items": [
+     {
+      "kind": "THEME",
+      "quote": "The CSV export of the stock report fails with a timeout when we run it at month-end.",
+      "confidence": 0.9,
+      "payload": {
+       "theme": "csv_export"
+      }
+     }
+    ],
+    "sentiment": null
+   }
+  },
+  {
+   "match": {
+    "text": "How do I export all our data before we cancel at the end of the term?"
+   },
+   "output": {
+    "reasoningSummary": "Labelled the record (recorded answer kept in the seed).",
+    "confidence": 0.82,
+    "proposedActions": [],
+    "items": [
+     {
+      "kind": "CANCEL_LANGUAGE",
+      "quote": "before we cancel at the end of the term",
+      "confidence": 0.9,
+      "payload": {
+       "summary": "Intends to cancel at the end of the term"
+      }
+     },
+     {
+      "kind": "EXPORT_LANGUAGE",
+      "quote": "How do I export all our data",
+      "confidence": 0.9,
+      "payload": {
+       "summary": "Wants all their data out"
+      }
+     },
+     {
+      "kind": "INTENT",
+      "quote": "How do I export all our data before we cancel",
+      "confidence": 0.9,
+      "payload": {
+       "intent": "cancellation"
+      }
+     }
+    ],
+    "sentiment": null
+   }
+  },
+  {
+   "match": {
+    "text": "Our nightly sync is hitting API rate limit errors and stops halfway."
+   },
+   "output": {
+    "reasoningSummary": "Labelled the record (recorded answer kept in the seed).",
+    "confidence": 0.82,
+    "proposedActions": [],
+    "items": [
+     {
+      "kind": "THEME",
+      "quote": "Our nightly sync is hitting API rate limit errors",
+      "confidence": 0.9,
+      "payload": {
+       "theme": "api_limits"
+      }
+     }
+    ],
+    "sentiment": null
+   }
+  },
+  {
+   "match": {
+    "text": "Hi Leo, just a quick note to say the new close dashboard made this month-end much smoother for the whole finance team. Thank you!"
+   },
+   "output": {
+    "reasoningSummary": "Labelled the record (recorded answer kept in the seed).",
+    "confidence": 0.82,
+    "proposedActions": [],
+    "items": [
+     {
+      "kind": "INTENT",
+      "quote": "just a quick note to say the new close dashboard made this month-end much smoother",
+      "confidence": 0.9,
+      "payload": {
+       "intent": "praise"
+      }
+     }
+    ],
+    "sentiment": {
+     "label": "POSITIVE",
+     "quote": "made this month-end much smoother for the whole finance team"
+    }
+   }
+  },
+  {
+   "match": {
+    "text": "CRM deal notes (Sales): signed the Growth plan. Sales promised a native Zendesk integration by the end of their first quarter."
+   },
+   "output": {
+    "reasoningSummary": "Labelled the record (recorded answer kept in the seed).",
+    "confidence": 0.82,
+    "proposedActions": [],
+    "items": [
+     {
+      "kind": "PROMISE",
+      "quote": "Sales promised a native Zendesk integration by the end of their first quarter.",
+      "confidence": 0.9,
+      "payload": {
+       "what": "Native Zendesk integration",
+       "dueDate": null,
+       "party": "us"
+      }
+     }
+    ],
+    "sentiment": null
+   }
+  }
+ ]
+}

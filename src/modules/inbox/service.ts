@@ -357,14 +357,14 @@ export async function syncInbox(
   const since = new Date(
     opts.now.getTime() - (opts.lookbackDays ?? INBOX_LOOKBACK_DAYS) * 86_400_000,
   );
-  const [messages, tickets, items] = await Promise.all([
+  const [rawMessages, tickets, items] = await Promise.all([
     db.message.findMany({
       where: {
         direction: "INBOUND",
         sentAt: { gte: since },
         conversation: { channel: { in: ["EMAIL", "CHAT"] } },
       },
-      select: { id: true, accountId: true, conversationId: true, sentAt: true },
+      select: { id: true, accountId: true, conversationId: true, sentAt: true, fromAddress: true },
     }),
     db.ticket.findMany({
       where: {
@@ -375,6 +375,8 @@ export async function syncInbox(
     }),
     db.inboxItem.findMany({ select: { id: true, sourceType: true, sourceId: true, status: true } }),
   ]);
+  // Delivery-failure notices are not conversations: the contact is marked BOUNCED instead.
+  const messages = rawMessages.filter((m) => !BOUNCE_SENDER.test(m.fromAddress ?? ""));
   const conversationIds = [
     ...new Set([
       ...messages.map((m) => m.conversationId),

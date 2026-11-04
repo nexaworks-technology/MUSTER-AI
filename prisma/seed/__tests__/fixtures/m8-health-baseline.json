@@ -1,0 +1,1252 @@
+{
+ "accounts": 72,
+ "snapshots": [
+  {
+   "accountId": "seed0008a2f5c78a0a0bac614",
+   "asOf": "2026-11-02",
+   "overall": "99.72",
+   "adoption": "99.15",
+   "engagement": "100",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "03b5061230ed9b34e778ba95679864421d930c0f1042ac100ec95659627ad6de"
+  },
+  {
+   "accountId": "seed021829fab84087f4fead2",
+   "asOf": "2026-11-02",
+   "overall": "99.47",
+   "adoption": "98.42",
+   "engagement": "100",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "f5b6d092bf08c3afa4dc150a13ad6c9c79272e29c190ef5e8cd0aae9e69806dc"
+  },
+  {
+   "accountId": "seed173e2ddd2f70f97dc55e7",
+   "asOf": "2026-11-02",
+   "overall": "83.24",
+   "adoption": "70.8",
+   "engagement": "81.19",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "65",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "e462ec02a5cb424b0bab9c74417f2c6d715a466b44404039fcccaebb19303f77"
+  },
+  {
+   "accountId": "seed17b244c66ee01dd42786c",
+   "asOf": "2026-11-02",
+   "overall": "100",
+   "adoption": "100",
+   "engagement": null,
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "ade0cda885c74167cd27d877e5d3d67e05f3471037dd232adc8d9c8ba7980119"
+  },
+  {
+   "accountId": "seed1ed143eed9e970b139d25",
+   "asOf": "2026-11-02",
+   "overall": "96.17",
+   "adoption": "88.5",
+   "engagement": "100",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "c1ae70024680bb29328d140dd2384c0423d4720b38faa76e6d9b2739fc534b2d"
+  },
+  {
+   "accountId": "seed24cb6cc30d220a76639b0",
+   "asOf": "2026-11-02",
+   "overall": "69.1",
+   "adoption": "43.34",
+   "engagement": null,
+   "support": "100",
+   "relationship": null,
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "WATCH",
+   "inputsHash": "aa3a3d4e4394b4b3cbfe3002986fbcfa24fde10a97999194ec8d09226c5dbd27"
+  },
+  {
+   "accountId": "seed2748df13811a7198a7271",
+   "asOf": "2026-11-02",
+   "overall": "99.9",
+   "adoption": "99.81",
+   "engagement": null,
+   "support": "100",
+   "relationship": null,
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "551939feefdee96bb8d49b0eacccf4ef204d911c7d04fc31116940a6c33f62fd"
+  },
+  {
+   "accountId": "seed2b81fbb3b1e8ea6b5d8c5",
+   "asOf": "2026-11-02",
+   "overall": "96.13",
+   "adoption": "96.14",
+   "engagement": "94.53",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "85",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "c1ac9ab894d97b41b432772c1b1f8a25cdd2d6b0e866a5f3b395480d4fdfa58c"
+  },
+  {
+   "accountId": "seed2f503a50dd43cea1e384d",
+   "asOf": "2026-11-02",
+   "overall": "94.53",
+   "adoption": "87.23",
+   "engagement": "92.7",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "eceacd9a48c24c1d11a7173c978615b4d0f6b9a6e8f2a429eec18352c6dc0b6b"
+  },
+  {
+   "accountId": "seed3328d65ba8d6742562950",
+   "asOf": "2026-11-02",
+   "overall": "87.74",
+   "adoption": "81.03",
+   "engagement": null,
+   "support": "100",
+   "relationship": "100",
+   "commercial": "65",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "8629a141858dc538c2142b6d5b89a5543d56ec36580d6ce806a1c381d397f9bb"
+  },
+  {
+   "accountId": "seed3626a0a28da113b6c7ea7",
+   "asOf": "2026-11-02",
+   "overall": "76.28",
+   "adoption": "29.25",
+   "engagement": "99.17",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "34d7dbd8027b6f43a6c0a663a154ed8115b1858802e4f2f635d97aef47d15fad"
+  },
+  {
+   "accountId": "seed363d2ae6172a9c882a1b4",
+   "asOf": "2026-11-02",
+   "overall": "94.16",
+   "adoption": "99.03",
+   "engagement": "91.11",
+   "support": "100",
+   "relationship": "81.82",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "ea10544e4ebaaa7dd33a80622571ef5fe132ca06a2eaa4729e71e78c37277e88"
+  },
+  {
+   "accountId": "seed3b5cea852e6f91170a7d8",
+   "asOf": "2026-11-02",
+   "overall": "96.61",
+   "adoption": "93.41",
+   "engagement": "100",
+   "support": "100",
+   "relationship": "94.64",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "3babca1613d079f8b7296fa5c18dc5c44d889f09a87069bc68c229ab15d3307f"
+  },
+  {
+   "accountId": "seed42f2eaf9bf730dbbdefd2",
+   "asOf": "2026-11-02",
+   "overall": "94.86",
+   "adoption": "90.58",
+   "engagement": null,
+   "support": "100",
+   "relationship": null,
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "97f74427bfe0c2403974b671c12fe80c6d2d127e345285c5d64bb785f2f01222"
+  },
+  {
+   "accountId": "seed49a558637cdfcb61745c7",
+   "asOf": "2026-11-02",
+   "overall": "97.87",
+   "adoption": "95.48",
+   "engagement": "96.25",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "a821dc07b28efb30c1398c6121db0902001afe4f4751bc73cb9ac68bbdc3037e"
+  },
+  {
+   "accountId": "seed4acb32a38dcbe88a44d61",
+   "asOf": "2026-11-02",
+   "overall": "99.2",
+   "adoption": "98",
+   "engagement": null,
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "50886cbde73a486ef4b15fd3aa0253391d2fdaf4d508c365ade01fac63e6440f"
+  },
+  {
+   "accountId": "seed524d80f090847f5a61540",
+   "asOf": "2026-11-02",
+   "overall": "98.63",
+   "adoption": "95.9",
+   "engagement": "100",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "d84926900f9ef7727357bac9d67630e6c3f7e143bdb956a0b531cf7e5f0a22ac"
+  },
+  {
+   "accountId": "seed5797f0dbfb518d5e0c906",
+   "asOf": "2026-11-02",
+   "overall": "99.7",
+   "adoption": "99.25",
+   "engagement": null,
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "5ba849e66fcfc3b0c52fcae1d10caa9b44b8d619745ac9bfb196440f8090dd61"
+  },
+  {
+   "accountId": "seed5b72f3fdab39dc1be5865",
+   "asOf": "2026-11-02",
+   "overall": "86.99",
+   "adoption": "82.38",
+   "engagement": "99.17",
+   "support": "100",
+   "relationship": "68.5",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "bd7a37877c2bbffa6f837999f5a15de1ceb4fcef8f3ab9127cfa842204c985b4"
+  },
+  {
+   "accountId": "seed6239b0ed07c89cdb96804",
+   "asOf": "2026-11-02",
+   "overall": "74.1",
+   "adoption": "22.3",
+   "engagement": "100",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "6a5333974fcf2b2e01d225e37fc1a0abc1d4bc3d2d3757c04b7b185480225a70"
+  },
+  {
+   "accountId": "seed62f09b8595f2ca0595c0b",
+   "asOf": "2026-11-02",
+   "overall": "67.63",
+   "adoption": "45.97",
+   "engagement": "65.88",
+   "support": "100",
+   "relationship": "61.43",
+   "commercial": "99.09",
+   "sentiment": null,
+   "riskLevel": "WATCH",
+   "inputsHash": "e8f902b0cc3f6fd8dde9761db054815e1437bca73ca2256017ce68a6999eda16"
+  },
+  {
+   "accountId": "seed661a7268fd8896aa3cf20",
+   "asOf": "2026-11-02",
+   "overall": "99.47",
+   "adoption": "98.42",
+   "engagement": "100",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "64c9ae644e926ba64080a313e51167adc7a822a3b920c8893265f0f62fa5d56b"
+  },
+  {
+   "accountId": "seed723973fd75d31395eefc6",
+   "asOf": "2026-11-02",
+   "overall": "99.2",
+   "adoption": "98",
+   "engagement": null,
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "2071c9d7376a16a8cf5cd0f364c79271927339279f37a7a51c6f8a9563e6364e"
+  },
+  {
+   "accountId": "seed784ddc637d0ef29fc2850",
+   "asOf": "2026-11-02",
+   "overall": "96.48",
+   "adoption": "89.44",
+   "engagement": "100",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "422f82f2922dffcdf06f82c15d5f7e1bdd4ded73f40ed5339652695a0928d80f"
+  },
+  {
+   "accountId": "seed786f9c75e3167cc6fe307",
+   "asOf": "2026-11-02",
+   "overall": "97.14",
+   "adoption": "94.75",
+   "engagement": null,
+   "support": "100",
+   "relationship": null,
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "2b5451fe7d71df01c0b367d0893e2030332643709ab6e940fc0cb7461627b58c"
+  },
+  {
+   "accountId": "seed7a3cca711fb6a2446507c",
+   "asOf": "2026-11-02",
+   "overall": "94.1",
+   "adoption": "86.33",
+   "engagement": "99.06",
+   "support": "100",
+   "relationship": "94.64",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "4552f4c4b2cc44666a6362b2430a7ba9f2b54e0387b9d1e0a04bd2deeb99f6c8"
+  },
+  {
+   "accountId": "seed805dbdd3ba87e561b7322",
+   "asOf": "2026-11-02",
+   "overall": "99.7",
+   "adoption": "99.25",
+   "engagement": null,
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "09deabae97ec2372fd4350549e44781c2feec8a151ad479d04c01661016642fe"
+  },
+  {
+   "accountId": "seed8201a171f4001ed8ae95d",
+   "asOf": "2026-11-02",
+   "overall": "95.4",
+   "adoption": "88.5",
+   "engagement": null,
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "19b695557fdd3c5230bae64111942c90de5a2e48da1caf20999c27c06da32a13"
+  },
+  {
+   "accountId": "seed839fdb8bb1f800d958175",
+   "asOf": "2026-11-02",
+   "overall": "60.76",
+   "adoption": "28.07",
+   "engagement": null,
+   "support": "100",
+   "relationship": null,
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "WATCH",
+   "inputsHash": "3c2bb58407da6c88a46aa1e6f473ba7f128393143becfb97c2333439dc0eb583"
+  },
+  {
+   "accountId": "seed885a85604fd816eeb7900",
+   "asOf": "2026-11-02",
+   "overall": "92.06",
+   "adoption": "80.14",
+   "engagement": null,
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "9eccd8f9b48e20f0e10010d2397fe1f4bae0261902ec1c916fe2ef1d98bfc341"
+  },
+  {
+   "accountId": "seed8916372b332e58768aec3",
+   "asOf": "2026-11-02",
+   "overall": "97.74",
+   "adoption": "93.21",
+   "engagement": "100",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "11d07d568657bb20976522c1764c573233a25a355b30262252da08741fb1c941"
+  },
+  {
+   "accountId": "seed918789ce212c27dbe6b44",
+   "asOf": "2026-11-02",
+   "overall": "88.97",
+   "adoption": "72.42",
+   "engagement": null,
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "d4d5300eb68b7ce5fc71f3213474860a190f0d5aa5298bc4ff9d64820f7a1a04"
+  },
+  {
+   "accountId": "seed95ab001082d878f964201",
+   "asOf": "2026-11-02",
+   "overall": "93.12",
+   "adoption": "90.43",
+   "engagement": "84.98",
+   "support": "100",
+   "relationship": "94.64",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "f05e50345aaf7948e8bdea382ad80ebf10d20a77ee0b67d618b7f22285cf54b2"
+  },
+  {
+   "accountId": "seed984368c00545c2fda0301",
+   "asOf": "2026-11-02",
+   "overall": "100",
+   "adoption": "100",
+   "engagement": null,
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "c663e6e12ad1cb1dcf308d2809813f601c36acc55cb632d13471a9848b038d50"
+  },
+  {
+   "accountId": "seed98817f3bf62cfa548bc54",
+   "asOf": "2026-11-02",
+   "overall": "99.7",
+   "adoption": "99.25",
+   "engagement": null,
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "fcb17310c46e1dc8fab4c71bc917f22c9129359156f81baed540f899b5906ed1"
+  },
+  {
+   "accountId": "seed9b7340fcced62466ecd5a",
+   "asOf": "2026-11-02",
+   "overall": "93.89",
+   "adoption": "88.5",
+   "engagement": "86.36",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "8e4aef78cddf16556d9bcfb756acd0a7900ff1b4e8df0615d3ea613bd165bbb5"
+  },
+  {
+   "accountId": "seed9c498974c8db372028769",
+   "asOf": "2026-11-02",
+   "overall": "96.25",
+   "adoption": "93.5",
+   "engagement": "100",
+   "support": "100",
+   "relationship": "92.86",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "d548cb5c41088f3472642063dac0a5762e235c90fc99c468c3512098688f0a96"
+  },
+  {
+   "accountId": "seedae5acbe092c18772917e5",
+   "asOf": "2026-11-02",
+   "overall": "99.63",
+   "adoption": "100",
+   "engagement": "97.8",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "f2fc4372f6225a641f120d5cea099aebc76438fbbacee2b8471c46e407f75cf0"
+  },
+  {
+   "accountId": "seedaf9645a4d488f20d6bd48",
+   "asOf": "2026-11-02",
+   "overall": "98.41",
+   "adoption": "100",
+   "engagement": "100",
+   "support": "100",
+   "relationship": "92.86",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "eae7c4eba95291112455ca669f4dc1908efd2809b00b288f28d0287eca983383"
+  },
+  {
+   "accountId": "seedb33f97f8ef80486667860",
+   "asOf": "2026-11-02",
+   "overall": "95.43",
+   "adoption": "86.28",
+   "engagement": "100",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "4e0cd42f6483b992a0a5fcc71afe8a84455b84c920c31e81bb248b7fe5ee941a"
+  },
+  {
+   "accountId": "seedb9384bd9cef6163e35201",
+   "asOf": "2026-11-02",
+   "overall": "94.63",
+   "adoption": "88.66",
+   "engagement": "100",
+   "support": "100",
+   "relationship": "92.86",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "4145065aa279288fd3e14f793f9fff5f2ee4bab78bd25897075abeb49af26fbd"
+  },
+  {
+   "accountId": "seedba8a01641b2bb60958c9d",
+   "asOf": "2026-11-02",
+   "overall": "95.37",
+   "adoption": "91.83",
+   "engagement": "98.55",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "85",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "52add3bd8ef2e7dff5ecb17b3ef393a0e59694b0d5aa3a358025a7dc175c503d"
+  },
+  {
+   "accountId": "seedbd966f2c1e7a97bbc58fd",
+   "asOf": "2026-11-02",
+   "overall": "99.04",
+   "adoption": "97.13",
+   "engagement": "100",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "1d094301f8ec24d32907efe47ef22eb59d04ca7f9ab0101f454a30db470e97ac"
+  },
+  {
+   "accountId": "seedbefe21928e6fa14e31052",
+   "asOf": "2026-11-02",
+   "overall": "99.87",
+   "adoption": "99.67",
+   "engagement": null,
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "7e7aef5f60e3a53038370a1591d01e2bf5f9621626b947f28912a86daf318093"
+  },
+  {
+   "accountId": "seedc8219269568879beebca0",
+   "asOf": "2026-11-02",
+   "overall": "98.94",
+   "adoption": "99.25",
+   "engagement": "95.14",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "6c0394f0f04cf61f61e647083bf2732d61a11b4667a84dd940a9c96094f04b71"
+  },
+  {
+   "accountId": "seedcd190a3a61b3507b68fe1",
+   "asOf": "2026-11-02",
+   "overall": "93.04",
+   "adoption": "99.25",
+   "engagement": "59.74",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "e838fd1105726d05d4181eab31b8df790d9f01d42a986bf2aa463da04a951070"
+  },
+  {
+   "accountId": "seedcd96efe4a9a42ccb3214d",
+   "asOf": "2026-11-02",
+   "overall": "89.39",
+   "adoption": "88.53",
+   "engagement": "100",
+   "support": "76.4",
+   "relationship": "94.64",
+   "commercial": "85",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "939598219fa02166de47686b107338c648cebd1910831bb8f665cca125e2a7b2"
+  },
+  {
+   "accountId": "seedcefcf0989cc4543d075f6",
+   "asOf": "2026-11-02",
+   "overall": "96.93",
+   "adoption": "96.63",
+   "engagement": "95",
+   "support": "100",
+   "relationship": "95",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "e8ab58bb2c31923e7d1b5641d84827dbeb411d33d425b7ba9f68de36d5a3cfa2"
+  },
+  {
+   "accountId": "seedcf8aa86b5032952f89620",
+   "asOf": "2026-11-02",
+   "overall": "95.43",
+   "adoption": "86.28",
+   "engagement": "100",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "05abaf12df60fdfcd140e11dd7f8d5184aa44ff9828e88f79e86b34735b18169"
+  },
+  {
+   "accountId": "seedd32349451a3fdd679b6a1",
+   "asOf": "2026-11-02",
+   "overall": "100",
+   "adoption": "100",
+   "engagement": "100",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "f16833faff28cb08a1f4dd281965f607c82bcdd32df2a05ff1a2041083273689"
+  },
+  {
+   "accountId": "seedd55c5199ce5e13f14108f",
+   "asOf": "2026-11-02",
+   "overall": "100",
+   "adoption": "100",
+   "engagement": null,
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "dd1d9eb2eaef9b863283281b425adefbf026582fca343ec058ddd6cb5b7b9a8b"
+  },
+  {
+   "accountId": "seede45ae80f1e1c9c4c49652",
+   "asOf": "2026-11-02",
+   "overall": "93.16",
+   "adoption": "100",
+   "engagement": "100",
+   "support": "68.5",
+   "relationship": "92.86",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "132a33eda911f5b6de039e7f3ded94cc3b4b9daa3e81b33812dbf58d28484ca0"
+  },
+  {
+   "accountId": "seede52d478933ebdf3ed53a2",
+   "asOf": "2026-11-02",
+   "overall": "99.4",
+   "adoption": "98.5",
+   "engagement": null,
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "d143ee5657be7887b8f4d7489c20a1edc62e3e767e97ce3329433b128174dbe4"
+  },
+  {
+   "accountId": "seede90b92e7ba4d6f9b44302",
+   "asOf": "2026-11-02",
+   "overall": "99.89",
+   "adoption": "99.67",
+   "engagement": "100",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "21363fa69132de8e46a5b72eee376f32cb411c4f7e7572543d12ea36bc85dba5"
+  },
+  {
+   "accountId": "seedea391d8659ff348aa5470",
+   "asOf": "2026-11-02",
+   "overall": "92.69",
+   "adoption": "95.22",
+   "engagement": "65.71",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "d92de02ff8653ea5bfbacee2ac4f3e490a485dfb1ec150e558d284bc9b06cab2"
+  },
+  {
+   "accountId": "seedea662ce1a57fad332bff9",
+   "asOf": "2026-11-02",
+   "overall": "85.62",
+   "adoption": "73.64",
+   "engagement": null,
+   "support": "100",
+   "relationship": null,
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "d2378443a80332c6b3fa3497588e6ea46b4b88c1dd76b107cff1b101b60d8c1a"
+  },
+  {
+   "accountId": "seedebcfc885e82f8a6267dad",
+   "asOf": "2026-11-02",
+   "overall": "99.33",
+   "adoption": "98",
+   "engagement": "100",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "d4bd992c2ed9834c5265be6534bcc2e975d5af2ec9c8eabc64681b3e0a97e1d3"
+  },
+  {
+   "accountId": "seedf00fee79dad2d2774b05c",
+   "asOf": "2026-11-02",
+   "overall": "85.32",
+   "adoption": "73.09",
+   "engagement": null,
+   "support": "100",
+   "relationship": null,
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "cc167fd3d32061c0e24e3b671f30324437dbe14e3efe89a520d054b0376574bb"
+  },
+  {
+   "accountId": "seedf4b888d96fa58ee873ab7",
+   "asOf": "2026-11-02",
+   "overall": "95.49",
+   "adoption": "95.22",
+   "engagement": "92.5",
+   "support": "100",
+   "relationship": "100",
+   "commercial": "85",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "84cb1db33e734d93717119a734b1f98985127cc0aede421aeac6129e1d7cde29"
+  },
+  {
+   "accountId": "seedfb80b78dc26e752b19c10",
+   "asOf": "2026-11-02",
+   "overall": "94.1",
+   "adoption": "89.19",
+   "engagement": null,
+   "support": "100",
+   "relationship": null,
+   "commercial": "100",
+   "sentiment": null,
+   "riskLevel": "HEALTHY",
+   "inputsHash": "43c69b580ca44f44f4b73c3cfa7c8a211142134ca2ffbcbf592335ec913eecbc"
+  }
+ ],
+ "renewals": [
+  {
+   "accountId": "seed0008a2f5c78a0a0bac614",
+   "contractId": "seed21ca1ceaaa9b2c0f14c5d",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed021829fab84087f4fead2",
+   "contractId": "seeddcf369646c686f0432c3e",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed173e2ddd2f70f97dc55e7",
+   "contractId": "seed1f3a85fa4d33fc9cfe3f3",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed17b244c66ee01dd42786c",
+   "contractId": "seedab3f1ebd4b64dadf3fe25",
+   "confidence": 70,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed1ed143eed9e970b139d25",
+   "contractId": "seedec50d01f4fb075b088e63",
+   "confidence": 70,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed24cb6cc30d220a76639b0",
+   "contractId": "seed70ad94af2e353a639d277",
+   "confidence": 60,
+   "confidenceBand": "MEDIUM"
+  },
+  {
+   "accountId": "seed2748df13811a7198a7271",
+   "contractId": "seede69cef9a8008236364c37",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed2b81fbb3b1e8ea6b5d8c5",
+   "contractId": "seed64ba3c3d06620a895b8c0",
+   "confidence": 70,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed2f503a50dd43cea1e384d",
+   "contractId": "seed05884a1185575dc97e997",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed3328d65ba8d6742562950",
+   "contractId": "seedd0befddb9ad023f0dc118",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed3626a0a28da113b6c7ea7",
+   "contractId": "seed33fd3bf7e19fdc0a9198d",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed363d2ae6172a9c882a1b4",
+   "contractId": "seed50b51b3c1973cc204485f",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed3b5cea852e6f91170a7d8",
+   "contractId": "seedccfa383c48167934a29f4",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed42f2eaf9bf730dbbdefd2",
+   "contractId": "seed63b20e95719b3e6f78cce",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed49a558637cdfcb61745c7",
+   "contractId": "seed34b8124f91492563db645",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed4acb32a38dcbe88a44d61",
+   "contractId": "seed233dd1cc641d1646a810d",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed524d80f090847f5a61540",
+   "contractId": "seed9dda6e3843c3c12925e06",
+   "confidence": 70,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed5797f0dbfb518d5e0c906",
+   "contractId": "seed67d8cb4639139ac115b7b",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed5b72f3fdab39dc1be5865",
+   "contractId": "seed488375f013c66958e7a60",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed6239b0ed07c89cdb96804",
+   "contractId": "seedcf814dcae933674d3ce4e",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed62f09b8595f2ca0595c0b",
+   "contractId": "seed85eb33109cf16b067a0d3",
+   "confidence": 60,
+   "confidenceBand": "MEDIUM"
+  },
+  {
+   "accountId": "seed661a7268fd8896aa3cf20",
+   "contractId": "seed2508e465cf4778b25c2e3",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed723973fd75d31395eefc6",
+   "contractId": "seed7cf0fb816fdac9eff0267",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed784ddc637d0ef29fc2850",
+   "contractId": "seed80c7cb3453606a0812d68",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed786f9c75e3167cc6fe307",
+   "contractId": "seedf1bc8e35981b543205d3d",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed7a3cca711fb6a2446507c",
+   "contractId": "seed8d32a8ef254916f0efcbc",
+   "confidence": 70,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed805dbdd3ba87e561b7322",
+   "contractId": "seedd1e0b4b90f2efdb88546f",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed8201a171f4001ed8ae95d",
+   "contractId": "seedbdad0b6d181ad3e098e32",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed839fdb8bb1f800d958175",
+   "contractId": "seed1cdb96981ea2e47a8c1c8",
+   "confidence": 60,
+   "confidenceBand": "MEDIUM"
+  },
+  {
+   "accountId": "seed885a85604fd816eeb7900",
+   "contractId": "seedbccd726a41dd85676f168",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed8916372b332e58768aec3",
+   "contractId": "seed87cbeb6c7009a4d040bed",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed918789ce212c27dbe6b44",
+   "contractId": "seedc6ed75ca1ad8fed45f75d",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed95ab001082d878f964201",
+   "contractId": "seed215ed420c9f34df2f4e0a",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed984368c00545c2fda0301",
+   "contractId": "seed98d206e3ffc58c963ab5b",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed98817f3bf62cfa548bc54",
+   "contractId": "seed5ca06e9f1aaa573c63e63",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seed9b7340fcced62466ecd5a",
+   "contractId": "seedc2b6dc9adaddc2b7c410d",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seedae5acbe092c18772917e5",
+   "contractId": "seed5bcc7140bbefe3a55bae7",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seedb33f97f8ef80486667860",
+   "contractId": "seed5f128353428ce4dbbe935",
+   "confidence": 70,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seedb9384bd9cef6163e35201",
+   "contractId": "seed773885c869ac7885000f6",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seedba8a01641b2bb60958c9d",
+   "contractId": "seedd0bf04bbfb45d03daf6f7",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seedbd966f2c1e7a97bbc58fd",
+   "contractId": "seedaebf02106e635b18aef84",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seedbefe21928e6fa14e31052",
+   "contractId": "seed7b54090e1255d3bf7b6c2",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seedc8219269568879beebca0",
+   "contractId": "seed327913e0ce1d3beabe51d",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seedcd190a3a61b3507b68fe1",
+   "contractId": "seed673badc13e8a03fae7979",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seedcd96efe4a9a42ccb3214d",
+   "contractId": "seed8fc6f8a58ece7457558e0",
+   "confidence": 70,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seedcefcf0989cc4543d075f6",
+   "contractId": "seed842ee6190de3bcabe5895",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seedcf8aa86b5032952f89620",
+   "contractId": "seeda8b1c752f1685bab919c9",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seedd32349451a3fdd679b6a1",
+   "contractId": "seed1cdcfe5d606e4bd0ada30",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seedd55c5199ce5e13f14108f",
+   "contractId": "seed8be2cab9fa38824c4eece",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seede45ae80f1e1c9c4c49652",
+   "contractId": "seed5edf0dc52d15c7ca7d467",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seede52d478933ebdf3ed53a2",
+   "contractId": "seed527512e566e5a135f6230",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seede90b92e7ba4d6f9b44302",
+   "contractId": "seede842c009aa13fcd065d96",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seedea391d8659ff348aa5470",
+   "contractId": "seeda454c958dd3c1142ac38b",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seedea662ce1a57fad332bff9",
+   "contractId": "seedd06fb5f0b1a345a889cb7",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seedebcfc885e82f8a6267dad",
+   "contractId": "seed321a8cc6fef489ebb72f3",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seedf00fee79dad2d2774b05c",
+   "contractId": "seeda078c8528ae0af5d08326",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seedf4b888d96fa58ee873ab7",
+   "contractId": "seeda304768539f93e221ea4b",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  },
+  {
+   "accountId": "seedfb80b78dc26e752b19c10",
+   "contractId": "seede2a44d90168fc7fcfe823",
+   "confidence": 80,
+   "confidenceBand": "HIGH"
+  }
+ ],
+ "signals": [
+  {
+   "_count": 1,
+   "ruleKey": "champion_silent",
+   "status": "OPEN"
+  },
+  {
+   "_count": 1,
+   "ruleKey": "contact_bounced_or_left",
+   "status": "OPEN"
+  },
+  {
+   "_count": 2,
+   "ruleKey": "email_engagement_stops",
+   "status": "OPEN"
+  },
+  {
+   "_count": 1,
+   "ruleKey": "fast_growth",
+   "status": "OPEN"
+  },
+  {
+   "_count": 4,
+   "ruleKey": "key_feature_stopped",
+   "status": "OPEN"
+  },
+  {
+   "_count": 1,
+   "ruleKey": "new_decision_maker",
+   "status": "OPEN"
+  },
+  {
+   "_count": 1,
+   "ruleKey": "new_team_using",
+   "status": "OPEN"
+  },
+  {
+   "_count": 4,
+   "ruleKey": "onboarding_key_feature_unused",
+   "status": "OPEN"
+  },
+  {
+   "_count": 1,
+   "ruleKey": "onboarding_no_activity",
+   "status": "OPEN"
+  },
+  {
+   "_count": 4,
+   "ruleKey": "onboarding_stall",
+   "status": "OPEN"
+  },
+  {
+   "_count": 3,
+   "ruleKey": "onboarding_step_overdue_customer",
+   "status": "OPEN"
+  },
+  {
+   "_count": 1,
+   "ruleKey": "onboarding_ttv_late",
+   "status": "OPEN"
+  },
+  {
+   "_count": 1,
+   "ruleKey": "outside_event",
+   "status": "OPEN"
+  },
+  {
+   "_count": 2,
+   "ruleKey": "payment_failed",
+   "status": "OPEN"
+  },
+  {
+   "_count": 2,
+   "ruleKey": "power_user_quiet",
+   "status": "OPEN"
+  },
+  {
+   "_count": 3,
+   "ruleKey": "renewal_window_30",
+   "status": "OPEN"
+  },
+  {
+   "_count": 4,
+   "ruleKey": "renewal_window_60",
+   "status": "OPEN"
+  },
+  {
+   "_count": 4,
+   "ruleKey": "renewal_window_90",
+   "status": "OPEN"
+  },
+  {
+   "_count": 1,
+   "ruleKey": "seats_near_limit",
+   "status": "OPEN"
+  },
+  {
+   "_count": 10,
+   "ruleKey": "seats_unused",
+   "status": "OPEN"
+  },
+  {
+   "_count": 1,
+   "ruleKey": "ticket_escalated",
+   "status": "OPEN"
+  },
+  {
+   "_count": 1,
+   "ruleKey": "ticket_open_too_long",
+   "status": "OPEN"
+  },
+  {
+   "_count": 2,
+   "ruleKey": "usage_drop_vs_normal",
+   "status": "OPEN"
+  }
+ ]
+}

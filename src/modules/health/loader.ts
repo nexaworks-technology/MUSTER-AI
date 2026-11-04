@@ -295,8 +295,12 @@ export async function loadBundles(
             date: local(m.sentAt),
             fromContactId: m.fromContactId,
             isBounce: !m.fromContactId && BOUNCE.test(m.fromAddress ?? ""),
-            // Only when present, so unlabelled messages hash exactly as before (inputsHash).
-            ...(m.sentimentLabel ? { sentimentLabel: m.sentimentLabel } : {}),
+            // Only when present, so unlabelled messages hash exactly as before (inputsHash), and
+            // only for ticket messages: the Sentiment pillar reads no other channel (M9 D4), so a
+            // label on an email must never change an input hash or look like a scoring input.
+            ...(m.sentimentLabel && m.conversation.channel === "TICKET"
+              ? { sentimentLabel: m.sentimentLabel }
+              : {}),
           }))
         : null,
       workspaceHasTickets: anyTicket !== null,

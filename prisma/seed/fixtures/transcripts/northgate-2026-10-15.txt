@@ -20,13 +20,13 @@ Sam Reyes: It would help to have a short checklist for setting up a new site. We
 Leo Marsh: Let's take a quick look at which reports are opened most often. We released a small update to filters last week, so let me show you where it lives.
 Dora Lindqvist: The new starters found the training video useful last month. I don't have anything else from my side, this was a useful session.
 Leo Marsh: That makes sense, and it matches what I saw in the workspace this morning. I'd suggest we keep this call monthly, unless you'd prefer a different rhythm.
+Dora Lindqvist: We need to see the API limits fixed before we sign again.
 Dora Lindqvist: Thanks for setting this up, the timing works well for us this week. I don't have anything else from my side, this was a useful session.
 Leo Marsh: Our product team publishes release notes in the help centre each month. New team members get access through the invite page in settings.
 Sam Reyes: The team keeps a list of new people in our shared drive. Can you remind me where the setting for default date ranges is?
 Leo Marsh: New team members get access through the invite page in settings. A sandbox view lets analysts try changes without affecting anyone.
 Sam Reyes: Our IT colleague manages the access settings on our side. The analysts asked whether they can schedule a view to go to a shared mailbox.
 Leo Marsh: Our product team publishes release notes in the help centre each month. Before we start, is there anything you'd like to make sure we cover in this call?
-Dora Lindqvist: We need to see the API limits fixed before we sign again.
 Sam Reyes: The analysts asked whether they can schedule a view to go to a shared mailbox. I'd like to understand how the filters work when we combine several sites.
 Leo Marsh: Let me share my screen so we can look at the reporting setup together. Let's take a quick look at which reports are opened most often.
 Dora Lindqvist: Could we get a copy of the slides from the training session? We changed how we name the folders, which made things easier to find.
@@ -39,6 +39,7 @@ Dora Lindqvist: Our IT colleague manages the access settings on our side. We're 
 Leo Marsh: How has the team found the new folder structure since you reorganised it? I'd suggest we keep this call monthly, unless you'd prefer a different rhythm.
 Sam Reyes: Our IT colleague manages the access settings on our side. We're happy with how the dashboards look after the clean-up.
 Leo Marsh: Is the current layout working for the people who read the reports each morning? That makes sense, and it matches what I saw in the workspace this morning.
+Dora Lindqvist: Budget is tight next year, so every tool is being reviewed.
 Sam Reyes: Our IT colleague manages the access settings on our side. Can you remind me where the setting for default date ranges is?
 Leo Marsh: Let me share my screen so we can look at the reporting setup together. We released a small update to filters last week, so let me show you where it lives.
 Dora Lindqvist: The shared views have saved us some back and forth on email. We changed how we name the folders, which made things easier to find.
@@ -51,13 +52,13 @@ Sam Reyes: I'd like to understand how the filters work when we combine several s
 Leo Marsh: The help centre has a good article on sharing views. Shall we spend the last few minutes on questions from the wider team?
 Sam Reyes: We had a question about permissions for read-only users. I don't have anything else from my side, this was a useful session.
 Leo Marsh: Our product team publishes release notes in the help centre each month. The notes from these calls go into the shared folder as usual.
-Dora Lindqvist: Budget is tight next year, so every tool is being reviewed.
 Sam Reyes: The new starters found the training video useful last month. Our analysts mostly work in the detailed tables and export into their own models.
 Leo Marsh: Let me make a note of that so we can come back to it next time. There is a short guide in the help centre for people who joined recently.
 Sam Reyes: Can you remind me where the setting for default date ranges is? I'd like to understand how the filters work when we combine several sites.
 Leo Marsh: A sandbox view lets analysts try changes without affecting anyone. The notes from these calls go into the shared folder as usual.
 Sam Reyes: That makes sense to me. I'd like to understand how the filters work when we combine several sites.
 Leo Marsh: Thanks, that's really helpful context for me. That's a good point, and other teams in your industry set it up the same way.
+Leo Marsh: We'll have the API limit increase live by October 30.
 Sam Reyes: We're still deciding how to organise reports by region versus by product line. We added a few people from the regional office, so they're still finding their way around.
 Leo Marsh: Let's take a quick look at which reports are opened most often. How has the team found the new folder structure since you reorganised it?
 Sam Reyes: The alert for late shipments is the one we look at first every day. I don't have anything else from my side, this was a useful session.
