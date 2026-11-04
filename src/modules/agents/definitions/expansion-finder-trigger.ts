@@ -17,7 +17,7 @@ export async function sweepExpansionAgents(ctx: TenantContext, deps: ExecutorDep
       status: { in: ["OPEN", "IN_PROGRESS"] },
       account: { is: { archivedAt: null, lifecycleStage: { not: "LOST" } } },
     },
-    select: { id: true },
+    select: { id: true, accountId: true },
     orderBy: [{ createdAt: "asc" }, { id: "asc" }],
     take: SWEEP_CAP * 2,
   });
@@ -34,10 +34,20 @@ export async function sweepExpansionAgents(ctx: TenantContext, deps: ExecutorDep
       })
     ).map((r) => r.triggerId),
   );
+  // D10: Sweeps skip accounts that have an active published play run
+  const activePlayRuns = await db.playRun.findMany({
+    where: {
+      accountId: { in: open.map((o) => o.accountId) },
+      status: { in: ["RUNNING", "WAITING"] },
+    },
+    select: { accountId: true },
+  });
+  const playAccounts = new Set(activePlayRuns.map((r) => r.accountId));
+
   let considered = 0;
   let ran = 0;
   for (const o of open) {
-    if (done.has(o.id)) continue;
+    if (done.has(o.id) || playAccounts.has(o.accountId)) continue;
     if (++considered > SWEEP_CAP) break;
     const r = await runAgent(
       ctx,

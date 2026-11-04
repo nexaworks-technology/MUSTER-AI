@@ -33,6 +33,14 @@ import {
 import { escalateOverdueTasks } from "@/modules/tasks/service";
 import { rebuildWorkspaceToday } from "@/modules/today/service";
 import { createPipelineProcessors } from "@/modules/signals/service";
+import {
+  processPlayApprovalDecided,
+  processPlayEnter,
+  processPlayNoteCreated,
+  processPlaySignalOpened,
+  processPlayStallSweep,
+  processPlayStep,
+} from "@/modules/plays/runner";
 
 const pipeline = createPipelineProcessors({ clock: businessClock });
 
@@ -168,6 +176,26 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
       return out;
     },
   },
+  plays: {
+    async "plays.enter"(job) {
+      return processPlayEnter(job.data);
+    },
+    async "plays.step"(job) {
+      return processPlayStep(job.data);
+    },
+    async "plays.approvalDecided"(job) {
+      return processPlayApprovalDecided(job.data);
+    },
+    async "plays.noteCreated"(job) {
+      return processPlayNoteCreated(job.data);
+    },
+    async "plays.signalOpened"(job) {
+      return processPlaySignalOpened(job.data);
+    },
+    async "plays.stallSweep"(job) {
+      return processPlayStallSweep(job.data);
+    },
+  },
 };
 
 /** Repeating maintenance jobs, registered idempotently at worker start. */
@@ -191,6 +219,7 @@ export const SCHEDULES = [
   { queue: "maintenance", id: "task-escalation", job: "tasks.escalateOverdue", everyMs: 3_600_000 },
   { queue: "outcomes", id: "outcomes-checkpoint", job: "outcomes.checkpoint", everyMs: 21_600_000 },
   { queue: "maintenance", id: "today-rebuild", job: "today.rebuildAll", everyMs: 3_600_000 },
+  { queue: "plays", id: "plays-stall-sweep", job: "plays.stallSweep", everyMs: 3_600_000 },
 ] as const;
 
 export function processorFor(queue: QueueName): Processor | undefined {

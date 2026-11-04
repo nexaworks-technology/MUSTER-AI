@@ -46,10 +46,21 @@ export async function sweepRenewalAgents(ctx: TenantContext, deps: ExecutorDeps 
       })
     ).map((r) => r.triggerId),
   );
+  // D10: Sweeps skip accounts that have an active published play run
+  const activePlayRuns = await db.playRun.findMany({
+    where: {
+      accountId: { in: signals.map((s) => s.accountId) },
+      status: { in: ["RUNNING", "WAITING"] },
+    },
+    select: { accountId: true },
+  });
+  const playAccounts = new Set(activePlayRuns.map((r) => r.accountId));
+
   let considered = 0;
   let asked = 0;
   const seen = new Set<string>();
   for (const s of signals) {
+    if (playAccounts.has(s.accountId)) continue;
     // dedupeKey: <rule>:<accountId>:<contractId>:<renewalDate>
     const [, , contractId, date] = s.dedupeKey.split(":");
     const renewal = renewals.find(

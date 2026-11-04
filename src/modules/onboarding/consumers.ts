@@ -190,9 +190,18 @@ export async function sweepOnboardingAgents(ctx: TenantContext, deps: ExecutorDe
       dueDate: utcMidnight(asOf),
       plan: { is: { status: "ACTIVE" } },
     },
-    select: { id: true, planId: true },
+    select: { id: true, planId: true, plan: { select: { accountId: true } } },
     take: SWEEP_CAP,
   });
+  // D10: Sweeps skip accounts that have an active published play run
+  const activePlayRuns = await db.playRun.findMany({
+    where: {
+      status: { in: ["RUNNING", "WAITING"] },
+    },
+    select: { accountId: true },
+  });
+  const playAccounts = new Set(activePlayRuns.map((r) => r.accountId));
+
   const ranSteps = new Set(
     (
       await db.agentRun.findMany({
@@ -206,7 +215,7 @@ export async function sweepOnboardingAgents(ctx: TenantContext, deps: ExecutorDe
     ).map((r) => r.triggerId),
   );
   for (const s of due) {
-    if (ranSteps.has(s.id)) continue;
+    if (ranSteps.has(s.id) || playAccounts.has(s.plan.accountId)) continue;
     const r = await runAgent(
       ctx,
       onboardingManager,
@@ -243,7 +252,7 @@ export async function sweepOnboardingAgents(ctx: TenantContext, deps: ExecutorDe
   const seenAccounts = new Set<string>();
   for (const s of signals) {
     // One coaching run per account per sweep, however many signals it has open.
-    if (ranSignals.has(s.id) || seenAccounts.has(s.accountId)) continue;
+    if (ranSignals.has(s.id) || seenAccounts.has(s.accountId) || playAccounts.has(s.accountId)) continue;
     seenAccounts.add(s.accountId);
     const r = await runAgent(
       ctx,
