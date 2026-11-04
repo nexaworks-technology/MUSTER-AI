@@ -16,6 +16,22 @@
           "properties": {}
         }
       }
+    },
+    {
+      "note": "Expansion export for Brightwell: a new deal on the company (fake transport only).",
+      "request": {
+        "method": "POST",
+        "path": "/crm/v3/objects/deals",
+        "bodyIncludes": "dealname"
+      },
+      "response": {
+        "status": 201,
+        "headers": {},
+        "body": {
+          "id": "d-5001",
+          "properties": {}
+        }
+      }
     }
   ]
 }

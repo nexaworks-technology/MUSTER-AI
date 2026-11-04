@@ -13,6 +13,22 @@
         "headers": {},
         "body": ""
       }
+    },
+    {
+      "note": "Expansion export for Halden: a new opportunity (fake transport only).",
+      "request": {
+        "method": "POST",
+        "path": "/services/data/v61.0/sobjects/Opportunity",
+        "bodyIncludes": "StageName"
+      },
+      "response": {
+        "status": 201,
+        "headers": {},
+        "body": {
+          "id": "0065f00000XPNS1",
+          "success": true
+        }
+      }
     }
   ]
 }

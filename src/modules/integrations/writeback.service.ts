@@ -6,7 +6,8 @@ import { env } from "@/lib/config/env";
 import { scopedDb } from "@/lib/db/scoped";
 import type { Actor } from "@/modules/accounts/service";
 import { requestApproval } from "@/modules/approvals/service";
-import type { IntegrationAdapter } from "./adapter";
+import { formatMoney, minorDigits } from "@/lib/money";
+import { EXPANSION_EXPORT_FIELD, type ExportRecord, type IntegrationAdapter } from "./adapter";
 import { adapterFor } from "./adapters";
 import { loadConnection, type ConnectionDeps } from "./connection";
 import { PROVIDER_NAMES, recordSourceFor } from "./providers";
@@ -62,6 +63,12 @@ async function audit(
   });
 }
 
+/** Fields the adapter declares: updates to existing records and (M7 B2) exports of new ones. */
+const declaredFields = (adapter: IntegrationAdapter<unknown>) => [
+  ...(adapter.writeBack?.fields ?? []),
+  ...(adapter.writeBack?.exports ?? []),
+];
+
 /** The gate itself. Returns the reason it refuses, or null. */
 function gate(
   integration: Integration,
@@ -74,7 +81,7 @@ function gate(
     return `Write-back is off for ${name}, so nothing was changed there.`;
   if (!integration.writeBackFields.includes(field))
     return `Write-back to ${name} is not allowed for this field, so nothing was changed there.`;
-  if (!adapter.writeBack?.fields.some((f) => f.key === field))
+  if (!declaredFields(adapter).some((f) => f.key === field))
     return `${name} does not support writing this field.`;
   return null;
 }
@@ -128,7 +135,9 @@ export async function requestWriteBack(
     });
     throw new WriteBackRefusedError(refused);
   }
-  const label = adapter.writeBack!.fields.find((f) => f.key === change.field)!.label.toLowerCase();
+  const label = declaredFields(adapter)
+    .find((f) => f.key === change.field)!
+    .label.toLowerCase();
   const approval = await requestApproval(who, {
     accountId: change.accountId,
     kind: "WRITE_BACK",
@@ -157,6 +166,61 @@ export async function requestWriteBack(
     },
   );
   return { status: "PENDING_APPROVAL" as const, approvalId: approval.id };
+}
+
+const day = (d: Date) => d.toISOString().slice(0, 10);
+
+/** Exact decimal text of minor units (no floating point), e.g. 1_080_000n USD → "10800.00". */
+function decimalString(minor: bigint, currency: string): string {
+  const digits = minorDigits(currency);
+  if (digits === 0) return minor.toString();
+  const unit = 10n ** BigInt(digits);
+  return `${minor / unit}.${(minor % unit).toString().padStart(digits, "0")}`;
+}
+
+/**
+ * The CRM record an approved expansion export creates, built from the opportunity and the signals
+ * that raised it. The amount is the deterministic estimate (their own price) or absent: it is never
+ * invented and never 0, and the text says it is an estimate and how it was worked out.
+ */
+async function exportRecord(
+  who: Who,
+  opportunityId: string,
+  accountId: string,
+): Promise<ExportRecord> {
+  const db = scopedDb(who);
+  const opp = await db.expansionOpportunity.findUniqueOrThrow({
+    where: { workspaceId_id: { workspaceId: who.workspaceId, id: opportunityId } },
+    include: { account: { select: { name: true } } },
+  });
+  if (opp.accountId !== accountId)
+    throw new WriteBackRefusedError("That opportunity belongs to another account.");
+  const signals = await db.signal.findMany({
+    where: { id: { in: opp.signalIds } },
+    select: { title: true, ruleKey: true, values: true },
+    orderBy: { id: "asc" },
+  });
+  const over = signals.find(
+    (x) => x.ruleKey === "seats_near_limit" && "seats" in (x.values as object),
+  );
+  const v = (over?.values ?? {}) as { used?: number; seats?: number };
+  const extra = typeof v.used === "number" && typeof v.seats === "number" ? v.used - v.seats : null;
+  const estimate =
+    opp.estimateMinor !== null && opp.currency
+      ? extra && extra > 0 && opp.estimateMethod === "SEATS_OVER_LIMIT"
+        ? `Estimate, not a quote: ${extra} seats × ${formatMoney({ minor: opp.estimateMinor / BigInt(extra), currency: opp.currency })} per seat from the customer's own subscription = ${formatMoney({ minor: opp.estimateMinor, currency: opp.currency })} a year.`
+        : `Estimate, not a quote: ${formatMoney({ minor: opp.estimateMinor, currency: opp.currency })} a year.`
+      : "No estimate: no price on file for this customer.";
+  const amount =
+    opp.estimateMinor !== null && opp.currency
+      ? decimalString(opp.estimateMinor, opp.currency)
+      : null;
+  return {
+    name: `Expansion (estimate): ${opp.account.name}`,
+    description: `Found by NexaWorks from the customer's usage. ${signals.map((x) => x.title).join("; ")}. ${estimate}`,
+    amount,
+    closeDate: day(opp.nextStepDate ?? new Date(opp.createdAt.getTime() + 90 * 86_400_000)),
+  };
 }
 
 const approvedPayload = z.object({
@@ -232,13 +296,24 @@ export async function executeApprovedWriteBack(
       !(deps.writeBackLive ?? env().WRITE_BACK_LIVE === "true")
     )
       notLive = `Writing to ${name} for real is switched off for this deployment (WRITE_BACK_LIVE is not set), so nothing was changed there.`;
-    else
-      await adapter.writeBack!.push(context, {
+    else {
+      const record =
+        change.field === EXPANSION_EXPORT_FIELD
+          ? await exportRecord(who, change.value, change.accountId)
+          : undefined;
+      const pushed = await adapter.writeBack!.push(context, {
         field: change.field,
         accountId: change.accountId,
         externalId: ids.externalId,
         value: ids.value,
+        ...(record ? { record } : {}),
       });
+      if (change.field === EXPANSION_EXPORT_FIELD && pushed)
+        await db.expansionOpportunity.update({
+          where: { workspaceId_id: { workspaceId: who.workspaceId, id: change.value } },
+          data: { crmExternalId: pushed.externalId },
+        });
+    }
   } catch (err) {
     const d = adapter.describeError(err);
     await audit(
@@ -284,7 +359,7 @@ export async function setWriteBack(
   const db = scopedDb(actor);
   const integration = await db.integration.findUniqueOrThrow({ where: { id: integrationId } });
   const adapter = (deps.adapter ?? adapterFor)(integration.provider);
-  const declared = new Set(adapter.writeBack?.fields.map((f) => f.key) ?? []);
+  const declared = new Set(declaredFields(adapter).map((f) => f.key));
   const fields = input.enabled ? [...new Set(input.fields)] : [];
   if (fields.some((f) => !declared.has(f)))
     throw new WriteBackRefusedError(
@@ -306,7 +381,7 @@ export async function setWriteBack(
         targetType: "Integration",
         targetId: integrationId,
         summary: input.enabled
-          ? `Allowed write-back to ${PROVIDER_NAMES[integration.provider]} for: ${fields.map((f) => adapter.writeBack!.fields.find((x) => x.key === f)!.label).join(", ")}`
+          ? `Allowed write-back to ${PROVIDER_NAMES[integration.provider]} for: ${fields.map((f) => declaredFields(adapter).find((x) => x.key === f)!.label).join(", ")}`
           : `Turned write-back to ${PROVIDER_NAMES[integration.provider]} off`,
         before: { enabled: integration.writeBackEnabled, fields: integration.writeBackFields },
         after: { enabled: input.enabled, fields },

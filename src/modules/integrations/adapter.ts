@@ -74,7 +74,22 @@ export interface WriteBackChange {
   externalId: string;
   /** Provider-side value (e.g. a HubSpot owner id). */
   value: string;
+  /** M7 B2: the new record to create, for an export field (never set for a field update). */
+  record?: ExportRecord;
 }
+
+/** What an export creates in the customer's CRM: a deal / opportunity, labelled an estimate. */
+export interface ExportRecord {
+  name: string;
+  description: string;
+  /** Major units as a decimal string, or null when there is no estimate (never 0). */
+  amount: string | null;
+  /** ISO date the CRM needs as a close date. */
+  closeDate: string;
+}
+
+/** The one export field: a new expansion opportunity in the CRM (M7 B2). */
+export const EXPANSION_EXPORT_FIELD = "expansionOpportunity";
 
 export interface IntegrationAdapter<Cfg = Record<string, never>> {
   provider: IntegrationProvider;
@@ -94,8 +109,15 @@ export interface IntegrationAdapter<Cfg = Record<string, never>> {
   };
   /** Only reachable through writeback.service (Rule 7). */
   writeBack?: {
+    /** Updates to an existing CRM record (the account owner). */
     fields: readonly WriteBackField[];
-    push(ctx: AdapterContext<Cfg>, change: WriteBackChange): Promise<void>;
+    /**
+     * New records created in the CRM (M7 B2: an expansion opportunity). Kept apart from `fields`
+     * so the update fields stay exactly as M5 declared them; the gate treats both the same way.
+     * Resolves with the new record's CRM id for an export.
+     */
+    exports?: readonly WriteBackField[];
+    push(ctx: AdapterContext<Cfg>, change: WriteBackChange): Promise<{ externalId: string } | void>;
   };
   describeError(err: unknown): { plain: string; action?: string };
 }

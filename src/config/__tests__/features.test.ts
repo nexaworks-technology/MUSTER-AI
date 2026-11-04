@@ -84,7 +84,7 @@ describe("navigation gating (Rule 6: no coming-soon screens)", () => {
       CSM: ["Home", "Today", "Approvals", "Accounts", "Tasks", "Health", "Onboarding"],
       VIEWER: ["Home", "Today", "Accounts", "Tasks", "Health", "Onboarding"],
     },
-    // M7 adds Renewals for every role; Revenue and Expansion follow in later slices.
+    // M7 adds Renewals and Expansion for every role; Revenue shows only with revenue access.
     7: {
       ADMIN: [
         "Home",
@@ -95,6 +95,7 @@ describe("navigation gating (Rule 6: no coming-soon screens)", () => {
         "Health",
         "Onboarding",
         "Renewals",
+        "Expansion",
         "Settings",
       ],
       CS_LEADER: [
@@ -106,10 +107,30 @@ describe("navigation gating (Rule 6: no coming-soon screens)", () => {
         "Health",
         "Onboarding",
         "Renewals",
+        "Expansion",
         "Settings",
       ],
-      CSM: ["Home", "Today", "Approvals", "Accounts", "Tasks", "Health", "Onboarding", "Renewals"],
-      VIEWER: ["Home", "Today", "Accounts", "Tasks", "Health", "Onboarding", "Renewals"],
+      CSM: [
+        "Home",
+        "Today",
+        "Approvals",
+        "Accounts",
+        "Tasks",
+        "Health",
+        "Onboarding",
+        "Renewals",
+        "Expansion",
+      ],
+      VIEWER: [
+        "Home",
+        "Today",
+        "Accounts",
+        "Tasks",
+        "Health",
+        "Onboarding",
+        "Renewals",
+        "Expansion",
+      ],
     },
   } as const;
 

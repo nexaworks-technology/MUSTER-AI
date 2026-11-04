@@ -208,8 +208,9 @@ describe("nightly pipeline through the real queue", () => {
     // renewals.sync (contracts, renewal rows, settings) and three for the ARR cross-check (revenue
     // events, contracts, open mismatch items), and (M7 B1) five for the expansion facts (first-seen
     // people, their contact emails, credits on contracts, credits used, open seats/users goals).
-    // Fixed per chunk; it must never scale with accounts.
-    expect(five.queries).toBeLessThanOrEqual(79);
+    // and (M7 B2) one for expansion.sync's live expansion signals (four more only in a chunk that has
+    // some). Fixed per chunk; it must never scale with accounts.
+    expect(five.queries).toBeLessThanOrEqual(80);
   });
 
   it("the real-time hook evaluates one account through the queue at once", async () => {

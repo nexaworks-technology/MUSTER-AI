@@ -134,7 +134,10 @@ export async function listIntegrations(actor: Actor): Promise<ProviderCard[]> {
         category: adapter.category,
         authKind: adapter.auth.kind,
         hasWebhooks: Boolean(adapter.webhook),
-        writeBackFields: adapter.writeBack?.fields ?? [],
+        writeBackFields: [
+          ...(adapter.writeBack?.fields ?? []),
+          ...(adapter.writeBack?.exports ?? []),
+        ],
         slackLinked: provider === "SLACK" ? slackLinked : null,
         usageApi:
           provider === "USAGE_API"

@@ -26,7 +26,7 @@ export const NAV: readonly NavItem[] = [
   { label: "Health", href: "/health", milestone: 3 },
   { label: "Onboarding", href: "/onboarding", milestone: 6 },
   { label: "Renewals", href: "/renewals", milestone: 7 },
-  { label: "Expansion", href: null, milestone: 7 },
+  { label: "Expansion", href: "/expansion", milestone: 7 },
   { label: "Plays", href: null, milestone: 8 },
   { label: "Inbox", href: null, milestone: 9 },
   { label: "Meetings & QBRs", href: null, milestone: 10 },

@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { env } from "@/lib/config/env";
-import type { AdapterContext, IntegrationAdapter } from "../../adapter";
+import {
+  EXPANSION_EXPORT_FIELD,
+  type AdapterContext,
+  type IntegrationAdapter,
+} from "../../adapter";
 import type { Credentials } from "../../credentials";
 import { describeProviderError } from "../../errors";
 import type { NormalizedBatch } from "../../normalized";
@@ -312,7 +316,39 @@ export const hubspotAdapter: IntegrationAdapter<Cfg> = {
   },
   writeBack: {
     fields: [{ key: "ownerMembershipId", label: "Account owner" }],
+    exports: [{ key: EXPANSION_EXPORT_FIELD, label: "Expansion opportunity (new deal)" }],
     async push(ctx, change) {
+      if (change.field === EXPANSION_EXPORT_FIELD) {
+        if (!change.record) throw new Error("An export needs the record to create");
+        // A new deal on the company, never an update to existing data. The amount is the
+        // labelled estimate from their own subscription (or absent when there is none).
+        const created = await requestJson(
+          ctx.transport,
+          {
+            method: "POST",
+            url: `${API}/crm/v3/objects/deals`,
+            headers: { ...auth(ctx.credentials), "content-type": "application/json" },
+            body: JSON.stringify({
+              properties: {
+                dealname: change.record.name,
+                description: change.record.description,
+                pipeline: "default",
+                dealstage: "appointmentscheduled",
+                closedate: change.record.closeDate,
+                ...(change.record.amount ? { amount: change.record.amount } : {}),
+              },
+              associations: [
+                {
+                  to: { id: change.externalId },
+                  types: [{ associationCategory: "HUBSPOT_DEFINED", associationTypeId: 5 }],
+                },
+              ],
+            }),
+          },
+          z.object({ id: z.string() }),
+        );
+        return { externalId: created.id };
+      }
       if (change.field !== "ownerMembershipId")
         throw new Error("HubSpot writes only the account owner");
       await requestJson(

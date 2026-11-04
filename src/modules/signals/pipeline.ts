@@ -166,6 +166,9 @@ async function scoreCore(data: ChunkData) {
   // signals module.
   const { syncRenewals } = await import("@/modules/renewals/service");
   await syncRenewals(ctx, data.accountIds, data.asOf);
+  // M7 B2 `expansion.sync`: one opportunity per account with a live expansion signal.
+  const { syncExpansion } = await import("@/modules/expansion/service");
+  await syncExpansion(ctx, data.accountIds, data.asOf);
   // D9: revenue events against the contract in force; a disagreement is a data-quality item.
   await syncArrChecks(ctx, data.accountIds, data.asOf);
   return { ...counts, bandChanges: changed.length };
