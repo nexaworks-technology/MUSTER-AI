@@ -120,6 +120,10 @@ model Workspace {
   onboardingPlans     OnboardingPlan[]
   onboardingSteps     OnboardingStep[]
   goals               Goal[]
+  renewals            Renewal[]
+  renewalOutcomes     RenewalOutcome[]
+  expansionOpps       ExpansionOpportunity[]
+  documents           Document[]
 }
 
 // ─── Global identity (Auth.js) ───────────────────────────────────────────────
@@ -201,37 +205,40 @@ model Membership {
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 
-  workspace          Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  invitationsCreated Invitation[]        @relation("InvitedBy")
-  ownedAccounts      Account[]           @relation("AccountOwner")
-  sentMessages       Message[]           @relation("MessageFromMember")
-  ownedTasks         Task[]              @relation("TaskOwner")
-  createdTasks       Task[]              @relation("TaskCreator")
-  notes              Note[]              @relation("NoteAuthor")
-  notifications      Notification[]      @relation("NotificationRecipient")
-  segments           Segment[]           @relation("SegmentCreator")
-  uploadedFiles      FileObject[]        @relation("FileUploader")
-  importJobs         ImportJob[]         @relation("ImportCreator")
-  missingPrompts     MissingDataPrompt[] @relation("PromptAskedTo")
-  healthModelsMade   HealthModel[]       @relation("HealthModelCreator")
-  healthModelsOked   HealthModel[]       @relation("HealthModelApprover")
-  pulses             CsmPulse[]          @relation("PulseAuthor")
-  signalRulesEdited  SignalRule[]        @relation("SignalRuleEditor")
-  signalsAcked       Signal[]            @relation("SignalAcknowledger")
-  signalsFalse       Signal[]            @relation("SignalFalseAlarm")
-  signalsCreated     Signal[]            @relation("SignalCreator")
-  approvalsAssigned  Approval[]          @relation("ApprovalAssignee")
-  approvalsDecided   Approval[]          @relation("ApprovalDecider")
-  approvalsProposed  Approval[]          @relation("ApprovalProposer")
-  draftRevisions     DraftRevision[]     @relation("DraftEditor")
-  outboundCreated    OutboundMessage[]   @relation("OutboundCreator")
-  todayItems         TodayItem[]
-  integrationsMade   Integration[]       @relation("IntegrationConnector")
-  stepsOwned         OnboardingStep[]    @relation("StepOwner")
-  stepsCompleted     OnboardingStep[]    @relation("StepCompleter")
-  goalsCreated       Goal[]              @relation("GoalCreator")
-  slackLinks         SlackUserLink[]
+  workspace           Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invitationsCreated  Invitation[]           @relation("InvitedBy")
+  ownedAccounts       Account[]              @relation("AccountOwner")
+  sentMessages        Message[]              @relation("MessageFromMember")
+  ownedTasks          Task[]                 @relation("TaskOwner")
+  createdTasks        Task[]                 @relation("TaskCreator")
+  notes               Note[]                 @relation("NoteAuthor")
+  notifications       Notification[]         @relation("NotificationRecipient")
+  segments            Segment[]              @relation("SegmentCreator")
+  uploadedFiles       FileObject[]           @relation("FileUploader")
+  importJobs          ImportJob[]            @relation("ImportCreator")
+  missingPrompts      MissingDataPrompt[]    @relation("PromptAskedTo")
+  healthModelsMade    HealthModel[]          @relation("HealthModelCreator")
+  healthModelsOked    HealthModel[]          @relation("HealthModelApprover")
+  pulses              CsmPulse[]             @relation("PulseAuthor")
+  signalRulesEdited   SignalRule[]           @relation("SignalRuleEditor")
+  signalsAcked        Signal[]               @relation("SignalAcknowledger")
+  signalsFalse        Signal[]               @relation("SignalFalseAlarm")
+  signalsCreated      Signal[]               @relation("SignalCreator")
+  approvalsAssigned   Approval[]             @relation("ApprovalAssignee")
+  approvalsDecided    Approval[]             @relation("ApprovalDecider")
+  approvalsProposed   Approval[]             @relation("ApprovalProposer")
+  draftRevisions      DraftRevision[]        @relation("DraftEditor")
+  outboundCreated     OutboundMessage[]      @relation("OutboundCreator")
+  todayItems          TodayItem[]
+  integrationsMade    Integration[]          @relation("IntegrationConnector")
+  stepsOwned          OnboardingStep[]       @relation("StepOwner")
+  stepsCompleted      OnboardingStep[]       @relation("StepCompleter")
+  goalsCreated        Goal[]                 @relation("GoalCreator")
+  renewalsCategorised Renewal[]              @relation("RenewalCategoriser")
+  renewalOutcomesBy   RenewalOutcome[]       @relation("RenewalOutcomeRecorder")
+  expansionOwned      ExpansionOpportunity[] @relation("ExpansionOwner")
+  slackLinks          SlackUserLink[]
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, userId])
@@ -414,8 +421,8 @@ model Account {
   createdAt               DateTime       @default(now())
   updatedAt               DateTime       @updatedAt
 
-  workspace        Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  owner            Membership?           @relation("AccountOwner", fields: [workspaceId, ownerMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  workspace        Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  owner            Membership?            @relation("AccountOwner", fields: [workspaceId, ownerMembershipId], references: [workspaceId, id], onDelete: Restrict)
   contacts         Contact[]
   stakeholderRoles StakeholderRole[]
   contracts        Contract[]
@@ -434,8 +441,8 @@ model Account {
   files            FileObject[]
   missingPrompts   MissingDataPrompt[]
   dataIssues       DataQualityIssue[]
-  healthSnapshots  HealthScoreSnapshot[] @relation("AccountSnapshots")
-  currentHealth    HealthScoreSnapshot?  @relation("AccountCurrentSnapshot", fields: [workspaceId, currentHealthSnapshotId], references: [workspaceId, id], onDelete: NoAction)
+  healthSnapshots  HealthScoreSnapshot[]  @relation("AccountSnapshots")
+  currentHealth    HealthScoreSnapshot?   @relation("AccountCurrentSnapshot", fields: [workspaceId, currentHealthSnapshotId], references: [workspaceId, id], onDelete: NoAction)
   pulses           CsmPulse[]
   usageBaselines   UsageBaseline[]
   signals          Signal[]
@@ -447,6 +454,10 @@ model Account {
   extractions      Extraction[]
   onboardingPlans  OnboardingPlan[]
   goals            Goal[]
+  renewals         Renewal[]
+  renewalOutcomes  RenewalOutcome[]
+  expansionOpps    ExpansionOpportunity[]
+  documents        Document[]
 
   @@unique([workspaceId, id])
   @@index([workspaceId, renewalDate])
@@ -587,6 +598,7 @@ model Contract {
   workspace     Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   account       Account        @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
   subscriptions Subscription[]
+  renewals      Renewal[]
   document      FileObject?    @relation(fields: [workspaceId, documentFileId], references: [workspaceId, id], onDelete: SetNull)
 
   @@unique([workspaceId, id])
@@ -1704,6 +1716,7 @@ model AgentRun {
   signals          Signal[]          @relation("SignalAgentRun")
   outcomeRecords   OutcomeRecord[]   @relation("OutcomeAgentRun")
   goals            Goal[]            @relation("GoalAgentRun")
+  documents        Document[]        @relation("DocumentAgentRun")
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, idempotencyKey])
@@ -2304,4 +2317,191 @@ model Goal {
 
   @@unique([workspaceId, id])
   @@index([workspaceId, accountId])
+}
+
+// ─── M7: Renewals, expansion, documents ──────────────────────────────────────
+
+enum RenewalStage {
+  UPCOMING
+  IN_PROGRESS
+  RENEWED
+  CHURNED
+}
+
+enum ConfidenceBand {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+/// A human's forecast call (D3). Never overwritten by the computed confidence, and the computed
+/// confidence is never overwritten by it: both are shown, and a disagreement is flagged.
+enum ForecastCategory {
+  COMMIT
+  BEST_CASE
+  AT_RISK
+  OMITTED
+}
+
+enum RenewalResult {
+  RENEWED
+  CHURNED
+}
+
+enum OutcomeDetectedVia {
+  CONTRACT_RECORDS
+  HUMAN
+}
+
+/// [W] One renewal on the radar: a contract with a renewal date. `confidence` is deterministic
+/// code over records (D-75): `confidenceReasons` lists every factor with its signed points and
+/// sources. `forecastCategory` is the CSM's own call, audited, and separate.
+model Renewal {
+  id                        String            @id @default(cuid())
+  workspaceId               String
+  accountId                 String
+  contractId                String
+  renewalDate               DateTime          @db.Date
+  /// renewalDate minus the contract's notice period; null when no notice period is on file.
+  noticeDeadline            DateTime?         @db.Date
+  /// The contract's annual value; null when not on file (never 0, Rule 4).
+  arrAtRiskMinor            BigInt?
+  currency                  String?           @db.Char(3)
+  confidence                Int
+  confidenceBand            ConfidenceBand
+  /// [{ key, label, points, reason, sources[] }], the factors that moved it, plus the ones with no data.
+  confidenceReasons         Json              @default("[]")
+  /// The business date the confidence was computed for.
+  confidenceAsOf            DateTime          @db.Date
+  stage                     RenewalStage      @default(UPCOMING)
+  forecastCategory          ForecastCategory?
+  forecastNote              String?
+  forecastSetByMembershipId String?
+  forecastSetAt             DateTime?
+  planSteps                 Json              @default("[]")
+  briefDocumentId           String?
+  createdAt                 DateTime          @default(now())
+  updatedAt                 DateTime          @updatedAt
+
+  workspace Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account          @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  contract  Contract         @relation(fields: [workspaceId, contractId], references: [workspaceId, id], onDelete: Cascade)
+  setBy     Membership?      @relation("RenewalCategoriser", fields: [workspaceId, forecastSetByMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  brief     Document?        @relation("RenewalBrief", fields: [workspaceId, briefDocumentId], references: [workspaceId, id], onDelete: NoAction)
+  outcomes  RenewalOutcome[]
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, contractId, renewalDate])
+  @@index([workspaceId, renewalDate])
+  @@index([workspaceId, accountId])
+}
+
+/// [W] What actually happened to a renewal, with what the forecast said at the time (M7 rule 7).
+/// Append-only: a trigger refuses updates; a correction is a new row naming the one it replaces.
+model RenewalOutcome {
+  id                     String             @id @default(cuid())
+  workspaceId            String
+  renewalId              String
+  accountId              String
+  result                 RenewalResult
+  occurredOn             DateTime           @db.Date
+  /// ARR after the outcome: the new contract's value (null = not on file) or 0 when churned.
+  outcomeArrMinor        BigInt?
+  currency               String?            @db.Char(3)
+  detectedVia            OutcomeDetectedVia
+  recordedByMembershipId String?
+  note                   String?
+  /// The forecast as it stood on `forecastAsOf`: likelihood, band, the human's category, the
+  /// ARR at risk and the reasons. Frozen here; never read back from the live Renewal.
+  forecastConfidence     Int
+  forecastBand           ConfidenceBand
+  forecastCategory       ForecastCategory?
+  forecastAsOf           DateTime           @db.Date
+  forecastArrAtRiskMinor BigInt?
+  forecastReasons        Json               @default("[]")
+  /// The row this one corrects (a correction never edits the original).
+  supersedesId           String?
+  createdAt              DateTime           @default(now())
+
+  workspace   Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account     Account          @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  renewal     Renewal          @relation(fields: [workspaceId, renewalId], references: [workspaceId, id], onDelete: Cascade)
+  recordedBy  Membership?      @relation("RenewalOutcomeRecorder", fields: [workspaceId, recordedByMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  supersedes  RenewalOutcome?  @relation("OutcomeCorrection", fields: [workspaceId, supersedesId], references: [workspaceId, id], onDelete: NoAction)
+  corrections RenewalOutcome[] @relation("OutcomeCorrection")
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, renewalId])
+  @@index([workspaceId, accountId, occurredOn])
+}
+
+enum ExpansionStatus {
+  OPEN
+  IN_PROGRESS
+  WON
+  LOST
+  DISMISSED
+}
+
+enum ExpansionMethod {
+  SEATS_OVER_LIMIT
+  TIER_UPGRADE_DELTA
+}
+
+/// [W] An expansion opportunity found by a rule. The estimate is always an estimate and comes
+/// only from the account's own prices; null = "No price on file".
+model ExpansionOpportunity {
+  id                String           @id @default(cuid())
+  workspaceId       String
+  accountId         String
+  signalIds         String[]         @default([])
+  estimateMinor     BigInt?
+  currency          String?          @db.Char(3)
+  estimateMethod    ExpansionMethod?
+  isEstimate        Boolean          @default(true)
+  ownerMembershipId String?
+  nextStep          String?
+  nextStepDate      DateTime?        @db.Date
+  status            ExpansionStatus  @default(OPEN)
+  crmExternalId     String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account     @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  owner     Membership? @relation("ExpansionOwner", fields: [workspaceId, ownerMembershipId], references: [workspaceId, id], onDelete: Restrict)
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, accountId, status])
+}
+
+enum DocumentKind {
+  RENEWAL_BRIEF
+  QBR
+  SUCCESS_PLAN
+}
+
+/// [W] A generated document: `metrics` are locked numbers from code; `narrative` is text with
+/// {{metric.key}} placeholders only (M7 B3), so no free-text number can drift from its source.
+model Document {
+  id          String       @id @default(cuid())
+  workspaceId String
+  accountId   String
+  kind        DocumentKind
+  title       String
+  metrics     Json         @default("{}")
+  narrative   Json         @default("[]")
+  origin      RecordOrigin @default(SYSTEM)
+  agentRunId  String?
+  lockedAt    DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account   @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  agentRun  AgentRun? @relation("DocumentAgentRun", fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
+  renewals  Renewal[] @relation("RenewalBrief")
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, accountId, kind])
 }
