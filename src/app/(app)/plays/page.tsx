@@ -25,6 +25,24 @@ export default async function PlaysPage() {
 
   return (
     <div className="space-y-6">
+      {/* Subnav Tabs */}
+      <div className="border-b border-border">
+        <div className="flex gap-4">
+          <Link
+            href={"/plays" as Route}
+            className="pb-3 text-sm font-medium text-foreground border-b-2 border-primary"
+          >
+            Plays
+          </Link>
+          <Link
+            href={"/campaigns" as Route}
+            className="pb-3 text-sm font-medium text-muted-foreground hover:text-foreground border-b-2 border-transparent"
+          >
+            Campaigns
+          </Link>
+        </div>
+      </div>
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Plays</h1>
