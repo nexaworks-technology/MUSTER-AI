@@ -31,7 +31,7 @@ export const NAV: readonly NavItem[] = [
   { label: "Inbox", href: null, milestone: 9 },
   { label: "Meetings & QBRs", href: null, milestone: 10 },
   { label: "Success Plans", href: null, milestone: 10 },
-  { label: "Revenue", href: null, milestone: 7, permission: "revenue:view" },
+  { label: "Revenue", href: "/revenue", milestone: 7, permission: "revenue:view" },
   { label: "Reports", href: null, milestone: 11 },
   { label: "Ask AI", href: null, milestone: 11 },
   { label: "Customers", href: null, milestone: 10 },

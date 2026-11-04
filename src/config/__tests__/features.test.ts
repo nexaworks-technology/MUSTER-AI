@@ -121,6 +121,14 @@ describe("navigation gating (Rule 6: no coming-soon screens)", () => {
         ).toEqual(labels);
       });
 
+  it("Revenue (M7) shows only to a member with revenue access, whatever the role", () => {
+    const labels = (canViewRevenue: boolean, role: "CSM" | "VIEWER") =>
+      visibleNav({ ...member(role), canViewRevenue }, 7).map((n) => n.label);
+    expect(labels(true, "CSM")).toContain("Revenue");
+    expect(labels(true, "VIEWER")).toContain("Revenue");
+    expect(labels(false, "CSM")).not.toContain("Revenue");
+  });
+
   it("the shipped milestone shows the latest row", () => {
     const latest = Math.max(
       ...Object.keys(NAV_BY_MILESTONE).map(Number),
