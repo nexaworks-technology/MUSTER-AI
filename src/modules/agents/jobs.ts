@@ -2,6 +2,8 @@ import { z } from "zod";
 import { getQueue } from "@/lib/jobs/queues";
 import type { TenantContext } from "@/lib/db/scoped";
 import { runAgent, type Trigger } from "./executor";
+import { reextractPayload } from "@/modules/conversations/extract";
+import { backfillExtractions, reextractSources } from "./definitions/watcher";
 import { processConsider, sweepHealthNarratives } from "./definitions/health-analyst-trigger";
 import { getAgent } from "./registry";
 import { listActiveWorkspaces } from "@/lib/db/workspace";
@@ -45,5 +47,32 @@ export async function sweepAllHealthNarratives() {
   const out: Record<string, { considered: number; ran: number }> = {};
   for (const w of await listActiveWorkspaces())
     out[w.slug] = await sweepHealthNarratives({ workspaceId: w.id });
+  return out;
+}
+
+/**
+ * `conversations.reextract` (M9): re-read, with the current Watcher prompt, what an earlier prompt
+ * version read. One job per workspace and prompt version (dedupe-intended, D-81); the payload is
+ * ids and a version string only, never text (Rule 7).
+ */
+export async function enqueueReextract(ctx: TenantContext, promptVersion: string): Promise<void> {
+  const data = reextractPayload.parse({ workspaceId: ctx.workspaceId, promptVersion });
+  await getQueue("agents").add("conversations.reextract", data, {
+    jobId: `${ctx.workspaceId}.conversations.reextract.${promptVersion}`.replaceAll(":", "_"),
+    attempts: 2,
+    backoff: { type: "exponential", delay: 30_000 },
+  });
+}
+
+export async function processReextract(raw: unknown) {
+  const p = reextractPayload.parse(raw);
+  return reextractSources({ workspaceId: p.workspaceId }, { promptVersion: p.promptVersion });
+}
+
+/** Every active workspace: read the newest unread messages, notes and call chunks (a few per pass). */
+export async function sweepAllExtractions() {
+  const out: Record<string, unknown> = {};
+  for (const w of await listActiveWorkspaces())
+    out[w.slug] = await backfillExtractions({ workspaceId: w.id }, { limit: 25 });
   return out;
 }

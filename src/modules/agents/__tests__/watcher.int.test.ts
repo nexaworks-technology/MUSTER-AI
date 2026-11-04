@@ -105,8 +105,8 @@ describe("Watcher-basic", () => {
       orderBy: { itemIndex: "asc" },
     });
     expect(rows.map((r) => [r.kind, r.quote, r.promptVersion])).toEqual([
-      ["SENTIMENT", "We are losing patience.", "1.0.0"],
-      ["COMPLAINT", "the export has failed again", "1.0.0"],
+      ["SENTIMENT", "We are losing patience.", "1.1.0"],
+      ["COMPLAINT", "the export has failed again", "1.1.0"],
     ]);
     expect(rows.every((r) => r.origin === "AI" && r.agentRunId)).toBe(true);
     const run = await db.agentRun.findFirstOrThrow({

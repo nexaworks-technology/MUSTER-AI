@@ -11,6 +11,8 @@ import {
   processConsider,
   sweepAllExpansionAgents,
   sweepAllHealthNarratives,
+  processReextract,
+  sweepAllExtractions,
   sweepAllRenewalAgents,
 } from "@/modules/agents/service";
 import { importJobPayload, runImportJob } from "@/modules/imports/service";
@@ -120,6 +122,14 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
     async "health-analyst.sweep"() {
       return sweepAllHealthNarratives();
     },
+    /** M9: the Watcher reads new messages, notes and call chunks (a few per pass). */
+    async "conversations.extractSweep"() {
+      return sweepAllExtractions();
+    },
+    /** M9: after an explicit Watcher prompt-version bump, read again what the old version read. */
+    async "conversations.reextract"(job) {
+      return processReextract(job.data);
+    },
     /** M6: a stalled plan tells its owner and asks the Onboarding Manager for a draft. */
     async "onboarding.stalled"(job) {
       return onOnboardingStalled(job.data);
@@ -206,6 +216,13 @@ export const SCHEDULES = [
   { queue: "maintenance", id: "nightly-schedules", job: "nightly.schedules", everyMs: 3_600_000 },
   // M4: narratives for snapshots no event covers (first snapshot, top-reason change).
   { queue: "agents", id: "health-analyst-sweep", job: "health-analyst.sweep", everyMs: 900_000 },
+  // M9: the Watcher for new messages, notes and call chunks.
+  {
+    queue: "agents",
+    id: "conversations-extract-sweep",
+    job: "conversations.extractSweep",
+    everyMs: 900_000,
+  },
   // M6: the Onboarding Manager for steps due today, the Adoption Coach for adoption signals.
   {
     queue: "agents",

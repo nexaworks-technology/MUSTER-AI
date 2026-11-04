@@ -48,6 +48,9 @@ export {
   agentRunPayload,
   processConsider,
   sweepAllHealthNarratives,
+  enqueueReextract,
+  processReextract,
+  sweepAllExtractions,
 } from "./jobs";
 export {
   considerHealthNarrative,
