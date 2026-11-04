@@ -245,10 +245,26 @@ export const onboardingManager = defineAgent({
             200,
           );
         const existing = await ctx.db.task.findFirst({ where: { agentRunId: ctx.runId } });
-        const signalId =
-          ctx.signalId ??
-          ctx.bundle.find((r) => r.sourceType === "Signal")?.sourceId ??
-          (await ctx.db.signal.findFirst({
+        let signalId: string | null = null;
+        if (ctx.signalId) {
+          const sig = await ctx.db.signal.findUnique({
+            where: { id: ctx.signalId },
+            select: { id: true },
+          });
+          if (sig) signalId = sig.id;
+        }
+        if (!signalId) {
+          const bundleSigId = ctx.bundle.find((r) => r.sourceType === "Signal")?.sourceId;
+          if (bundleSigId) {
+            const sig = await ctx.db.signal.findUnique({
+              where: { id: bundleSigId },
+              select: { id: true },
+            });
+            if (sig) signalId = sig.id;
+          }
+        }
+        if (!signalId) {
+          const sig = await ctx.db.signal.findFirst({
             where: {
               accountId: ctx.accountId,
               ruleKey: {
@@ -263,8 +279,9 @@ export const onboardingManager = defineAgent({
               status: { in: ["OPEN", "ACKNOWLEDGED"] },
             },
             select: { id: true },
-          }))?.id ??
-          null;
+          });
+          if (sig) signalId = sig.id;
+        }
         const task =
           existing ??
           (await ctx.db.task.create({
