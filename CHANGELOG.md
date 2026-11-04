@@ -6,6 +6,16 @@ All notable user-facing changes. Format: [Keep a Changelog](https://keepachangel
 
 ### Added
 
+- Plays Engine: automated, repeatable play definitions with pre-publish safety checks in plain words, step-level approval resolver, runtime frequency caps, and version history.
+- 15 Seeded Plays: 11 active plays (including Champion Loss, Payment Failed, Cancellation Save) and 4 dormant plays clearly labeled with their future milestone detectors (Promise Late, Engagement Loss, QBR Due, Business Review Follow-up).
+- Guarded Auto-Send: Admin-only master switch with typed confirmation (`ENABLE AUTO-SEND`), executing approved actions through a verified proof path without altering the single send choke point.
+- Outreach and Digital CSM agents: personalized outreach drafting citing telemetry and hand-off rules routing long-tail and risk accounts to human CSMs.
+- Play Builder: conversational assistant in the AI team that drafts new play definitions subject to the identical hard pre-publish safety gate.
+- Campaigns: segment-targeted email campaigns with Admin / CS Leader decision rights, rate-limited pacing, signed unsubscribe links, and Svix/Resend delivery webhook processing.
+- Renewal Plan Adoption: one-click human adoption of AI-suggested renewal plans from the Renewal Brief into `Renewal.planSteps` with placeholder validation.
+- Setup Wizard Proposed Plays: deterministic play recommendations tailored to connected integrations and account segments.
+- Task completion acting as flag resolution (Q-48): completing a task linked to a signal marks the signal's outcome record as `ACTED`.
+
 - Renewals: a radar of every renewal in the next year, lowest confidence first, with the reasons and the records behind
   each figure; your own forecast category (Commit, Best case, At risk) sits beside the computed band and a
   disagreement is flagged. Account 360 has Renewal and Expansion tabs; a past renewal shows what the forecast said.
