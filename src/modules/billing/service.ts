@@ -1,7 +1,8 @@
+import { canSeeMoney } from "./redact";
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { writeAudit } from "@/lib/audit";
-import { can, ForbiddenError, requirePermission } from "@/lib/auth/permissions";
+import { ForbiddenError, requirePermission } from "@/lib/auth/permissions";
 import { fieldCipher } from "@/lib/crypto";
 import { scopedDb, type ScopedDb } from "@/lib/db/scoped";
 import { formatMoney } from "@/lib/money";
@@ -219,7 +220,7 @@ export function redactFinancials(
   actor: Pick<Actor, "role" | "canViewRevenue" | "bookScope">,
   rows: BillingRows,
 ) {
-  const moneyVisible = can(actor, "revenue:view") !== null;
+  const moneyVisible = canSeeMoney(actor);
   const cipher = moneyVisible ? fieldCipher() : null;
   const contracts = rows.contracts.map(({ termsEnc, pricingNotesEnc, valueMinor, ...c }) =>
     cipher
@@ -265,6 +266,7 @@ export function redactFinancials(
 export type BillingView = Awaited<ReturnType<typeof getBilling>>;
 
 export { RENEWAL_GRACE_DAYS } from "./revenue";
+export { canSeeMoney, redactMoney, type MoneyActor } from "./redact";
 
 /** Thrown for a forbidden write; re-exported so actions can map it to a plain message. */
 export { ForbiddenError };

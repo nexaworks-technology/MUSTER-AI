@@ -84,6 +84,33 @@ describe("navigation gating (Rule 6: no coming-soon screens)", () => {
       CSM: ["Home", "Today", "Approvals", "Accounts", "Tasks", "Health", "Onboarding"],
       VIEWER: ["Home", "Today", "Accounts", "Tasks", "Health", "Onboarding"],
     },
+    // M7 adds Renewals for every role; Revenue and Expansion follow in later slices.
+    7: {
+      ADMIN: [
+        "Home",
+        "Today",
+        "Approvals",
+        "Accounts",
+        "Tasks",
+        "Health",
+        "Onboarding",
+        "Renewals",
+        "Settings",
+      ],
+      CS_LEADER: [
+        "Home",
+        "Today",
+        "Approvals",
+        "Accounts",
+        "Tasks",
+        "Health",
+        "Onboarding",
+        "Renewals",
+        "Settings",
+      ],
+      CSM: ["Home", "Today", "Approvals", "Accounts", "Tasks", "Health", "Onboarding", "Renewals"],
+      VIEWER: ["Home", "Today", "Accounts", "Tasks", "Health", "Onboarding", "Renewals"],
+    },
   } as const;
 
   for (const [milestone, roles] of Object.entries(NAV_BY_MILESTONE))

@@ -38,3 +38,18 @@ export {
   type ConfidenceConfig,
 } from "./schemas";
 export { syncRenewals, type SyncCounts } from "./sync.service";
+export {
+  forecast,
+  disagreement,
+  BAND_SUGGESTS,
+  type Forecast,
+  type ForecastRenewal,
+} from "./forecast";
+export {
+  canCategorise,
+  getAccountRenewals,
+  listRenewals,
+  RenewalError,
+  setForecastCategory,
+  type RenewalRow,
+} from "./read.service";
