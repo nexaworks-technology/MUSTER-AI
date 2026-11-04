@@ -19,12 +19,15 @@ export const outreachOutput = z.object({
 export type OutreachOutput = z.infer<typeof outreachOutput>;
 
 export const outreachInput = z.object({
-  sourceType: z.enum(["Signal", "Ticket"]),
-  sourceId: z.string().min(1),
+  sourceType: z.enum(["Signal", "Ticket"]).optional(),
+  sourceId: z.string().min(1).optional(),
   contactId: z.string().min(1),
-  requestedByMembershipId: z.string().min(1),
+  requestedByMembershipId: z.string().min(1).optional(),
   /** One request per click: a new nonce is a new request; a retry of the same one is not. */
-  nonce: z.string().min(1),
+  nonce: z.string().min(1).optional(),
+  accountId: z.string().min(1).optional(),
+  playStepKey: z.string().optional(),
+  intent: z.string().optional(),
 });
 export type OutreachInput = z.infer<typeof outreachInput>;
 
@@ -40,6 +43,7 @@ export async function checkInSource(
   messages: Array<{ id: string; bodyText: string; sentAt: Date }>;
   label: string;
 } | null> {
+  if (!input.sourceType || !input.sourceId) return null;
   if (input.sourceType === "Signal") {
     const s = await db.signal.findUnique({ where: { id: input.sourceId } });
     if (!s) return null;
@@ -88,45 +92,66 @@ export async function checkInSource(
 
 export const outreach = defineAgent({
   key: "outreach",
-  version: "1.0.0",
+  version: "1.1.0",
   description:
-    "Drafts one check-in email for a CSM-requested intent; every draft goes to Approvals",
+    "Drafts one check-in email for a CSM-requested or play intent; every draft goes to Approvals",
   modelTier: "standard",
   tierReason: "A short customer-facing draft: tone and accuracy matter, depth does not (§6.1).",
-  prompt: { name: "outreach", version: "1.0.0" },
+  prompt: { name: "outreach", version: "1.1.0" },
   inputSchema: outreachInput,
   outputSchema: outreachOutput,
   async buildContext(db, input) {
-    const [src, contact, csm] = await Promise.all([
+    const [src, contact, csm, voiceSamples] = await Promise.all([
       checkInSource(db, input),
       db.contact.findUnique({ where: { id: input.contactId } }),
-      db.membership.findUnique({
-        where: { id: input.requestedByMembershipId },
-        include: { user: { select: { name: true } } },
+      input.requestedByMembershipId
+        ? db.membership.findUnique({
+            where: { id: input.requestedByMembershipId },
+            include: { user: { select: { name: true } } },
+          })
+        : null,
+      db.voiceSample.findMany({
+        where: { approvedForVoice: true },
+        take: 3,
+        orderBy: { createdAt: "desc" },
+        select: { subject: true, bodyText: true },
       }),
     ]);
-    if (!src || !contact || contact.accountId !== src.accountId)
+    const voiceExamples =
+      voiceSamples.length > 0
+        ? voiceSamples.map((s) => `Subject: ${s.subject}\n\n${s.bodyText}`).join("\n\n---\n\n")
+        : "None on file; use default tone.";
+
+    const targetAccountId = src?.accountId ?? input.accountId ?? contact?.accountId;
+    if (!targetAccountId || !contact || contact.accountId !== targetAccountId)
       return {
         bundle: [],
-        vars: { csmName: "the CSM", contactName: "the customer", accountName: "the account" },
+        vars: {
+          csmName: "the CSM",
+          contactName: "the customer",
+          accountName: "the account",
+          voiceExamples,
+        },
       };
     const account = await db.account.findUniqueOrThrow({
-      where: { id: src.accountId },
+      where: { id: targetAccountId },
       select: { id: true, name: true },
     });
     const bundle: ContextBundle = [
-      src.record,
+      ...(src ? [src.record] : []),
       { sourceType: "Account", sourceId: account.id, fields: { name: account.name } },
       {
         sourceType: "Contact",
         sourceId: contact.id,
         fields: { name: contact.name, title: contact.title ?? null },
       },
-      ...src.messages.map((m) => ({
-        sourceType: "Message",
-        sourceId: m.id,
-        fields: { text: m.bodyText, sent: day(m.sentAt) },
-      })),
+      ...(src
+        ? src.messages.map((m) => ({
+            sourceType: "Message" as const,
+            sourceId: m.id,
+            fields: { text: m.bodyText, sent: day(m.sentAt) },
+          }))
+        : []),
     ];
     return {
       bundle,
@@ -135,6 +160,7 @@ export const outreach = defineAgent({
         csmName: csm?.user.name ?? "the CSM",
         contactName: contact.name,
         accountName: account.name,
+        voiceExamples,
       },
     };
   },
@@ -149,15 +175,16 @@ export const outreach = defineAgent({
     if (!output.subject || !output.body || !ctx.accountId)
       return { effects: [], actionTaken: "NONE" };
     const input = ctx.input as OutreachInput;
-    const record = ctx.bundle[0]!;
+    const record = ctx.bundle[0] ?? { sourceType: "Account", sourceId: ctx.accountId, fields: {} };
+    const proposerId = input.requestedByMembershipId;
     const approval = await requestApproval(ctx, {
       accountId: ctx.accountId,
       kind: "SEND_EMAIL",
-      reason: `Check-in about: ${String(record.fields.title ?? record.fields.subject ?? "this account")}`,
+      reason: `Check-in about: ${String(record.fields.title ?? record.fields.subject ?? record.fields.name ?? "this account")}`,
       proof: output.citations.map((c) => ({ sourceType: c.sourceType, sourceId: c.sourceId })),
       signalId: record.sourceType === "Signal" ? record.sourceId : undefined,
       proposedByAgentRunId: ctx.runId,
-      proposedByMembershipId: input.requestedByMembershipId,
+      proposedByMembershipId: proposerId,
       triggeringText: ctx.bundle
         .filter((r) => r.sourceType === "Message")
         .map((r) => String(r.fields.text ?? "")),

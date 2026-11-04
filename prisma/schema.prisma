@@ -128,6 +128,7 @@ model Workspace {
   playVersions        PlayVersion[]
   playRuns            PlayRun[]
   playStepRuns        PlayStepRun[]
+  voiceSamples        VoiceSample[]
 }
 
 // ─── Global identity (Auth.js) ───────────────────────────────────────────────
@@ -244,6 +245,7 @@ model Membership {
   renewalOutcomesBy   RenewalOutcome[]       @relation("RenewalOutcomeRecorder")
   expansionOwned      ExpansionOpportunity[] @relation("ExpansionOwner")
   slackLinks          SlackUserLink[]
+  createdVoiceSamples VoiceSample[]          @relation("VoiceSampleCreator")
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, userId])
@@ -1899,6 +1901,7 @@ model OutboundMessage {
   createdBy Membership?     @relation("OutboundCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: Restrict)
   revisions DraftRevision[]
   playStepRuns PlayStepRun[]
+  voiceSamples VoiceSample[]
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, sourceKey])
@@ -2656,4 +2659,24 @@ model PlayStepRun {
   @@unique([workspaceId, id])
   @@unique([workspaceId, playRunId, stepKey])
   @@index([workspaceId, status, scheduledFor])
+}
+
+/// [W] Approved email voice sample for in-prompt few-shot styling (spec §5, ARCHITECTURE §3.2, Rule 8).
+model VoiceSample {
+  id                String           @id @default(cuid())
+  workspaceId       String
+  outboundMessageId String?
+  subject           String
+  bodyText          String
+  approvedForVoice  Boolean          @default(true)
+  createdById       String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  workspace       Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  outboundMessage OutboundMessage? @relation(fields: [workspaceId, outboundMessageId], references: [workspaceId, id], onDelete: SetNull)
+  createdBy       Membership?      @relation("VoiceSampleCreator", fields: [workspaceId, createdById], references: [workspaceId, id], onDelete: SetNull)
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, approvedForVoice])
 }
