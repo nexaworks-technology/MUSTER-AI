@@ -1,0 +1,2380 @@
+{
+  "asOf": "2026-11-02",
+  "outcomes": {
+    "churns": 12,
+    "renewals": 12
+  },
+  "horizons": {
+    "30": {
+      "factor": {
+        "n": 24,
+        "renewed": 12,
+        "churned": 12,
+        "byBand": [
+          {
+            "label": "HIGH",
+            "n": 17,
+            "renewed": 11,
+            "churned": 6,
+            "renewedShare": 0.6471
+          },
+          {
+            "label": "MEDIUM",
+            "n": 7,
+            "renewed": 1,
+            "churned": 6,
+            "renewedShare": 0.1429
+          },
+          {
+            "label": "LOW",
+            "n": 0,
+            "renewed": 0,
+            "churned": 0,
+            "renewedShare": null
+          }
+        ],
+        "byScore": [
+          {
+            "label": "80–100",
+            "n": 11,
+            "renewed": 5,
+            "churned": 6,
+            "renewedShare": 0.4545
+          },
+          {
+            "label": "60–79",
+            "n": 10,
+            "renewed": 7,
+            "churned": 3,
+            "renewedShare": 0.7
+          },
+          {
+            "label": "40–59",
+            "n": 3,
+            "renewed": 0,
+            "churned": 3,
+            "renewedShare": 0
+          },
+          {
+            "label": "0–39",
+            "n": 0,
+            "renewed": 0,
+            "churned": 0,
+            "renewedShare": null
+          }
+        ],
+        "brier": 0.3181,
+        "auc": 0.566
+      },
+      "simple": {
+        "n": 24,
+        "renewed": 12,
+        "churned": 12,
+        "byBand": [
+          {
+            "label": "HIGH",
+            "n": 23,
+            "renewed": 11,
+            "churned": 12,
+            "renewedShare": 0.4783
+          },
+          {
+            "label": "MEDIUM",
+            "n": 1,
+            "renewed": 1,
+            "churned": 0,
+            "renewedShare": 1
+          },
+          {
+            "label": "LOW",
+            "n": 0,
+            "renewed": 0,
+            "churned": 0,
+            "renewedShare": null
+          }
+        ],
+        "byScore": [
+          {
+            "label": "80–100",
+            "n": 23,
+            "renewed": 11,
+            "churned": 12,
+            "renewedShare": 0.4783
+          },
+          {
+            "label": "60–79",
+            "n": 1,
+            "renewed": 1,
+            "churned": 0,
+            "renewedShare": 1
+          },
+          {
+            "label": "40–59",
+            "n": 0,
+            "renewed": 0,
+            "churned": 0,
+            "renewedShare": null
+          },
+          {
+            "label": "0–39",
+            "n": 0,
+            "renewed": 0,
+            "churned": 0,
+            "renewedShare": null
+          }
+        ],
+        "brier": 0.345,
+        "auc": 0.4583
+      }
+    },
+    "60": {
+      "factor": {
+        "n": 24,
+        "renewed": 12,
+        "churned": 12,
+        "byBand": [
+          {
+            "label": "HIGH",
+            "n": 20,
+            "renewed": 9,
+            "churned": 11,
+            "renewedShare": 0.45
+          },
+          {
+            "label": "MEDIUM",
+            "n": 4,
+            "renewed": 3,
+            "churned": 1,
+            "renewedShare": 0.75
+          },
+          {
+            "label": "LOW",
+            "n": 0,
+            "renewed": 0,
+            "churned": 0,
+            "renewedShare": null
+          }
+        ],
+        "byScore": [
+          {
+            "label": "80–100",
+            "n": 15,
+            "renewed": 4,
+            "churned": 11,
+            "renewedShare": 0.2667
+          },
+          {
+            "label": "60–79",
+            "n": 9,
+            "renewed": 8,
+            "churned": 1,
+            "renewedShare": 0.8889
+          },
+          {
+            "label": "40–59",
+            "n": 0,
+            "renewed": 0,
+            "churned": 0,
+            "renewedShare": null
+          },
+          {
+            "label": "0–39",
+            "n": 0,
+            "renewed": 0,
+            "churned": 0,
+            "renewedShare": null
+          }
+        ],
+        "brier": 0.439,
+        "auc": 0.1285
+      },
+      "simple": {
+        "n": 24,
+        "renewed": 12,
+        "churned": 12,
+        "byBand": [
+          {
+            "label": "HIGH",
+            "n": 23,
+            "renewed": 11,
+            "churned": 12,
+            "renewedShare": 0.4783
+          },
+          {
+            "label": "MEDIUM",
+            "n": 1,
+            "renewed": 1,
+            "churned": 0,
+            "renewedShare": 1
+          },
+          {
+            "label": "LOW",
+            "n": 0,
+            "renewed": 0,
+            "churned": 0,
+            "renewedShare": null
+          }
+        ],
+        "byScore": [
+          {
+            "label": "80–100",
+            "n": 23,
+            "renewed": 11,
+            "churned": 12,
+            "renewedShare": 0.4783
+          },
+          {
+            "label": "60–79",
+            "n": 1,
+            "renewed": 1,
+            "churned": 0,
+            "renewedShare": 1
+          },
+          {
+            "label": "40–59",
+            "n": 0,
+            "renewed": 0,
+            "churned": 0,
+            "renewedShare": null
+          },
+          {
+            "label": "0–39",
+            "n": 0,
+            "renewed": 0,
+            "churned": 0,
+            "renewedShare": null
+          }
+        ],
+        "brier": 0.345,
+        "auc": 0.4583
+      }
+    },
+    "90": {
+      "factor": {
+        "n": 24,
+        "renewed": 12,
+        "churned": 12,
+        "byBand": [
+          {
+            "label": "HIGH",
+            "n": 23,
+            "renewed": 11,
+            "churned": 12,
+            "renewedShare": 0.4783
+          },
+          {
+            "label": "MEDIUM",
+            "n": 1,
+            "renewed": 1,
+            "churned": 0,
+            "renewedShare": 1
+          },
+          {
+            "label": "LOW",
+            "n": 0,
+            "renewed": 0,
+            "churned": 0,
+            "renewedShare": null
+          }
+        ],
+        "byScore": [
+          {
+            "label": "80–100",
+            "n": 16,
+            "renewed": 4,
+            "churned": 12,
+            "renewedShare": 0.25
+          },
+          {
+            "label": "60–79",
+            "n": 8,
+            "renewed": 8,
+            "churned": 0,
+            "renewedShare": 1
+          },
+          {
+            "label": "40–59",
+            "n": 0,
+            "renewed": 0,
+            "churned": 0,
+            "renewedShare": null
+          },
+          {
+            "label": "0–39",
+            "n": 0,
+            "renewed": 0,
+            "churned": 0,
+            "renewedShare": null
+          }
+        ],
+        "brier": 0.4433,
+        "auc": 0.0556
+      },
+      "simple": {
+        "n": 24,
+        "renewed": 12,
+        "churned": 12,
+        "byBand": [
+          {
+            "label": "HIGH",
+            "n": 24,
+            "renewed": 12,
+            "churned": 12,
+            "renewedShare": 0.5
+          },
+          {
+            "label": "MEDIUM",
+            "n": 0,
+            "renewed": 0,
+            "churned": 0,
+            "renewedShare": null
+          },
+          {
+            "label": "LOW",
+            "n": 0,
+            "renewed": 0,
+            "churned": 0,
+            "renewedShare": null
+          }
+        ],
+        "byScore": [
+          {
+            "label": "80–100",
+            "n": 24,
+            "renewed": 12,
+            "churned": 12,
+            "renewedShare": 0.5
+          },
+          {
+            "label": "60–79",
+            "n": 0,
+            "renewed": 0,
+            "churned": 0,
+            "renewedShare": null
+          },
+          {
+            "label": "40–59",
+            "n": 0,
+            "renewed": 0,
+            "churned": 0,
+            "renewedShare": null
+          },
+          {
+            "label": "0–39",
+            "n": 0,
+            "renewed": 0,
+            "churned": 0,
+            "renewedShare": null
+          }
+        ],
+        "brier": 0.34,
+        "auc": 0.5
+      }
+    }
+  },
+  "pooled": {
+    "factor": {
+      "n": 72,
+      "renewed": 36,
+      "churned": 36,
+      "byBand": [
+        {
+          "label": "HIGH",
+          "n": 60,
+          "renewed": 31,
+          "churned": 29,
+          "renewedShare": 0.5167
+        },
+        {
+          "label": "MEDIUM",
+          "n": 12,
+          "renewed": 5,
+          "churned": 7,
+          "renewedShare": 0.4167
+        },
+        {
+          "label": "LOW",
+          "n": 0,
+          "renewed": 0,
+          "churned": 0,
+          "renewedShare": null
+        }
+      ],
+      "byScore": [
+        {
+          "label": "80–100",
+          "n": 42,
+          "renewed": 13,
+          "churned": 29,
+          "renewedShare": 0.3095
+        },
+        {
+          "label": "60–79",
+          "n": 27,
+          "renewed": 23,
+          "churned": 4,
+          "renewedShare": 0.8519
+        },
+        {
+          "label": "40–59",
+          "n": 3,
+          "renewed": 0,
+          "churned": 3,
+          "renewedShare": 0
+        },
+        {
+          "label": "0–39",
+          "n": 0,
+          "renewed": 0,
+          "churned": 0,
+          "renewedShare": null
+        }
+      ],
+      "brier": 0.4001,
+      "auc": 0.2515
+    },
+    "simple": {
+      "n": 72,
+      "renewed": 36,
+      "churned": 36,
+      "byBand": [
+        {
+          "label": "HIGH",
+          "n": 70,
+          "renewed": 34,
+          "churned": 36,
+          "renewedShare": 0.4857
+        },
+        {
+          "label": "MEDIUM",
+          "n": 2,
+          "renewed": 2,
+          "churned": 0,
+          "renewedShare": 1
+        },
+        {
+          "label": "LOW",
+          "n": 0,
+          "renewed": 0,
+          "churned": 0,
+          "renewedShare": null
+        }
+      ],
+      "byScore": [
+        {
+          "label": "80–100",
+          "n": 70,
+          "renewed": 34,
+          "churned": 36,
+          "renewedShare": 0.4857
+        },
+        {
+          "label": "60–79",
+          "n": 2,
+          "renewed": 2,
+          "churned": 0,
+          "renewedShare": 1
+        },
+        {
+          "label": "40–59",
+          "n": 0,
+          "renewed": 0,
+          "churned": 0,
+          "renewedShare": null
+        },
+        {
+          "label": "0–39",
+          "n": 0,
+          "renewed": 0,
+          "churned": 0,
+          "renewedShare": null
+        }
+      ],
+      "brier": 0.3433,
+      "auc": 0.4722
+    }
+  },
+  "factorCoverage": {
+    "health_band": 72,
+    "health_trend": 72,
+    "signals": 72,
+    "invoices": 72,
+    "usage": 61,
+    "champion": 42
+  },
+  "shipped": "simple",
+  "rows": [
+    {
+      "name": "Northstone Solicitors",
+      "outcome": "CHURNED",
+      "outcomeDate": "2025-09-13",
+      "horizonDays": 90,
+      "asOf": "2025-06-15",
+      "scorable": true,
+      "factor": {
+        "confidence": 90,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Northstone Solicitors",
+      "outcome": "CHURNED",
+      "outcomeDate": "2025-09-13",
+      "horizonDays": 60,
+      "asOf": "2025-07-15",
+      "scorable": true,
+      "factor": {
+        "confidence": 90,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Northstone Solicitors",
+      "outcome": "CHURNED",
+      "outcomeDate": "2025-09-13",
+      "horizonDays": 30,
+      "asOf": "2025-08-14",
+      "scorable": true,
+      "factor": {
+        "confidence": 90,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Sterlingway Freight",
+      "outcome": "CHURNED",
+      "outcomeDate": "2025-10-18",
+      "horizonDays": 90,
+      "asOf": "2025-07-20",
+      "scorable": true,
+      "factor": {
+        "confidence": 90,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Sterlingway Freight",
+      "outcome": "CHURNED",
+      "outcomeDate": "2025-10-18",
+      "horizonDays": 60,
+      "asOf": "2025-08-19",
+      "scorable": true,
+      "factor": {
+        "confidence": 90,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Sterlingway Freight",
+      "outcome": "CHURNED",
+      "outcomeDate": "2025-10-18",
+      "horizonDays": 30,
+      "asOf": "2025-09-18",
+      "scorable": true,
+      "factor": {
+        "confidence": 90,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Evergreenfield Accounting",
+      "outcome": "CHURNED",
+      "outcomeDate": "2025-11-22",
+      "horizonDays": 90,
+      "asOf": "2025-08-24",
+      "scorable": true,
+      "factor": {
+        "confidence": 90,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Evergreenfield Accounting",
+      "outcome": "CHURNED",
+      "outcomeDate": "2025-11-22",
+      "horizonDays": 60,
+      "asOf": "2025-09-23",
+      "scorable": true,
+      "factor": {
+        "confidence": 90,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Evergreenfield Accounting",
+      "outcome": "CHURNED",
+      "outcomeDate": "2025-11-22",
+      "horizonDays": 30,
+      "asOf": "2025-10-23",
+      "scorable": true,
+      "factor": {
+        "confidence": 90,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Riverline Athletics",
+      "outcome": "CHURNED",
+      "outcomeDate": "2025-12-27",
+      "horizonDays": 90,
+      "asOf": "2025-09-28",
+      "scorable": true,
+      "factor": {
+        "confidence": 90,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Riverline Athletics",
+      "outcome": "CHURNED",
+      "outcomeDate": "2025-12-27",
+      "horizonDays": 60,
+      "asOf": "2025-10-28",
+      "scorable": true,
+      "factor": {
+        "confidence": 95,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": 5,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Riverline Athletics",
+      "outcome": "CHURNED",
+      "outcomeDate": "2025-12-27",
+      "horizonDays": 30,
+      "asOf": "2025-11-27",
+      "scorable": true,
+      "factor": {
+        "confidence": 95,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": 5,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Crescentwood Works",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-01-31",
+      "horizonDays": 90,
+      "asOf": "2025-11-02",
+      "scorable": true,
+      "factor": {
+        "confidence": 90,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Crescentwood Works",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-01-31",
+      "horizonDays": 60,
+      "asOf": "2025-12-02",
+      "scorable": true,
+      "factor": {
+        "confidence": 90,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Crescentwood Works",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-01-31",
+      "horizonDays": 30,
+      "asOf": "2026-01-01",
+      "scorable": true,
+      "factor": {
+        "confidence": 90,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Cedarhaven Transport",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-03-07",
+      "horizonDays": 90,
+      "asOf": "2025-12-07",
+      "scorable": true,
+      "factor": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": 5,
+        "promises": null,
+        "invoices": -10,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Cedarhaven Transport",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-03-07",
+      "horizonDays": 60,
+      "asOf": "2026-01-06",
+      "scorable": true,
+      "factor": {
+        "confidence": 60,
+        "band": "MEDIUM"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": -15,
+        "promises": null,
+        "invoices": -10,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Cedarhaven Transport",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-03-07",
+      "horizonDays": 30,
+      "asOf": "2026-02-05",
+      "scorable": true,
+      "factor": {
+        "confidence": 56,
+        "band": "MEDIUM"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": -4,
+        "signals": 0,
+        "champion": -15,
+        "promises": null,
+        "invoices": -10,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Brightstone Market",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-04-11",
+      "horizonDays": 90,
+      "asOf": "2026-01-11",
+      "scorable": true,
+      "factor": {
+        "confidence": 95,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": 5,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Brightstone Market",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-04-11",
+      "horizonDays": 60,
+      "asOf": "2026-02-10",
+      "scorable": true,
+      "factor": {
+        "confidence": 95,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": 5,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Brightstone Market",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-04-11",
+      "horizonDays": 30,
+      "asOf": "2026-03-12",
+      "scorable": true,
+      "factor": {
+        "confidence": 57,
+        "band": "MEDIUM"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": -8,
+        "signals": 0,
+        "champion": -25,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Bluebridge Market",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-05-16",
+      "horizonDays": 90,
+      "asOf": "2026-02-15",
+      "scorable": true,
+      "factor": {
+        "confidence": 90,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Bluebridge Market",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-05-16",
+      "horizonDays": 60,
+      "asOf": "2026-03-17",
+      "scorable": true,
+      "factor": {
+        "confidence": 94,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 4,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Bluebridge Market",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-05-16",
+      "horizonDays": 30,
+      "asOf": "2026-04-16",
+      "scorable": true,
+      "factor": {
+        "confidence": 90,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Crescentline Care Partners",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-06-20",
+      "horizonDays": 90,
+      "asOf": "2026-03-22",
+      "scorable": true,
+      "factor": {
+        "confidence": 95,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": 5,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Crescentline Care Partners",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-06-20",
+      "horizonDays": 60,
+      "asOf": "2026-04-21",
+      "scorable": true,
+      "factor": {
+        "confidence": 95,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": 5,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Crescentline Care Partners",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-06-20",
+      "horizonDays": 30,
+      "asOf": "2026-05-21",
+      "scorable": true,
+      "factor": {
+        "confidence": 46,
+        "band": "MEDIUM"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": -8,
+        "signals": -6,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": -10
+      }
+    },
+    {
+      "name": "Northway Logistics",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-07-25",
+      "horizonDays": 90,
+      "asOf": "2026-04-26",
+      "scorable": true,
+      "factor": {
+        "confidence": 95,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": 5,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Northway Logistics",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-07-25",
+      "horizonDays": 60,
+      "asOf": "2026-05-26",
+      "scorable": true,
+      "factor": {
+        "confidence": 95,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": 5,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Northway Logistics",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-07-25",
+      "horizonDays": 30,
+      "asOf": "2026-06-25",
+      "scorable": true,
+      "factor": {
+        "confidence": 66,
+        "band": "MEDIUM"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": -8,
+        "signals": -6,
+        "champion": 5,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": -10
+      }
+    },
+    {
+      "name": "Junipermark Retail",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-08-29",
+      "horizonDays": 90,
+      "asOf": "2026-05-31",
+      "scorable": true,
+      "factor": {
+        "confidence": 89,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": -6,
+        "champion": 5,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Junipermark Retail",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-08-29",
+      "horizonDays": 60,
+      "asOf": "2026-06-30",
+      "scorable": true,
+      "factor": {
+        "confidence": 89,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": -6,
+        "champion": 5,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Junipermark Retail",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-08-29",
+      "horizonDays": 30,
+      "asOf": "2026-07-30",
+      "scorable": true,
+      "factor": {
+        "confidence": 64,
+        "band": "MEDIUM"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": -4,
+        "signals": -12,
+        "champion": 5,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": -10
+      }
+    },
+    {
+      "name": "Coastalgate Retail",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-10-03",
+      "horizonDays": 90,
+      "asOf": "2026-07-05",
+      "scorable": true,
+      "factor": {
+        "confidence": 95,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": 5,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Coastalgate Retail",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-10-03",
+      "horizonDays": 60,
+      "asOf": "2026-08-04",
+      "scorable": true,
+      "factor": {
+        "confidence": 95,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": 5,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Coastalgate Retail",
+      "outcome": "CHURNED",
+      "outcomeDate": "2026-10-03",
+      "horizonDays": 30,
+      "asOf": "2026-09-03",
+      "scorable": true,
+      "factor": {
+        "confidence": 64,
+        "band": "MEDIUM"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": -4,
+        "signals": -12,
+        "champion": 5,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": -10
+      }
+    },
+    {
+      "name": "Beaconcrest Transport",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-01-10",
+      "horizonDays": 90,
+      "asOf": "2025-10-12",
+      "scorable": true,
+      "factor": {
+        "confidence": 85,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": null
+      }
+    },
+    {
+      "name": "Beaconcrest Transport",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-01-10",
+      "horizonDays": 60,
+      "asOf": "2025-11-11",
+      "scorable": true,
+      "factor": {
+        "confidence": 65,
+        "band": "MEDIUM"
+      },
+      "simple": {
+        "confidence": 60,
+        "band": "MEDIUM"
+      },
+      "points": {
+        "health_band": -10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": null
+      }
+    },
+    {
+      "name": "Beaconcrest Transport",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-01-10",
+      "horizonDays": 30,
+      "asOf": "2025-12-11",
+      "scorable": true,
+      "factor": {
+        "confidence": 65,
+        "band": "MEDIUM"
+      },
+      "simple": {
+        "confidence": 60,
+        "band": "MEDIUM"
+      },
+      "points": {
+        "health_band": -10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": null
+      }
+    },
+    {
+      "name": "Pioneerfield Solicitors",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-01-20",
+      "horizonDays": 90,
+      "asOf": "2025-10-22",
+      "scorable": true,
+      "factor": {
+        "confidence": 70,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": null
+      }
+    },
+    {
+      "name": "Pioneerfield Solicitors",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-01-20",
+      "horizonDays": 60,
+      "asOf": "2025-11-21",
+      "scorable": true,
+      "factor": {
+        "confidence": 62,
+        "band": "MEDIUM"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": -8,
+        "signals": 0,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": null
+      }
+    },
+    {
+      "name": "Pioneerfield Solicitors",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-01-20",
+      "horizonDays": 30,
+      "asOf": "2025-12-21",
+      "scorable": true,
+      "factor": {
+        "confidence": 79,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 4,
+        "signals": 0,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Prairieway Industries",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-01-30",
+      "horizonDays": 90,
+      "asOf": "2025-11-01",
+      "scorable": true,
+      "factor": {
+        "confidence": 77,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": -8,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": null
+      }
+    },
+    {
+      "name": "Prairieway Industries",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-01-30",
+      "horizonDays": 60,
+      "asOf": "2025-12-01",
+      "scorable": true,
+      "factor": {
+        "confidence": 89,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 4,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": null
+      }
+    },
+    {
+      "name": "Prairieway Industries",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-01-30",
+      "horizonDays": 30,
+      "asOf": "2025-12-31",
+      "scorable": true,
+      "factor": {
+        "confidence": 90,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Oakcrest Couriers",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-02-09",
+      "horizonDays": 90,
+      "asOf": "2025-11-11",
+      "scorable": true,
+      "factor": {
+        "confidence": 60,
+        "band": "MEDIUM"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": -4,
+        "signals": -6,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": null
+      }
+    },
+    {
+      "name": "Oakcrest Couriers",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-02-09",
+      "horizonDays": 60,
+      "asOf": "2025-12-11",
+      "scorable": true,
+      "factor": {
+        "confidence": 64,
+        "band": "MEDIUM"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": -6,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": null
+      }
+    },
+    {
+      "name": "Oakcrest Couriers",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-02-09",
+      "horizonDays": 30,
+      "asOf": "2026-01-10",
+      "scorable": true,
+      "factor": {
+        "confidence": 85,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": -4,
+        "signals": -6,
+        "champion": 5,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Evergreengate Care Partners",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-02-19",
+      "horizonDays": 90,
+      "asOf": "2025-11-21",
+      "scorable": true,
+      "factor": {
+        "confidence": 81,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": -4,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": null
+      }
+    },
+    {
+      "name": "Evergreengate Care Partners",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-02-19",
+      "horizonDays": 60,
+      "asOf": "2025-12-21",
+      "scorable": true,
+      "factor": {
+        "confidence": 90,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Evergreengate Care Partners",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-02-19",
+      "horizonDays": 30,
+      "asOf": "2026-01-20",
+      "scorable": true,
+      "factor": {
+        "confidence": 95,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": 5,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Goldenpoint Studios",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-03-11",
+      "horizonDays": 90,
+      "asOf": "2025-12-11",
+      "scorable": true,
+      "factor": {
+        "confidence": 70,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": null
+      }
+    },
+    {
+      "name": "Goldenpoint Studios",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-03-11",
+      "horizonDays": 60,
+      "asOf": "2026-01-10",
+      "scorable": true,
+      "factor": {
+        "confidence": 79,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 4,
+        "signals": 0,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Goldenpoint Studios",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-03-11",
+      "horizonDays": 30,
+      "asOf": "2026-02-09",
+      "scorable": true,
+      "factor": {
+        "confidence": 75,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Oakline Industries",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-04-30",
+      "horizonDays": 90,
+      "asOf": "2026-01-30",
+      "scorable": true,
+      "factor": {
+        "confidence": 90,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Oakline Industries",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-04-30",
+      "horizonDays": 60,
+      "asOf": "2026-03-01",
+      "scorable": true,
+      "factor": {
+        "confidence": 90,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Oakline Industries",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-04-30",
+      "horizonDays": 30,
+      "asOf": "2026-03-31",
+      "scorable": true,
+      "factor": {
+        "confidence": 90,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Beaconpoint Advisory",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-05-10",
+      "horizonDays": 90,
+      "asOf": "2026-02-09",
+      "scorable": true,
+      "factor": {
+        "confidence": 75,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Beaconpoint Advisory",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-05-10",
+      "horizonDays": 60,
+      "asOf": "2026-03-11",
+      "scorable": true,
+      "factor": {
+        "confidence": 75,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Beaconpoint Advisory",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-05-10",
+      "horizonDays": 30,
+      "asOf": "2026-04-10",
+      "scorable": true,
+      "factor": {
+        "confidence": 70,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 0
+      }
+    },
+    {
+      "name": "Hollowhaven Freight",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-06-19",
+      "horizonDays": 90,
+      "asOf": "2026-03-21",
+      "scorable": true,
+      "factor": {
+        "confidence": 84,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": -6,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Hollowhaven Freight",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-06-19",
+      "horizonDays": 60,
+      "asOf": "2026-04-20",
+      "scorable": true,
+      "factor": {
+        "confidence": 84,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": -6,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Hollowhaven Freight",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-06-19",
+      "horizonDays": 30,
+      "asOf": "2026-05-20",
+      "scorable": true,
+      "factor": {
+        "confidence": 84,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": -6,
+        "champion": null,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Summitway Advisory",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-06-29",
+      "horizonDays": 90,
+      "asOf": "2026-03-31",
+      "scorable": true,
+      "factor": {
+        "confidence": 75,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Summitway Advisory",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-06-29",
+      "horizonDays": 60,
+      "asOf": "2026-04-30",
+      "scorable": true,
+      "factor": {
+        "confidence": 75,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Summitway Advisory",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-06-29",
+      "horizonDays": 30,
+      "asOf": "2026-05-30",
+      "scorable": true,
+      "factor": {
+        "confidence": 75,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Falconpoint Legal",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-07-19",
+      "horizonDays": 90,
+      "asOf": "2026-04-20",
+      "scorable": true,
+      "factor": {
+        "confidence": 75,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Falconpoint Legal",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-07-19",
+      "horizonDays": 60,
+      "asOf": "2026-05-20",
+      "scorable": true,
+      "factor": {
+        "confidence": 75,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Falconpoint Legal",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-07-19",
+      "horizonDays": 30,
+      "asOf": "2026-06-19",
+      "scorable": true,
+      "factor": {
+        "confidence": 75,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Ironway Accounting",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-07-29",
+      "horizonDays": 90,
+      "asOf": "2026-04-30",
+      "scorable": true,
+      "factor": {
+        "confidence": 75,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Ironway Accounting",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-07-29",
+      "horizonDays": 60,
+      "asOf": "2026-05-30",
+      "scorable": true,
+      "factor": {
+        "confidence": 75,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    },
+    {
+      "name": "Ironway Accounting",
+      "outcome": "RENEWED",
+      "outcomeDate": "2026-07-29",
+      "horizonDays": 30,
+      "asOf": "2026-06-29",
+      "scorable": true,
+      "factor": {
+        "confidence": 75,
+        "band": "HIGH"
+      },
+      "simple": {
+        "confidence": 80,
+        "band": "HIGH"
+      },
+      "points": {
+        "health_band": 10,
+        "health_trend": 0,
+        "signals": 0,
+        "champion": -15,
+        "promises": null,
+        "invoices": 5,
+        "notice": null,
+        "usage": 5
+      }
+    }
+  ]
+}

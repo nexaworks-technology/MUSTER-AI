@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { confidence, type ConfidenceInput } from "../confidence";
-import { confidenceConfig, DEFAULT_CONFIDENCE } from "../schemas";
+import { confidenceConfig, DEFAULT_CONFIDENCE, FACTOR_MODEL } from "../schemas";
 
 /**
  * M7 §5 confidence.test: the deterministic renewal likelihood. Each factor's sign and bounds,
@@ -23,7 +23,7 @@ const none = (over: Partial<ConfidenceInput> = {}): ConfidenceInput => ({
   usage: null,
   ...over,
 });
-const run = (over: Partial<ConfidenceInput> = {}, cfg = DEFAULT_CONFIDENCE) =>
+const run = (over: Partial<ConfidenceInput> = {}, cfg = FACTOR_MODEL) =>
   confidence(none(over), cfg);
 const factor = (r: ReturnType<typeof run>, key: string) => r.factors.find((f) => f.key === key)!;
 
@@ -224,51 +224,52 @@ describe("the total", () => {
   });
 });
 
+function northgateInput() {
+  return none({
+    renewalDate: "2026-12-13",
+    noticeDeadline: "2026-11-13",
+    health: {
+      band: "WATCH",
+      overall: 58,
+      trend30: -12,
+      sources: [{ sourceType: "HealthScoreSnapshot", sourceId: "snap" }],
+    },
+    signals: [
+      {
+        key: "ticket_open_too_long",
+        severity: "WARN",
+        title: "Ticket open too long",
+        sources: [{ sourceType: "Ticket", sourceId: "t1" }],
+      },
+    ],
+    champion: {
+      state: "SILENT",
+      name: "Dana",
+      silentDays: 34,
+      sources: [{ sourceType: "Contact", sourceId: "c1" }],
+    },
+    invoices: [
+      {
+        id: "i1",
+        number: "NG-1",
+        issuedDate: "2026-08-20",
+        dueDate: "2026-09-01",
+        paidDate: "2026-09-22",
+        failedDate: null,
+        isVoid: false,
+      },
+    ],
+    plan: { exists: false, sources: [{ sourceType: "Renewal", sourceId: "r1" }] },
+    usage: {
+      current: 6.2,
+      normal: 10,
+      sources: [{ sourceType: "UsageDaily", accountId: "acc" }],
+    },
+  });
+}
+
 function northgate() {
-  return confidence(
-    none({
-      renewalDate: "2026-12-13",
-      noticeDeadline: "2026-11-13",
-      health: {
-        band: "WATCH",
-        overall: 58,
-        trend30: -12,
-        sources: [{ sourceType: "HealthScoreSnapshot", sourceId: "snap" }],
-      },
-      signals: [
-        {
-          key: "ticket_open_too_long",
-          severity: "WARN",
-          title: "Ticket open too long",
-          sources: [{ sourceType: "Ticket", sourceId: "t1" }],
-        },
-      ],
-      champion: {
-        state: "SILENT",
-        name: "Dana",
-        silentDays: 34,
-        sources: [{ sourceType: "Contact", sourceId: "c1" }],
-      },
-      invoices: [
-        {
-          id: "i1",
-          number: "NG-1",
-          issuedDate: "2026-08-20",
-          dueDate: "2026-09-01",
-          paidDate: "2026-09-22",
-          failedDate: null,
-          isVoid: false,
-        },
-      ],
-      plan: { exists: false, sources: [{ sourceType: "Renewal", sourceId: "r1" }] },
-      usage: {
-        current: 6.2,
-        normal: 10,
-        sources: [{ sourceType: "UsageDaily", accountId: "acc" }],
-      },
-    }),
-    DEFAULT_CONFIDENCE,
-  );
+  return confidence(northgateInput(), FACTOR_MODEL);
 }
 
 describe("a Northgate-like fixture (hand-computed; the seed's own number is reported, never tuned: D2)", () => {
@@ -299,3 +300,29 @@ describe("a Northgate-like fixture (hand-computed; the seed's own number is repo
     expect(JSON.stringify(northgate())).toBe(JSON.stringify(northgate()));
   });
 });
+
+describe("the shipped defaults are the simple model (D-118)", () => {
+  it("count the health band and the notice deadline only; every other factor is listed at 0 points", () => {
+    const r = northgateWith(DEFAULT_CONFIDENCE);
+    // 70 base − 10 Watch − 10 notice deadline in 11 days with no plan; the rest is reported, not counted.
+    expect(r.confidence).toBe(50);
+    expect(r.band).toBe("MEDIUM");
+    expect(r.factors.map((f) => [f.key, f.points])).toEqual([
+      ["health_band", -10],
+      ["health_trend", 0],
+      ["signals", 0],
+      ["champion", 0],
+      ["promises", null],
+      ["invoices", 0],
+      ["notice", -10],
+      ["usage", 0],
+    ]);
+    expect(factor(r, "champion").reason).toContain("silent for 34 days");
+  });
+});
+
+function northgateWith(cfg: typeof DEFAULT_CONFIDENCE) {
+  const base = northgate;
+  void base;
+  return confidence(northgateInput(), cfg);
+}

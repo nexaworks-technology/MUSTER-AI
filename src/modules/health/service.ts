@@ -660,6 +660,7 @@ export async function healthOverview(actor: Actor, clock: Clock = businessClock)
 // ─── Back-test, proposal and versions (implemented in backtest-service.ts) ───
 export {
   activateModel,
+  labelledOutcomes,
   listModels,
   ModelActivationError,
   OUTCOME_WINDOW_MONTHS,
@@ -670,3 +671,4 @@ export {
   type StoredBacktest,
 } from "./backtest-service";
 export { sentence as backtestSentence } from "./engine/backtest";
+export type { Outcome as LabelledOutcome } from "./engine/backtest";
