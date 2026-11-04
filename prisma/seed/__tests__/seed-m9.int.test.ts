@@ -42,7 +42,13 @@ const open = (accountKey: string, ruleKey: string) =>
 describe("seeded extractions (real Watcher, recorded answers)", () => {
   it("every story source was read once, and not one quote was dropped", async () => {
     const runs = await db.agentRun.findMany({
-      where: { agentKey: "watcher", triggerType: "extraction", promptVersion: "1.1.0" },
+      // The seed's own runs: other specs in a shared database (e2e) add Watcher runs of their own.
+      where: {
+        agentKey: "watcher",
+        triggerType: "extraction",
+        promptVersion: "1.1.0",
+        model: "recorded-seed",
+      },
     });
     expect(runs.length).toBe(13);
     expect(runs.every((r) => r.status === "SUCCEEDED")).toBe(true);
@@ -207,7 +213,9 @@ describe("no seeded health number moved (D4: the founder's stop condition)", () 
   });
 
   it("every renewal confidence and band is the M8 value, Northgate's 70 and the seven-way tie included", async () => {
+    // Seeded contracts only: a successor contract another spec adds (e2e renews one) is not the seed.
     const renewals = await db.renewal.findMany({
+      where: { contractId: { startsWith: "seed" } },
       select: { accountId: true, contractId: true, confidence: true, confidenceBand: true },
       orderBy: [{ accountId: "asc" }, { contractId: "asc" }],
     });
