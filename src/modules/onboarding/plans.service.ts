@@ -504,7 +504,7 @@ export async function getAccountOnboarding(
 export async function loadHandoff(actor: Actor, accountId: string, asOf: string) {
   const db = scopedDb(actor);
   const day = utcMidnight(asOf);
-  const [contract, roles, goals, risks, kickoff] = await Promise.all([
+  const [contract, roles, goals, risks, kickoff, promises] = await Promise.all([
     db.contract.findFirst({
       where: { accountId, status: "ACTIVE", startDate: { lte: day } },
       orderBy: { startDate: "desc" },
@@ -532,6 +532,11 @@ export async function loadHandoff(actor: Actor, accountId: string, asOf: string)
       },
       orderBy: { createdAt: "desc" },
       select: { id: true, createdAt: true },
+    }),
+    // M9: our side's promises (Sales's included), from the Promise Tracker's rows.
+    db.promise.findMany({
+      where: { accountId, party: { in: ["US", "UNCLEAR"] } },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
     }),
   ]);
   const crm = contract
@@ -576,6 +581,17 @@ export async function loadHandoff(actor: Actor, accountId: string, asOf: string)
       sourceType: g.sourceType,
       sourceId: g.sourceId,
       quote: g.quote,
+      origin: g.origin,
+    })),
+    promises: promises.map((p) => ({
+      id: p.id,
+      what: p.what,
+      party: p.party,
+      status: p.status,
+      dueDate: p.dueDate ? calendarDateOf(p.dueDate) : null,
+      quote: p.quote,
+      sourceType: p.sourceType,
+      sourceId: p.sourceId,
     })),
     risks,
     kickoffNote: kickoff ? { id: kickoff.id, date: calendarDateOf(kickoff.createdAt) } : null,

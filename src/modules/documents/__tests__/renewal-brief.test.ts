@@ -107,8 +107,8 @@ describe("briefMetrics", () => {
     expect(m["plan.nextStepDate"]!.text).toBe("No next step set");
   });
 
-  it("promise status says tracking is not connected yet: no promise data is invented", () => {
-    expect(briefMetrics(facts())["promises.status"]!.text).toMatch(/not connected yet/);
+  it("promise status says there are no promises on file when there are none: no promise data is invented", () => {
+    expect(briefMetrics(facts())["promises.status"]!.text).toMatch(/No promises on file/);
   });
 
   it("money metrics are flagged money, and only the renewal date is customer-safe", () => {

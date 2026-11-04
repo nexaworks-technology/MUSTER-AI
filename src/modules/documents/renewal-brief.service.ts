@@ -58,7 +58,7 @@ export async function loadBriefFacts(
     },
   });
   if (!r) return null;
-  const [signals, goals, opportunity] = await Promise.all([
+  const [signals, goals, opportunity, promises] = await Promise.all([
     db.signal.findMany({
       where: {
         accountId: r.accountId,
@@ -79,6 +79,11 @@ export async function loadBriefFacts(
       where: { accountId: r.accountId, status: { in: ["OPEN", "IN_PROGRESS"] } },
       orderBy: { createdAt: "desc" },
       select: { id: true, signalIds: true, estimateMinor: true, currency: true },
+    }),
+    db.promise.findMany({
+      where: { accountId: r.accountId, party: "US" },
+      select: { id: true, party: true, status: true },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
     }),
   ]);
   const titles = opportunity
@@ -128,6 +133,7 @@ export async function loadBriefFacts(
         severity: s.severity as "WARN" | "CRITICAL",
       })),
       goals: goals.map((g) => ({ id: g.id, status: g.status })),
+      promises,
       expansion: opportunity
         ? {
             id: opportunity.id,

@@ -43,7 +43,7 @@ describe("Northgate's renewal brief", () => {
     expect(m["health.band"]!.text).toBe("Healthy");
     expect(m["risks.count"]!.text).toBe("6 open risk signals");
     expect(m["goals.status"]!.text).toBe("No goals on file");
-    expect(m["promises.status"]!.text).toMatch(/not connected yet/);
+    expect(m["promises.status"]!.text).toMatch(/1 promise made: 1 late, 0 open, 0 kept/);
     for (const k of ["renewal.date", "health.band", "risks.count"])
       expect(m[k]!.sources.length).toBeGreaterThan(0);
   });

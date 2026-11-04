@@ -116,7 +116,7 @@ export function confidence(input: ConfidenceInput, cfg: ConfidenceConfig): Confi
       "promises",
       "Promises",
       null,
-      "Promise tracking starts in M9, so late promises are not counted",
+      "Late promises are not counted by the shipped model: this factor stays at 0 points (D-118, D-120)",
       [contract],
     ),
     invoicesFactor(input, cfg, factor),

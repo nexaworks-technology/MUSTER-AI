@@ -131,6 +131,8 @@ export async function markFalseAlarm(actor: Actor, signalId: string, rawReason: 
 
 const PAGE = 50;
 
+const QUOTED = new Set(["Message", "Note", "CallTranscript"]);
+
 async function withEvidence<T extends { accountId: string; evidence: Prisma.JsonValue }>(
   actor: Actor,
   rows: T[],
@@ -140,11 +142,16 @@ async function withEvidence<T extends { accountId: string; evidence: Prisma.Json
   return rows.map((r) => ({
     ...r,
     evidenceLinks: (r.evidence as unknown as Array<SourceRef & { value?: unknown }>).map((e) => {
+      let resolved;
       try {
-        return describeSource(r.accountId, e, look);
+        resolved = describeSource(r.accountId, e, look);
       } catch {
-        return { label: e.sourceType, href: null, missing: false };
+        resolved = { label: e.sourceType, href: null, missing: false };
       }
+      // M9: a text signal's evidence is a quote from the record; show it beside the link.
+      return typeof e.value === "string" && QUOTED.has(e.sourceType)
+        ? { ...resolved, label: `${resolved.label}: “${e.value}”` }
+        : resolved;
     }),
   }));
 }

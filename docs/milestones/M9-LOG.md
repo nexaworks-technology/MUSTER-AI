@@ -108,3 +108,13 @@ Question numbers: M9's Session A questions (Q-66–Q-70) collided with M6's Q-66
 | B2 | `support-risk.int.test.ts` (5), `outbound/__tests__/sensitive-inbox.test.ts` (6) | `Cannot find module '../definitions/support-risk'` for both files; no tests ran |
 
 Pre-M9 test change (registry constant, standing pre-approval): `src/modules/agents/__tests__/team.int.test.ts` agent list: 9 agents → adds `support-risk` (B2; B3 adds `promise-keeper`, B4 `champion-guard`, final list in the last row of the table in B9).
+| B3 | `promise-surfaces.int.test.ts` (7), 6 new cases in `handoff.test.ts`, `brief-promises.test.ts` (3), `promise-keeper.int.test.ts` (4), `evidence-m9.int.test.ts` (1) | `createPromise/listPromises/... is not a function`; handoff: `promises_made` item missing (6 failed); brief: old "not connected yet" text; `Cannot find module '../definitions/promise-keeper'`; evidence links without href |
+
+## Session B — pre-M9 test changes, continued (D9 list and standing pre-approval)
+
+| File | Old | New | Reason | Class |
+|---|---|---|---|---|
+| `src/modules/documents/__tests__/renewal-brief.test.ts` ("promise status…") | text matches "not connected yet" | matches "No promises on file" (no promise data on the facts) | the brief's promise metric is real (new briefs only); with none on file it says so | D9 listed |
+| `prisma/seed/__tests__/seed-brief.int.test.ts` | `promises.status` matches "not connected yet" | matches "1 promise made: 1 late, 0 open, 0 kept" (Northgate's late promise) | same | D9 listed |
+| `src/modules/renewals/__tests__/confidence.test.ts` | reason matches "Promise tracking starts in M9" | matches "Late promises are not counted by the shipped model" | display text only; the factor stays at 0 points, unwired (rule 6) | D9 listed |
+| `src/modules/onboarding/__tests__/handoff.test.ts` ("has no promises item in M6") | no item whose key includes "promise" | the `promises_made` item exists and says "Not found in CRM" when there are none | M9.md #20 removes the M6 log-only line; this one case pinned the absence (same file as D9's added handoff cases; flagged for ratification) | D9 file, one existing case |

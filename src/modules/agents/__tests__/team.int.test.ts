@@ -92,6 +92,7 @@ describe("AI team", () => {
       "onboarding-manager",
       "outreach",
       "play-builder",
+      "promise-keeper",
       "renewal-manager",
       "support-risk",
       "watcher",

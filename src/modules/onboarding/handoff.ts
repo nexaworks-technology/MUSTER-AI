@@ -33,6 +33,19 @@ export interface HandoffInput {
     sourceType: string | null;
     sourceId: string | null;
     quote: string | null;
+    /** AI = read from a call or note by the Watcher (M9), with its quote and run. */
+    origin?: "HUMAN" | "SYSTEM" | "AI" | "IMPORT";
+  }>;
+  /** M9: our side's promises (the Promise Tracker's rows). Absent = none loaded. */
+  promises?: Array<{
+    id: string;
+    what: string;
+    party: "US" | "CUSTOMER" | "UNCLEAR";
+    status: "OPEN" | "KEPT" | "LATE" | "BROKEN";
+    dueDate: CalendarDate | null;
+    quote: string | null;
+    sourceType: string | null;
+    sourceId: string | null;
   }>;
   risks: Array<{ id: string; title: string; severity: string }>;
   kickoffNote: { id: string; date: CalendarDate } | null;
@@ -64,6 +77,14 @@ const day = (d: CalendarDate) =>
   new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" }).format(
     new Date(`${d}T00:00:00Z`),
   );
+
+const SOURCE_NAME: Record<string, string> = {
+  CALL_TRANSCRIPT: "CallTranscript",
+  MESSAGE: "Message",
+  NOTE: "Note",
+  TICKET: "Ticket",
+};
+const sourceName = (t: string) => SOURCE_NAME[t] ?? t;
 
 const notFound = (key: string, label: string): HandoffItem => ({
   key,
@@ -150,15 +171,55 @@ export function assembleHandoff(i: HandoffInput): { items: HandoffItem[] } {
           label: "Stated goals",
           found: true,
           text: `${i.goals.length} stated goal${i.goals.length === 1 ? "" : "s"}`,
-          values: i.goals.map((g) => g.text),
+          values: i.goals.map((g) =>
+            g.origin === "AI" && g.sourceType === "CALL_TRANSCRIPT"
+              ? `${g.text} (from a call)`
+              : g.text,
+          ),
           sources: i.goals.flatMap((g) => [
             { sourceType: "Goal", sourceId: g.id, label: g.text },
             ...(g.sourceType && g.sourceId
-              ? [{ sourceType: g.sourceType, sourceId: g.sourceId, label: g.quote ?? g.sourceType }]
+              ? [
+                  {
+                    sourceType: sourceName(g.sourceType),
+                    sourceId: g.sourceId,
+                    label: g.quote ?? g.sourceType,
+                  },
+                ]
               : []),
           ]),
         }
       : notFound("stated_goals", "Stated goals"),
+  );
+
+  // M9: the promises Sales made. A customer's promise is not Sales's; a kept one is not a handoff item.
+  const promised = (i.promises ?? []).filter((p) => p.party !== "CUSTOMER" && p.status !== "KEPT");
+  items.push(
+    promised.length
+      ? {
+          key: "promises_made",
+          label: "Promises made by Sales",
+          found: true,
+          text: `${promised.length} promise${promised.length === 1 ? "" : "s"} made`,
+          values: promised.map((p) =>
+            p.dueDate
+              ? `${p.what} (due ${day(p.dueDate)}${p.status === "LATE" ? ", late" : p.status === "BROKEN" ? ", broken" : ""})`
+              : p.what,
+          ),
+          sources: promised.flatMap((p) => [
+            { sourceType: "Promise", sourceId: p.id, label: p.what },
+            ...(p.sourceType && p.sourceId
+              ? [
+                  {
+                    sourceType: sourceName(p.sourceType),
+                    sourceId: p.sourceId,
+                    label: p.quote ?? sourceName(p.sourceType),
+                  },
+                ]
+              : []),
+          ]),
+        }
+      : notFound("promises_made", "Promises made by Sales"),
   );
 
   // Open risks are ours, not the CRM's: "none" is a found fact, with no sources to show.

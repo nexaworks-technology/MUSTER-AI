@@ -98,7 +98,7 @@ describe("every factor, one at a time", () => {
   it("promises are always null until M9 provides them (Rule 4), never 0", () => {
     const f = factor(run(), "promises");
     expect(f.points).toBeNull();
-    expect(f.reason).toMatch(/Promise tracking starts in M9/);
+    expect(f.reason).toMatch(/Late promises are not counted by the shipped model/);
   });
 
   it("invoices: failed unpaid −15, late unpaid −10, paid late −5, clean +5; the worst applies", () => {

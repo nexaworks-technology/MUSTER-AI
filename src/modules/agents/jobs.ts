@@ -4,6 +4,7 @@ import type { TenantContext } from "@/lib/db/scoped";
 import { runAgent, type Trigger } from "./executor";
 import { reextractPayload } from "@/modules/conversations/service";
 import { backfillExtractions, reextractSources } from "./definitions/watcher";
+import { sweepPromiseKeeper } from "./definitions/promise-keeper";
 import { processConsider, sweepHealthNarratives } from "./definitions/health-analyst-trigger";
 import { getAgent } from "./registry";
 import { listActiveWorkspaces } from "@/lib/db/workspace";
@@ -74,5 +75,12 @@ export async function sweepAllExtractions() {
   const out: Record<string, unknown> = {};
   for (const w of await listActiveWorkspaces())
     out[w.slug] = await backfillExtractions({ workspaceId: w.id }, { limit: 25 });
+  return out;
+}
+
+/** Every active workspace: a chase task for each late promise of ours that has none (a few per pass). */
+export async function sweepAllPromiseKeepers() {
+  const out: Record<string, unknown> = {};
+  for (const w of await listActiveWorkspaces()) out[w.slug] = await sweepPromiseKeeper({ workspaceId: w.id });
   return out;
 }

@@ -137,7 +137,73 @@ describe("Sales handoff (M6 rule 6)", () => {
     });
   });
 
-  it("has no promises item in M6 (Promise tracking starts in M9)", () => {
-    expect(assembleHandoff(full()).items.some((i) => i.key.includes("promise"))).toBe(false);
+  it("M9 replaced the M6 'no promises item': with no promises on file the item says so", () => {
+    expect(assembleHandoff(full()).items.find((i) => i.key === "promises_made")).toMatchObject({
+      found: false,
+      text: "Promises made by Sales: Not found in CRM",
+    });
   });
 });
+
+describe("Sales handoff — promises and call-derived goals (M9, Q-64)", () => {
+  const promise = (over: Partial<NonNullable<HandoffInput["promises"]>[number]> = {}) => ({
+    id: "p1",
+    what: "Native Zendesk integration",
+    party: "UNCLEAR" as const,
+    status: "OPEN" as const,
+    dueDate: null,
+    quote: "Sales promised a native Zendesk integration by the end of their first quarter.",
+    sourceType: "NOTE",
+    sourceId: "n1",
+    ...over,
+  });
+
+  it("lists the promises Sales made, each with the promise and the quoted source record", () => {
+    const h = byKey(assembleHandoff({ ...full(), promises: [promise()] }).items);
+    expect(h.get("promises_made")).toMatchObject({ found: true, text: "1 promise made", values: ["Native Zendesk integration"] });
+    expect(h.get("promises_made")!.sources).toEqual([
+      { sourceType: "Promise", sourceId: "p1", label: "Native Zendesk integration" },
+      { sourceType: "Note", sourceId: "n1", label: "Sales promised a native Zendesk integration by the end of their first quarter." },
+    ]);
+  });
+
+  it("shows a due date and a late status in the value, never invents one", () => {
+    const h = byKey(
+      assembleHandoff({
+        ...full(),
+        promises: [promise({ party: "US", status: "LATE", dueDate: "2026-10-24", sourceType: "CALL_TRANSCRIPT", sourceId: "t1" }), promise({ id: "p2", what: "Other", dueDate: null })],
+      }).items,
+    );
+    expect(h.get("promises_made")!.values).toEqual(["Native Zendesk integration (due Oct 24, 2026, late)", "Other"]);
+  });
+
+  it("a customer's promise is not Sales's, and a kept one is not an open handoff item", () => {
+    const h = byKey(assembleHandoff({ ...full(), promises: [promise({ party: "CUSTOMER" }), promise({ id: "p3", status: "KEPT" })] }).items);
+    expect(h.get("promises_made")).toMatchObject({ found: false, text: "Promises made by Sales: Not found in CRM", sources: [] });
+  });
+
+  it("no promises at all says 'Not found in CRM', also when the input has none", () => {
+    for (const promises of [[], undefined])
+      expect(byKey(assembleHandoff({ ...full(), ...(promises ? { promises } : {}) }).items).get("promises_made")).toMatchObject({ found: false, sources: [] });
+  });
+
+  it("a goal read from a call keeps its call and quote as sources", () => {
+    const h = byKey(
+      assembleHandoff({
+        ...full(),
+        goals: [{ id: "g9", text: "Cut month-end close to 3 days", sourceType: "CALL_TRANSCRIPT", sourceId: "t9", quote: "Our goal is to cut month-end close to 3 days.", origin: "AI" }],
+      }).items,
+    );
+    expect(h.get("stated_goals")).toMatchObject({ found: true, values: ["Cut month-end close to 3 days (from a call)"] });
+    expect(h.get("stated_goals")!.sources).toEqual([
+      { sourceType: "Goal", sourceId: "g9", label: "Cut month-end close to 3 days" },
+      { sourceType: "CallTranscript", sourceId: "t9", label: "Our goal is to cut month-end close to 3 days." },
+    ]);
+  });
+
+  it("every found item still carries at least one source (none invented)", () => {
+    for (const item of assembleHandoff({ ...full(), promises: [promise()] }).items.filter((i) => i.found))
+      expect(item.sources.length, item.key).toBeGreaterThan(0);
+  });
+});
+

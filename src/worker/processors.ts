@@ -14,6 +14,7 @@ import {
   sweepAllHealthNarratives,
   processReextract,
   sweepAllExtractions,
+  sweepAllPromiseKeepers,
   sweepAllRenewalAgents,
 } from "@/modules/agents/service";
 import { importJobPayload, runImportJob } from "@/modules/imports/service";
@@ -127,6 +128,10 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
     async "conversations.extractSweep"() {
       return sweepAllExtractions();
     },
+    /** M9: a chase task for each late promise of ours that has none. */
+    async "promises.agentsSweep"() {
+      return sweepAllPromiseKeepers();
+    },
     /** M9: after an explicit Watcher prompt-version bump, read again what the old version read. */
     async "conversations.reextract"(job) {
       return processReextract(job.data);
@@ -221,6 +226,8 @@ export const SCHEDULES = [
   { queue: "maintenance", id: "nightly-schedules", job: "nightly.schedules", everyMs: 3_600_000 },
   // M4: narratives for snapshots no event covers (first snapshot, top-reason change).
   { queue: "agents", id: "health-analyst-sweep", job: "health-analyst.sweep", everyMs: 900_000 },
+  // M9: the Promise Keeper for late promises of ours.
+  { queue: "agents", id: "promise-agents-sweep", job: "promises.agentsSweep", everyMs: 900_000 },
   // M9: the Watcher for new messages, notes and call chunks.
   {
     queue: "agents",

@@ -35,11 +35,14 @@ export function sortPromises<T extends SortablePromise>(rows: readonly T[]): T[]
 // ─── Database layer ───────────────────────────────────────────────────────────────────────
 
 import type { Extraction } from "@prisma/client";
+import { randomUUID } from "node:crypto";
+import { z } from "zod";
 import { writeAudit } from "@/lib/audit";
+import { requirePermission } from "@/lib/auth/permissions";
 import { calendarDateOf, type CalendarDate } from "@/lib/dates";
 import { scopedDb, type ScopedDb, type TenantContext } from "@/lib/db/scoped";
 import { currentExtractions, promiseParty } from "@/modules/conversations/service";
-import type { Actor } from "@/modules/accounts/service";
+import { bookWhere, type Actor } from "@/modules/accounts/service";
 import {
   brokenAfterDaysSchema,
   DEFAULT_BROKEN_AFTER_DAYS,
@@ -361,4 +364,234 @@ export async function markPromiseKept(
     before: { status: p.status },
     after: { status: r.status, evidence: input.evidence },
   });
+}
+
+// ─── Tracker reads and the three things a person can do (M9 B3) ───────────────────────────────
+
+export class PromiseInputError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "PromiseInputError";
+  }
+}
+
+export interface PromiseRow {
+  id: string;
+  account: { id: string; name: string };
+  what: string;
+  party: "US" | "CUSTOMER" | "UNCLEAR";
+  suggestedParty: "US" | "CUSTOMER" | null;
+  status: "OPEN" | "KEPT" | "LATE" | "BROKEN";
+  statusReason: string;
+  dueDate: string | null;
+  owner: { id: string; name: string } | null;
+  quote: string | null;
+  source: { type: string; id: string } | null;
+  origin: "HUMAN" | "SYSTEM" | "AI" | "IMPORT";
+}
+
+export const PROMISE_PAGE = 50;
+
+/** The tracker: late first, then no owner, then due date; kept ones only under "All". Book-scoped. */
+export async function listPromises(
+  actor: Actor,
+  q: { status?: "OPEN" | "ALL"; accountId?: string; cursor?: string },
+): Promise<{ rows: PromiseRow[]; nextCursor: string | null }> {
+  const grant = requirePermission(actor, "accounts:view");
+  const db = scopedDb(actor);
+  const found = await db.promise.findMany({
+    where: {
+      account: bookWhere(actor, grant.scope),
+      ...(q.accountId ? { accountId: q.accountId } : {}),
+      ...(q.status === "ALL" ? {} : { status: { not: "KEPT" } }),
+    },
+    include: {
+      account: { select: { id: true, name: true } },
+      owner: { select: { id: true, user: { select: { name: true, email: true } } } },
+    },
+    take: 500,
+  });
+  const rows: PromiseRow[] = sortPromises(
+    found.map((p) => ({
+      id: p.id,
+      account: p.account,
+      what: p.what,
+      party: p.party,
+      suggestedParty: p.suggestedParty === "UNCLEAR" ? null : p.suggestedParty,
+      status: p.status,
+      statusReason: p.statusReason,
+      dueDate: p.dueDate ? calendarDateOf(p.dueDate) : null,
+      ownerMembershipId: p.ownerMembershipId,
+      owner: p.owner ? { id: p.owner.id, name: p.owner.user.name ?? p.owner.user.email } : null,
+      quote: p.quote,
+      source: p.sourceType && p.sourceId ? { type: p.sourceType, id: p.sourceId } : null,
+      origin: p.origin,
+    })),
+  ).map(({ ownerMembershipId: _unused, ...r }) => r);
+  const offset = /^\d{1,5}$/.test(q.cursor ?? "") ? Number(q.cursor) : 0;
+  const page = rows.slice(offset, offset + PROMISE_PAGE);
+  return {
+    rows: page,
+    nextCursor: offset + PROMISE_PAGE < rows.length ? String(offset + PROMISE_PAGE) : null,
+  };
+}
+
+const day = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .refine(
+    (d) => new Date(`${d}T00:00:00Z`).toISOString().slice(0, 10) === d,
+    "That is not a real date.",
+  );
+
+const createInput = z.object({
+  accountId: z.string().min(1),
+  what: z.string().trim().min(1, "Say what was promised.").max(300),
+  party: z.enum(["US", "CUSTOMER"]),
+  dueDate: day.optional(),
+  ownerMembershipId: z.string().min(1).nullish(),
+  today: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
+
+function invalid(e: unknown): never {
+  if (e instanceof z.ZodError)
+    throw new PromiseInputError(e.issues[0]?.message ?? "Check the form.");
+  throw e;
+}
+
+async function activeOwner(db: ScopedDb, id: string | null | undefined): Promise<string | null> {
+  if (!id) return null;
+  const m = await db.membership.findFirst({
+    where: { id, status: "ACTIVE" },
+    select: { id: true },
+  });
+  if (!m) throw new PromiseInputError("That person is not an active member of this workspace.");
+  return m.id;
+}
+
+/** A promise entered by hand: no quote is invented, the status is computed like any other. */
+export async function createPromise(
+  actor: Actor,
+  raw: z.input<typeof createInput>,
+): Promise<{ id: string }> {
+  const grant = requirePermission(actor, "accounts:edit");
+  let input: z.infer<typeof createInput>;
+  try {
+    input = createInput.parse(raw);
+  } catch (e) {
+    invalid(e);
+  }
+  const db = scopedDb(actor);
+  const account = await db.account.findFirst({
+    where: { AND: [{ id: input.accountId }, bookWhere(actor, grant.scope)] },
+    select: { id: true },
+  });
+  if (!account) throw new PromiseInputError("That account was not found in your book.");
+  const owner = await activeOwner(db, input.ownerMembershipId);
+  const r = promiseStatus({
+    dueDate: input.dueDate ?? null,
+    today: input.today,
+    evidence: null,
+    brokenAfterDays: await brokenAfterDays(db),
+  });
+  const created = await db.promise.create({
+    data: {
+      workspaceId: actor.workspaceId,
+      accountId: account.id,
+      party: input.party,
+      what: input.what,
+      dueDate: input.dueDate ? utc(input.dueDate) : null,
+      ownerMembershipId: owner,
+      status: r.status,
+      statusReason: r.reason,
+      dedupeKey: `manual:${randomUUID()}`,
+      origin: "HUMAN",
+      createdByMembershipId: actor.membershipId,
+    },
+  });
+  await writeAudit({
+    workspaceId: actor.workspaceId,
+    actorType: "USER",
+    actorId: actor.userId,
+    action: "promise.created",
+    targetType: "Promise",
+    targetId: created.id,
+    summary: `Added a promise by hand: ${input.what}`,
+    after: { party: input.party, dueDate: input.dueDate ?? null, status: r.status },
+  });
+  return { id: created.id };
+}
+
+export async function setPromiseOwner(
+  actor: Actor,
+  input: { promiseId: string; ownerMembershipId: string | null },
+): Promise<void> {
+  const grant = requirePermission(actor, "accounts:edit");
+  const db = scopedDb(actor);
+  const p = await db.promise.findFirst({
+    where: { AND: [{ id: input.promiseId }, { account: bookWhere(actor, grant.scope) }] },
+    select: { id: true, ownerMembershipId: true, what: true },
+  });
+  if (!p) throw new PromiseInputError("That promise was not found.");
+  const owner = await activeOwner(db, input.ownerMembershipId);
+  await db.promise.update({ where: { id: p.id }, data: { ownerMembershipId: owner } });
+  await writeAudit({
+    workspaceId: actor.workspaceId,
+    actorType: "USER",
+    actorId: actor.userId,
+    action: "promise.owner_set",
+    targetType: "Promise",
+    targetId: p.id,
+    summary: owner
+      ? `Gave a promise an owner: ${p.what}`
+      : `Cleared the owner of a promise: ${p.what}`,
+    before: { ownerMembershipId: p.ownerMembershipId },
+    after: { ownerMembershipId: owner },
+  });
+}
+
+/** "How it was kept" is written as a note on the account, and that note is the evidence. */
+export async function markPromiseKeptWithNote(
+  actor: Actor,
+  input: { promiseId: string; text: string; today: CalendarDate },
+): Promise<void> {
+  const grant = requirePermission(actor, "accounts:edit");
+  const text = input.text.trim();
+  if (!text) throw new PromiseInputError("Say how it was kept.");
+  const db = scopedDb(actor);
+  const p = await db.promise.findFirst({
+    where: { AND: [{ id: input.promiseId }, { account: bookWhere(actor, grant.scope) }] },
+    select: { id: true, accountId: true },
+  });
+  if (!p) throw new PromiseInputError("That promise was not found.");
+  const note = await db.note.create({
+    data: {
+      workspaceId: actor.workspaceId,
+      accountId: p.accountId,
+      authorMembershipId: actor.membershipId,
+      body: text.slice(0, 4000),
+      tags: ["promise-kept"],
+      mentionMembershipIds: [],
+      origin: "HUMAN",
+    },
+  });
+  await markPromiseKept(actor, {
+    promiseId: p.id,
+    evidence: { type: "Note", id: note.id },
+    today: input.today,
+  });
+}
+
+/** Active members who can own a promise, by name. */
+export async function listOwnerChoices(actor: Actor): Promise<Array<{ id: string; name: string }>> {
+  requirePermission(actor, "accounts:view");
+  const rows = await scopedDb(actor).membership.findMany({
+    where: { status: "ACTIVE" },
+    select: { id: true, user: { select: { name: true, email: true } } },
+    orderBy: { id: "asc" },
+    take: 100,
+  });
+  return rows
+    .map((m) => ({ id: m.id, name: m.user.name ?? m.user.email }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }

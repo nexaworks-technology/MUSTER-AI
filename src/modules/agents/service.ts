@@ -51,6 +51,7 @@ export {
   enqueueReextract,
   processReextract,
   sweepAllExtractions,
+  sweepAllPromiseKeepers,
 } from "./jobs";
 export {
   considerHealthNarrative,

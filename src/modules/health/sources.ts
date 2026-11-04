@@ -46,6 +46,12 @@ const ROLE_WORDS: Record<string, string> = {
   OTHER: "Other",
 };
 
+const M9_SOURCES: Record<string, { label: string; path: (id: string) => string }> = {
+  Promise: { label: "Promise", path: (id) => `promises#promise-${id}` },
+  CallTranscript: { label: "Call", path: () => "conversations" },
+  Note: { label: "Note", path: () => "notes" },
+};
+
 export function describeSource(
   accountId: string,
   ref: SourceRef,
@@ -69,6 +75,10 @@ export function describeSource(
     return { label: w[0], href: w[1], missing: false };
   }
   const id = ref.sourceId;
+  // M9: records the signal rules cite that the health lookups do not read. They open the record's
+  // own page; a record deleted since shows as a plain label there, not a failure.
+  const m9 = M9_SOURCES[ref.sourceType];
+  if (m9) return { label: m9.label, href: `${base}/${m9.path(id)}`, missing: false };
   if (!look.existing.has(id))
     return {
       label: `${ref.sourceType.replace(/([a-z])([A-Z])/g, "$1 $2")} (no longer on record)`,

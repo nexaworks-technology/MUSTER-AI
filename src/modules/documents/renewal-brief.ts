@@ -66,6 +66,12 @@ export interface BriefFacts {
     estimateMinor: bigint | null;
     currency: string | null;
   } | null;
+  /** M9: our promises on the account (customer promises are not counted). Absent = none on file. */
+  promises?: Array<{
+    id: string;
+    party: "US" | "CUSTOMER" | "UNCLEAR";
+    status: "OPEN" | "KEPT" | "LATE" | "BROKEN";
+  }>;
   /** The next step's date, computed by code from the business date and the notice deadline. */
   nextStep?: { dateText: string } | null;
 }
@@ -89,6 +95,24 @@ function m(
   money = false,
 ): [BriefKey, Metric] {
   return [key, { key, label, kind, value, text, money, sources }];
+}
+
+/** Our promises by status (a broken one counts as late); none on file says so and cites nothing. */
+function promisesMetric(f: BriefFacts): [BriefKey, Metric] {
+  const ours = (f.promises ?? []).filter((p) => p.party === "US");
+  if (ours.length === 0)
+    return m("promises.status", "Promises", "text", null, "No promises on file", []);
+  const late = ours.filter((p) => p.status === "LATE" || p.status === "BROKEN").length;
+  const open = ours.filter((p) => p.status === "OPEN").length;
+  const kept = ours.filter((p) => p.status === "KEPT").length;
+  return m(
+    "promises.status",
+    "Promises",
+    "text",
+    ours.length,
+    `${ours.length} promise${ours.length === 1 ? "" : "s"} made: ${late} late, ${open} open, ${kept} kept`,
+    ours.map((p) => ({ sourceType: "Promise", sourceId: p.id })),
+  );
 }
 
 export function briefMetrics(f: BriefFacts): MetricSet {
@@ -187,14 +211,7 @@ export function briefMetrics(f: BriefFacts): MetricSet {
         : `${achieved} of ${counted.length} goal${counted.length === 1 ? "" : "s"} achieved`,
       f.goals.map((g) => ({ sourceType: "Goal", sourceId: g.id })),
     ),
-    m(
-      "promises.status",
-      "Promises",
-      "text",
-      null,
-      "Promise tracking is not connected yet, so no promise status is shown",
-      [],
-    ),
+    promisesMetric(f),
     m(
       "expansion.chance",
       "Expansion chance",
