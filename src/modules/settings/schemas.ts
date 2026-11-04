@@ -1,3 +1,4 @@
+import { renewalSettings } from "@/modules/renewals/schemas";
 import { z } from "zod";
 import { MIN_PASSWORD_LENGTH } from "@/lib/auth/constants";
 
@@ -111,6 +112,8 @@ export const workspaceSettingsData = z.object({
       otherPlayCooldownHours: z.number().int().min(1).default(48),
     })
     .prefault({}),
+  /** M7: the renewal radar's horizon and the confidence model's weights (audited when edited). */
+  renewals: renewalSettings,
   approvals: z
     .object({
       /** The highest level any action may reach in this workspace (ARCHITECTURE §7.3). */

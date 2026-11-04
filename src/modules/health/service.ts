@@ -483,7 +483,13 @@ export { DEFAULT_MODEL, modelConfigSchema, type ModelConfig };
 export type { AccountBundle, SourceRef } from "./engine/types";
 export { chooseCohort, ownBaseline, percentile, type CohortAttrs } from "./engine/baselines";
 export { currentUsage, typicalWeekday, inRange } from "./engine/windows";
-export { rolesKnown, statusAsOf, validOn, currentHolder } from "./engine/components/people";
+export {
+  rolesKnown,
+  statusAsOf,
+  validOn,
+  currentHolder,
+  lastEnded,
+} from "./engine/components/people";
 export { day as formatDay } from "./engine/format";
 export { loadBundles } from "./loader";
 export { describeSource, sourceLookups, type ResolvedSource } from "./sources";

@@ -27,6 +27,12 @@ import { scopedDb } from "@/lib/db/scoped";
  */
 
 export { syncSignalRules } from "./rule-rows";
+export {
+  riskSignalsAsOf,
+  RENEWAL_RISK_RULE_KEYS,
+  RESTATES_OTHER_FACTORS,
+  type AsOfRiskSignal,
+} from "./rules/as-of";
 
 // ─── Lifecycle and human decisions ───────────────────────────────────────────
 
