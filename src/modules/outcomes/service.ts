@@ -161,3 +161,203 @@ export async function evaluateSevenDayCheckpoints(
   }
   return { evaluated: due.length, counts };
 }
+
+// ─── M7 B5: revenue statuses ────────────────────────────────────────────────────────────────
+
+export type RevenueStatus = "RENEWED" | "EXPANDED" | "CONTRACTED" | "CHURNED";
+
+/** What happened to revenue after a flag, with the records behind it (Q-15: attributed, not causal). */
+export interface RevenueCheckpoint {
+  status: RevenueStatus;
+  evaluatedAt: string;
+  occurredOn: string;
+  attributed: true;
+  note: string;
+  detail: string;
+  evidence: Array<{ sourceType: "RenewalOutcome" | "RevenueEvent"; sourceId: string }>;
+  /** Currency of the expanded value (the flag may have had no ARR to name one). */
+  valueCurrency: string | null;
+}
+
+/** Revenue records count for 90 days after the flag; the 30/90-day completion itself is M11. */
+export const REVENUE_WINDOW_DAYS = 90;
+/** A record stays under evaluation for a week after its window closes, then it is final. */
+const GRACE_DAYS = 7;
+const ATTRIBUTION_NOTE =
+  "Attributed to the flag from records within 90 days; not proven to be caused by it (Q-15).";
+const day = (d: Date) => d.toISOString().slice(0, 10);
+/** jsonb does not keep key order: compare with keys sorted. */
+const canonical = (v: unknown): string =>
+  JSON.stringify(v, (_k, x) =>
+    x && typeof x === "object" && !Array.isArray(x)
+      ? Object.fromEntries(Object.entries(x).sort(([a], [b]) => (a < b ? -1 : 1)))
+      : x,
+  );
+
+/**
+ * The revenue statuses (ARCHITECTURE §6.5, Q-15), deterministic from Session A's RenewalOutcome
+ * snapshots and the revenue events dated from the flag to 90 days after it:
+ *
+ * - RISK flag: CHURNED (a churned renewal outcome or a churn event) outranks CONTRACTED (a
+ *   contraction event), which outranks RENEWED (a renewed outcome).
+ * - OPPORTUNITY flag: CHURNED, then CONTRACTED, then EXPANDED (expansion events).
+ *
+ * `valueSavedMinor` is the ARR at the flag, only for a RISK flag that was ACTED on and ended
+ * RENEWED; `valueExpandedMinor` is the sum of the positive expansion deltas for an OPPORTUNITY flag
+ * that ended EXPANDED. Neither is ever 0 for "unknown". A record is re-evaluated while its window is
+ * open (a correction replaces an earlier outcome) and for a week after; a record whose window holds
+ * nothing keeps no status. Idempotent: an unchanged result writes nothing.
+ */
+export async function evaluateRevenueCheckpoints(ctx: TenantContext, clock: Clock = businessClock) {
+  const db = scopedDb(ctx);
+  const now = clock();
+  const records = await db.outcomeRecord.findMany({
+    where: {
+      flaggedAt: {
+        lte: now,
+        gt: new Date(+now - (REVENUE_WINDOW_DAYS + GRACE_DAYS) * DAY),
+      },
+    },
+  });
+  if (records.length === 0) return { evaluated: 0, changed: 0 };
+  const accountIds = [...new Set(records.map((r) => r.accountId))];
+  const earliest = new Date(Math.min(...records.map((r) => +r.flaggedAt)));
+  const [outcomes, events] = await Promise.all([
+    db.renewalOutcome.findMany({
+      where: { accountId: { in: accountIds }, occurredOn: { gte: new Date(day(earliest)) } },
+      select: { id: true, accountId: true, result: true, occurredOn: true, supersedesId: true },
+    }),
+    db.revenueEvent.findMany({
+      where: {
+        accountId: { in: accountIds },
+        type: { in: ["EXPANSION", "CONTRACTION", "CHURN"] },
+        effectiveDate: { gte: new Date(day(earliest)) },
+      },
+      select: {
+        id: true,
+        accountId: true,
+        type: true,
+        deltaArrMinor: true,
+        currency: true,
+        effectiveDate: true,
+      },
+    }),
+  ]);
+  // The effective outcome of a renewal is the one no other row corrects.
+  const superseded = new Set(outcomes.flatMap((o) => (o.supersedesId ? [o.supersedesId] : [])));
+  const effective = outcomes.filter((o) => !superseded.has(o.id));
+  let changed = 0;
+  for (const r of records) {
+    const from = day(r.flaggedAt);
+    const to = day(new Date(Math.min(+now, +r.flaggedAt + REVENUE_WINDOW_DAYS * DAY)));
+    const inWindow = (d: Date) => day(d) >= from && day(d) <= to;
+    const mine = {
+      outcomes: effective.filter((o) => o.accountId === r.accountId && inWindow(o.occurredOn)),
+      events: events.filter((e) => e.accountId === r.accountId && inWindow(e.effectiveDate)),
+    };
+    const churned = [
+      ...mine.outcomes
+        .filter((o) => o.result === "CHURNED")
+        .map((o) => ({ k: "o" as const, ...o })),
+      ...mine.events.filter((e) => e.type === "CHURN").map((e) => ({ k: "e" as const, ...e })),
+    ];
+    const contracted = mine.events.filter((e) => e.type === "CONTRACTION");
+    const renewed = mine.outcomes.filter((o) => o.result === "RENEWED");
+    const expanded = mine.events.filter((e) => e.type === "EXPANSION" && e.deltaArrMinor > 0n);
+    const ref = (xs: Array<{ id: string }>, sourceType: "RenewalOutcome" | "RevenueEvent") =>
+      xs.map((x) => ({ sourceType, sourceId: x.id }));
+    let status: RevenueStatus | null = null;
+    let evidence: RevenueCheckpoint["evidence"] = [];
+    let dates: Date[] = [];
+    if (churned.length) {
+      status = "CHURNED";
+      evidence = [
+        ...ref(
+          churned.filter((c) => c.k === "o"),
+          "RenewalOutcome",
+        ),
+        ...ref(
+          churned.filter((c) => c.k === "e"),
+          "RevenueEvent",
+        ),
+      ];
+      dates = churned.map((c) => (c.k === "o" ? c.occurredOn : c.effectiveDate));
+    } else if (contracted.length) {
+      status = "CONTRACTED";
+      evidence = ref(contracted, "RevenueEvent");
+      dates = contracted.map((c) => c.effectiveDate);
+    } else if (r.flagType === "RISK" && renewed.length) {
+      status = "RENEWED";
+      evidence = ref(renewed, "RenewalOutcome");
+      dates = renewed.map((c) => c.occurredOn);
+    } else if (r.flagType === "OPPORTUNITY" && expanded.length) {
+      status = "EXPANDED";
+      evidence = ref(expanded, "RevenueEvent");
+      dates = expanded.map((c) => c.effectiveDate);
+    }
+    const expandedCurrency = expanded[0]?.currency ?? null;
+    const valueSaved =
+      status === "RENEWED" && r.actionTaken === "ACTED" ? (r.arrAtFlagMinor ?? null) : null;
+    const valueExpanded =
+      status === "EXPANDED"
+        ? expanded
+            .filter((e) => e.currency === expandedCurrency)
+            .reduce((s, e) => s + e.deltaArrMinor, 0n)
+        : null;
+    const next: RevenueCheckpoint | null = status
+      ? {
+          status,
+          evaluatedAt: now.toISOString(),
+          occurredOn: dates.map(day).sort().at(-1)!,
+          attributed: true,
+          note: ATTRIBUTION_NOTE,
+          detail: {
+            RENEWED: "The renewal was recorded as renewed from contract records.",
+            EXPANDED: "Expansion was recorded after the flag.",
+            CONTRACTED: "A contraction was recorded after the flag.",
+            CHURNED: "The account churned after the flag.",
+          }[status],
+          evidence,
+          valueCurrency: status === "EXPANDED" ? expandedCurrency : null,
+        }
+      : null;
+    const prev = r.revenueOutcome as unknown as RevenueCheckpoint | null;
+    const same =
+      (prev === null && next === null) ||
+      (prev !== null &&
+        next !== null &&
+        prev.status === next.status &&
+        prev.occurredOn === next.occurredOn &&
+        canonical(prev.evidence) === canonical(next.evidence) &&
+        r.valueSavedMinor === valueSaved &&
+        r.valueExpandedMinor === valueExpanded);
+    if (same) continue;
+    await db.$tenantTransaction(async (tx) => {
+      await tx.outcomeRecord.update({
+        where: { id: r.id },
+        data: {
+          revenueOutcome: next ? (next as unknown as Prisma.InputJsonValue) : Prisma.DbNull,
+          valueSavedMinor: valueSaved,
+          valueExpandedMinor: valueExpanded,
+        },
+      });
+      await writeAudit(
+        {
+          workspaceId: ctx.workspaceId,
+          actorType: "SYSTEM",
+          action: "outcome.revenue_status",
+          targetType: "OutcomeRecord",
+          targetId: r.id,
+          summary: next
+            ? `Revenue outcome ${next.status.toLowerCase()} recorded from ${next.evidence.length} record${next.evidence.length === 1 ? "" : "s"} (attributed, not causal)`
+            : "Revenue outcome cleared: the records that supported it no longer apply",
+          before: prev ? { status: prev.status } : null,
+          after: next ? { status: next.status } : null,
+        },
+        tx,
+      );
+    });
+    changed++;
+  }
+  return { evaluated: records.length, changed };
+}

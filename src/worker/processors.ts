@@ -26,7 +26,10 @@ import {
   onOnboardingValueReached,
   sweepAllOnboardingAgents,
 } from "@/modules/onboarding/service";
-import { evaluateSevenDayCheckpoints } from "@/modules/outcomes/service";
+import {
+  evaluateRevenueCheckpoints,
+  evaluateSevenDayCheckpoints,
+} from "@/modules/outcomes/service";
 import { escalateOverdueTasks } from "@/modules/tasks/service";
 import { rebuildWorkspaceToday } from "@/modules/today/service";
 import { createPipelineProcessors } from "@/modules/signals/service";
@@ -90,8 +93,11 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
   outcomes: {
     async "outcomes.checkpoint"() {
       const out: Record<string, number> = {};
-      for (const w of await listActiveWorkspaces())
+      for (const w of await listActiveWorkspaces()) {
         out[w.slug] = (await evaluateSevenDayCheckpoints({ workspaceId: w.id })).evaluated;
+        // M7: renewed / expanded / contracted / churned, from renewal outcomes and revenue events.
+        await evaluateRevenueCheckpoints({ workspaceId: w.id });
+      }
       return out;
     },
   },

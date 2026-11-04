@@ -1607,6 +1607,9 @@ model OutcomeRecord {
   d7Outcome          Json?
   d30Outcome         Json?
   d90Outcome         Json?
+  /// M7: what happened to revenue within 90 days of the flag (renewed / expanded / contracted /
+  /// churned), from RenewalOutcome and revenue events, with evidence; attributed, not causal (Q-15).
+  revenueOutcome     Json?
   valueSavedMinor    BigInt?
   valueExpandedMinor BigInt?
   isTrueAlarm        Boolean?
