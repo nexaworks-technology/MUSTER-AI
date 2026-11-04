@@ -53,3 +53,9 @@ export {
   setForecastCategory,
   type RenewalRow,
 } from "./read.service";
+export {
+  adoptRenewalPlan,
+  PlanAdoptionValidationError,
+  type AdoptRenewalPlanInput,
+  type PlanStepInput,
+} from "./plan-adoption";

@@ -4,7 +4,11 @@ import { notFound } from "next/navigation";
 import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { formatCalendarDate } from "@/lib/format";
-import { askRenewalManagerAction, buildBriefAction } from "@/modules/documents/actions/brief";
+import {
+  adoptPlanAction,
+  askRenewalManagerAction,
+  buildBriefAction,
+} from "@/modules/documents/actions/brief";
 import { DocumentError, getRenewalBrief } from "@/modules/documents/service";
 
 export const metadata: Metadata = { title: "Renewal brief" };
@@ -182,6 +186,138 @@ export default async function RenewalBriefPage({
               </p>
             ) : null}
           </section>
+
+          {/* Adopted Renewal Plan (D-139) */}
+          {page.renewal.planSteps.length > 0 && (
+            <section
+              aria-labelledby="adopted-plan-h"
+              className="space-y-3 border-t pt-4"
+              data-testid="adopted-plan-section"
+            >
+              <div className="flex items-center justify-between">
+                <h2 id="adopted-plan-h" className="text-lg font-semibold">
+                  Adopted renewal plan
+                </h2>
+                <span className="text-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200 px-2 py-0.5 rounded font-medium">
+                  {page.renewal.planSteps.length} step{page.renewal.planSteps.length === 1 ? "" : "s"} adopted
+                </span>
+              </div>
+              <ol className="list-decimal list-inside space-y-2 text-sm">
+                {page.renewal.planSteps.map((s, idx) => (
+                  <li key={idx} className="font-medium">
+                    <span>{s.title}</span>
+                    {s.detail && (
+                      <p className="text-xs text-muted-foreground pl-5 font-normal">{s.detail}</p>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+
+          {/* Adopt Proposed Plan Form (D-139: steps editable before adoption) */}
+          {canEdit && (
+            <section
+              aria-labelledby="adopt-plan-h"
+              className="space-y-4 border rounded-lg p-4 bg-muted/20"
+              data-testid="adopt-plan-section"
+            >
+              <div>
+                <h2 id="adopt-plan-h" className="text-base font-semibold">
+                  {page.renewal.planSteps.length > 0
+                    ? "Edit & re-adopt plan steps"
+                    : "Adopt proposed plan steps"}
+                </h2>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Steps are editable before human adoption. Adopting writes into Renewal.planSteps. Figures must obey locked placeholder rules.
+                </p>
+              </div>
+              <form action={adoptPlanAction.bind(null, id)} className="space-y-3">
+                {(() => {
+                  const proposedSteps = doc.rendered
+                    .filter((b) => b.id.startsWith("plan-") && b.id !== "plan-h")
+                    .map((b) => {
+                      const idx = b.text.indexOf(":");
+                      if (idx !== -1) {
+                        return {
+                          title: b.text.slice(0, idx).trim(),
+                          detail: b.text.slice(idx + 1).trim(),
+                        };
+                      }
+                      return { title: b.text.trim(), detail: "" };
+                    });
+
+                  const stepsToEdit =
+                    proposedSteps.length > 0 ? proposedSteps : page.renewal.planSteps;
+
+                  if (stepsToEdit.length === 0) {
+                    return (
+                      <div className="space-y-2 text-xs">
+                        <div className="space-y-1">
+                          <label className="font-mono text-muted-foreground">Step 1 Title</label>
+                          <input
+                            type="text"
+                            name="step_title_0"
+                            placeholder="e.g. Schedule executive renewal review"
+                            required
+                            className="border rounded px-2 py-1 w-full font-medium bg-background"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="font-mono text-muted-foreground">Step 1 Detail (optional)</label>
+                          <input
+                            type="text"
+                            name="step_detail_0"
+                            placeholder="e.g. Review {{metric.renewal.arr}} and metrics"
+                            className="border rounded px-2 py-1 w-full text-muted-foreground bg-background"
+                          />
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <>
+                      {stepsToEdit.map((step, idx) => (
+                        <div key={idx} className="space-y-1.5 border-b pb-3 text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-muted-foreground min-w-[50px]">
+                              Step {idx + 1}
+                            </span>
+                            <input
+                              type="text"
+                              name={`step_title_${idx}`}
+                              defaultValue={step.title}
+                              placeholder="Step Title"
+                              required
+                              className="border rounded px-2 py-1 flex-1 font-medium bg-background"
+                              aria-label={`Step ${idx + 1} Title`}
+                            />
+                          </div>
+                          <div className="pl-[58px]">
+                            <input
+                              type="text"
+                              name={`step_detail_${idx}`}
+                              defaultValue={step.detail ?? ""}
+                              placeholder="Detail (optional)"
+                              className="border rounded px-2 py-1 w-full text-muted-foreground bg-background"
+                              aria-label={`Step ${idx + 1} Detail`}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  );
+                })()}
+                <button
+                  type="submit"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-3 py-1.5 text-xs font-medium"
+                >
+                  Adopt plan into renewal
+                </button>
+              </form>
+            </section>
+          )}
         </>
       )}
 

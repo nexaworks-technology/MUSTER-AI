@@ -9,6 +9,11 @@ import { ForbiddenError } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { AccountNotFoundError } from "@/modules/accounts/service";
 import { askRenewalManager } from "@/modules/agents/service";
+import {
+  adoptRenewalPlan,
+  PlanAdoptionValidationError,
+  type PlanStepInput,
+} from "@/modules/renewals/service";
 import { createRenewalBrief, DocumentError } from "../service";
 
 const id = z.string().min(1).max(60);
@@ -20,7 +25,8 @@ async function go(renewalId: string, work: () => Promise<string>) {
     q = `ok=${encodeURIComponent(await work())}`;
   } catch (e) {
     if (e instanceof ForbiddenError || e instanceof AccountNotFoundError) notFound();
-    if (e instanceof DocumentError) q = `error=${encodeURIComponent(e.message)}`;
+    if (e instanceof DocumentError || e instanceof PlanAdoptionValidationError)
+      q = `error=${encodeURIComponent(e.message)}`;
     else if (e instanceof z.ZodError)
       q = `error=${encodeURIComponent(e.issues[0]?.message ?? "Check the form.")}`;
     else throw e;
@@ -57,5 +63,35 @@ export async function askRenewalManagerAction(renewalId: string) {
       default:
         return `The Renewal Manager's answer was not usable (${r.runStatus.toLowerCase().replace("_", " ")}), so nothing was written.`;
     }
+  });
+}
+
+/** Human adoption of the AI-proposed plan into Renewal.planSteps (D-139). */
+export async function adoptPlanAction(renewalId: string, formData: FormData) {
+  const ctx = await resolveWorkspaceContext(await requireSession());
+  if (!ctx) redirect("/");
+  await go(id.parse(renewalId), async () => {
+    const steps: PlanStepInput[] = [];
+    let i = 0;
+    while (formData.has(`step_title_${i}`)) {
+      const title = (formData.get(`step_title_${i}`) as string) || "";
+      const detail = (formData.get(`step_detail_${i}`) as string) || null;
+      if (title.trim().length > 0) {
+        steps.push({ title: title.trim(), detail: detail ? detail.trim() : null });
+      }
+      i++;
+    }
+    if (steps.length === 0 && formData.has("steps_json")) {
+      try {
+        const parsed = JSON.parse(formData.get("steps_json") as string);
+        if (Array.isArray(parsed)) {
+          steps.push(...parsed);
+        }
+      } catch {
+        // ignore JSON parse error
+      }
+    }
+    await adoptRenewalPlan(ctx, { renewalId: id.parse(renewalId), steps });
+    return `Plan adopted (${steps.length} step${steps.length === 1 ? "" : "s"}) into renewal.`;
   });
 }

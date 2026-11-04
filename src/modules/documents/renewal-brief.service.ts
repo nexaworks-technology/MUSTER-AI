@@ -210,6 +210,7 @@ export interface BriefPage {
     accountName: string;
     renewalDate: Date;
     stage: string;
+    planSteps: Array<{ title: string; detail?: string | null; dueDate?: string | null }>;
   };
   document: DocumentView | null;
 }
@@ -225,6 +226,7 @@ export async function getRenewalBrief(actor: Actor, renewalId: string): Promise<
       renewalDate: true,
       stage: true,
       briefDocumentId: true,
+      planSteps: true,
       account: { select: { name: true } },
     },
   });
@@ -237,6 +239,7 @@ export async function getRenewalBrief(actor: Actor, renewalId: string): Promise<
       accountName: r.account.name,
       renewalDate: r.renewalDate,
       stage: r.stage,
+      planSteps: (Array.isArray(r.planSteps) ? r.planSteps : []) as any,
     },
     document: r.briefDocumentId ? await readDocument(actor, r.briefDocumentId) : null,
   };
