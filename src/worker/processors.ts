@@ -1,3 +1,4 @@
+import { syncAllInboxes } from "@/modules/inbox/service";
 import type { Job } from "bullmq";
 import { env } from "@/lib/config/env";
 import { dispatchOutbox, OUTBOX_ROUTES } from "@/lib/jobs/outbox";
@@ -160,6 +161,10 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
       logger.info({ jobId: job.id, at }, "worker heartbeat");
       return { at };
     },
+    /** M9: the inbox is built from existing emails and tickets (Rule 4: a view, not a store). */
+    async "inbox.sync"() {
+      return syncAllInboxes();
+    },
     async "outbox.dispatch"() {
       return dispatchOutbox(OUTBOX_ROUTES);
     },
@@ -233,6 +238,8 @@ export const SCHEDULES = [
   // M7: the Renewal Manager for renewals inside their window that have no brief yet.
   { queue: "agents", id: "renewal-agents-sweep", job: "renewals.agentsSweep", everyMs: 900_000 },
   { queue: "agents", id: "expansion-agents-sweep", job: "expansion.agentsSweep", everyMs: 900_000 },
+  // M9: triage rows for inbound emails and tickets that already exist.
+  { queue: "maintenance", id: "inbox-sync", job: "inbox.sync", everyMs: 900_000 },
   { queue: "maintenance", id: "task-escalation", job: "tasks.escalateOverdue", everyMs: 3_600_000 },
   { queue: "outcomes", id: "outcomes-checkpoint", job: "outcomes.checkpoint", everyMs: 21_600_000 },
   { queue: "maintenance", id: "today-rebuild", job: "today.rebuildAll", everyMs: 3_600_000 },
