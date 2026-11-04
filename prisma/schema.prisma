@@ -1223,6 +1223,8 @@ enum DataQualityKind {
   STALE
   /// Two sources disagree on one field (Q-32, D1): nothing was overwritten.
   CONFLICT
+  /// Revenue events and the contract in force disagree on an account's ARR (M7, D9); nothing was changed.
+  ARR_MISMATCH
 }
 
 enum DataQualityStatus {

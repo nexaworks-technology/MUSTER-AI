@@ -34,8 +34,9 @@ export async function runDataQualityScan(actor: Actor, now = new Date()) {
     db.contact.findMany({
       select: { id: true, accountId: true, name: true, email: true, createdAt: true },
     }),
-    // CONFLICT issues come from syncs (Q-32), not from this scan, so the scan never resolves them.
-    db.dataQualityIssue.findMany({ where: { kind: { not: "CONFLICT" } } }),
+    // CONFLICT issues come from syncs (Q-32) and ARR_MISMATCH from the nightly renewals pass (M7),
+    // not from this scan, so the scan never resolves them.
+    db.dataQualityIssue.findMany({ where: { kind: { notIn: ["CONFLICT", "ARR_MISMATCH"] } } }),
   ]);
   const detected = detectIssues({
     accounts,

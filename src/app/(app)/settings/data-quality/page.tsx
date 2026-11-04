@@ -14,6 +14,7 @@ const KIND = {
   INVALID_EMAIL: "Email",
   STALE: "Not updated",
   CONFLICT: "Sources disagree",
+  ARR_MISMATCH: "Revenue does not match contract",
 } as const;
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;

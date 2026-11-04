@@ -14,6 +14,7 @@ import {
 } from "@/modules/health/service";
 import { addNightlySyncFlow } from "@/modules/integrations/service";
 import { evaluateOnboarding } from "@/modules/onboarding/service";
+import { syncArrChecks } from "@/modules/revenue/service";
 import { evaluateAndStore } from "./lifecycle";
 import { parseParams } from "./rules/catalog";
 
@@ -165,6 +166,8 @@ async function scoreCore(data: ChunkData) {
   // signals module.
   const { syncRenewals } = await import("@/modules/renewals/service");
   await syncRenewals(ctx, data.accountIds, data.asOf);
+  // D9: revenue events against the contract in force; a disagreement is a data-quality item.
+  await syncArrChecks(ctx, data.accountIds, data.asOf);
   return { ...counts, bandChanges: changed.length };
 }
 

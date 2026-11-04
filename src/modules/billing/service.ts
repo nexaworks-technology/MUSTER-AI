@@ -265,7 +265,12 @@ export function redactFinancials(
 
 export type BillingView = Awaited<ReturnType<typeof getBilling>>;
 
-export { RENEWAL_GRACE_DAYS } from "./revenue";
+export {
+  currentContract,
+  deriveRevenueEvents,
+  RENEWAL_GRACE_DAYS,
+  type ContractFacts,
+} from "./revenue";
 export { canSeeMoney, redactMoney, type MoneyActor } from "./redact";
 
 /** Thrown for a forbidden write; re-exported so actions can map it to a plain message. */

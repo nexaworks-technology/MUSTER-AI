@@ -205,9 +205,9 @@ describe("nightly pipeline through the real queue", () => {
     // loaded twice (signals, then health: ~18 set-based reads each), cohort peers three times
     // (baselines, signals, health: 4 each), workspace/settings lookups, rules, existing signals and
     // snapshots, one baseline insert, (M6) one read for open onboarding plans, and (M7) three for
-    // renewals.sync (contracts, renewal rows, settings). Fixed per chunk; it must never scale with
-    // accounts.
-    expect(five.queries).toBeLessThanOrEqual(71);
+    // renewals.sync (contracts, renewal rows, settings) and three for the ARR cross-check (revenue
+    // events, contracts, open mismatch items). Fixed per chunk; it must never scale with accounts.
+    expect(five.queries).toBeLessThanOrEqual(74);
   });
 
   it("the real-time hook evaluates one account through the queue at once", async () => {
