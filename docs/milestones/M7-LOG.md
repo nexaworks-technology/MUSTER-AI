@@ -71,6 +71,10 @@ The founder accepted the simple model and asked that A5 verify Northgate ranks l
 
 Why: the shipped model counts two things, the health band and the notice deadline. Every renewal in the window is Healthy (+10), and the seven at 70 are the ones whose notice deadline is within 14 days (or passed) with no renewal plan (−10); the four at 80 have a later deadline. Northgate is one of the seven, not below them, and it is not the largest ARR among them (Aspenwood's is). The only account below 70 in the whole book is Brightwell (40, At Risk), and it renews in 118 days. Nothing was adjusted: no factor, weight or seed row.
 
+## Correction recorded against D-120 (2026-11-05, founder decision)
+
+The founder accepted asserting the tie. M7.md (demo step 2, the confidence test line) and SEED_DATA §5 no longer assert 38% / LOW for Northgate: Northgate is one of seven renewals tied at the lowest confidence (70) in the next 90 days, with its reasons as the data yields them; the LOW-band story arrives with M9/M10 data (promise extraction, call transcripts). The e2e asserts the tie group and Northgate's membership and reasons, nothing stronger.
+
 ## Decisions added so far
 
 D-118 (the simple model ships; the rule and the defaults), D-119 (one champion-silence definition; risk signals as of a date), D-120 (the outcome of the model choice, both models' calibration, as accepted by the founder).
