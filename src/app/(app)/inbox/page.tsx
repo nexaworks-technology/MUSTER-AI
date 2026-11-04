@@ -4,6 +4,7 @@ import { ExtractionLabels } from "@/components/app/extraction-labels";
 import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { formatDateTime } from "@/lib/format";
+import { draftReplyAction } from "@/modules/inbox/actions/inbox";
 import { listInbox, listUnmatched } from "@/modules/inbox/service";
 
 export const metadata: Metadata = { title: "Inbox" };
@@ -33,6 +34,13 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
   const { items, nextCursor } = await listInbox(ctx, { status, ...(cursor ? { cursor } : {}) });
   const unmatched = can(ctx, "accounts:edit") ? (await listUnmatched(ctx)).length : 0;
   const tz = ctx.workspace.timezone;
+  const canDraft = Boolean(can(ctx, "approvals:decide"));
+  const draftNote = {
+    drafted: "Reply drafted. It is waiting in Approvals; nothing has been sent.",
+    not_configured: "AI is not switched on for this workspace, so no draft was made.",
+    failed: "The draft could not be made. Nothing was changed.",
+    forbidden: "You can't draft replies.",
+  }[first(sp.draft) ?? ""];
   const tab = (href: string, label: string, active: boolean) => (
     <Link
       href={href as Route}
@@ -58,6 +66,11 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
           ? tab("/inbox/unmatched", `Unmatched (${unmatched})`, false)
           : null}
       </nav>
+      {draftNote ? (
+        <p role="status" className="text-sm" data-testid="draft-note">
+          {draftNote}
+        </p>
+      ) : null}
       {items.length === 0 ? (
         <p className="text-muted-foreground text-sm" data-testid="inbox-empty">
           {status === "OPEN"
@@ -131,6 +144,27 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
                   ...i.labels,
                 ]}
               />
+              <div className="flex items-center gap-3 pt-1 text-xs">
+                {i.hasDraft ? (
+                  <Link href={"/approvals" as Route} className="underline" data-testid="draft-link">
+                    Reply drafted · see it in Approvals
+                  </Link>
+                ) : canDraft && i.status === "NEW" ? (
+                  <form action={draftReplyAction}>
+                    <input type="hidden" name="inboxItemId" value={i.id} />
+                    <button
+                      type="submit"
+                      className="rounded-md border px-2 py-1"
+                      data-testid="draft-reply"
+                    >
+                      Draft a reply
+                    </button>
+                  </form>
+                ) : null}
+                {i.sensitive.isSensitive ? (
+                  <span className="text-muted-foreground">No auto-send option, ever.</span>
+                ) : null}
+              </div>
               {i.relatedTickets.length > 0 ? (
                 <p className="text-xs" data-testid="related-tickets">
                   Same problem in {i.relatedTickets.length} other ticket

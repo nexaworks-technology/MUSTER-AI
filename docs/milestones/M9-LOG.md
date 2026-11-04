@@ -105,3 +105,6 @@ Question numbers: M9's Session A questions (Q-66–Q-70) collided with M6's Q-66
 | Slice | Test files written first | Red result |
 |---|---|---|
 | B1 | `labels.test.ts`, `inbox/__tests__/list.int.test.ts` (8), `conversation-labels.int.test.ts` (4) | `Cannot find module '../labels'`; `listInbox is not a function`; labels `undefined` on every message |
+| B2 | `support-risk.int.test.ts` (5), `outbound/__tests__/sensitive-inbox.test.ts` (6) | `Cannot find module '../definitions/support-risk'` for both files; no tests ran |
+
+Pre-M9 test change (registry constant, standing pre-approval): `src/modules/agents/__tests__/team.int.test.ts` agent list: 9 agents → adds `support-risk` (B2; B3 adds `promise-keeper`, B4 `champion-guard`, final list in the last row of the table in B9).

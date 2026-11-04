@@ -93,6 +93,7 @@ describe("AI team", () => {
       "outreach",
       "play-builder",
       "renewal-manager",
+      "support-risk",
       "watcher",
     ]);
     const ha = team.find((a) => a.key === "health-analyst")!;

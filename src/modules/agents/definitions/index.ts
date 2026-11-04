@@ -8,6 +8,7 @@ import { renewalManager } from "./renewal-manager";
 import { watcher } from "./watcher";
 import { digitalCsm } from "./digital-csm";
 import { playBuilder } from "./play-builder";
+import { supportRisk } from "./support-risk";
 
 /** The agents M4 ships (ARCHITECTURE §6.2; D-30: only the spec's 13 + Ask AI). */
 export const M4_AGENTS: AnyAgentDef[] = [healthAnalyst, watcher, outreach];
@@ -20,3 +21,6 @@ export const M7_AGENTS: AnyAgentDef[] = [renewalManager, expansionFinder];
 
 /** The agents M8 adds (spec §8 Digital CSM, Play Builder in S10). */
 export const M8_AGENTS: AnyAgentDef[] = [digitalCsm, playBuilder];
+
+/** The agents M9 adds (spec §6E6 Support Risk Agent; Promise Keeper and Champion Guard follow in B3, B4). */
+export const M9_AGENTS: AnyAgentDef[] = [supportRisk];

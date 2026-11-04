@@ -525,8 +525,31 @@ export async function listInbox(
   const page = found.slice(0, take);
   const nextCursor =
     found.length > take ? encodeCursor(page[take - 1]!.receivedAt, page[take - 1]!.id) : null;
-  if (page.length === 0) return { items: [], nextCursor };
+  return { items: await buildRows(db, page), nextCursor };
+}
 
+type ItemWithAccount = Prisma.InboxItemGetPayload<{
+  include: { account: { select: { id: true; name: true } } };
+}>;
+
+/** One inbox row, built the same way the list builds them (the Support Risk Agent reads this). */
+export async function inboxRowFor(
+  ctx: TenantContext,
+  inboxItemId: string,
+): Promise<InboxRow | null> {
+  const db = scopedDb(ctx);
+  const item = await db.inboxItem.findUnique({
+    where: { id: inboxItemId },
+    include: { account: { select: { id: true, name: true } } },
+  });
+  return item ? (await buildRows(db, [item]))[0]! : null;
+}
+
+async function buildRows(
+  db: ReturnType<typeof scopedDb>,
+  page: ItemWithAccount[],
+): Promise<InboxRow[]> {
+  if (page.length === 0) return [];
   const accountIds = [...new Set(page.map((i) => i.accountId))];
   const messageIds = page.filter((i) => i.sourceType === "MESSAGE").map((i) => i.sourceId);
   const [messages, tickets] = await Promise.all([
@@ -653,7 +676,7 @@ export async function listInbox(
       draftOutboundMessageId: i.draftOutboundMessageId,
     };
   });
-  return { items, nextCursor };
+  return items;
 }
 
 export interface UnmatchedRow {
