@@ -81,9 +81,16 @@ export async function findIntegrationByUsageKeyHash(
 export async function findOutboundMessageByProviderId(
   providerMessageId: string,
 ): Promise<{ workspaceId: string; id: string } | null> {
-  const row = await rawDb.outboundMessage.findFirst({
-    where: { providerMessageId },
-    select: { id: true, workspaceId: true },
-  });
-  return row ?? null;
+  const workspaces = await rawDb.workspace.findMany({ select: { id: true } });
+  for (const w of workspaces) {
+    const [, found] = await rawDb.$transaction([
+      rawDb.$executeRaw`SELECT set_config('app.workspace_id', ${w.id}, true)`,
+      rawDb.outboundMessage.findFirst({
+        where: { providerMessageId },
+        select: { id: true, workspaceId: true },
+      }),
+    ]);
+    if (found) return found;
+  }
+  return null;
 }

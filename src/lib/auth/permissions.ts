@@ -75,8 +75,8 @@ const TABLE: Record<Exclude<Permission, "revenue:view">, RoleTable> = {
 };
 
 export class ForbiddenError extends Error {
-  constructor(readonly permission: Permission) {
-    super(`Not allowed: ${permission}`);
+  constructor(readonly permission: Permission, message?: string) {
+    super(message ?? `Not allowed: ${permission}`);
     this.name = "ForbiddenError";
   }
 }

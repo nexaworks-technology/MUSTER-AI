@@ -331,7 +331,10 @@ async function loadPending(actor: Actor, approvalId: string, via: DecisionChanne
   requirePermission(actor, "approvals:decide");
   const a = await getApproval(actor, approvalId);
   if (a.kind === "CAMPAIGN" && actor.role !== "ADMIN" && actor.role !== "CS_LEADER") {
-    throw new ForbiddenError("approvals:decide");
+    throw new ForbiddenError(
+      "approvals:decide",
+      "Only an Admin or CS Leader may decide a campaign approval",
+    );
   }
   if (a.status !== "PENDING")
     throw new ApprovalStateError(
