@@ -6,6 +6,7 @@
  */
 import { findWorkspaceBySlug } from "@/lib/db/workspace";
 import { escalateOverdueTasks } from "@/modules/tasks/service";
+import { rebuildWorkspaceToday } from "@/modules/today/service";
 
 async function main() {
   const i = process.argv.indexOf("--workspace");
@@ -14,6 +15,7 @@ async function main() {
   const ws = await findWorkspaceBySlug(slug);
   if (!ws) throw new Error(`No workspace with slug "${slug}"`);
   const r = await escalateOverdueTasks({ workspaceId: ws.id });
+  await rebuildWorkspaceToday({ workspaceId: ws.id });
   console.log(`escalated ${r.escalated} overdue task(s)`);
 }
 
