@@ -116,3 +116,6 @@ export async function roleTimeline(
     return items;
   });
 }
+
+export { championGuardFor, loadChampionGuard, type ChampionGuard } from "./champion-guard.service";
+export { rankCandidates, type Candidate, type CandidatePerson } from "./champion-candidates";
