@@ -11,6 +11,7 @@ import { seedHealth } from "./demo/health";
 import { seedOnboarding } from "./demo/onboarding";
 import { withDatabaseLock } from "@/lib/db/locks";
 import { recomputeLastTouch, runDataQualityScan } from "@/modules/accounts/service";
+import { seedPlaysForWorkspace } from "./plays";
 import { ids, seedId } from "./demo/ids";
 import { daysAgo } from "./demo/dates";
 import {
@@ -81,6 +82,7 @@ async function seedWorkspace(
     create: { workspaceId: workspace.id, data: {} },
     update: {},
   });
+  await seedPlaysForWorkspace(workspace.id);
   await writeAudit({
     workspaceId: workspace.id,
     actorType: "SYSTEM",

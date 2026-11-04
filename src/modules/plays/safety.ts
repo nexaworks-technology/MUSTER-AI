@@ -82,7 +82,7 @@ export async function validatePlaySafety(
       // Check if segment filter explicitly restricts tier to something incompatible with play branches
       const filterTier = seg.filter.tier?.value ?? seg.filter.tier?.equals;
       if (typeof filterTier === "string") {
-        for (const b of play.branches) {
+        for (const b of play.branches ?? []) {
           if (b.tier && b.tier !== filterTier) {
             refusals.push(
               `Segment filter excludes tier "${b.tier}" used in play branch (segment requires "${filterTier}").`,
@@ -95,8 +95,8 @@ export async function validatePlaySafety(
 
   // 3. Collect all steps
   const allStepLists: Array<{ name: string; steps: PlayStepDefinition[] }> = [
-    { name: "main", steps: play.steps },
-    ...play.branches.map((b, i) => ({ name: `branch-${b.tier ?? i}`, steps: b.steps })),
+    { name: "main", steps: play.steps ?? [] },
+    ...(play.branches ?? []).map((b, i) => ({ name: `branch-${b.tier ?? i}`, steps: b.steps ?? [] })),
   ];
 
   const totalSteps = allStepLists.reduce((sum, l) => sum + l.steps.length, 0);
