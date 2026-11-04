@@ -84,6 +84,9 @@ export default async function HealthPage({ searchParams }: { searchParams: Searc
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3 text-sm">
+          <Link href={"/health/sentiment" as Route} className="underline" data-testid="sentiment-link">
+            Sentiment &amp; themes
+          </Link>{" · "}
           <Link href={"/health/signals" as Route} className="underline">
             Signals
           </Link>

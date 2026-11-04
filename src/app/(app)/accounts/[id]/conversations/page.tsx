@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ExtractionLabels } from "@/components/app/extraction-labels";
 import { formatDateTime } from "@/lib/format";
+import { SentimentPanel } from "@/components/app/sentiment-view";
 import { conversationPageFor, listConversations } from "@/modules/conversations/service";
+import { getSentiment } from "@/modules/sentiment/service";
 import { loadAccount } from "../data";
 
 export const metadata: Metadata = { title: "Conversations" };
@@ -24,7 +26,10 @@ export default async function ConversationsPage({
       : null;
   const offset = target ? target.offset : /^\d{1,5}$/.test(cursor ?? "") ? Number(cursor) : 0;
   const tz = ctx.workspace.timezone;
-  const { conversations, nextCursor } = await listConversations(ctx, account.id, offset);
+  const [{ conversations, nextCursor }, tone] = await Promise.all([
+    listConversations(ctx, account.id, offset),
+    getSentiment(ctx, { accountId: account.id }),
+  ]);
   if (conversations.length === 0 && offset === 0) {
     return (
       <p className="text-muted-foreground text-sm">No emails or calls recorded for this account.</p>
@@ -32,6 +37,14 @@ export default async function ConversationsPage({
   }
   return (
     <div className="space-y-3">
+      <details className="rounded-md border p-3" data-testid="tone-panel">
+        <summary className="cursor-pointer text-sm font-medium">
+          Tone and themes for this account
+        </summary>
+        <div className="mt-3">
+          <SentimentPanel view={tone} themeHref={null} />
+        </div>
+      </details>
       <ul className="divide-border border-border divide-y rounded-md border text-sm">
         {conversations.map((c) => (
           <li key={c.id} className="p-3" data-testid="conversation">

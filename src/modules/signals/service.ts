@@ -37,6 +37,8 @@ export {
 // ─── Lifecycle and human decisions ───────────────────────────────────────────
 
 export { evaluateAndStore, type EvaluateResult } from "./lifecycle";
+export { loadTextFacts } from "./text-facts";
+export type { TextFact } from "./rules/text";
 
 export class SignalNotFoundError extends Error {
   constructor() {
