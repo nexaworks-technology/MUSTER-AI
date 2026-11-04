@@ -149,7 +149,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
                   <Link href={"/approvals" as Route} className="underline" data-testid="draft-link">
                     Reply drafted · see it in Approvals
                   </Link>
-                ) : canDraft && i.status === "NEW" ? (
+                ) : canDraft && i.status !== "CLOSED" ? (
                   <form action={draftReplyAction}>
                     <input type="hidden" name="inboxItemId" value={i.id} />
                     <button
