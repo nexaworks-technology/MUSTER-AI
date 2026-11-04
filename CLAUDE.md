@@ -33,6 +33,12 @@ you must flag the disagreement in `docs/QUESTIONS.md` — never silently follow 
 - Demo usage events (dev only, M6): `pnpm demo:usage pinecrest --key <ingest key>` (or `USAGE_API_KEY`)
   — posts recorded product events to the running app's Usage API, Bearer-authenticated with the key shown once on
   Settings › Integrations › Usage API; refuses any address but this machine; a second run is a replay and changes nothing
+- Recorded renewal agents (M7, e2e and demo): `AI_PROVIDER=recorded AI_RECORDINGS_DIR=.dev-recordings/<name> pnpm exec tsx --env-file=.env scripts/recorded-renewals.ts --workspace <slug> [--nonce <n>]`
+  — composes answers from the records, then runs the Renewal Manager (Northgate) and Expansion Finder (Copperleaf)
+  through the real executor; the outreach and the conversation draft land in Approvals, nothing is sent
+- Renewal outcome demo (M7, dev only): `pnpm exec tsx --env-file=.env scripts/demo-renewal-outcome.ts --workspace <slug> [--account "<name>"]`
+  — adds the successor contract record, then runs `renewals.sync` and the revenue checkpoint for that account;
+  records RENEWED with the forecast frozen as it stood (default Harborwood Accounting; re-running changes nothing)
 - Fresh workspace in setup (M5 `/setup` demo): `pnpm db:seed -- --empty-workspace` (Juniper Labs, admin@juniper.test)
 - Connectors on recorded fixtures (tests, e2e, demo; refused in production): `INTEGRATIONS_TRANSPORT=fixture`
 - Typecheck: `pnpm typecheck` · Lint: `pnpm lint` · Format check: `pnpm format:check`

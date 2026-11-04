@@ -217,7 +217,7 @@ Scope discipline:
 - All money is hidden without `canViewRevenue` (test).
 - No LLM output feeds any money/confidence field (forbidden-numeric test).
 - e2e demo passes.
-**Demo:** Renewals → next 90 days → "Northgate Freight" 38% confidence, with reasons → open the Renewal Brief → approve the Renewal Manager outreach → Revenue → waterfall + $ at risk next 90 days → Expansion → "Copperleaf Studios" seat-limit opportunity "Estimate: $10,800 ARR (12 seats × $900 list)".
+**Demo:** Renewals → next 90 days → "Northgate Freight", one of seven renewals tied at the lowest confidence (70%), with its reasons → open the Renewal Brief → approve the Renewal Manager outreach → Revenue → waterfall + $ at risk next 90 days → Expansion → "Copperleaf Studios" seat-limit opportunity "Estimate: $10,800.00 ARR (12 seats × $900.00 per seat, from their subscription)".
 
 ## M8: Plays Engine
 **Goal:** repeat jobs that actually run, safely. 15 seeded plays, simple builder with safety check, play results, Outreach + Digital CSM (limited), auto-send enablement, campaigns.
