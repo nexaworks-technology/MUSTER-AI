@@ -26,7 +26,7 @@ export default async function ApprovalPage({ params }: { params: Promise<{ id: s
       notFound();
     throw e;
   });
-  const proof = await resolveProof(scopedDb(ctx), a.accountId, parseProof(a.proof));
+  const proof = a.accountId ? await resolveProof(scopedDb(ctx), a.accountId, parseProof(a.proof)) : [];
   const message = a.outboundMessages[0] ?? null;
   const latest = a.revisions.at(-1) ?? null;
   const canDecide = Boolean(can(ctx, "approvals:decide")) && a.status === "PENDING";
@@ -46,10 +46,15 @@ export default async function ApprovalPage({ params }: { params: Promise<{ id: s
         </Link>
         <h1 className="mt-1 text-2xl font-semibold">{a.reason}</h1>
         <p className="text-muted-foreground text-sm">
-          <Link href={`/accounts/${a.account.id}` as Route} className="hover:underline">
-            {a.account.name}
-          </Link>{" "}
-          · {a.kind === "SEND_EMAIL" ? "Customer email" : a.kind.toLowerCase().replaceAll("_", " ")}{" "}
+          {a.account ? (
+            <>
+              <Link href={`/accounts/${a.account.id}` as Route} className="hover:underline">
+                {a.account.name}
+              </Link>{" "}
+              ·{" "}
+            </>
+          ) : null}
+          {a.kind === "SEND_EMAIL" ? "Customer email" : a.kind.toLowerCase().replaceAll("_", " ")}{" "}
           ·{" "}
           <span data-testid="approval-level">
             {a.isSensitive ? "Draft for approval · Always human" : LEVEL_WORDS[a.requiredLevel]}

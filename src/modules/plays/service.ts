@@ -4,17 +4,22 @@ import { writeAudit } from "@/lib/audit";
 import { requirePermission, can } from "@/lib/auth/permissions";
 import { scopedDb } from "@/lib/db/scoped";
 import type { Actor } from "@/modules/accounts/service";
-import { compileSegment } from "@/modules/segments/dsl";
-import { checkDeadPlay, type DeadPlayResult } from "./dead-play";
+import { compileSegment, type SegmentFilter } from "@/modules/segments/service";
+import { checkDeadPlay } from "./dead-play";
 import {
   playDefinitionSchema,
-  type PlayBranch,
-  type PlayCondition,
   type PlayDefinition,
   type PlayStepDefinition,
 } from "./definition";
 import { enterPlay } from "./runner";
-import { validatePlaySafety, type SafetyCheckResult } from "./safety";
+import { validatePlaySafety } from "./safety";
+
+export * from "./definition";
+export * from "./safety";
+export * from "./runner";
+export * from "./dead-play";
+export * from "./seeded/definitions";
+export { seedPlaysForWorkspace } from "./seeded/seed";
 
 export class PlayNotFoundError extends Error {
   constructor(message = "Play not found") {
@@ -59,23 +64,24 @@ export function plainLanguageSummary(def: PlayDefinition): string {
   }
 
   const formatStep = (s: PlayStepDefinition): string => {
+    const p = s.params as Record<string, string | number | boolean | undefined>;
     switch (s.handler) {
       case "notify":
-        return `Notify (${s.name}): "${(s.params as any)?.message ?? ""}"`;
+        return `Notify (${s.name}): "${p.message ?? ""}"`;
       case "task":
-        return `Assign task "${s.name}": "${(s.params as any)?.title ?? s.name}"`;
+        return `Assign task "${s.name}": "${p.title ?? s.name}"`;
       case "draft":
-        return `Draft email: "${(s.params as any)?.templateSubject ?? s.name}" (${(s.params as any)?.mode ?? "agent"})`;
+        return `Draft email: "${p.templateSubject ?? s.name}" (${p.mode ?? "agent"})`;
       case "send":
-        return `Send email: "${(s.params as any)?.templateSubject ?? s.name}"`;
+        return `Send email: "${p.templateSubject ?? s.name}"`;
       case "wait":
-        return `Wait ${(s.params as any)?.days ?? (s.params as any)?.durationDays ?? 1} day(s)`;
+        return `Wait ${p.days ?? p.durationDays ?? 1} day(s)`;
       case "escalate":
-        return `Escalate to CS Leader: "${(s.params as any)?.reason ?? s.name}"`;
+        return `Escalate to CS Leader: "${p.reason ?? s.name}"`;
       case "update":
-        return `Update account ${(s.params as any)?.field ?? ""}`;
+        return `Update account ${p.field ?? ""}`;
       case "exit":
-        return `Exit play (${(s.params as any)?.reason ?? "normal"})`;
+        return `Exit play (${p.reason ?? "normal"})`;
       default:
         return `${s.handler}: ${s.name}`;
     }
@@ -137,9 +143,9 @@ export async function previewRetroactiveAccounts(
       where: { id: def.trigger.segmentId },
     });
     if (seg) {
-      const where = compileSegment(seg.filter as any, {
-        workspaceId: actor.workspaceId,
-        bookScope: "ALL",
+      const where = compileSegment(seg.filter as unknown as SegmentFilter, {
+        now: new Date(),
+        arrScale: 100n,
         canViewRevenue: actor.canViewRevenue,
       });
       const accounts = await db.account.findMany({
@@ -662,7 +668,7 @@ export async function getPlayResults(actor: Actor, playId: string) {
     });
 
   const completedSteps = allStepRuns.filter(
-    (sr) => sr.status === "COMPLETED" || (sr.status as string) === "AUTO_RECORDED",
+    (sr) => sr.status === "DONE" || (sr.status as string) === "AUTO_RECORDED",
   );
   const waitingSteps = allStepRuns.filter(
     (sr) => sr.status === "WAITING_APPROVAL",
@@ -692,7 +698,7 @@ export async function getPlayResults(actor: Actor, playId: string) {
     deadPlayStatus,
     stats: {
       totalRuns: play.runs.length,
-      openRuns: play.runs.filter((r) => r.status === "RUNNING" || r.status === "WAITING_APPROVAL").length,
+      openRuns: play.runs.filter((r) => r.status === "RUNNING" || r.status === "WAITING").length,
       completedRuns: play.runs.filter((r) => r.status === "COMPLETED").length,
       exitedRuns: play.runs.filter((r) => r.status === "EXITED").length,
       accountsEntered: uniqueAccountIds.size,
@@ -709,7 +715,7 @@ export async function getPlayResults(actor: Actor, playId: string) {
       status: r.status,
       triggerRef: r.triggerRef,
       enteredAt: r.enteredAt,
-      completedAt: r.completedAt,
+      completedAt: r.status === "COMPLETED" ? r.exitedAt : null,
       exitedAt: r.exitedAt,
       exitReason: r.exitReason,
       stepCount: r.stepRuns.length,

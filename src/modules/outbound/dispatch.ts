@@ -6,7 +6,7 @@ import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { customerTransport, type CustomerTransport } from "@/lib/email/customerTransport";
 import { markActed } from "@/modules/outcomes/service";
 import { getSettingsData } from "@/modules/settings/service";
-import { renderCampaignText } from "@/modules/campaigns/render";
+import { renderCampaignText } from "@/modules/campaigns/service";
 import { evaluateGuards, type GuardName, type GuardResult } from "./guards";
 import { detectSensitive } from "./sensitive";
 
@@ -74,8 +74,10 @@ async function preChecks(ctx: TenantContext, m: OutboundMessage): Promise<Check[
     const inBook =
       grant &&
       (grant.scope === "ALL" ||
-        approval!.account.ownerMembershipId === member!.id ||
-        (grant.scope === "TEAM" && approval!.account.ownerMembershipId === null));
+        (approval?.account &&
+          (approval.account.ownerMembershipId === member!.id ||
+            (grant.scope === "TEAM" && approval.account.ownerMembershipId === null))) ||
+        (approval?.kind === "CAMPAIGN" && (member!.role === "ADMIN" || member!.role === "CS_LEADER")));
     checks.push({
       guard: "approver_permitted",
       passed: Boolean(decided && inBook),

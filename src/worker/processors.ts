@@ -40,7 +40,7 @@ import {
   processPlaySignalOpened,
   processPlayStallSweep,
   processPlayStep,
-} from "@/modules/plays/runner";
+} from "@/modules/plays/service";
 
 const pipeline = createPipelineProcessors({ clock: businessClock });
 

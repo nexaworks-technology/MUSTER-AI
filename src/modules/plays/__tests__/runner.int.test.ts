@@ -1,22 +1,20 @@
+import type { Prisma } from "@prisma/client";
 import { QueueEvents, Worker } from "bullmq";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { closeQueues, getQueue, queuePrefix, redisConnection } from "@/lib/jobs/queues";
 import { scopedDb } from "@/lib/db/scoped";
-import { rawDb } from "@/lib/db/raw";
 import { createTestAdmin } from "@/test/fixtures";
 import { processorFor } from "@/worker/processors";
-import { dispatch, DispatchRefusedError, type CustomerTransport } from "@/modules/outbound/dispatch";
+import { dispatch, DispatchRefusedError } from "@/modules/outbound/service";
 import {
   enterPlay,
   executeStep,
   resumePlayRunOnApprovalDecided,
   sweepStalledPlayRuns,
-} from "../runner";
-import { publishPlay } from "../service";
-import type { PlayDefinition } from "../definition";
-import { sweepRenewalAgents } from "@/modules/agents/definitions/renewal-manager-trigger";
-import { sweepExpansionAgents } from "@/modules/agents/definitions/expansion-finder-trigger";
-import { sweepOnboardingAgents } from "@/modules/onboarding/consumers";
+  publishPlay,
+  type PlayDefinition,
+} from "../service";
+import { sweepRenewalAgents } from "@/modules/agents/service";
 
 describe("S5: Play Runner, Step Handlers, Approval Wait/Resume, Stall Sweep & Dispatch Proof", () => {
   let worker: Worker;
@@ -77,7 +75,7 @@ describe("S5: Play Runner, Step Handlers, Approval Wait/Resume, Stall Sweep & Di
         workspaceId: workspace.id,
         playId: play.id,
         version: 1,
-        definition: def as any,
+        definition: def as unknown as Prisma.InputJsonValue,
       },
     });
 
@@ -573,7 +571,7 @@ describe("S5: Play Runner, Step Handlers, Approval Wait/Resume, Stall Sweep & Di
         workspaceId: actor.workspaceId,
         accountId: account.id,
         contactId: contact.id,
-        toEmail: contact.email,
+        toEmail: contact.email!,
         subject: "Recent email",
         bodyText: "Text",
         status: "SENT",
@@ -600,7 +598,7 @@ describe("S5: Play Runner, Step Handlers, Approval Wait/Resume, Stall Sweep & Di
 
     // D1: Step is marked SKIPPED with reason recorded on the run (never queued, never sent)
     expect(stepRun.status).toBe("SKIPPED");
-    expect((stepRun.result as any)?.skippedReason).toContain("emailed 1 hours ago");
+    expect((stepRun.result as Record<string, unknown>)?.skippedReason).toContain("emailed 1 hours ago");
 
     // No task is created for a skip
     const tasks = await db.task.findMany({ where: { accountId: account.id } });
@@ -737,7 +735,7 @@ describe("S5: Play Runner, Step Handlers, Approval Wait/Resume, Stall Sweep & Di
         workspaceId: workspace.id,
         playId: play.id,
         version: 1,
-        definition: playDef as any,
+        definition: playDef as unknown as Prisma.InputJsonValue,
       },
     });
     const pub1 = await publishPlay(actor, play.id);
@@ -804,7 +802,7 @@ describe("S5: Play Runner, Step Handlers, Approval Wait/Resume, Stall Sweep & Di
         workspaceId: workspace.id,
         playId: sensPlay.id,
         version: 1,
-        definition: sensitivePlayDef as any,
+        definition: sensitivePlayDef as unknown as Prisma.InputJsonValue,
       },
     });
     const pub2 = await publishPlay(actor, sensPlay.id);
@@ -926,7 +924,10 @@ describe("S5: Play Runner, Step Handlers, Approval Wait/Resume, Stall Sweep & Di
       triggerRef: "worker-job-test-1",
     });
 
-    const result = (await job.waitUntilFinished(events, 15_000)) as any;
+    const result = (await job.waitUntilFinished(events, 15_000)) as {
+      status: string;
+      playRunId?: string;
+    };
     expect(result.status).toBe("RUNNING");
     expect(result.playRunId).toBeDefined();
 

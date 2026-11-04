@@ -1,12 +1,11 @@
-import type { Account, AccountTier, PlayRun, PlayStepRun, Prisma } from "@prisma/client";
+import type { Account, AccountTier, Prisma, TaskPriority } from "@prisma/client";
 import { writeAudit } from "@/lib/audit";
 import { businessClock, type Clock } from "@/lib/dates";
 import { scopedDb, type ScopedDb, type TenantContext } from "@/lib/db/scoped";
 import { listActiveWorkspaces } from "@/lib/db/workspace";
 import { logger } from "@/lib/logger";
 import { getQueue } from "@/lib/jobs/queues";
-import { dispatch, type CustomerTransport } from "@/modules/outbound/dispatch";
-import { detectSensitive } from "@/modules/outbound/sensitive";
+import { dispatch, detectSensitive, type DispatchDeps } from "@/modules/outbound/service";
 import { getSettingsData } from "@/modules/settings/service";
 import {
   adoptionCoach,
@@ -15,6 +14,7 @@ import {
   renewalManager,
   runAgent,
   type ExecutorDeps,
+  type RunOutcome,
 } from "@/modules/agents/service";
 import type { PlayBranch, PlayCondition, PlayDefinition, PlayStepDefinition } from "./definition";
 import { checkRuntimeFrequencyCap } from "./runtime-cap";
@@ -22,7 +22,7 @@ import { resolvePlayStepLevel } from "./step-resolver";
 
 export interface RunnerDeps {
   clock?: Clock;
-  transport?: CustomerTransport;
+  transport?: DispatchDeps["transport"];
   executeInline?: boolean;
   agentDeps?: ExecutorDeps;
   autoSendEnabled?: boolean;
@@ -72,7 +72,7 @@ async function getFirstLeaderOrAdmin(db: ScopedDb): Promise<string | null> {
 }
 
 function evaluateCondition(account: Account, c: PlayCondition): boolean {
-  const rawValue = (account as any)[c.field];
+  const rawValue = (account as Record<string, unknown>)[c.field];
   switch (c.op) {
     case "eq":
       return rawValue === c.value;
@@ -114,9 +114,9 @@ function resolveBranchAndSteps(
   return { steps: def.steps ?? [] };
 }
 
-function resolveRunSteps(def: PlayDefinition, run: { account?: Account | null }): PlayStepDefinition[] {
+function resolveRunSteps(def: PlayDefinition, run: { account?: { tier: AccountTier } | null }): PlayStepDefinition[] {
   if (run.account && def.branches && def.branches.length > 0) {
-    const { steps } = resolveBranchAndSteps(def, run.account as Account);
+    const { steps } = resolveBranchAndSteps(def, run.account as unknown as Account);
     if (steps.length > 0) return steps;
   }
   return def.steps ?? [];
@@ -124,7 +124,7 @@ function resolveRunSteps(def: PlayDefinition, run: { account?: Account | null })
 
 function mergePlaceholders(
   text: string,
-  context: { account: Account; contact?: { name: string; email: string } | null; csm?: { name: string; email: string } | null },
+  context: { account: { name: string }; contact?: { name: string; email?: string | null } | null; csm?: { name?: string | null; email?: string | null } | null },
 ): string {
   let result = text;
   result = result.replace(/\{\{account\.name\}\}/g, context.account.name ?? "");
@@ -421,7 +421,7 @@ export async function executeStep(
           detail: (params.detail as string) || null,
           ownerMembershipId: ownerMembershipId ?? "",
           dueAt,
-          priority: (params.priority as any) || "NORMAL",
+          priority: (params.priority as TaskPriority | undefined) ?? "NORMAL",
           origin: "SYSTEM",
         },
       });
@@ -440,7 +440,7 @@ export async function executeStep(
 
       if (mode === "agent") {
         // D10: Delegate to existing M6/M7 agents for onboarding stall, adoption, renewal window, and expansion
-        let agentRunOutcome: any;
+        let agentRunOutcome: RunOutcome | undefined;
         const trigger = def.trigger;
 
         if (trigger.type === "signal" && trigger.ruleKey.startsWith("renewal_window")) {
@@ -489,25 +489,25 @@ export async function executeStep(
           agentRunOutcome = await runAgent(
             ctx,
             adoptionCoach,
-            { accountId: account?.id!, reason: "signal" },
+            { accountId: account!.id, reason: "signal" },
             { type: "play", id: run.id },
             deps.agentDeps ?? {},
           );
         }
 
-        if (agentRunOutcome && agentRunOutcome.kind === "ok") {
-          const agentRun = agentRunOutcome.run;
+        if (agentRunOutcome && agentRunOutcome.kind === "run") {
+          const runId = agentRunOutcome.runId;
           const linkedApproval = await db.approval.findFirst({
-            where: { proposedByRunId: agentRun.id },
+            where: { proposedByAgentRunId: runId },
           });
 
           await db.playStepRun.update({
             where: { id: stepRun.id },
             data: {
-              agentRunId: agentRun.id,
+              agentRunId: runId,
               approvalId: linkedApproval?.id ?? null,
               status: linkedApproval ? "WAITING_APPROVAL" : "DONE",
-              result: { agentRunId: agentRun.id },
+              result: { agentRunId: runId },
             },
           });
 
@@ -630,7 +630,7 @@ export async function executeStep(
             accountId: account!.id,
             contactId: contact.id,
             approvalId: approval.id,
-            toEmail: contact.email,
+            toEmail: contact.email ?? "",
             subject,
             bodyText,
             sendMode: "AUTO",
@@ -719,7 +719,7 @@ export async function executeStep(
           accountId: account!.id,
           contactId: contact.id,
           approvalId: approval.id,
-          toEmail: contact.email,
+          toEmail: contact.email ?? "",
           subject,
           bodyText,
           sendMode: "APPROVED",
@@ -1024,15 +1024,19 @@ export async function sweepStalledPlayRuns(
   return { escalated };
 }
 
-export async function processPlayEnter(data: any) {
+export async function processPlayEnter(data: EnterPlayInput) {
   return enterPlay({ workspaceId: data.workspaceId }, data);
 }
 
-export async function processPlayStep(data: any) {
+export async function processPlayStep(data: ExecuteStepInput) {
   return executeStep({ workspaceId: data.workspaceId }, data);
 }
 
-export async function processPlayApprovalDecided(data: any) {
+export async function processPlayApprovalDecided(data: {
+  workspaceId: string;
+  approvalId: string;
+  status: "APPROVED" | "REJECTED";
+}) {
   return resumePlayRunOnApprovalDecided(
     { workspaceId: data.workspaceId },
     data.approvalId,
@@ -1040,7 +1044,12 @@ export async function processPlayApprovalDecided(data: any) {
   );
 }
 
-export async function processPlayNoteCreated(data: any) {
+export async function processPlayNoteCreated(data: {
+  workspaceId: string;
+  noteId: string;
+  accountId: string;
+  tags?: string[];
+}) {
   const db = scopedDb({ workspaceId: data.workspaceId });
   const plays = await db.play.findMany({
     where: { status: "PUBLISHED", currentVersionId: { not: null } },
@@ -1067,7 +1076,12 @@ export async function processPlayNoteCreated(data: any) {
   return { entered };
 }
 
-export async function processPlaySignalOpened(data: any) {
+export async function processPlaySignalOpened(data: {
+  workspaceId: string;
+  accountId: string;
+  signalId: string;
+  ruleKey: string;
+}) {
   const db = scopedDb({ workspaceId: data.workspaceId });
   const plays = await db.play.findMany({
     where: { status: "PUBLISHED", currentVersionId: { not: null } },
@@ -1094,7 +1108,7 @@ export async function processPlaySignalOpened(data: any) {
   return { entered };
 }
 
-export async function processPlayStallSweep(data?: any) {
+export async function processPlayStallSweep(data?: { workspaceId?: string }) {
   if (data?.workspaceId) {
     return sweepStalledPlayRuns({ workspaceId: data.workspaceId });
   }

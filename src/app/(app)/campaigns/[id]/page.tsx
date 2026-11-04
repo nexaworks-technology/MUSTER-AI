@@ -52,7 +52,12 @@ export default async function CampaignDetailPage({ params }: CampaignDetailPageP
           </div>
           <div className="flex gap-2">
             {canManage && campaign.status === "SCHEDULED" && (
-              <form action={runCampaignBatchAction.bind(null, campaign.id)}>
+              <form
+                action={async () => {
+                  "use server";
+                  await runCampaignBatchAction(campaign.id);
+                }}
+              >
                 <Button type="submit" variant="default">
                   Run Next Batch
                 </Button>

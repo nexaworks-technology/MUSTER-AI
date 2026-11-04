@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { processUnsubscribe } from "@/modules/campaigns/unsubscribe";
+import { processUnsubscribe } from "@/modules/campaigns/service";
 
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");

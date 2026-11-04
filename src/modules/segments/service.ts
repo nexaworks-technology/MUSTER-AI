@@ -7,7 +7,7 @@ import { minorDigits } from "@/lib/money";
 import type { Actor } from "@/modules/accounts/service";
 import { compileSegment, segmentFilter, type SegmentFilter } from "./dsl";
 
-export { segmentFilter, SegmentPermissionError } from "./dsl";
+export { compileSegment, segmentFilter, SegmentPermissionError } from "./dsl";
 export type { SegmentFilter } from "./dsl";
 
 /** Saved segments (spec §6F5). Shared across the workspace; evaluated per member's book. */

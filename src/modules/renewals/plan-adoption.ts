@@ -2,8 +2,7 @@ import { writeAudit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth/permissions";
 import { scopedDb } from "@/lib/db/scoped";
 import type { Actor } from "@/modules/accounts/service";
-import { validateNarrative, type NarrativeBlock } from "@/modules/documents/placeholders";
-import { RENEWAL_BRIEF_KEYS } from "@/modules/documents/renewal-brief";
+import { validateNarrative, RENEWAL_BRIEF_KEYS, type NarrativeBlock } from "@/modules/documents/service";
 
 export interface PlanStepInput {
   title: string;

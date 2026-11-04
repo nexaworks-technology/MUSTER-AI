@@ -1,7 +1,8 @@
+import type { Prisma } from "@prisma/client";
 import { scopedDb } from "@/lib/db/scoped";
 import { writeAudit } from "@/lib/audit";
 import type { Actor } from "@/modules/accounts/service";
-import { SEEDED_PLAYS, type SeededPlay } from "@/modules/plays/seeded/definitions";
+import { SEEDED_PLAYS, type SeededPlay } from "@/modules/plays/service";
 
 export interface WorkspaceSetupData {
   connectedProviders: string[];
@@ -128,7 +129,7 @@ export async function applyProposedPlaysToWorkspace(
           workspaceId: actor.workspaceId,
           playId: play.id,
           version: 1,
-          definition: playDef.definition as any,
+          definition: playDef.definition as unknown as Prisma.InputJsonValue,
         },
       });
 

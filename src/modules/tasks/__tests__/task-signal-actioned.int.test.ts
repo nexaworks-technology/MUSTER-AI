@@ -1,11 +1,9 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { rawDb } from "@/lib/db/raw";
+import type { AiProvider } from "@/lib/ai";
 import { scopedDb } from "@/lib/db/scoped";
 import type { Actor } from "@/modules/accounts/service";
-import { onboardingManager } from "@/modules/agents/definitions/onboarding-manager";
-import { renewalManager } from "@/modules/agents/definitions/renewal-manager";
-import { runAgent } from "@/modules/agents/executor";
-import { createTestAdmin, createTestWorkspace } from "@/test/fixtures";
+import { onboardingManager, renewalManager, runAgent } from "@/modules/agents/service";
+import { createTestAdmin } from "@/test/fixtures";
 import { completeTask, createTask } from "../service";
 
 let adminA: Actor;
@@ -187,30 +185,32 @@ describe("Task.signalId and completeTask marks ACTED (Q-48)", () => {
     });
 
     // Run renewal-manager with mock provider
-    const provider = {
+    const provider: AiProvider = {
       name: "recorded",
-      generateStructured: async () => ({
-        output: {
-          reasoningSummary: "Renewal plan prepared for customer",
-          confidence: 0.8,
-          plan: "Step: Check-in.",
-          talkTrack: ["Highlight value delivered."],
-          citations: [{ sourceType: "Renewal", sourceId: renewal.id }],
-          planSteps: [{ title: "Hold renewal review", detail: "Review account" }],
-          outreach: {
-            subject: "Planning your renewal",
-            body: "Hi team,\n\nYour renewal comes up on {{metric.renewal.date}}.\n\nCSM",
-          },
-          nextStep: { action: "Schedule renewal review", timing: "within_a_week" as const },
-          proposedActions: [],
-        },
-        stopReason: "end_turn" as const,
-        model: "standard",
-        requestId: null,
-        inputTokens: 10,
-        outputTokens: 10,
-        latencyMs: 1,
-      }),
+      async generateStructured<T>() {
+        return {
+          output: {
+            reasoningSummary: "Renewal plan prepared for customer",
+            confidence: 0.8,
+            plan: "Step: Check-in.",
+            talkTrack: ["Highlight value delivered."],
+            citations: [{ sourceType: "Renewal", sourceId: renewal.id }],
+            planSteps: [{ title: "Hold renewal review", detail: "Review account" }],
+            outreach: {
+              subject: "Planning your renewal",
+              body: "Hi team,\n\nYour renewal comes up on {{metric.renewal.date}}.\n\nCSM",
+            },
+            nextStep: { action: "Schedule renewal review", timing: "within_a_week" as const },
+            proposedActions: [],
+          } as unknown as T,
+          stopReason: "end_turn" as const,
+          model: "standard",
+          requestId: null,
+          inputTokens: 10,
+          outputTokens: 10,
+          latencyMs: 1,
+        };
+      },
     };
 
     const out = await runAgent(
@@ -218,8 +218,10 @@ describe("Task.signalId and completeTask marks ACTED (Q-48)", () => {
       renewalManager,
       { renewalId: renewal.id },
       { type: "signal", id: renewalSig.id },
-      { provider: provider as any },
+      { provider },
     );
+    expect(out.kind).toBe("run");
+    if (out.kind !== "run") throw new Error("Expected run outcome");
     expect(out.status).toBe("SUCCEEDED");
 
     // Check task was created with signalId
@@ -291,25 +293,27 @@ describe("Task.signalId and completeTask marks ACTED (Q-48)", () => {
       },
     });
 
-    const provider = {
+    const provider: AiProvider = {
       name: "recorded",
-      generateStructured: async () => ({
-        output: {
-          reasoningSummary: "Escalating onboarding blocker to CSM",
-          confidence: 0.8,
-          citations: [{ sourceType: "OnboardingPlan", sourceId: plan.id }],
-          subject: null,
-          body: null,
-          escalation: { needed: true, note: "Please reach out to the customer team." },
-          proposedActions: [],
-        },
-        stopReason: "end_turn" as const,
-        model: "standard",
-        requestId: null,
-        inputTokens: 10,
-        outputTokens: 10,
-        latencyMs: 1,
-      }),
+      async generateStructured<T>() {
+        return {
+          output: {
+            reasoningSummary: "Escalating onboarding blocker to CSM",
+            confidence: 0.8,
+            citations: [{ sourceType: "OnboardingPlan", sourceId: plan.id }],
+            subject: null,
+            body: null,
+            escalation: { needed: true, note: "Please reach out to the customer team." },
+            proposedActions: [],
+          } as unknown as T,
+          stopReason: "end_turn" as const,
+          model: "standard",
+          requestId: null,
+          inputTokens: 10,
+          outputTokens: 10,
+          latencyMs: 1,
+        };
+      },
     };
 
     const out = await runAgent(
@@ -317,8 +321,10 @@ describe("Task.signalId and completeTask marks ACTED (Q-48)", () => {
       onboardingManager,
       { planId: plan.id, reason: "stalled" },
       { type: "signal", id: stallSig.id },
-      { provider: provider as any },
+      { provider },
     );
+    expect(out.kind).toBe("run");
+    if (out.kind !== "run") throw new Error("Expected run outcome");
     expect(out.status).toBe("SUCCEEDED");
 
     const task = await dbA.task.findFirstOrThrow({

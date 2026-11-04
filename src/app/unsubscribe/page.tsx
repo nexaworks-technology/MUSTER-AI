@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { processUnsubscribe } from "@/modules/campaigns/unsubscribe";
+import { processUnsubscribe } from "@/modules/campaigns/service";
 
 export const metadata: Metadata = {
   title: "Unsubscribe | NexaWorks",

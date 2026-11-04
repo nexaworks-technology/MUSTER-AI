@@ -29,26 +29,25 @@ describe("S9: Digital CSM Agent & Hand-off Rules (spec §8, M8.md)", () => {
 
     const mockProvider: AiProvider = {
       name: "recorded",
-      generateStructured: async () => ({
-        output: {
-          reasoningSummary: "Routine safe check-in for long-tail account.",
-          confidence: 0.9,
-          citations: [{ sourceType: "Account", sourceId: account.id }],
-          proposedActions: [],
-          subject: "How is everything going with your account?",
-          body: "Hi Alice,\n\nJust checking in to see if you need any help with your setup.\n\nBest,\nDigital CSM",
-          handedOff: false,
-          handoffReason: null,
-        },
-        stopReason: "end_turn",
-        model: "mock-model",
-        requestId: null,
-        inputTokens: 10,
-        outputTokens: 10,
-        latencyMs: 1,
-      }),
-      generateText: async () => {
-        throw new Error("generateText not implemented");
+      async generateStructured<T>() {
+        return {
+          output: {
+            reasoningSummary: "Routine safe check-in for long-tail account.",
+            confidence: 0.9,
+            citations: [{ sourceType: "Account", sourceId: account.id }],
+            proposedActions: [],
+            subject: "How is everything going with your account?",
+            body: "Hi Alice,\n\nJust checking in to see if you need any help with your setup.\n\nBest,\nDigital CSM",
+            handedOff: false,
+            handoffReason: null,
+          } as unknown as T,
+          stopReason: "end_turn",
+          model: "mock-model",
+          requestId: null,
+          inputTokens: 10,
+          outputTokens: 10,
+          latencyMs: 1,
+        };
       },
     };
 
@@ -64,7 +63,11 @@ describe("S9: Digital CSM Agent & Hand-off Rules (spec §8, M8.md)", () => {
       { provider: mockProvider },
     );
 
+    expect(out.kind).toBe("run");
+    if (out.kind !== "run") throw new Error("not run");
     expect(out.status).toBe("SUCCEEDED");
+    expect(out.kind).toBe("run");
+    if (out.kind !== "run") throw new Error("not run");
     const run = await db.agentRun.findUniqueOrThrow({ where: { id: out.runId } });
     expect(run.actionTaken).toBe("APPROVAL_REQUESTED");
     const effects = run.effects as Array<{ type: string; id: string }>;
@@ -122,26 +125,25 @@ describe("S9: Digital CSM Agent & Hand-off Rules (spec §8, M8.md)", () => {
 
     const mockProvider: AiProvider = {
       name: "recorded",
-      generateStructured: async () => ({
-        output: {
-          reasoningSummary: "Customer threatens cancellation and mentions legal team; handing off to human.",
-          confidence: 0.95,
-          citations: [{ sourceType: "Account", sourceId: account.id }],
-          proposedActions: [],
-          subject: "Regarding your recent note",
-          body: "Hi Bob,\n\nI hear your frustration. I am handing this off to our management team right away.\n\nBest,\nDigital CSM",
-          handedOff: true,
-          handoffReason: "Customer expressed anger, cancellation threat, and legal concerns.",
-        },
-        stopReason: "end_turn",
-        model: "mock-model",
-        requestId: null,
-        inputTokens: 10,
-        outputTokens: 10,
-        latencyMs: 1,
-      }),
-      generateText: async () => {
-        throw new Error("generateText not implemented");
+      async generateStructured<T>() {
+        return {
+          output: {
+            reasoningSummary: "Customer threatens cancellation and mentions legal team; handing off to human.",
+            confidence: 0.95,
+            citations: [{ sourceType: "Account", sourceId: account.id }],
+            proposedActions: [],
+            subject: "Regarding your recent note",
+            body: "Hi Bob,\n\nI hear your frustration. I am handing this off to our management team right away.\n\nBest,\nDigital CSM",
+            handedOff: true,
+            handoffReason: "Customer expressed anger, cancellation threat, and legal concerns.",
+          } as unknown as T,
+          stopReason: "end_turn",
+          model: "mock-model",
+          requestId: null,
+          inputTokens: 10,
+          outputTokens: 10,
+          latencyMs: 1,
+        };
       },
     };
 
@@ -157,7 +159,11 @@ describe("S9: Digital CSM Agent & Hand-off Rules (spec §8, M8.md)", () => {
       { provider: mockProvider },
     );
 
+    expect(out.kind).toBe("run");
+    if (out.kind !== "run") throw new Error("not run");
     expect(out.status).toBe("SUCCEEDED");
+    expect(out.kind).toBe("run");
+    if (out.kind !== "run") throw new Error("not run");
     const run = await db.agentRun.findUniqueOrThrow({ where: { id: out.runId } });
     expect(run.actionTaken).toBe("TASK_CREATED");
     const effects = run.effects as Array<{ type: string; id: string }>;
@@ -193,26 +199,25 @@ describe("S9: Digital CSM Agent & Hand-off Rules (spec §8, M8.md)", () => {
 
     const mockProvider: AiProvider = {
       name: "recorded",
-      generateStructured: async () => ({
-        output: {
-          reasoningSummary: "Safe touchpoint for long-tail account.",
-          confidence: 0.88,
-          citations: [{ sourceType: "Account", sourceId: account.id }],
-          proposedActions: [],
-          subject: "Checking in on your progress",
-          body: "Hi Charlie,\n\nHow are things progressing?\n\nBest,\nDigital CSM",
-          handedOff: false,
-          handoffReason: null,
-        },
-        stopReason: "end_turn",
-        model: "mock-model",
-        requestId: null,
-        inputTokens: 10,
-        outputTokens: 10,
-        latencyMs: 1,
-      }),
-      generateText: async () => {
-        throw new Error("generateText not implemented");
+      async generateStructured<T>() {
+        return {
+          output: {
+            reasoningSummary: "Safe touchpoint for long-tail account.",
+            confidence: 0.88,
+            citations: [{ sourceType: "Account", sourceId: account.id }],
+            proposedActions: [],
+            subject: "Checking in on your progress",
+            body: "Hi Charlie,\n\nHow are things progressing?\n\nBest,\nDigital CSM",
+            handedOff: false,
+            handoffReason: null,
+          } as unknown as T,
+          stopReason: "end_turn",
+          model: "mock-model",
+          requestId: null,
+          inputTokens: 10,
+          outputTokens: 10,
+          latencyMs: 1,
+        };
       },
     };
 
@@ -227,6 +232,8 @@ describe("S9: Digital CSM Agent & Hand-off Rules (spec §8, M8.md)", () => {
       { provider: mockProvider },
     );
 
+    expect(out.kind).toBe("run");
+    if (out.kind !== "run") throw new Error("not run");
     const run = await db.agentRun.findUniqueOrThrow({ where: { id: out.runId } });
     expect(run.agentKey).toBe("digital-csm");
     expect(run.agentVersion).toBe("1.0.0");

@@ -1,9 +1,15 @@
+import type { Prisma } from "@prisma/client";
 import { describe, expect, it } from "vitest";
 import { scopedDb } from "@/lib/db/scoped";
 import { createNote } from "@/modules/notes/service";
-import { executeStep, processPlayNoteCreated } from "@/modules/plays/runner";
-import { SEEDED_PLAYS } from "@/modules/plays/seeded/definitions";
-import { getPlayResults, killPlay, publishPlay } from "@/modules/plays/service";
+import {
+  executeStep,
+  getPlayResults,
+  killPlay,
+  processPlayNoteCreated,
+  publishPlay,
+  SEEDED_PLAYS,
+} from "@/modules/plays/service";
 import { createTestAdmin } from "@/test/fixtures";
 
 describe("S11: Play Results, Dead Play Detection & Cancellation Save noteTag (spec §2, M8)", () => {
@@ -30,7 +36,7 @@ describe("S11: Play Results, Dead Play Detection & Cancellation Save noteTag (sp
           name: "Old Unused Play",
           trigger: { type: "signal", ruleKey: "some_rule" },
           steps: [],
-        } as any,
+        } as unknown as Prisma.InputJsonValue,
         publishedAt: fortyDaysAgo,
         publishedById: admin.membershipId,
       },
@@ -99,7 +105,7 @@ describe("S11: Play Results, Dead Play Detection & Cancellation Save noteTag (sp
               sensitive: false,
             },
           ],
-        } as any,
+        } as unknown as Prisma.InputJsonValue,
         publishedAt: new Date(),
         publishedById: admin.membershipId,
       },
@@ -140,9 +146,9 @@ describe("S11: Play Results, Dead Play Detection & Cancellation Save noteTag (sp
     expect(results.stats.accountsEntered).toBe(1);
     expect(results.stats.skipsCount).toBe(1);
     expect(results.skips.length).toBe(1);
-    expect(results.skips[0].stepKey).toBe("capped-draft");
-    expect(results.skips[0].skipReason).toContain("frequency cap: 2/week");
-    expect(results.skips[0].accountName).toBe("Acme Corp");
+    expect(results.skips[0]!.stepKey).toBe("capped-draft");
+    expect(results.skips[0]!.skipReason).toContain("frequency cap: 2/week");
+    expect(results.skips[0]!.accountName).toBe("Acme Corp");
     // Admin can view revenue -> arrMinor returned
     expect(results.stats.revenueProtectedMinor).toBe(1200000n);
   });
@@ -187,7 +193,7 @@ describe("S11: Play Results, Dead Play Detection & Cancellation Save noteTag (sp
         workspaceId: workspace.id,
         playId: play.id,
         version: 1,
-        definition: cancelSeed.definition as any,
+        definition: cancelSeed.definition as unknown as Prisma.InputJsonValue,
         safetyCheck: { passed: true, refusals: [] },
       },
     });
@@ -228,12 +234,20 @@ describe("S11: Play Results, Dead Play Detection & Cancellation Save noteTag (sp
     expect(playRun.status).toBe("RUNNING");
 
     // Execute step 1: Executive Save Review (Task)
-    const step1 = await executeStep(admin, { playRunId: playRun.id, stepKey: "task-save" });
+    const step1 = await executeStep(admin, {
+      workspaceId: admin.workspaceId,
+      playRunId: playRun.id,
+      stepKey: "task-save",
+    });
     expect(step1.status).toBe("DONE");
 
     // Execute step 2: Draft Save Offer (Draft - sensitive: true)
     // Rule 3 / D1: All customer steps in Cancellation Save are sensitive -> must require approval!
-    const step2 = await executeStep(admin, { playRunId: playRun.id, stepKey: "draft-offer" });
+    const step2 = await executeStep(admin, {
+      workspaceId: admin.workspaceId,
+      playRunId: playRun.id,
+      stepKey: "draft-offer",
+    });
     expect(step2.status).toBe("WAITING_APPROVAL");
 
     const approvals = await db.approval.findMany({

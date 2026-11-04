@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { writeAudit } from "@/lib/audit";
-import { rawDb } from "@/lib/db/raw";
+import { findOutboundMessageByProviderId } from "@/lib/db/inbound";
 import { scopedDb } from "@/lib/db/scoped";
 
 export interface WebhookHeaders {
@@ -117,17 +117,12 @@ export async function processEmailWebhook(
       where: { providerMessageId },
     });
   } else {
-    // Resolve workspace through tenant-scoped lookups
-    const workspaces = await rawDb.workspace.findMany({ select: { id: true } });
-    for (const w of workspaces) {
-      const found = await scopedDb({ workspaceId: w.id }).outboundMessage.findFirst({
-        where: { providerMessageId },
+    const found = await findOutboundMessageByProviderId(providerMessageId);
+    if (found) {
+      workspaceId = found.workspaceId;
+      msg = await scopedDb({ workspaceId }).outboundMessage.findFirst({
+        where: { id: found.id },
       });
-      if (found) {
-        msg = found;
-        workspaceId = w.id;
-        break;
-      }
     }
   }
 

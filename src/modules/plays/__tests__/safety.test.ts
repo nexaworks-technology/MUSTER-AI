@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { scopedDb } from "@/lib/db/scoped";
 import { createTestAdmin } from "@/test/fixtures";
-import type { PlayDefinition } from "../definition";
+import type { PlayDefinition, PlayStepDefinition } from "../definition";
 import { validatePlaySafety } from "../safety";
 import { publishPlay } from "../service";
 
@@ -79,7 +79,7 @@ describe("Play safety gate (pre-publish hard gate, safety.ts)", () => {
         {
           key: "sms-1",
           name: "Send SMS",
-          handler: "send_sms" as any,
+          handler: "send_sms" as unknown as PlayStepDefinition["handler"],
           params: { to: "+123456789" },
           approvalLevelByTier: {
             HIGH_TOUCH: "SEND_AUTOMATICALLY",
@@ -112,7 +112,7 @@ describe("Play safety gate (pre-publish hard gate, safety.ts)", () => {
             HIGH_TOUCH: "DRAFT_FOR_APPROVAL",
             MID_TOUCH: "DRAFT_FOR_APPROVAL",
             // LONG_TAIL is missing
-          } as any,
+          } as unknown as PlayStepDefinition["approvalLevelByTier"],
           safe: true,
           sensitive: false,
         },

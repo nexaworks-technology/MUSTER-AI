@@ -53,7 +53,7 @@ export const digitalCsm = defineAgent({
     if (!account || !contact || contact.accountId !== account.id) {
       return {
         bundle: [],
-        vars: { accountName: "the account", contactName: "the contact" },
+        vars: { accountName: "the account", contactName: "the contact", handOffDetected: "" },
       };
     }
 
@@ -221,9 +221,7 @@ export const digitalCsm = defineAgent({
           signalId: signalId ?? undefined,
           proposedByAgentRunId: ctx.runId,
           proposedByMembershipId: ownerId,
-          isSensitive: true,
-          sensitiveReasons: [handoffReason],
-          triggeringText: messages.map((m) => String(m.fields.text ?? "")),
+          triggeringText: [handoffReason, ...messages.map((m) => String(m.fields.text ?? ""))],
           sourceKey: ctx.sourceKey(0),
           email: {
             contactId: input.contactId,

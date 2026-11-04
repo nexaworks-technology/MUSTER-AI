@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { dispatchOutbox, writeOutboxEvent, type Enqueue, type OutboxRoutes } from "@/lib/jobs/outbox";
 import { scopedDb } from "@/lib/db/scoped";
-import { approve, reject } from "@/modules/approvals/lifecycle";
+import { approve, reject } from "@/modules/approvals/service";
 import { createNote } from "@/modules/notes/service";
 import { createTestAdmin } from "@/test/fixtures";
 import { checkRuntimeFrequencyCap } from "../runtime-cap";

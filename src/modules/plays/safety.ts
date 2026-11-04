@@ -1,12 +1,11 @@
-import { validateNarrative, type NarrativeBlock } from "@/modules/documents/placeholders";
-import { detectSensitive } from "@/modules/outbound/sensitive";
+import { validateNarrative, type NarrativeBlock } from "@/modules/documents/service";
+import { detectSensitive } from "@/modules/outbound/service";
 import {
   APPROVAL_LEVELS,
   PLAY_HANDLERS,
   PLAY_TIERS,
   type PlayDefinition,
   type PlayStepDefinition,
-  type PlayTier,
 } from "./definition";
 
 export interface SafetyCheckResult {
@@ -16,7 +15,7 @@ export interface SafetyCheckResult {
 }
 
 export interface SafetyContext {
-  resolveSegment?: (id: string) => Promise<{ id: string; filter?: any } | null>;
+  resolveSegment?: (id: string) => Promise<{ id: string; filter?: unknown } | null>;
   enabledDetectors?: Set<string>;
 }
 
@@ -80,7 +79,8 @@ export async function validatePlaySafety(
       refusals.push(`Segment "${play.segmentId}" not found.`);
     } else if (seg.filter) {
       // Check if segment filter explicitly restricts tier to something incompatible with play branches
-      const filterTier = seg.filter.tier?.value ?? seg.filter.tier?.equals;
+      const filter = seg.filter as Record<string, { value?: unknown; equals?: unknown } | undefined>;
+      const filterTier = filter.tier?.value ?? filter.tier?.equals;
       if (typeof filterTier === "string") {
         for (const b of play.branches ?? []) {
           if (b.tier && b.tier !== filterTier) {

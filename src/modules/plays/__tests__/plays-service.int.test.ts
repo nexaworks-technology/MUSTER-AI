@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { describe, expect, it } from "vitest";
 import { ForbiddenError } from "@/lib/auth/permissions";
 import { scopedDb } from "@/lib/db/scoped";
@@ -87,7 +88,7 @@ describe("S8: Plays Management Service & UI Operations (spec §5, §6J1-4)", () 
         workspaceId: workspace.id,
         playId: play.id,
         version: 1,
-        definition: safePlayDef as any,
+        definition: safePlayDef as unknown as Prisma.InputJsonValue,
       },
     });
 
@@ -126,7 +127,7 @@ describe("S8: Plays Management Service & UI Operations (spec §5, §6J1-4)", () 
         workspaceId: workspace.id,
         playId: origPlay.id,
         version: 1,
-        definition: safePlayDef as any,
+        definition: safePlayDef as unknown as Prisma.InputJsonValue,
       },
     });
 
@@ -142,8 +143,8 @@ describe("S8: Plays Management Service & UI Operations (spec §5, §6J1-4)", () 
 
     const dupDetails = await getPlay(csm, duplicated.id);
     expect(dupDetails.versions).toHaveLength(1);
-    expect(dupDetails.versions[0].version).toBe(1);
-    expect((dupDetails.versions[0].definition as any).name).toBe(safePlayDef.name);
+    expect(dupDetails.versions[0]!.version).toBe(1);
+    expect((dupDetails.versions[0]!.definition as unknown as PlayDefinition).name).toBe(safePlayDef.name);
 
     // Verify audit log
     const audit = await db.auditLog.findFirst({
@@ -176,7 +177,7 @@ describe("S8: Plays Management Service & UI Operations (spec §5, §6J1-4)", () 
         workspaceId: workspace.id,
         playId: play.id,
         version: 1,
-        definition: safePlayDef as any,
+        definition: safePlayDef as unknown as Prisma.InputJsonValue,
       },
     });
     await db.play.update({
@@ -212,7 +213,7 @@ describe("S8: Plays Management Service & UI Operations (spec §5, §6J1-4)", () 
     let p = await db.play.findUniqueOrThrow({ where: { id: play.id } });
     expect(p.status).toBe("PAUSED");
 
-    let pauseAudit = await db.auditLog.findFirst({
+    const pauseAudit = await db.auditLog.findFirst({
       where: { workspaceId: workspace.id, action: "play.paused", targetId: play.id },
     });
     expect(pauseAudit).toBeDefined();
@@ -222,7 +223,7 @@ describe("S8: Plays Management Service & UI Operations (spec §5, §6J1-4)", () 
     p = await db.play.findUniqueOrThrow({ where: { id: play.id } });
     expect(p.status).toBe("KILLED");
 
-    let killAudit = await db.auditLog.findFirst({
+    const killAudit = await db.auditLog.findFirst({
       where: { workspaceId: workspace.id, action: "play.killed", targetId: play.id },
     });
     expect(killAudit).toBeDefined();
@@ -254,7 +255,7 @@ describe("S8: Plays Management Service & UI Operations (spec §5, §6J1-4)", () 
         workspaceId: workspace.id,
         playId: play.id,
         version: 1,
-        definition: defV1 as any,
+        definition: defV1 as unknown as Prisma.InputJsonValue,
       },
     });
     await db.playVersion.create({
@@ -262,14 +263,14 @@ describe("S8: Plays Management Service & UI Operations (spec §5, §6J1-4)", () 
         workspaceId: workspace.id,
         playId: play.id,
         version: 2,
-        definition: defV2 as any,
+        definition: defV2 as unknown as Prisma.InputJsonValue,
       },
     });
 
     // Revert back to v1
     const reverted = await revertPlayVersion(admin, play.id, 1);
     expect(reverted.version).toBe(3);
-    expect((reverted.definition as any).description).toBe("Version 1 description");
+    expect((reverted.definition as unknown as PlayDefinition).description).toBe("Version 1 description");
 
     const audit = await db.auditLog.findFirst({
       where: { workspaceId: workspace.id, action: "play.version_reverted", targetId: play.id },
@@ -349,7 +350,7 @@ describe("S8: Plays Management Service & UI Operations (spec §5, §6J1-4)", () 
         workspaceId: workspace.id,
         playId: play.id,
         version: 1,
-        definition: safePlayDef as any,
+        definition: safePlayDef as unknown as Prisma.InputJsonValue,
       },
     });
 
@@ -378,8 +379,8 @@ describe("S8: Plays Management Service & UI Operations (spec §5, §6J1-4)", () 
       where: { workspaceId: workspace.id, action: "play.published", targetId: play.id },
     });
     expect(pubAudit).toBeDefined();
-    expect((pubAudit?.after as any).retroactive).toBe(true);
-    expect((pubAudit?.after as any).enteredCount).toBe(2);
+    expect((pubAudit?.after as Record<string, unknown>).retroactive).toBe(true);
+    expect((pubAudit?.after as Record<string, unknown>).enteredCount).toBe(2);
   });
 
   it("plainLanguageSummary formats conditions, triggers, wait steps, and actions into plain English", () => {

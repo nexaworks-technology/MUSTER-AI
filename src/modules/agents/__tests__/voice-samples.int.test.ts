@@ -3,6 +3,7 @@ import { ForbiddenError } from "@/lib/auth/permissions";
 import { rawDb } from "@/lib/db/raw";
 import { scopedDb } from "@/lib/db/scoped";
 import { createTestAdmin } from "@/test/fixtures";
+import type { Actor } from "@/modules/accounts/service";
 import { captureVoiceSample, listVoiceSamples, removeVoiceSample } from "../voice.service";
 import { outreach } from "../definitions/outreach";
 import { runAgent } from "../executor";
@@ -46,10 +47,10 @@ describe("S9: VoiceSample Capture & Outreach Extension (spec §5, §8, Rule 8)",
 
     // CSM and Viewer cannot capture
     await expect(
-      captureVoiceSample(csm as any, { subject: "Subj", bodyText: "Body" }),
+      captureVoiceSample(csm as unknown as Actor, { subject: "Subj", bodyText: "Body" }),
     ).rejects.toThrow(ForbiddenError);
     await expect(
-      captureVoiceSample(viewer as any, { subject: "Subj", bodyText: "Body" }),
+      captureVoiceSample(viewer as unknown as Actor, { subject: "Subj", bodyText: "Body" }),
     ).rejects.toThrow(ForbiddenError);
 
     // Admin captures
@@ -79,7 +80,7 @@ describe("S9: VoiceSample Capture & Outreach Extension (spec §5, §8, Rule 8)",
   });
 
   it("Cross-tenant: captureVoiceSample rejects OutboundMessage from another workspace (Rule 8)", async () => {
-    const { workspace: ws1, actor: admin1 } = await createTestAdmin("VoiceWS1");
+    const { actor: admin1 } = await createTestAdmin("VoiceWS1");
     const { workspace: ws2, actor: admin2 } = await createTestAdmin("VoiceWS2");
 
     const db2 = scopedDb(admin2);
@@ -152,24 +153,23 @@ describe("S9: VoiceSample Capture & Outreach Extension (spec §5, §8, Rule 8)",
 
     const mockProvider: AiProvider = {
       name: "recorded",
-      generateStructured: async () => ({
-        output: {
-          reasoningSummary: "Drafted check-in using workspace voice styling.",
-          confidence: 0.85,
-          citations: [{ sourceType: "Signal", sourceId: signal.id }],
-          proposedActions: [],
-          subject: "Checking in on your feature adoption",
-          body: "Hi Jane,\n\nNoticed a drop in feature activity. Let us know how we can assist!\n\nBest,\nCS Team",
-        },
-        stopReason: "end_turn",
-        model: "mock-model",
-        requestId: null,
-        inputTokens: 10,
-        outputTokens: 10,
-        latencyMs: 1,
-      }),
-      generateText: async () => {
-        throw new Error("generateText not implemented");
+      async generateStructured<T>() {
+        return {
+          output: {
+            reasoningSummary: "Drafted check-in using workspace voice styling.",
+            confidence: 0.85,
+            citations: [{ sourceType: "Signal", sourceId: signal.id }],
+            proposedActions: [],
+            subject: "Checking in on your feature adoption",
+            body: "Hi Jane,\n\nNoticed a drop in feature activity. Let us know how we can assist!\n\nBest,\nCS Team",
+          } as unknown as T,
+          stopReason: "end_turn",
+          model: "mock-model",
+          requestId: null,
+          inputTokens: 10,
+          outputTokens: 10,
+          latencyMs: 1,
+        };
       },
     };
 
@@ -187,6 +187,8 @@ describe("S9: VoiceSample Capture & Outreach Extension (spec §5, §8, Rule 8)",
       { provider: mockProvider },
     );
 
+    expect(out.kind).toBe("run");
+    if (out.kind !== "run") throw new Error("not run");
     expect(out.status).toBe("SUCCEEDED");
 
     // Verify AgentRun was recorded with prompt version 1.1.0 and effects

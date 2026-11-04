@@ -1,5 +1,5 @@
 import type { AccountTier, ApprovalLevel } from "@prisma/client";
-import { resolveLevel } from "@/modules/approvals/level-resolver";
+import { resolveLevel } from "@/modules/approvals/service";
 import type { PlayStepDefinition } from "./definition";
 
 export interface ResolvePlayStepLevelInput {

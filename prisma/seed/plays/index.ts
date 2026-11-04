@@ -1,1 +1,1 @@
-export * from "@/modules/plays/seeded";
+export { seedPlaysForWorkspace, SEEDED_PLAYS } from "@/modules/plays/service";

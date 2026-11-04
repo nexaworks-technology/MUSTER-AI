@@ -188,7 +188,7 @@ export async function notifyApprovalRequested(raw: unknown, deps: SlackDeps = {}
   const link = await linkFor(ctx, slack.integrationId, a.assigneeId);
   if (!link) return { posted: false, reason: "assignee not linked to Slack" };
   const url = appLink(`/approvals/${a.id}`);
-  const header = `*Approval waiting:* ${a.reason} (${a.account.name})`;
+  const header = `*Approval waiting:* ${a.reason}${a.account ? ` (${a.account.name})` : ""}`;
   const blocks: unknown[] = [{ type: "section", text: { type: "mrkdwn", text: header } }];
   if (a.isSensitive || SENSITIVE_DECISIONS_FROM_SLACK !== false)
     blocks.push(
@@ -248,10 +248,10 @@ export async function notifyApprovalRequested(raw: unknown, deps: SlackDeps = {}
       type: "APPROVAL_ASSIGNED",
       refType: "Approval",
       refId: a.id,
-      accountId: a.accountId,
+      accountId: a.accountId ?? undefined,
       title: `Approval waiting: ${a.reason}`,
     },
-    { text: `Approval waiting: ${a.reason} (${a.account.name})`, blocks },
+    { text: `Approval waiting: ${a.reason}${a.account ? ` (${a.account.name})` : ""}`, blocks },
   );
   return { posted, reason: posted ? "posted" : "already posted" };
 }

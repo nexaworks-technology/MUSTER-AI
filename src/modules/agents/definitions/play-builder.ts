@@ -2,8 +2,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { writeAudit } from "@/lib/audit";
-import { playDefinitionSchema } from "@/modules/plays/definition";
-import { validatePlaySafety } from "@/modules/plays/safety";
+import { playDefinitionSchema, validatePlaySafety } from "@/modules/plays/service";
 import { defineAgent } from "../define";
 import { baseAgentOutput, type ContextBundle } from "../schemas";
 
@@ -31,6 +30,7 @@ export const playBuilder = defineAgent({
   modelTier: "standard",
   tierReason: "Structured workflow reasoning and policy synthesis from natural language (§5, D-138).",
   prompt: { name: "play-builder", version: "1.0.0" },
+  forbiddenNumericFields: [],
   inputSchema: playBuilderInput,
   outputSchema: playBuilderOutput,
   async buildContext(db, input) {
@@ -67,7 +67,7 @@ export const playBuilder = defineAgent({
 
     return {
       bundle,
-      accountId: null,
+      accountId: undefined,
       vars: {
         userPrompt: input.userPrompt,
         availableSignalRules: rules.map((r) => `${r.ruleKey} (${r.meaning})`).join(", ") || "None",

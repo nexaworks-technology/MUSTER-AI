@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { processEmailWebhook, verifyWebhookSignature, type EmailWebhookEvent } from "@/modules/campaigns/webhook";
+import { processEmailWebhook, verifyWebhookSignature, type EmailWebhookEvent } from "@/modules/campaigns/service";
 
 export async function POST(req: NextRequest) {
   const svixId = req.headers.get("svix-id");

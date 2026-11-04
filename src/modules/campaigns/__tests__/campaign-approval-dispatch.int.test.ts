@@ -5,8 +5,8 @@ import { rawDb } from "@/lib/db/raw";
 import { scopedDb, type ScopedDb } from "@/lib/db/scoped";
 import type { Actor } from "@/modules/accounts/service";
 import { approve } from "@/modules/approvals/service";
-import { renderCampaignText } from "@/modules/campaigns/render";
-import { dispatch, DispatchRefusedError } from "@/modules/outbound/dispatch";
+import { renderCampaignText } from "@/modules/campaigns/service";
+import { dispatch, DispatchRefusedError } from "@/modules/outbound/service";
 import { createTestAdmin } from "@/test/fixtures";
 
 const clock = () => new Date("2026-11-03T15:00:00Z");
@@ -236,8 +236,8 @@ describe("S13 Campaign Schema, Approvals, and Dispatch Mode", () => {
 
       expect(res.status).toBe("SENT");
       expect(transport.sent).toHaveLength(1);
-      expect(transport.sent[0].subject).toBe("Exciting update for Acme Corp");
-      expect(transport.sent[0].text).toBe("Hi Alice, check out our new features!");
+      expect(transport.sent[0]!.subject).toBe("Exciting update for Acme Corp");
+      expect(transport.sent[0]!.text).toBe("Hi Alice, check out our new features!");
 
       const updatedRecip = await db.campaignRecipient.findUniqueOrThrow({ where: { id: recip.id } });
       expect(updatedRecip.status).toBe("SENT");

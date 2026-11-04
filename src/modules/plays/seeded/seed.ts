@@ -11,41 +11,43 @@ export async function seedPlaysForWorkspace(
   workspaceId: string,
   tx?: Prisma.TransactionClient,
 ): Promise<number> {
-  const db = tx ?? scopedDb({ workspaceId });
-
-  const existing = await db.play.findMany({
-    where: { workspaceId },
-    select: { key: true },
-  });
-  const existingKeys = new Set(existing.map((p) => p.key));
-
-  let created = 0;
-  for (const p of SEEDED_PLAYS) {
-    if (existingKeys.has(p.key)) continue;
-
-    const play = await db.play.create({
-      data: {
-        workspaceId,
-        key: p.key,
-        name: p.name,
-        description: p.description,
-        category: p.category,
-        status: "DRAFT",
-        isSeeded: true,
-      },
+  const run = async (db: Prisma.TransactionClient) => {
+    const existing = await db.play.findMany({
+      where: { workspaceId },
+      select: { key: true },
     });
+    const existingKeys = new Set(existing.map((p) => p.key));
 
-    await db.playVersion.create({
-      data: {
-        workspaceId,
-        playId: play.id,
-        version: 1,
-        definition: p.definition as unknown as Prisma.InputJsonValue,
-      },
-    });
+    let created = 0;
+    for (const p of SEEDED_PLAYS) {
+      if (existingKeys.has(p.key)) continue;
 
-    created++;
-  }
+      const play = await db.play.create({
+        data: {
+          workspaceId,
+          key: p.key,
+          name: p.name,
+          description: p.description,
+          category: p.category,
+          status: "DRAFT",
+          isSeeded: true,
+        },
+      });
 
-  return created;
+      await db.playVersion.create({
+        data: {
+          workspaceId,
+          playId: play.id,
+          version: 1,
+          definition: p.definition as unknown as Prisma.InputJsonValue,
+        },
+      });
+
+      created++;
+    }
+
+    return created;
+  };
+
+  return tx ? run(tx) : scopedDb({ workspaceId }).$tenantTransaction(run);
 }

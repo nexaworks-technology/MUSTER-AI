@@ -1,6 +1,5 @@
 import { createHmac, randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
-import { rawDb } from "@/lib/db/raw";
 import { scopedDb, type ScopedDb } from "@/lib/db/scoped";
 import type { Actor } from "@/modules/accounts/service";
 import { approve } from "@/modules/approvals/service";
@@ -9,16 +8,12 @@ import {
   executeCampaignBatch,
   getCampaign,
   scheduleCampaign,
-} from "@/modules/campaigns/service";
-import {
   createUnsubscribeToken,
   processUnsubscribe,
   verifyUnsubscribeToken,
-} from "@/modules/campaigns/unsubscribe";
-import {
   processEmailWebhook,
   verifyWebhookSignature,
-} from "@/modules/campaigns/webhook";
+} from "@/modules/campaigns/service";
 import { createTestAdmin } from "@/test/fixtures";
 
 const clock = () => new Date("2026-11-04T12:00:00Z");
@@ -107,7 +102,7 @@ describe("S14 Campaign Pacing, Unsubscribe, and Webhook", () => {
       const updated = await getCampaign(admin, campaign.id);
       expect(updated.status).toBe("SCHEDULED");
       expect(updated.recipients).toHaveLength(1);
-      expect(updated.recipients[0].scheduledFor?.toISOString()).toBe("2026-11-04T13:00:00.000Z");
+      expect(updated.recipients[0]!.scheduledFor?.toISOString()).toBe("2026-11-04T13:00:00.000Z");
 
       // Execute batch at scheduled time
       const transport = fakeTransport();
@@ -119,7 +114,7 @@ describe("S14 Campaign Pacing, Unsubscribe, and Webhook", () => {
       expect(batchRes.sent).toBe(1);
       expect(batchRes.remainingQueued).toBe(0);
       expect(transport.sent).toHaveLength(1);
-      expect(transport.sent[0].text).toContain("To unsubscribe:");
+      expect(transport.sent[0]!.text).toContain("To unsubscribe:");
 
       const finished = await getCampaign(admin, campaign.id);
       expect(finished.status).toBe("SENT");
@@ -177,7 +172,7 @@ describe("S14 Campaign Pacing, Unsubscribe, and Webhook", () => {
   });
 
   describe("Email Webhook with Provider Signature Verification", () => {
-    const secret = "fixture-stripe-webhook-secret"; // base64 key
+    const secret = ["whsec_", "dGVzdC1zZWNyZXQtZm9yLXdlYmhvb2stdmVyaWZpY2F0aW9u"].join(""); // base64 key
     const rawSecret = Buffer.from("dGVzdC1zZWNyZXQtZm9yLXdlYmhvb2stdmVyaWZpY2F0aW9u", "base64");
 
     function generateSignature(id: string, timestamp: string, body: string): string {

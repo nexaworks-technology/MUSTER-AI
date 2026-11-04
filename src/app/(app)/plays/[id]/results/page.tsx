@@ -284,7 +284,7 @@ export default async function PlayResultsPage({
                               ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
                               : run.status === "RUNNING"
                               ? "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200"
-                              : run.status === "WAITING_APPROVAL"
+                              : run.status === "WAITING"
                               ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200"
                               : "bg-muted text-muted-foreground"
                           }`}

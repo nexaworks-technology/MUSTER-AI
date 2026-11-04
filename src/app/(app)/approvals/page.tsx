@@ -22,7 +22,7 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Se
   const canDecide = Boolean(can(ctx, "approvals:decide"));
   const rows: BulkRow[] = page.rows.map((a) => ({
     id: a.id,
-    accountName: a.account.name,
+    accountName: a.account?.name ?? "Workspace Campaign",
     reason: a.reason,
     subject: a.outboundMessages[0]?.subject ?? null,
     levelLabel: a.isSensitive ? "Draft for approval · Always human" : LEVEL_WORDS[a.requiredLevel],
@@ -63,7 +63,7 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Se
           {page.rows.map((a) => (
             <li key={a.id} className="p-3 text-sm" data-testid="decided-row">
               <Link href={`/approvals/${a.id}` as Route} className="font-medium hover:underline">
-                {a.account.name}: {a.reason}
+                {a.account ? `${a.account.name}: ` : ""}{a.reason}
               </Link>
               <span className="text-muted-foreground ml-2">
                 {a.status.toLowerCase().replaceAll("_", " ")}

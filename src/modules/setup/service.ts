@@ -13,8 +13,10 @@ import { backtestRunning } from "@/modules/signals/service";
 import {
   applyProposedPlaysToWorkspace,
   proposePlaysForWorkspace,
-  type ProposedPlay,
 } from "./proposed-plays";
+
+export { applyProposedPlaysToWorkspace, proposePlaysForWorkspace };
+export type { ProposedPlay } from "./proposed-plays";
 
 /**
  * The setup wizard (spec §6O1, M5 §2): Connect → Import → Tiers and segments → Health model →

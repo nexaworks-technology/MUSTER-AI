@@ -74,3 +74,16 @@ export async function findIntegrationByUsageKeyHash(
   ]);
   return row;
 }
+
+/**
+ * Finds an outbound message by provider message ID for inbound webhooks (e.g. Resend delivered/bounced).
+ */
+export async function findOutboundMessageByProviderId(
+  providerMessageId: string,
+): Promise<{ workspaceId: string; id: string } | null> {
+  const row = await rawDb.outboundMessage.findFirst({
+    where: { providerMessageId },
+    select: { id: true, workspaceId: true },
+  });
+  return row ?? null;
+}

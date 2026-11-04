@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
 import { signIn } from "./support/app";
-import { inWorkspace } from "./support/m4";
 import { prepareM8 } from "./support/m8";
 
 const WS = "larkspur-demo";

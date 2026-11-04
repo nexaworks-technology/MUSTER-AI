@@ -59,7 +59,7 @@ export const playStepDefinitionSchema = z.object({
   key: z.string().min(1),
   name: z.string().min(1),
   handler: z.enum(PLAY_HANDLERS),
-  params: z.record(z.unknown()).default({}),
+  params: z.record(z.string(), z.unknown()).default({}),
   approvalLevelByTier: z.object({
     HIGH_TOUCH: z.enum(APPROVAL_LEVELS),
     MID_TOUCH: z.enum(APPROVAL_LEVELS),
@@ -91,4 +91,14 @@ export const playDefinitionSchema = z.object({
   steps: z.array(playStepDefinitionSchema).default([]),
   exitConditions: z.array(playConditionSchema).default([]),
 });
-export type PlayDefinition = z.infer<typeof playDefinitionSchema>;
+export interface PlayDefinition {
+  name: string;
+  description?: string;
+  category?: string;
+  segmentId?: string;
+  trigger: PlayTrigger;
+  conditions?: PlayCondition[];
+  branches?: PlayBranch[];
+  steps: PlayStepDefinition[];
+  exitConditions?: PlayCondition[];
+}

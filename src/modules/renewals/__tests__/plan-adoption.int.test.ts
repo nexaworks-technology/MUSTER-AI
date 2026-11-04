@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { AiProvider } from "@/lib/ai";
 import { scopedDb } from "@/lib/db/scoped";
-import { renewalManager } from "@/modules/agents/definitions/renewal-manager";
-import { runAgent } from "@/modules/agents/executor";
+import { renewalManager, runAgent } from "@/modules/agents/service";
 import {
   adoptRenewalPlan,
   PlanAdoptionValidationError,
@@ -152,7 +151,7 @@ describe("S12: Renewal Plan Adoption (D-139, spec §6H2)", () => {
       },
     });
 
-    const contact = await db.contact.create({
+    await db.contact.create({
       data: {
         workspaceId: workspace.id,
         accountId: account.id,
@@ -188,37 +187,36 @@ describe("S12: Renewal Plan Adoption (D-139, spec §6H2)", () => {
     // Run Renewal Manager
     const mockProvider: AiProvider = {
       name: "recorded",
-      generateStructured: async () => ({
-        output: {
-          reasoningSummary: "Standard high confidence renewal plan.",
-          confidence: 0.9,
-          citations: [{ sourceType: "Renewal", sourceId: renewal.id }],
-          proposedActions: [],
-          planSteps: [
-            {
-              title: "Confirm executive business review date",
-              detail: "Discuss upcoming expansion.",
+      async generateStructured<T>() {
+        return {
+          output: {
+            reasoningSummary: "Standard high confidence renewal plan.",
+            confidence: 0.9,
+            citations: [{ sourceType: "Renewal", sourceId: renewal.id }],
+            proposedActions: [],
+            planSteps: [
+              {
+                title: "Confirm executive business review date",
+                detail: "Discuss upcoming expansion.",
+              },
+            ],
+            talkTrack: ["Emphasize usage growth."],
+            outreach: {
+              subject: "Upcoming renewal alignment",
+              body: "Looking forward to your renewal on {{metric.renewal.date}}.",
             },
-          ],
-          talkTrack: ["Emphasize usage growth."],
-          outreach: {
-            subject: "Upcoming renewal alignment",
-            body: "Looking forward to your renewal on {{metric.renewal.date}}.",
-          },
-          nextStep: {
-            action: "Schedule EBR",
-            timing: "within_a_week",
-          },
-        },
-        stopReason: "end_turn",
-        model: "mock-model",
-        requestId: null,
-        inputTokens: 20,
-        outputTokens: 40,
-        latencyMs: 1,
-      }),
-      generateText: async () => {
-        throw new Error("generateText not implemented");
+            nextStep: {
+              action: "Schedule EBR",
+              timing: "within_a_week",
+            },
+          } as unknown as T,
+          stopReason: "end_turn",
+          model: "mock-model",
+          requestId: null,
+          inputTokens: 20,
+          outputTokens: 40,
+          latencyMs: 1,
+        };
       },
     };
 
@@ -230,6 +228,8 @@ describe("S12: Renewal Plan Adoption (D-139, spec §6H2)", () => {
       { provider: mockProvider },
     );
 
+    expect(out.kind).toBe("run");
+    if (out.kind !== "run") throw new Error("Expected run outcome");
     expect(out.status).toBe("SUCCEEDED");
 
     // Invariant: Renewal.planSteps MUST REMAIN EMPTY until human adopts!

@@ -112,6 +112,17 @@ export {
   adoptionCoachInput,
 } from "./definitions/adoption-coach";
 export {
+  digitalCsm,
+  digitalCsmOutput,
+  digitalCsmInput,
+} from "./definitions/digital-csm";
+export {
+  playBuilder,
+  playBuilderOutput,
+  playBuilderInput,
+} from "./definitions/play-builder";
+export * from "./voice.service";
+export {
   listAgentTeam,
   setAgentEnabled,
   getRunDetail,

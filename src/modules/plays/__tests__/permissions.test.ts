@@ -1,8 +1,9 @@
+import type { Prisma } from "@prisma/client";
 import { describe, expect, it } from "vitest";
 import { ForbiddenError } from "@/lib/auth/permissions";
 import { scopedDb } from "@/lib/db/scoped";
 import { rawDb } from "@/lib/db/raw";
-import { createTestAdmin, createTestWorkspace } from "@/test/fixtures";
+import { createTestAdmin } from "@/test/fixtures";
 import {
   CONFIRM_ENABLE_AUTO_SEND,
   disableAutoSend,
@@ -146,7 +147,7 @@ describe("S6: Plays permissions & auto-send enablement (spec §6J4, ARCH §7.2)"
         workspaceId: workspace.id,
         playId: play.id,
         version: 1,
-        definition: playDef as any,
+        definition: playDef as unknown as Prisma.InputJsonValue,
       },
     });
 

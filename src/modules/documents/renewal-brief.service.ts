@@ -239,7 +239,9 @@ export async function getRenewalBrief(actor: Actor, renewalId: string): Promise<
       accountName: r.account.name,
       renewalDate: r.renewalDate,
       stage: r.stage,
-      planSteps: (Array.isArray(r.planSteps) ? r.planSteps : []) as any,
+      planSteps: Array.isArray(r.planSteps)
+        ? (r.planSteps as unknown as Array<{ title: string; detail?: string | null; dueDate?: string | null }>)
+        : [],
     },
     document: r.briefDocumentId ? await readDocument(actor, r.briefDocumentId) : null,
   };

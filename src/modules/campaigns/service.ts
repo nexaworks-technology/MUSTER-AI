@@ -1,14 +1,18 @@
 import { z } from "zod";
 import { writeAudit } from "@/lib/audit";
-import { ForbiddenError, requirePermission } from "@/lib/auth/permissions";
+import { requirePermission } from "@/lib/auth/permissions";
 import { scopedDb } from "@/lib/db/scoped";
-import type { CustomerTransport } from "@/lib/email/customerTransport";
 import type { Actor } from "@/modules/accounts/service";
-import { dispatch, type DispatchResult } from "@/modules/outbound/dispatch";
+import { dispatch, type DispatchResult, type DispatchDeps } from "@/modules/outbound/service";
 import { segmentWhere } from "@/modules/segments/service";
 import { calculateRecipientSchedule } from "./pacing";
 import { renderCampaignText } from "./render";
 import { createUnsubscribeToken } from "./unsubscribe";
+
+export * from "./render";
+export * from "./pacing";
+export * from "./unsubscribe";
+export * from "./webhook";
 
 export const campaignInput = z.object({
   name: z.string().trim().min(1, "Name the campaign").max(120),
@@ -195,7 +199,7 @@ export async function scheduleCampaign(
   actor: Actor,
   campaignId: string,
   scheduledAt: Date,
-  options?: { clock?: () => Date },
+  _options?: { clock?: () => Date },
 ) {
   requirePermission(actor, "plays:createDraft");
   const db = scopedDb(actor);
@@ -206,7 +210,7 @@ export async function scheduleCampaign(
   });
 
   if (!campaign.approval || (campaign.approval.status !== "APPROVED" && campaign.approval.status !== "EDITED_APPROVED")) {
-    throw new ForbiddenError("Campaign cannot be scheduled until it has been approved by an Admin or CS Leader.");
+    throw new Error("Campaign cannot be scheduled until it has been approved by an Admin or CS Leader.");
   }
 
   const recipients = await db.campaignRecipient.findMany({
@@ -222,9 +226,10 @@ export async function scheduleCampaign(
 
   await db.$tenantTransaction(async (tx) => {
     for (let i = 0; i < recipients.length; i++) {
-      const scheduledFor = schedules[i];
+      const scheduledFor = schedules[i]!;
+      const r = recipients[i]!;
       await tx.campaignRecipient.update({
-        where: { id: recipients[i].id },
+        where: { id: r.id },
         data: { scheduledFor },
       });
     }
@@ -260,7 +265,7 @@ export async function executeCampaignBatch(
   campaignId: string,
   options?: {
     clock?: () => Date;
-    transport?: CustomerTransport;
+    transport?: DispatchDeps["transport"];
     limit?: number;
   },
 ): Promise<{
@@ -377,7 +382,7 @@ export async function executeCampaignBatch(
       } else {
         failed++;
       }
-    } catch (err) {
+    } catch {
       failed++;
     }
   }

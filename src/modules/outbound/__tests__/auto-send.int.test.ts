@@ -1,10 +1,8 @@
+import type { Prisma } from "@prisma/client";
 import { describe, expect, it } from "vitest";
 import { scopedDb } from "@/lib/db/scoped";
-import { rawDb } from "@/lib/db/raw";
 import { createTestAdmin } from "@/test/fixtures";
-import { enterPlay, executeStep } from "@/modules/plays/runner";
-import { publishPlay } from "@/modules/plays/service";
-import type { PlayDefinition } from "@/modules/plays/definition";
+import { enterPlay, publishPlay, type PlayDefinition } from "@/modules/plays/service";
 import { CONFIRM_ENABLE_AUTO_SEND, disableAutoSend, enableAutoSend } from "@/modules/settings/service";
 import { fixedClock } from "@/lib/dates";
 
@@ -12,7 +10,7 @@ describe("S6: Auto-send guards integration through the play runner (spec §6J4, 
   async function setupAutoSendEnv(opts: {
     contactTimezone?: string | null;
     accountTimezone?: string | null;
-    lifecycleStage?: "ONBOARDING" | "ADOPTION" | "MATURE" | "RENEWAL" | "LOST";
+    lifecycleStage?: "ONBOARDING" | "ADOPTING" | "MATURE" | "RENEWING" | "LOST";
   } = {}) {
     const { workspace, actor, membership } = await createTestAdmin("AutoSendGuards");
     const db = scopedDb(actor);
@@ -77,7 +75,7 @@ describe("S6: Auto-send guards integration through the play runner (spec §6J4, 
         workspaceId: workspace.id,
         playId: play.id,
         version: 1,
-        definition: playDef as any,
+        definition: playDef as unknown as Prisma.InputJsonValue,
       },
     });
     await publishPlay(actor, play.id);
@@ -199,7 +197,7 @@ describe("S6: Auto-send guards integration through the play runner (spec §6J4, 
   });
 
   it("4. Guard: account lifecycle stage LOST never auto-sends", async () => {
-    const { actor, account, play, db } = await setupAutoSendEnv({
+    const { actor, account, play } = await setupAutoSendEnv({
       lifecycleStage: "LOST",
     });
 
@@ -227,7 +225,7 @@ describe("S6: Auto-send guards integration through the play runner (spec §6J4, 
     await db.emailSuppression.create({
       data: {
         workspaceId: actor.workspaceId,
-        email: contact.email,
+        email: contact.email!,
         reason: "UNSUBSCRIBED",
       },
     });
@@ -329,7 +327,7 @@ describe("S6: Auto-send guards integration through the play runner (spec §6J4, 
         workspaceId: actor.workspaceId,
         playId: play.id,
         version: 1,
-        definition: sensitivePlayDef as any,
+        definition: sensitivePlayDef as unknown as Prisma.InputJsonValue,
       },
     });
     await publishPlay(actor, play.id);

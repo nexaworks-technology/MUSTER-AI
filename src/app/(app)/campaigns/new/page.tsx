@@ -44,7 +44,13 @@ export default async function NewCampaignPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={createCampaignAction} className="space-y-4">
+          <form
+            action={async (formData: FormData) => {
+              "use server";
+              await createCampaignAction(formData);
+            }}
+            className="space-y-4"
+          >
             <div className="space-y-1">
               <Label htmlFor="name" className="text-xs">Campaign Name</Label>
               <Input

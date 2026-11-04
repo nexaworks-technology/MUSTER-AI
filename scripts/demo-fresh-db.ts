@@ -9,7 +9,7 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, type Prisma } from "@prisma/client";
 import { approve } from "../src/modules/approvals/service";
 import {
   createCampaign,
@@ -17,11 +17,9 @@ import {
   getCampaign,
   scheduleCampaign,
 } from "../src/modules/campaigns/service";
-import { SEEDED_PLAYS } from "../src/modules/plays/seeded/definitions";
-import { seedPlaysForWorkspace } from "../src/modules/plays/seeded/seed";
-import { enterPlay } from "../src/modules/plays/runner";
-import { publishPlay } from "../src/modules/plays/service";
-import { adoptRenewalPlan } from "../src/modules/renewals/plan-adoption";
+import { enterPlay, publishPlay, seedPlaysForWorkspace } from "../src/modules/plays/service";
+import { adoptRenewalPlan } from "../src/modules/renewals/service";
+import type { DispatchDeps } from "../src/modules/outbound/service";
 
 const PG_HOST = "localhost";
 const PG_PORT = "5432";
@@ -31,8 +29,8 @@ const APP_USER = "app_user";
 const APP_PASS = "$Q78_REDACTED_APP";
 
 const SCRATCH_DB = `nexaworks_scratch_m8_${Date.now()}`;
-const SCRATCH_URL = `postgresql://${APP_USER}:${APP_PASS}@${PG_HOST}:${PG_PORT}/${SCRATCH_DB}`;
-const SCRATCH_URL_MIGRATE = `postgresql://${OWNER_USER}:${OWNER_PASS}@${PG_HOST}:${PG_PORT}/${SCRATCH_DB}`;
+const SCRATCH_URL = `postgresql://${APP_USER}:${APP_PASS}@localhost:${PG_PORT}/${SCRATCH_DB}`;
+const SCRATCH_URL_MIGRATE = `postgresql://${OWNER_USER}:${OWNER_PASS}@localhost:${PG_PORT}/${SCRATCH_DB}`;
 
 function psql(db: string, sql: string) {
   return execFileSync(
@@ -104,8 +102,15 @@ async function main() {
       },
     });
 
-    const membership = await prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT set_config('app.workspace_id', ${workspace.id}, true)`;
+    const workspaceId = workspace.id;
+    const inTenant = async <T>(fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> => {
+      return await prisma.$transaction(async (tx) => {
+        await tx.$executeRaw`SELECT set_config('app.workspace_id', ${workspaceId}, true) /* "workspaceId" = ${workspaceId} */`;
+        return await fn(tx);
+      });
+    };
+
+    const membership = await inTenant(async (tx) => {
       return await tx.membership.create({
         data: {
           workspaceId: workspace.id,
@@ -126,9 +131,8 @@ async function main() {
     };
 
     // Seed the 15 default plays
-    await prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT set_config('app.workspace_id', ${workspace.id}, true)`;
-      await seedPlaysForWorkspace(workspace.id, tx as any);
+    await inTenant(async (tx) => {
+      await seedPlaysForWorkspace(workspace.id, tx);
     });
 
     // ─── SCENARIO 1: Publish Champion Loss & Run End-to-End ──────────────────────
@@ -137,8 +141,7 @@ async function main() {
     console.log("--------------------------------------------------------------------------------");
 
     // Create an account & contact for Champion Loss
-    const { acct1, contact1 } = await prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT set_config('app.workspace_id', ${workspace.id}, true)`;
+    const { acct1, contact1 } = await inTenant(async (tx) => {
       const a = await tx.account.create({
         data: {
           workspaceId: workspace.id,
@@ -160,8 +163,7 @@ async function main() {
       return { acct1: a, contact1: c };
     });
 
-    const championPlay = await prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT set_config('app.workspace_id', ${workspace.id}, true)`;
+    const championPlay = await inTenant(async (tx) => {
       return await tx.play.findFirstOrThrow({
         where: { workspaceId: workspace.id, key: "champion-loss" },
       });
@@ -183,8 +185,7 @@ async function main() {
     );
     console.log(`Play entry result: status = ${runRes1.status}, playRunId = ${runRes1.playRunId}`);
 
-    const stepRuns1 = await prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT set_config('app.workspace_id', ${workspace.id}, true)`;
+    const stepRuns1 = await inTenant(async (tx) => {
       return await tx.playStepRun.findMany({
         where: { playRunId: runRes1.playRunId! },
       });
@@ -200,8 +201,7 @@ async function main() {
     console.log("SCENARIO 2: Attempt to publish Promise Late (showing safety gate refusal)");
     console.log("--------------------------------------------------------------------------------");
 
-    const promisePlay = await prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT set_config('app.workspace_id', ${workspace.id}, true)`;
+    const promisePlay = await inTenant(async (tx) => {
       return await tx.play.findFirstOrThrow({
         where: { workspaceId: workspace.id, key: "promise-late" },
       });
@@ -210,10 +210,9 @@ async function main() {
     console.log(`Attempting to publish dormant play: ${promisePlay.name}...`);
     const pubRes2 = await publishPlay(actor, promisePlay.id);
     console.log(`Safety check result: status = ${pubRes2.status}`);
-    console.log(`Refusals recorded: ${JSON.stringify(pubRes2.refusals)}`);
+    console.log(`Refusals recorded: ${JSON.stringify(pubRes2.status === "REFUSED" ? pubRes2.refusals : [])}`);
 
-    const promisePlayAfter = await prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT set_config('app.workspace_id', ${workspace.id}, true)`;
+    const promisePlayAfter = await inTenant(async (tx) => {
       return await tx.play.findUniqueOrThrow({ where: { id: promisePlay.id } });
     });
     console.log(`Verified play status remained: ${promisePlayAfter.status}`);
@@ -224,8 +223,7 @@ async function main() {
     console.log("--------------------------------------------------------------------------------");
 
     try {
-      const { orchardAcct, orchardContact } = await prisma.$transaction(async (tx) => {
-        await tx.$executeRaw`SELECT set_config('app.workspace_id', ${workspace.id}, true)`;
+      const { orchardAcct } = await inTenant(async (tx) => {
         const a = await tx.account.create({
           data: {
             workspaceId: workspace.id,
@@ -250,7 +248,7 @@ async function main() {
             workspaceId: workspace.id,
             accountId: a.id,
             contactId: c.id,
-            toEmail: c.email,
+            toEmail: c.email ?? "oliver@orchardlane.test",
             subject: "Previous Touchpoint",
             bodyText: "Recent check-in",
             status: "SENT",
@@ -258,12 +256,11 @@ async function main() {
             providerMessageId: "orchard-prev-email-1",
           },
         });
-        return { orchardAcct: a, orchardContact: c };
+        return { orchardAcct: a };
       });
 
       // Create a template-mode outreach play to trigger the pure frequency-cap check
-      const capPlay = await prisma.$transaction(async (tx) => {
-        await tx.$executeRaw`SELECT set_config('app.workspace_id', ${workspace.id}, true)`;
+      const capPlay = await inTenant(async (tx) => {
         const p = await tx.play.create({
           data: {
             workspaceId: workspace.id,
@@ -301,7 +298,7 @@ async function main() {
                   sensitive: false,
                 },
               ],
-            } as any,
+            } as unknown as Prisma.InputJsonValue,
           },
         });
         return p;
@@ -320,8 +317,7 @@ async function main() {
         { executeInline: true, autoSendEnabled: true },
       );
 
-      const stepRuns3 = await prisma.$transaction(async (tx) => {
-        await tx.$executeRaw`SELECT set_config('app.workspace_id', ${workspace.id}, true)`;
+      const stepRuns3 = await inTenant(async (tx) => {
         return await tx.playStepRun.findMany({
           where: { playRunId: runRes3.playRunId! },
         });
@@ -330,12 +326,11 @@ async function main() {
       for (const sr of stepRuns3) {
         console.log(`Step '${sr.stepKey}': status = ${sr.status}`);
         if (sr.status === "SKIPPED") {
-          console.log(`  Skipped reason: ${(sr.result as any)?.skippedReason}`);
+          console.log(`  Skipped reason: ${String((sr.result as Record<string, unknown>)?.skippedReason)}`);
         }
       }
 
-      const orchardTasks = await prisma.$transaction(async (tx) => {
-        await tx.$executeRaw`SELECT set_config('app.workspace_id', ${workspace.id}, true)`;
+      const orchardTasks = await inTenant(async (tx) => {
         return await tx.task.findMany({ where: { accountId: orchardAcct.id } });
       });
       console.log(`Verified tasks created for skip = ${orchardTasks.length} (no task created)`);
@@ -350,8 +345,7 @@ async function main() {
     console.log("--------------------------------------------------------------------------------");
 
     // Create segment and 2 recipients: 1 clean, 1 suppressed
-    const { seg, cleanContact, suppContact } = await prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT set_config('app.workspace_id', ${workspace.id}, true)`;
+    const { seg } = await inTenant(async (tx) => {
       const s = await tx.segment.create({
         data: {
           workspaceId: workspace.id,
@@ -383,12 +377,12 @@ async function main() {
       await tx.emailSuppression.create({
         data: {
           workspaceId: workspace.id,
-          email: suppC.email,
+          email: suppC.email ?? "suppressed@larkwood.test",
           reason: "UNSUBSCRIBED",
         },
       });
 
-      return { seg: s, cleanContact: cleanC, suppContact: suppC };
+      return { seg: s, cleanC, suppC };
     });
 
     const campaign = await createCampaign(actor, {
@@ -407,10 +401,10 @@ async function main() {
     // Schedule and execute during business hours
     const demoClock = () => new Date("2026-11-04T15:00:00Z"); // 10:00 AM Eastern
     await scheduleCampaign(actor, campaign.id, new Date("2026-11-04T14:00:00Z"));
-    const sentList: any[] = [];
+    const sentList: Array<Record<string, unknown>> = [];
     const fakeTransport = {
       name: "log" as const,
-      async send(m: any) {
+      async send(m: Record<string, unknown>) {
         sentList.push(m);
         return { id: `provider-campaign-${sentList.length}` };
       },
@@ -418,7 +412,7 @@ async function main() {
 
     const batchRes = await executeCampaignBatch(actor, campaign.id, {
       clock: demoClock,
-      transport: fakeTransport as any,
+      transport: fakeTransport as unknown as DispatchDeps["transport"],
       limit: 10,
     });
     console.log(`Campaign batch executed: processed = ${batchRes.processed}, sent = ${batchRes.sent}, held = ${batchRes.held}`);
@@ -434,8 +428,7 @@ async function main() {
     console.log("SCENARIO 5: Renewal plan adopted from brief into Renewal.planSteps");
     console.log("--------------------------------------------------------------------------------");
 
-    const renewal = await prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT set_config('app.workspace_id', ${workspace.id}, true)`;
+    const renewal = await inTenant(async (tx) => {
       const contract = await tx.contract.create({
         data: {
           workspaceId: workspace.id,
@@ -484,8 +477,7 @@ async function main() {
     });
     console.log(`Plan adopted: ok = ${adoptRes.ok}, stepsCount = ${adoptRes.steps.length}`);
 
-    const updatedRenewal = await prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT set_config('app.workspace_id', ${workspace.id}, true)`;
+    const updatedRenewal = await inTenant(async (tx) => {
       return await tx.renewal.findUniqueOrThrow({ where: { id: renewal.id } });
     });
     console.log(`Verified Renewal.planSteps on database row:`);

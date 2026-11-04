@@ -1,8 +1,8 @@
+import type { Prisma } from "@prisma/client";
 import { describe, expect, it } from "vitest";
 import type { AiProvider } from "@/lib/ai";
 import { scopedDb } from "@/lib/db/scoped";
-import { playBuilder } from "@/modules/agents/definitions/play-builder";
-import { runAgent } from "@/modules/agents/executor";
+import { playBuilder, runAgent } from "@/modules/agents/service";
 import { publishPlay } from "@/modules/plays/service";
 import { createTestAdmin } from "@/test/fixtures";
 import type { PlayDefinition } from "../definition";
@@ -51,31 +51,30 @@ const unsafeGeneratedDef: PlayDefinition = {
 
 describe("S10: Play Builder Agent & Safety Gate Integration (D-138, spec §5)", () => {
   it("plain words description produces a structured PlayDefinition and saves only as DRAFT", async () => {
-    const { workspace, actor: admin } = await createTestAdmin("PlayBuilderDraftWS");
+    const { actor: admin } = await createTestAdmin("PlayBuilderDraftWS");
     const db = scopedDb(admin);
 
     const mockProvider: AiProvider = {
       name: "recorded",
-      generateStructured: async () => ({
-        output: {
-          name: "Generated Retention Check",
-          description: "Automated check for high-risk accounts",
-          category: "RETENTION",
-          definition: safeGeneratedDef,
-          reasoningSummary: "Synthesized a standard task-based workflow triggered by usage drop.",
-          confidence: 0.95,
-          citations: [{ sourceType: "UserPrompt", sourceId: "prompt" }],
-          proposedActions: [],
-        },
-        stopReason: "end_turn",
-        model: "mock-model",
-        requestId: null,
-        inputTokens: 25,
-        outputTokens: 50,
-        latencyMs: 2,
-      }),
-      generateText: async () => {
-        throw new Error("generateText not implemented");
+      async generateStructured<T>() {
+        return {
+          output: {
+            name: "Generated Retention Check",
+            description: "Automated check for high-risk accounts",
+            category: "RETENTION",
+            definition: safeGeneratedDef,
+            reasoningSummary: "Synthesized a standard task-based workflow triggered by usage drop.",
+            confidence: 0.95,
+            citations: [{ sourceType: "UserPrompt", sourceId: "prompt" }],
+            proposedActions: [],
+          } as unknown as T,
+          stopReason: "end_turn",
+          model: "mock-model",
+          requestId: null,
+          inputTokens: 25,
+          outputTokens: 50,
+          latencyMs: 2,
+        };
       },
     };
 
@@ -89,6 +88,8 @@ describe("S10: Play Builder Agent & Safety Gate Integration (D-138, spec §5)", 
       { provider: mockProvider },
     );
 
+    expect(out.kind).toBe("run");
+    if (out.kind !== "run") throw new Error("not run");
     expect(out.status).toBe("SUCCEEDED");
 
     const run = await db.agentRun.findUniqueOrThrow({ where: { id: out.runId } });
@@ -109,7 +110,7 @@ describe("S10: Play Builder Agent & Safety Gate Integration (D-138, spec §5)", 
     const version = await db.playVersion.findUniqueOrThrow({ where: { id: versionEffect!.id } });
     expect(version.version).toBe(1);
     expect(version.publishedAt).toBeNull();
-    expect((version.safetyCheck as any).passed).toBe(true);
+    expect((version.safetyCheck as { passed?: boolean })?.passed).toBe(true);
 
     // Rule 5 compliance
     expect(run.promptVersion).toBe("1.0.0");
@@ -118,32 +119,31 @@ describe("S10: Play Builder Agent & Safety Gate Integration (D-138, spec §5)", 
   });
 
   it("builder-produced draft faces the exact same pre-publish safety gate (proven by test)", async () => {
-    const { workspace, actor: admin } = await createTestAdmin("PlayBuilderGateWS");
+    const { actor: admin } = await createTestAdmin("PlayBuilderGateWS");
     const db = scopedDb(admin);
 
     // 1. Builder generates an UNSAFE play (auto-send on sensitive step)
     const mockUnsafeProvider: AiProvider = {
       name: "recorded",
-      generateStructured: async () => ({
-        output: {
-          name: "Unsafe Auto-Cancellation Play",
-          description: "Attempts automated sending on sensitive topic",
-          category: "RETENTION",
-          definition: unsafeGeneratedDef,
-          reasoningSummary: "Attempted auto-send on sensitive cancellation topic.",
-          confidence: 0.8,
-          citations: [{ sourceType: "UserPrompt", sourceId: "prompt" }],
-          proposedActions: [],
-        },
-        stopReason: "end_turn",
-        model: "mock-model",
-        requestId: null,
-        inputTokens: 20,
-        outputTokens: 40,
-        latencyMs: 2,
-      }),
-      generateText: async () => {
-        throw new Error("generateText not implemented");
+      async generateStructured<T>() {
+        return {
+          output: {
+            name: "Unsafe Auto-Cancellation Play",
+            description: "Attempts automated sending on sensitive topic",
+            category: "RETENTION",
+            definition: unsafeGeneratedDef,
+            reasoningSummary: "Attempted auto-send on sensitive cancellation topic.",
+            confidence: 0.8,
+            citations: [{ sourceType: "UserPrompt", sourceId: "prompt" }],
+            proposedActions: [],
+          } as unknown as T,
+          stopReason: "end_turn",
+          model: "mock-model",
+          requestId: null,
+          inputTokens: 20,
+          outputTokens: 40,
+          latencyMs: 2,
+        };
       },
     };
 
@@ -156,6 +156,9 @@ describe("S10: Play Builder Agent & Safety Gate Integration (D-138, spec §5)", 
       { type: "manual", id: `trig-${Date.now()}` },
       { provider: mockUnsafeProvider },
     );
+
+    expect(outUnsafe.kind).toBe("run");
+    if (outUnsafe.kind !== "run") throw new Error("not run");
 
     const runUnsafe = await db.agentRun.findUniqueOrThrow({ where: { id: outUnsafe.runId } });
     const effectsUnsafe = runUnsafe.effects as Array<{ type: string; id: string }>;
@@ -192,32 +195,31 @@ describe("S10: Play Builder Agent & Safety Gate Integration (D-138, spec §5)", 
         workspaceId: workspace.id,
         playId: existingPlay.id,
         version: 1,
-        definition: safeGeneratedDef as any,
+        definition: safeGeneratedDef as unknown as Prisma.InputJsonValue,
       },
     });
 
     const mockUpdateProvider: AiProvider = {
       name: "recorded",
-      generateStructured: async () => ({
-        output: {
-          name: "Updated Play Name",
-          description: "Updated description",
-          category: "RETENTION",
-          definition: { ...safeGeneratedDef, name: "Updated Play Name" },
-          reasoningSummary: "Updated version with improved task details.",
-          confidence: 0.9,
-          citations: [{ sourceType: "UserPrompt", sourceId: "prompt" }],
-          proposedActions: [],
-        },
-        stopReason: "end_turn",
-        model: "mock-model",
-        requestId: null,
-        inputTokens: 30,
-        outputTokens: 50,
-        latencyMs: 2,
-      }),
-      generateText: async () => {
-        throw new Error("generateText not implemented");
+      async generateStructured<T>() {
+        return {
+          output: {
+            name: "Updated Play Name",
+            description: "Updated description",
+            category: "RETENTION",
+            definition: { ...safeGeneratedDef, name: "Updated Play Name" },
+            reasoningSummary: "Updated version with improved task details.",
+            confidence: 0.9,
+            citations: [{ sourceType: "UserPrompt", sourceId: "prompt" }],
+            proposedActions: [],
+          } as unknown as T,
+          stopReason: "end_turn",
+          model: "mock-model",
+          requestId: null,
+          inputTokens: 30,
+          outputTokens: 50,
+          latencyMs: 2,
+        };
       },
     };
 
@@ -232,6 +234,8 @@ describe("S10: Play Builder Agent & Safety Gate Integration (D-138, spec §5)", 
       { provider: mockUpdateProvider },
     );
 
+    expect(out.kind).toBe("run");
+    if (out.kind !== "run") throw new Error("not run");
     expect(out.status).toBe("SUCCEEDED");
 
     const versions = await db.playVersion.findMany({
@@ -239,10 +243,10 @@ describe("S10: Play Builder Agent & Safety Gate Integration (D-138, spec §5)", 
       orderBy: { version: "asc" },
     });
     expect(versions).toHaveLength(2);
-    expect(versions[1].version).toBe(2);
+    expect(versions[1]!.version).toBe(2);
 
     const updatedPlay = await db.play.findUniqueOrThrow({ where: { id: existingPlay.id } });
     expect(updatedPlay.status).toBe("DRAFT");
-    expect(updatedPlay.currentVersionId).toBe(versions[1].id);
+    expect(updatedPlay.currentVersionId).toBe(versions[1]!.id);
   });
 });
