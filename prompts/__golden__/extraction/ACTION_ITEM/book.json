@@ -1,0 +1,43 @@
+{
+  "case": "action_item-book",
+  "description": "Positive: ACTION_ITEM read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "ACTION_ITEM",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "Next step is to book a training session for the new analysts.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "ACTION_ITEM",
+        "quote": "book a training session for the new analysts",
+        "confidence": 0.85,
+        "payload": {
+          "what": "Book a training session for the new analysts",
+          "owner": null
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "ACTION_ITEM"
+    ],
+    "quotes": [
+      "book a training session for the new analysts"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

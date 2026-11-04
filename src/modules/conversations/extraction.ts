@@ -48,6 +48,8 @@ export const extractionModelOutput = z.object({
         what: z.string().optional(),
         dueDate: z.string().nullable().optional(),
         owner: z.string().nullable().optional(),
+        /** The model's guess at who promised (M9 D11): only ever a flagged suggestion. */
+        party: z.enum(["us", "customer"]).nullable().optional(),
         goal: z.string().optional(),
         theme: z.string().optional(),
         intent: z.string().optional(),
@@ -70,6 +72,7 @@ export const PAYLOAD: Record<(typeof ITEM_KINDS)[number], z.ZodType> = {
     what: text,
     dueDate: z.string().nullable().optional(),
     owner: z.string().nullable().optional(),
+    party: z.enum(["us", "customer"]).nullable().optional(),
   }),
   GOAL: z.object({ goal: text }),
   CANCEL_LANGUAGE: z.object({ summary: z.string().optional() }),

@@ -1,0 +1,38 @@
+{
+  "case": "export_language-paraphrased-quote",
+  "description": "Negative: the model paraphrased instead of quoting, so the EXPORT_LANGUAGE item is dropped and counted.",
+  "agent": "watcher",
+  "kind": "EXPORT_LANGUAGE",
+  "polarity": "negative",
+  "sourceType": "Message",
+  "sourceText": "Could you show me how to share a view with the team?",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "EXPORT_LANGUAGE",
+        "quote": "they want all their data",
+        "confidence": 0.85,
+        "payload": {
+          "summary": "Wants a full data export"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [],
+    "quotes": [],
+    "sentiment": null,
+    "dropped": 1
+  }
+}

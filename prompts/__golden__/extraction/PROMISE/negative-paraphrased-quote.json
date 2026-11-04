@@ -1,0 +1,41 @@
+{
+  "case": "promise-paraphrased-quote",
+  "description": "Negative: the model paraphrased instead of quoting, so the PROMISE item is dropped and counted.",
+  "agent": "watcher",
+  "kind": "PROMISE",
+  "polarity": "negative",
+  "sourceType": "Message",
+  "sourceText": "Could you tell me when the next release is planned?",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "PROMISE",
+        "quote": "we promise the next release will land soon",
+        "confidence": 0.85,
+        "payload": {
+          "what": "CSV export fix",
+          "dueDate": "2026-10-24",
+          "owner": "Engineering",
+          "party": "us"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [],
+    "quotes": [],
+    "sentiment": null,
+    "dropped": 1
+  }
+}

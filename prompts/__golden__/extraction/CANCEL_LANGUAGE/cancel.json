@@ -1,0 +1,42 @@
+{
+  "case": "cancel_language-cancel",
+  "description": "Positive: CANCEL_LANGUAGE read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "CANCEL_LANGUAGE",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "If this is not fixed by the end of the term we will cancel.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "CANCEL_LANGUAGE",
+        "quote": "we will cancel",
+        "confidence": 0.85,
+        "payload": {
+          "summary": "Will cancel if not fixed"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "CANCEL_LANGUAGE"
+    ],
+    "quotes": [
+      "we will cancel"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

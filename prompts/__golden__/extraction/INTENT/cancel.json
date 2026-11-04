@@ -1,0 +1,42 @@
+{
+  "case": "intent-cancel",
+  "description": "Positive: INTENT read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "INTENT",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "How do I cancel our subscription at the end of the term?",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "INTENT",
+        "quote": "How do I cancel our subscription at the end of the term?",
+        "confidence": 0.85,
+        "payload": {
+          "intent": "cancellation"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "INTENT"
+    ],
+    "quotes": [
+      "How do I cancel our subscription at the end of the term?"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

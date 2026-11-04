@@ -1,0 +1,42 @@
+{
+  "case": "complaint-api",
+  "description": "Positive: COMPLAINT read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "COMPLAINT",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "We keep hitting the API rate limit during our nightly sync and nobody has fixed it.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "COMPLAINT",
+        "quote": "We keep hitting the API rate limit during our nightly sync",
+        "confidence": 0.85,
+        "payload": {
+          "theme": "api_limits"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "COMPLAINT"
+    ],
+    "quotes": [
+      "We keep hitting the API rate limit during our nightly sync"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

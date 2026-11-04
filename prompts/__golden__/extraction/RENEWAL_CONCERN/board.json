@@ -1,0 +1,42 @@
+{
+  "case": "renewal_concern-board",
+  "description": "Positive: RENEWAL_CONCERN read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "RENEWAL_CONCERN",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "The board wants to revisit all annual contracts before they renew.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "RENEWAL_CONCERN",
+        "quote": "The board wants to revisit all annual contracts before they renew",
+        "confidence": 0.85,
+        "payload": {
+          "summary": "Board revisiting annual contracts"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "RENEWAL_CONCERN"
+    ],
+    "quotes": [
+      "The board wants to revisit all annual contracts before they renew"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

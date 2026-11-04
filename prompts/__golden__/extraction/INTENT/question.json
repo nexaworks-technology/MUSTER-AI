@@ -1,0 +1,42 @@
+{
+  "case": "intent-question",
+  "description": "Positive: INTENT read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "INTENT",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "Can you remind me where the setting for default date ranges is?",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "INTENT",
+        "quote": "Can you remind me where the setting for default date ranges is?",
+        "confidence": 0.85,
+        "payload": {
+          "intent": "question"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "INTENT"
+    ],
+    "quotes": [
+      "Can you remind me where the setting for default date ranges is?"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

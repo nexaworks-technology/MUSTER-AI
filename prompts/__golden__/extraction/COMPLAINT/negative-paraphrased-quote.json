@@ -1,0 +1,38 @@
+{
+  "case": "complaint-paraphrased-quote",
+  "description": "Negative: the model paraphrased instead of quoting, so the COMPLAINT item is dropped and counted.",
+  "agent": "watcher",
+  "kind": "COMPLAINT",
+  "polarity": "negative",
+  "sourceType": "Message",
+  "sourceText": "The new layout is easy to find things in, thank you.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "COMPLAINT",
+        "quote": "they are unhappy with the product",
+        "confidence": 0.85,
+        "payload": {
+          "theme": "csv_export"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [],
+    "quotes": [],
+    "sentiment": null,
+    "dropped": 1
+  }
+}

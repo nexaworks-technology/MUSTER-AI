@@ -1,0 +1,42 @@
+{
+  "case": "goal-adoption",
+  "description": "Positive: GOAL read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "GOAL",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "What we are really after is getting the whole finance team to stop using spreadsheets for approvals.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "GOAL",
+        "quote": "getting the whole finance team to stop using spreadsheets for approvals",
+        "confidence": 0.85,
+        "payload": {
+          "goal": "Finance team stops using spreadsheets for approvals"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "GOAL"
+    ],
+    "quotes": [
+      "getting the whole finance team to stop using spreadsheets for approvals"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

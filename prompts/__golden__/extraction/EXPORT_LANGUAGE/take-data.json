@@ -1,0 +1,42 @@
+{
+  "case": "export_language-take-data",
+  "description": "Positive: EXPORT_LANGUAGE read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "EXPORT_LANGUAGE",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "We need to take a full copy of our data out in case we move to something else.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "EXPORT_LANGUAGE",
+        "quote": "take a full copy of our data out",
+        "confidence": 0.85,
+        "payload": {
+          "summary": "Full data copy"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "EXPORT_LANGUAGE"
+    ],
+    "quotes": [
+      "take a full copy of our data out"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

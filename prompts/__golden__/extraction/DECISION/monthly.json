@@ -1,0 +1,42 @@
+{
+  "case": "decision-monthly",
+  "description": "Positive: DECISION read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "DECISION",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "We decided to move the check-in to monthly instead of every two weeks.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "DECISION",
+        "quote": "We decided to move the check-in to monthly instead of every two weeks.",
+        "confidence": 0.85,
+        "payload": {
+          "decision": "Check-ins move to monthly"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "DECISION"
+    ],
+    "quotes": [
+      "We decided to move the check-in to monthly instead of every two weeks."
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

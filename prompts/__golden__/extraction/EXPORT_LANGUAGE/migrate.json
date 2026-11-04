@@ -1,0 +1,42 @@
+{
+  "case": "export_language-migrate",
+  "description": "Positive: EXPORT_LANGUAGE read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "EXPORT_LANGUAGE",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "Can you give us a complete dump of our records so we can migrate them?",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "EXPORT_LANGUAGE",
+        "quote": "a complete dump of our records so we can migrate them",
+        "confidence": 0.85,
+        "payload": {
+          "summary": "Complete dump to migrate"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "EXPORT_LANGUAGE"
+    ],
+    "quotes": [
+      "a complete dump of our records so we can migrate them"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

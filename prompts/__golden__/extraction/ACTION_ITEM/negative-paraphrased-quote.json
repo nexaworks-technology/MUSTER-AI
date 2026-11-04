@@ -1,0 +1,39 @@
+{
+  "case": "action_item-paraphrased-quote",
+  "description": "Negative: the model paraphrased instead of quoting, so the ACTION_ITEM item is dropped and counted.",
+  "agent": "watcher",
+  "kind": "ACTION_ITEM",
+  "polarity": "negative",
+  "sourceType": "Message",
+  "sourceText": "That is all from me today, talk next month.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "ACTION_ITEM",
+        "quote": "someone has to follow up",
+        "confidence": 0.85,
+        "payload": {
+          "what": "Send the integration guide to Priya",
+          "owner": "Leo"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [],
+    "quotes": [],
+    "sentiment": null,
+    "dropped": 1
+  }
+}

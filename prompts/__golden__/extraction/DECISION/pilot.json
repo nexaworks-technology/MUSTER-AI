@@ -1,0 +1,42 @@
+{
+  "case": "decision-pilot",
+  "description": "Positive: DECISION read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "DECISION",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "We have settled on piloting the new reports with the operations team first.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "DECISION",
+        "quote": "We have settled on piloting the new reports with the operations team first",
+        "confidence": 0.85,
+        "payload": {
+          "decision": "Pilot new reports with operations first"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "DECISION"
+    ],
+    "quotes": [
+      "We have settled on piloting the new reports with the operations team first"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

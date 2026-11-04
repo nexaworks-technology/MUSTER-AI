@@ -1,0 +1,38 @@
+{
+  "case": "cancel_language-paraphrased-quote",
+  "description": "Negative: the model paraphrased instead of quoting, so the CANCEL_LANGUAGE item is dropped and counted.",
+  "agent": "watcher",
+  "kind": "CANCEL_LANGUAGE",
+  "polarity": "negative",
+  "sourceType": "Message",
+  "sourceText": "Thanks for the invoice, we will pay it this week.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "CANCEL_LANGUAGE",
+        "quote": "they are thinking of leaving us",
+        "confidence": 0.85,
+        "payload": {
+          "summary": "Will cancel if not fixed"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [],
+    "quotes": [],
+    "sentiment": null,
+    "dropped": 1
+  }
+}

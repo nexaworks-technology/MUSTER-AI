@@ -1,0 +1,38 @@
+{
+  "case": "goal-paraphrased-quote",
+  "description": "Negative: the model paraphrased instead of quoting, so the GOAL item is dropped and counted.",
+  "agent": "watcher",
+  "kind": "GOAL",
+  "polarity": "negative",
+  "sourceType": "Message",
+  "sourceText": "Thanks for the call today, it was a useful session.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "GOAL",
+        "quote": "they hope to double their usage",
+        "confidence": 0.85,
+        "payload": {
+          "goal": "Cut month-end close to 3 days"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [],
+    "quotes": [],
+    "sentiment": null,
+    "dropped": 1
+  }
+}

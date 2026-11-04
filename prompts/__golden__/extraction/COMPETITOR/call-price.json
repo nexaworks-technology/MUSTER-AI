@@ -1,0 +1,42 @@
+{
+  "case": "competitor-call-price",
+  "description": "Positive: COMPETITOR read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "COMPETITOR",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "Procurement sent over a quote from Dashwell that is quite a bit lower than what we pay today.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "COMPETITOR",
+        "quote": "Procurement sent over a quote from Dashwell",
+        "confidence": 0.85,
+        "payload": {
+          "competitorName": "Dashwell"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "COMPETITOR"
+    ],
+    "quotes": [
+      "Procurement sent over a quote from Dashwell"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

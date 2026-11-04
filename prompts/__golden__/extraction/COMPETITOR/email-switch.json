@@ -1,0 +1,42 @@
+{
+  "case": "competitor-email-switch",
+  "description": "Positive: COMPETITOR read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "COMPETITOR",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "Hi team, a few of us have been trialling Metricly on the side and it does the scheduled digests we asked about.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "COMPETITOR",
+        "quote": "a few of us have been trialling Metricly on the side",
+        "confidence": 0.85,
+        "payload": {
+          "competitorName": "Metricly"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "COMPETITOR"
+    ],
+    "quotes": [
+      "a few of us have been trialling Metricly on the side"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

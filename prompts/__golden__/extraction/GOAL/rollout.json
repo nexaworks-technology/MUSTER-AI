@@ -1,0 +1,42 @@
+{
+  "case": "goal-rollout",
+  "description": "Positive: GOAL read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "GOAL",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "We want every studio lead on the product by Q1.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "GOAL",
+        "quote": "We want every studio lead on the product by Q1.",
+        "confidence": 0.85,
+        "payload": {
+          "goal": "Every studio lead on the product by Q1"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "GOAL"
+    ],
+    "quotes": [
+      "We want every studio lead on the product by Q1."
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

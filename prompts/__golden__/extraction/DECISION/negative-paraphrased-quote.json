@@ -1,0 +1,38 @@
+{
+  "case": "decision-paraphrased-quote",
+  "description": "Negative: the model paraphrased instead of quoting, so the DECISION item is dropped and counted.",
+  "agent": "watcher",
+  "kind": "DECISION",
+  "polarity": "negative",
+  "sourceType": "Message",
+  "sourceText": "Let me think about it and come back to you.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "DECISION",
+        "quote": "it was decided to wait",
+        "confidence": 0.85,
+        "payload": {
+          "decision": "Check-ins move to monthly"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [],
+    "quotes": [],
+    "sentiment": null,
+    "dropped": 1
+  }
+}

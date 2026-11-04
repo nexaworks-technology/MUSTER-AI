@@ -1,0 +1,42 @@
+{
+  "case": "intent-pricing",
+  "description": "Positive: INTENT read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "INTENT",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "Could you send a quote for ten more seats on the annual plan?",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "INTENT",
+        "quote": "Could you send a quote for ten more seats on the annual plan?",
+        "confidence": 0.85,
+        "payload": {
+          "intent": "pricing"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "INTENT"
+    ],
+    "quotes": [
+      "Could you send a quote for ten more seats on the annual plan?"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

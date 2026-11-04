@@ -1,0 +1,42 @@
+{
+  "case": "cancel_language-not-renew",
+  "description": "Positive: CANCEL_LANGUAGE read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "CANCEL_LANGUAGE",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "At this point we do not plan to renew in January.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "CANCEL_LANGUAGE",
+        "quote": "we do not plan to renew in January",
+        "confidence": 0.85,
+        "payload": {
+          "summary": "No plan to renew"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "CANCEL_LANGUAGE"
+    ],
+    "quotes": [
+      "we do not plan to renew in January"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

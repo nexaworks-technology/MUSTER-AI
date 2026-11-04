@@ -1,0 +1,42 @@
+{
+  "case": "decision-sso",
+  "description": "Positive: DECISION read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "DECISION",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "It was agreed that IT will roll out SSO for everyone before the end of the quarter.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "DECISION",
+        "quote": "IT will roll out SSO for everyone before the end of the quarter",
+        "confidence": 0.85,
+        "payload": {
+          "decision": "IT rolls out SSO this quarter"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "DECISION"
+    ],
+    "quotes": [
+      "IT will roll out SSO for everyone before the end of the quarter"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

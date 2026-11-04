@@ -1,0 +1,42 @@
+{
+  "case": "export_language-export-before",
+  "description": "Positive: EXPORT_LANGUAGE read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "EXPORT_LANGUAGE",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "How do I export all our data before we cancel at the end of the term?",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "EXPORT_LANGUAGE",
+        "quote": "How do I export all our data before we cancel at the end of the term?",
+        "confidence": 0.85,
+        "payload": {
+          "summary": "Wants a full data export"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "EXPORT_LANGUAGE"
+    ],
+    "quotes": [
+      "How do I export all our data before we cancel at the end of the term?"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "case": "promise-undated",
+  "description": "Positive: PROMISE read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "PROMISE",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "I'll get you the API usage report once the data team is back.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "PROMISE",
+        "quote": "I'll get you the API usage report once the data team is back.",
+        "confidence": 0.85,
+        "payload": {
+          "what": "API usage report",
+          "dueDate": null,
+          "party": "us"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "PROMISE"
+    ],
+    "quotes": [
+      "I'll get you the API usage report once the data team is back."
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

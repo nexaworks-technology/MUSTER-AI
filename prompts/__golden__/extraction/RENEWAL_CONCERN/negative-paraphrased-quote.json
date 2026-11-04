@@ -1,0 +1,38 @@
+{
+  "case": "renewal_concern-paraphrased-quote",
+  "description": "Negative: the model paraphrased instead of quoting, so the RENEWAL_CONCERN item is dropped and counted.",
+  "agent": "watcher",
+  "kind": "RENEWAL_CONCERN",
+  "polarity": "negative",
+  "sourceType": "Message",
+  "sourceText": "We are looking forward to the next quarterly review.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "RENEWAL_CONCERN",
+        "quote": "they might not renew",
+        "confidence": 0.85,
+        "payload": {
+          "summary": "Needs API limits fixed before signing"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [],
+    "quotes": [],
+    "sentiment": null,
+    "dropped": 1
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "case": "intent-paraphrased-quote",
+  "description": "Negative: the model paraphrased instead of quoting, so the INTENT item is dropped and counted.",
+  "agent": "watcher",
+  "kind": "INTENT",
+  "polarity": "negative",
+  "sourceType": "Message",
+  "sourceText": "Thanks.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "INTENT",
+        "quote": "they have a question",
+        "confidence": 0.85,
+        "payload": {
+          "intent": "question"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [],
+    "quotes": [],
+    "sentiment": null,
+    "dropped": 1
+  }
+}

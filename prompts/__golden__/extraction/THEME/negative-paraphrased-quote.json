@@ -1,0 +1,38 @@
+{
+  "case": "theme-paraphrased-quote",
+  "description": "Negative: the model paraphrased instead of quoting, so the THEME item is dropped and counted.",
+  "agent": "watcher",
+  "kind": "THEME",
+  "polarity": "negative",
+  "sourceType": "Message",
+  "sourceText": "Thanks again for your help this morning.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "THEME",
+        "quote": "it is about exports",
+        "confidence": 0.85,
+        "payload": {
+          "theme": "csv_export"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [],
+    "quotes": [],
+    "sentiment": null,
+    "dropped": 1
+  }
+}

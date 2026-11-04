@@ -1,0 +1,42 @@
+{
+  "case": "budget_concern-tight",
+  "description": "Positive: BUDGET_CONCERN read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "BUDGET_CONCERN",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "Budget is tight next year, so every tool is being reviewed.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "BUDGET_CONCERN",
+        "quote": "Budget is tight next year, so every tool is being reviewed.",
+        "confidence": 0.85,
+        "payload": {
+          "summary": "Budget is tight; every tool under review"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "BUDGET_CONCERN"
+    ],
+    "quotes": [
+      "Budget is tight next year, so every tool is being reviewed."
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

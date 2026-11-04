@@ -1,0 +1,42 @@
+{
+  "case": "theme-permissions",
+  "description": "Positive: THEME read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "THEME",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "New joiners cannot see the shared views until someone fixes their access.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "THEME",
+        "quote": "New joiners cannot see the shared views",
+        "confidence": 0.85,
+        "payload": {
+          "theme": "access_permissions"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "THEME"
+    ],
+    "quotes": [
+      "New joiners cannot see the shared views"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

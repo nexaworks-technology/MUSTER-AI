@@ -1,0 +1,34 @@
+{
+  "case": "sentiment-angry",
+  "description": "Positive: overall tone NEGATIVE, quote verbatim.",
+  "agent": "watcher",
+  "kind": "SENTIMENT",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "I am honestly fed up. This is the third time the export has broken and nobody has called me back.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [],
+    "sentiment": {
+      "label": "NEGATIVE",
+      "quote": "I am honestly fed up."
+    }
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [],
+    "quotes": [
+      "I am honestly fed up."
+    ],
+    "sentiment": "NEGATIVE",
+    "dropped": 0
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "case": "action_item-send",
+  "description": "Positive: ACTION_ITEM read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "ACTION_ITEM",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "Action: Leo to send the integration guide to Priya by Monday.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "ACTION_ITEM",
+        "quote": "Leo to send the integration guide to Priya by Monday",
+        "confidence": 0.85,
+        "payload": {
+          "what": "Send the integration guide to Priya",
+          "owner": "Leo"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "ACTION_ITEM"
+    ],
+    "quotes": [
+      "Leo to send the integration guide to Priya by Monday"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

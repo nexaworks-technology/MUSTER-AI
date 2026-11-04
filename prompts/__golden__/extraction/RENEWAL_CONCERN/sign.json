@@ -1,0 +1,42 @@
+{
+  "case": "renewal_concern-sign",
+  "description": "Positive: RENEWAL_CONCERN read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "RENEWAL_CONCERN",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "We need to see the API limits fixed before we sign again.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "RENEWAL_CONCERN",
+        "quote": "We need to see the API limits fixed before we sign again.",
+        "confidence": 0.85,
+        "payload": {
+          "summary": "Needs API limits fixed before signing"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "RENEWAL_CONCERN"
+    ],
+    "quotes": [
+      "We need to see the API limits fixed before we sign again."
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

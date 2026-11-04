@@ -1,0 +1,42 @@
+{
+  "case": "theme-limits",
+  "description": "Positive: THEME read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "THEME",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "Our integration is being throttled by the rate limits again.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "THEME",
+        "quote": "Our integration is being throttled by the rate limits again.",
+        "confidence": 0.85,
+        "payload": {
+          "theme": "api_limits"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "THEME"
+    ],
+    "quotes": [
+      "Our integration is being throttled by the rate limits again."
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

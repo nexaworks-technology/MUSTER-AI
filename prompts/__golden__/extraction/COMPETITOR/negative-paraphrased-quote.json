@@ -1,0 +1,38 @@
+{
+  "case": "competitor-paraphrased-quote",
+  "description": "Negative: the model paraphrased instead of quoting, so the COMPETITOR item is dropped and counted.",
+  "agent": "watcher",
+  "kind": "COMPETITOR",
+  "polarity": "negative",
+  "sourceType": "Message",
+  "sourceText": "Thanks for the update. We are happy with the current setup.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "COMPETITOR",
+        "quote": "they are switching to a rival product",
+        "confidence": 0.85,
+        "payload": {
+          "competitorName": "Tallyfield"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [],
+    "quotes": [],
+    "sentiment": null,
+    "dropped": 1
+  }
+}

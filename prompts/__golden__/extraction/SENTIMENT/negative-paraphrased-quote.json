@@ -1,0 +1,32 @@
+{
+  "case": "sentiment-paraphrased-quote",
+  "description": "Negative: a sentiment label whose quote is not in the text is dropped, never stored.",
+  "agent": "watcher",
+  "kind": "SENTIMENT",
+  "polarity": "negative",
+  "sourceType": "Message",
+  "sourceText": "Thanks, that answers my question.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [],
+    "sentiment": {
+      "label": "NEGATIVE",
+      "quote": "they sound upset with us"
+    }
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [],
+    "quotes": [],
+    "sentiment": null,
+    "dropped": 1
+  }
+}

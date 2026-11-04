@@ -1,0 +1,34 @@
+{
+  "case": "sentiment-neutral",
+  "description": "Positive: overall tone NEUTRAL, quote verbatim.",
+  "agent": "watcher",
+  "kind": "SENTIMENT",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "Please find attached the usage summary for last month as requested.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [],
+    "sentiment": {
+      "label": "NEUTRAL",
+      "quote": "Please find attached the usage summary for last month as requested."
+    }
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [],
+    "quotes": [
+      "Please find attached the usage summary for last month as requested."
+    ],
+    "sentiment": "NEUTRAL",
+    "dropped": 0
+  }
+}

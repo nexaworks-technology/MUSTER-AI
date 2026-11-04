@@ -1,0 +1,42 @@
+{
+  "case": "cancel_language-terminate",
+  "description": "Positive: CANCEL_LANGUAGE read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "CANCEL_LANGUAGE",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "Please tell me how to terminate the subscription and what the notice period is.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "CANCEL_LANGUAGE",
+        "quote": "how to terminate the subscription",
+        "confidence": 0.85,
+        "payload": {
+          "summary": "Asks how to terminate"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "CANCEL_LANGUAGE"
+    ],
+    "quotes": [
+      "how to terminate the subscription"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

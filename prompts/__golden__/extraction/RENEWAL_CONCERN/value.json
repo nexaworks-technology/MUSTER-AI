@@ -1,0 +1,42 @@
+{
+  "case": "renewal_concern-value",
+  "description": "Positive: RENEWAL_CONCERN read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "RENEWAL_CONCERN",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "Honestly I am not sure we are getting enough value to justify the renewal.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "RENEWAL_CONCERN",
+        "quote": "I am not sure we are getting enough value to justify the renewal",
+        "confidence": 0.85,
+        "payload": {
+          "summary": "Doubts the value for renewal"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "RENEWAL_CONCERN"
+    ],
+    "quotes": [
+      "I am not sure we are getting enough value to justify the renewal"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

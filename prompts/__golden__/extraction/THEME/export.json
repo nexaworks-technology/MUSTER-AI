@@ -1,0 +1,42 @@
+{
+  "case": "theme-export",
+  "description": "Positive: THEME read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "THEME",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "The export keeps timing out for the larger reports.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "THEME",
+        "quote": "The export keeps timing out for the larger reports.",
+        "confidence": 0.85,
+        "payload": {
+          "theme": "csv_export"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "THEME"
+    ],
+    "quotes": [
+      "The export keeps timing out for the larger reports."
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

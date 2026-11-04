@@ -1,0 +1,43 @@
+{
+  "case": "action_item-review",
+  "description": "Positive: ACTION_ITEM read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "ACTION_ITEM",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "Priya will review the permissions list and report back.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "ACTION_ITEM",
+        "quote": "Priya will review the permissions list and report back",
+        "confidence": 0.85,
+        "payload": {
+          "what": "Review the permissions list",
+          "owner": "Priya"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "ACTION_ITEM"
+    ],
+    "quotes": [
+      "Priya will review the permissions list and report back"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}

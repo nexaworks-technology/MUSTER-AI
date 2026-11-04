@@ -1,0 +1,42 @@
+{
+  "case": "complaint-invoice",
+  "description": "Positive: COMPLAINT read from the text, quote verbatim.",
+  "agent": "watcher",
+  "kind": "COMPLAINT",
+  "polarity": "positive",
+  "sourceType": "Message",
+  "sourceText": "We were charged twice again this quarter and it is really frustrating.",
+  "output": {
+    "reasoningSummary": "Labelled the record.",
+    "confidence": 0.8,
+    "citations": [
+      {
+        "sourceType": "Message",
+        "sourceId": "src"
+      }
+    ],
+    "proposedActions": [],
+    "items": [
+      {
+        "kind": "COMPLAINT",
+        "quote": "We were charged twice again this quarter",
+        "confidence": 0.85,
+        "payload": {
+          "theme": "billing"
+        }
+      }
+    ],
+    "sentiment": null
+  },
+  "expect": {
+    "status": "SUCCEEDED",
+    "kinds": [
+      "COMPLAINT"
+    ],
+    "quotes": [
+      "We were charged twice again this quarter"
+    ],
+    "sentiment": null,
+    "dropped": 0
+  }
+}
