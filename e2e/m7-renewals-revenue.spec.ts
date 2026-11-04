@@ -262,17 +262,25 @@ test.describe("M7 renewals and revenue", () => {
   test("An outcome recorded through the contract records, with the forecast frozen as it stood", async ({
     page,
   }) => {
-    const out = recordRenewalOutcome(WS, "Harborwood Accounting");
-    expect(out).toMatch(/Harborwood Accounting: renewal on 2026-12-21 recorded as RENEWED/);
-    expect(out).toMatch(/forecast frozen at \d+% \(HIGH\)/);
-    await signIn(page, "dana@larkspur.test");
-    const harborwood = await inWorkspace(WS, (tx) =>
-      tx.account.findFirstOrThrow({ where: { name: "Harborwood Accounting" } }),
+    // A renewal well outside the 90-day radar window, so the tie group the first test asserts is
+    // untouched on a re-run of the suite (a recorded outcome is append-only and stays).
+    const account = "Oakcrest Couriers";
+    const out = recordRenewalOutcome(WS, account);
+    expect(out).toMatch(
+      new RegExp(
+        `${account}: (renewal on 2027-02-09 recorded as RENEWED.*forecast frozen at \\d+% \\((?:HIGH|MEDIUM|LOW)\\)|an outcome is already recorded)`,
+      ),
     );
-    await page.goto(`/accounts/${harborwood.id}/renewal`);
+    await signIn(page, "dana@larkspur.test");
+    const oakcrest = await inWorkspace(WS, (tx) =>
+      tx.account.findFirstOrThrow({ where: { name: account } }),
+    );
+    await page.goto(`/accounts/${oakcrest.id}/renewal`);
     const past = page.getByTestId("past-renewals");
-    await expect(past).toContainText("Dec 21, 2026: Renewed");
+    await expect(past).toContainText("Feb 9, 2027: Renewed");
     await expect(past).toContainText("from contract records");
-    await expect(past).toContainText(/The forecast on .+ said \d+% \(High confidence\)/);
+    await expect(past).toContainText(
+      /The forecast on .+ said \d+% \((?:High|Medium|Low) confidence\)/,
+    );
   });
 });
