@@ -1,10 +1,11 @@
 import { randomUUID } from "node:crypto";
 import type { PlayStatus, Prisma } from "@prisma/client";
 import { writeAudit } from "@/lib/audit";
-import { requirePermission } from "@/lib/auth/permissions";
+import { requirePermission, can } from "@/lib/auth/permissions";
 import { scopedDb } from "@/lib/db/scoped";
 import type { Actor } from "@/modules/accounts/service";
 import { compileSegment } from "@/modules/segments/dsl";
+import { checkDeadPlay, type DeadPlayResult } from "./dead-play";
 import {
   playDefinitionSchema,
   type PlayBranch,
@@ -584,5 +585,136 @@ export async function getPlay(actor: Actor, playId: string) {
     definition,
     summary,
     totalRuns: play._count.runs,
+  };
+}
+
+export async function getPlayResults(actor: Actor, playId: string) {
+  requirePermission(actor, "accounts:view");
+  const db = scopedDb(actor);
+
+  const play = await db.play.findUnique({
+    where: { id: playId },
+    include: {
+      versions: {
+        orderBy: { version: "desc" },
+      },
+      currentVersion: true,
+      runs: {
+        orderBy: { enteredAt: "desc" },
+        include: {
+          account: {
+            select: { id: true, name: true, tier: true, arrMinor: true },
+          },
+          stepRuns: {
+            orderBy: { createdAt: "asc" },
+          },
+        },
+      },
+      _count: {
+        select: { runs: true },
+      },
+    },
+  });
+  if (!play) throw new PlayNotFoundError();
+
+  const publishedAt =
+    play.currentVersion?.publishedAt ??
+    play.versions.find((v) => v.publishedAt)?.publishedAt ??
+    null;
+  const lastEntryAt = play.runs[0]?.enteredAt ?? null;
+
+  const deadPlayStatus = checkDeadPlay({
+    status: play.status,
+    publishedAt,
+    lastEntryAt,
+    totalEntries: play.runs.length,
+  });
+
+  const uniqueAccountIds = new Set(play.runs.map((r) => r.accountId));
+
+  const allStepRuns = play.runs.flatMap((r) =>
+    r.stepRuns.map((sr) => ({
+      ...sr,
+      accountName: r.account.name,
+      accountId: r.accountId,
+      accountTier: r.account.tier,
+      playRunStatus: r.status,
+    })),
+  );
+
+  const skips = allStepRuns
+    .filter((sr) => sr.status === "SKIPPED")
+    .map((sr) => {
+      const res = sr.result as Record<string, unknown> | null;
+      const skipReason =
+        (typeof res?.skippedReason === "string" && res.skippedReason) ||
+        (typeof res?.reason === "string" && res.reason) ||
+        "Unknown frequency cap or safety condition";
+      return {
+        id: sr.id,
+        playRunId: sr.playRunId,
+        stepKey: sr.stepKey,
+        skipReason,
+        accountId: sr.accountId,
+        accountName: sr.accountName,
+        createdAt: sr.createdAt,
+      };
+    });
+
+  const completedSteps = allStepRuns.filter(
+    (sr) => sr.status === "COMPLETED" || (sr.status as string) === "AUTO_RECORDED",
+  );
+  const waitingSteps = allStepRuns.filter(
+    (sr) => sr.status === "WAITING_APPROVAL",
+  );
+
+  const moneyVisible = Boolean(can(actor, "revenue:view"));
+  const totalArrProtectedMinor = Array.from(uniqueAccountIds).reduce(
+    (acc, accId) => {
+      const run = play.runs.find((r) => r.accountId === accId);
+      return acc + (run?.account.arrMinor ? BigInt(run.account.arrMinor) : 0n);
+    },
+    0n,
+  );
+
+  return {
+    play: {
+      id: play.id,
+      key: play.key,
+      name: play.name,
+      description: play.description,
+      status: play.status,
+      category: play.category,
+      isSeeded: play.isSeeded,
+      version: play.currentVersion?.version ?? play.versions[0]?.version ?? 1,
+      publishedAt,
+    },
+    deadPlayStatus,
+    stats: {
+      totalRuns: play.runs.length,
+      openRuns: play.runs.filter((r) => r.status === "RUNNING" || r.status === "WAITING_APPROVAL").length,
+      completedRuns: play.runs.filter((r) => r.status === "COMPLETED").length,
+      exitedRuns: play.runs.filter((r) => r.status === "EXITED").length,
+      accountsEntered: uniqueAccountIds.size,
+      actionsTaken: completedSteps.length,
+      skipsCount: skips.length,
+      waitingApprovals: waitingSteps.length,
+      revenueProtectedMinor: moneyVisible ? totalArrProtectedMinor : null,
+    },
+    runs: play.runs.map((r) => ({
+      id: r.id,
+      accountId: r.accountId,
+      accountName: r.account.name,
+      accountTier: r.account.tier,
+      status: r.status,
+      triggerRef: r.triggerRef,
+      enteredAt: r.enteredAt,
+      completedAt: r.completedAt,
+      exitedAt: r.exitedAt,
+      exitReason: r.exitReason,
+      stepCount: r.stepRuns.length,
+      stepRuns: r.stepRuns,
+    })),
+    skips,
   };
 }

@@ -87,6 +87,12 @@ export default async function InspectPlayPage({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href={`/plays/${play.id}/results` as Route}
+            className="text-xs border rounded px-3 py-1.5 hover:bg-muted font-medium inline-flex items-center gap-1"
+          >
+            📊 View Results
+          </Link>
           {play.status === "PUBLISHED" && (
             <PausePlayButton playId={play.id} canPublish={canPublish} />
           )}
