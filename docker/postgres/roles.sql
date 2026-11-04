@@ -7,6 +7,8 @@ SELECT format('CREATE ROLE nexaworks_owner LOGIN CREATEDB PASSWORD %L', :'owner_
 WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'nexaworks_owner') \gexec
 SELECT format('CREATE ROLE app_user LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS PASSWORD %L', :'app_password')
 WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'app_user') \gexec
+SELECT format('ALTER ROLE nexaworks_owner WITH PASSWORD %L', :'owner_password') \gexec
+SELECT format('ALTER ROLE app_user WITH PASSWORD %L', :'app_password') \gexec
 ALTER ROLE app_user NOSUPERUSER NOBYPASSRLS;
 
 SELECT 'CREATE DATABASE nexaworks_dev OWNER nexaworks_owner'

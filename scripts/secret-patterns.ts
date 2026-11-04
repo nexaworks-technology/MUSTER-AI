@@ -23,6 +23,12 @@ const RULES: ReadonlyArray<{ rule: string; pattern: RegExp }> = [
   { rule: "salesforce-session", pattern: /\b00D[A-Za-z0-9]{12,15}![A-Za-z0-9._]{40,}/ },
   // M6: the Usage API's ingest key (`nxu_` + 43 URL-safe characters). Only its hash is ever stored.
   { rule: "usage-ingest-key", pattern: /\bnxu_[A-Za-z0-9_-]{40,}/ },
+  // Local DB passwords committed as string literals (Q-78; caught the commit 712d626 shape).
+  {
+    rule: "db-password",
+    pattern:
+      /\b(?:OWNER|APP|DB|PG|POSTGRES)(?:_[A-Z0-9]+)*_(?:PASS|PASSWORD)\s*[:=]\s*["'\x60](?!\$)[^"'\x60\n]{4,}["'\x60]/i,
+  },
   {
     rule: "url-credentials",
     pattern: /[a-z][a-z0-9+.-]*:\/\/[^\s:/@]+:[^\s@/]{6,}@(?!localhost|127\.0\.0\.1)/i,
