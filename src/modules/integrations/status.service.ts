@@ -120,6 +120,8 @@ export async function listIntegrations(actor: Actor): Promise<ProviderCard[]> {
     "USAGE_API",
     "MIXPANEL",
     "AMPLITUDE",
+    "ZENDESK",
+    "FRESHDESK",
     "SLACK",
   ];
   return order

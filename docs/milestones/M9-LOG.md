@@ -224,3 +224,19 @@ D-147–D-150 in `DECISIONS.md`; Q-78–Q-81 in `QUESTIONS.md` (the Session A qu
 - **Verification:** `pnpm services:native` ran cleanly; targeted test suite `src/lib/audit/__tests__/audit.int.test.ts` passed (4/4); demo scripts continue to read from environment variables. Password rotation succeeded.
 - **Git history note:** The old passwords remain in git history; the repo is local-only and has never been pushed; git history scrub is a precondition of any future push (homed to M12).
 
+## Slice B6 — Zendesk & Freshdesk adapters
+
+- **Red-first evidence:**
+  - `src/modules/integrations/adapters/zendesk/__tests__/contract.test.ts` failed before implementation with `Cannot find module '..'`.
+  - `src/modules/integrations/adapters/freshdesk/__tests__/contract.test.ts` failed before implementation with `Cannot find module '..'`.
+  - `src/modules/integrations/__tests__/support-connectors.int.test.ts` failed with missing adapter and missing fixtures.
+- **What was built:**
+  - Zendesk adapter: basic auth (email + token), incremental tickets export, HMAC-SHA256 webhook signature verification with 300s tolerance, payload mapping to `NormalizedTicket`.
+  - Freshdesk adapter: basic auth (key + X), tickets query with conversations, shared-secret webhook header verification (conservative reading per Q-82), payload mapping to `NormalizedTicket`.
+  - `ingestTickets` in `src/modules/integrations/ingest-conversations.ts` mapped via `ExternalRef` into `Ticket`, `Conversation`, `Message`, and `InboxItem`. Unmatched tickets land in `UnmatchedInbound`.
+  - Settings › Integrations cards updated with Support category and setup instructions.
+  - Recorded fixtures labelled `"authored from docs, not captured"`.
+  - Sync-twice proof: Second sync with same fixture creates 0 rows, updates 0 rows, marks all as unchanged.
+- **Evidence:** `contract.test.ts` (Zendesk: 5/5, Freshdesk: 5/5), `support-connectors.int.test.ts` (3/3), `pnpm test src/modules/integrations` (27 files / 193 tests passed).
+
+

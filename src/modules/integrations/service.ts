@@ -70,7 +70,17 @@ export { handleUsageRequest } from "./usage-api/route-handler";
 
 /** URL segment → provider (`/api/integrations/hubspot/...`). */
 export const providerParam = z
-  .enum(["hubspot", "salesforce", "stripe", "chargebee", "slack"])
+  .enum([
+    "hubspot",
+    "salesforce",
+    "stripe",
+    "chargebee",
+    "slack",
+    "zendesk",
+    "freshdesk",
+    "google_email",
+    "microsoft_email",
+  ])
   .transform((p) => p.toUpperCase() as IntegrationProvider);
 
 /** True when connectors run on recorded fixtures (test, e2e, demo); never in production. */

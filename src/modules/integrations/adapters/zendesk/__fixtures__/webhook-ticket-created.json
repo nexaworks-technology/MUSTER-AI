@@ -1,0 +1,24 @@
+{
+  "id": "zd_evt_201",
+  "event_type": "ticket.created",
+  "description": "Fictional Zendesk webhook: authored from docs, not captured.",
+  "ticket": {
+    "id": "zd_102",
+    "subject": "API rate limits exceeded",
+    "status": "open",
+    "priority": "urgent",
+    "created_at": "2026-11-05T11:45:00Z",
+    "requester": {
+      "email": "devs@halden.test",
+      "name": "Halden Developers"
+    },
+    "comments": [
+      {
+        "id": "zd_comm_2001",
+        "body": "Our integration is receiving 429 Too Many Requests since 11:00 AM.",
+        "author_email": "devs@halden.test",
+        "created_at": "2026-11-05T11:45:00Z"
+      }
+    ]
+  }
+}

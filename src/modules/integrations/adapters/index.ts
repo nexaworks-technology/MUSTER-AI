@@ -8,6 +8,8 @@ import { salesforceAdapter } from "./salesforce";
 import { slackAdapter } from "./slack";
 import { stripeAdapter } from "./stripe";
 import { usageApiAdapter } from "./usage-api";
+import { zendeskAdapter } from "./zendesk";
+import { freshdeskAdapter } from "./freshdesk";
 
 /**
  * Adapter registry. Each launch connector registers here once it has fixtures and contract tests
@@ -27,6 +29,8 @@ export const ADAPTERS: Partial<Record<IntegrationProvider, AnyAdapter>> = {
   USAGE_API: usageApiAdapter,
   MIXPANEL: mixpanelAdapter,
   AMPLITUDE: amplitudeAdapter,
+  ZENDESK: zendeskAdapter,
+  FRESHDESK: freshdeskAdapter,
 };
 
 export class AdapterMissingError extends Error {

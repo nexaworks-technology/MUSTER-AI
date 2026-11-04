@@ -157,6 +157,41 @@ export const normalizedUsageDay = z.object({
     .default([]),
 });
 
+export const normalizedTicketMessage = z.object({
+  externalId,
+  direction: z.enum(["INBOUND", "OUTBOUND"]).default("INBOUND"),
+  fromAddress: email.optional(),
+  fromName: optionalText,
+  toAddresses: z.array(email).default([]),
+  bodyText: z.string().trim().min(1, "has no text"),
+  sentAt: date,
+});
+
+export const normalizedTicket = z.object({
+  externalId,
+  subject: z.string().trim().min(1, "has no subject").max(500),
+  status: z.enum(["OPEN", "PENDING", "SOLVED", "CLOSED"]).default("OPEN"),
+  priority: z.enum(["LOW", "NORMAL", "HIGH", "URGENT"]).default("NORMAL"),
+  requesterEmail: email.optional(),
+  requesterName: optionalText,
+  openedAt: date,
+  updatedAt: date.optional(),
+  closedAt: date.optional(),
+  messages: z.array(normalizedTicketMessage).default([]),
+});
+
+export const normalizedMail = z.object({
+  externalId,
+  threadExternalId: optionalText,
+  direction: z.enum(["INBOUND", "OUTBOUND"]).default("INBOUND"),
+  fromAddress: email,
+  fromName: optionalText,
+  toAddresses: z.array(email).min(1, "has no recipients"),
+  subject: z.string().trim().max(500).default(""),
+  bodyText: z.string().trim().min(1, "has no body"),
+  sentAt: date,
+});
+
 export type NormalizedOwner = z.infer<typeof normalizedOwner>;
 export type NormalizedAccount = z.infer<typeof normalizedAccount>;
 export type NormalizedBillingCustomer = z.infer<typeof normalizedBillingCustomer>;
@@ -165,6 +200,9 @@ export type NormalizedSubscription = z.infer<typeof normalizedSubscription>;
 export type NormalizedInvoice = z.infer<typeof normalizedInvoice>;
 export type NormalizedContract = z.infer<typeof normalizedContract>;
 export type NormalizedUsageDay = z.infer<typeof normalizedUsageDay>;
+export type NormalizedTicketMessage = z.infer<typeof normalizedTicketMessage>;
+export type NormalizedTicket = z.infer<typeof normalizedTicket>;
+export type NormalizedMail = z.infer<typeof normalizedMail>;
 
 export const NORMALIZED = {
   owners: normalizedOwner,
@@ -175,6 +213,8 @@ export const NORMALIZED = {
   invoices: normalizedInvoice,
   contracts: normalizedContract,
   usage: normalizedUsageDay,
+  tickets: normalizedTicket,
+  mail: normalizedMail,
 } as const;
 
 export type NormalizedKind = keyof typeof NORMALIZED;

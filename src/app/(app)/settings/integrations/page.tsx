@@ -42,6 +42,8 @@ const CATEGORY: Record<string, string> = {
   CHAT: "Team chat",
   USAGE: "Product usage",
   BILLING: "Billing",
+  SUPPORT: "Support",
+  EMAIL: "Email",
 };
 
 const connectedNotice = (provider: string, name: string) =>
@@ -64,6 +66,10 @@ const KEY_HELP: Record<string, string> = {
     "Create a service account in Mixpanel (Project settings › Service accounts) with the Consumer role, and enter its user name, secret and your project id. We read event counts per account; events are folded into daily totals and not kept.",
   AMPLITUDE:
     "Enter the project's API key and secret key (Settings › Projects). We read daily totals per account through the Dashboard API; Amplitude cannot give us individual people, so the power-user list needs the Usage API or Mixpanel.",
+  ZENDESK:
+    "Enter your Zendesk subdomain (site), admin email (username) and API token (Admin Center › Apps and integrations › Zendesk API). We read tickets and comments read-only.",
+  FRESHDESK:
+    "Enter your Freshdesk domain (site) and API key (Profile settings › View API key). We read tickets and conversations read-only.",
 };
 
 /**

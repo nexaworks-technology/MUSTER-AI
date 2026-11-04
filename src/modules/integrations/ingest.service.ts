@@ -18,6 +18,7 @@ import {
   type NormalizedSubscription,
 } from "./normalized";
 import { ingestUsage } from "./ingest-usage";
+import { ingestTickets, ingestMail } from "./ingest-conversations";
 import { mergeFields, readFieldSources, type FieldConflict, type FieldValue } from "./provenance";
 import { SOURCE_NAMES } from "./providers";
 
@@ -94,6 +95,8 @@ const OBJECT: Record<NormalizedKind, string> = {
   invoices: "Invoice",
   contracts: "Contract",
   usage: "Usage",
+  tickets: "Ticket",
+  mail: "Message",
 };
 
 const FIELD_LABEL: Record<string, string> = {
@@ -808,6 +811,8 @@ const HANDLERS: {
   invoices: ingestInvoices,
   contracts: ingestContracts,
   usage: ingestUsage,
+  tickets: ingestTickets,
+  mail: ingestMail,
 };
 
 /** Upserts one normalized page. Idempotent; never throws for record problems. */

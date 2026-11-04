@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
 import type { IntegrationProvider } from "@prisma/client";
@@ -102,7 +102,11 @@ const ADAPTERS_DIR = path.join(process.cwd(), "src", "modules", "integrations", 
 
 /** Reads one fixture file of a provider (`<name>.json`). */
 export function loadFixture(provider: string, name: string): FixtureInteraction[] {
-  const file = path.join(ADAPTERS_DIR, provider, "__fixtures__", `${name}.json`);
+  const norm = provider.toLowerCase().replace(/_/g, "-");
+  let file = path.join(ADAPTERS_DIR, norm, "__fixtures__", `${name}.json`);
+  if (!existsSync(file)) {
+    file = path.join(ADAPTERS_DIR, provider.toLowerCase(), "__fixtures__", `${name}.json`);
+  }
   return fixtureFile.parse(JSON.parse(readFileSync(file, "utf8"))).interactions;
 }
 
@@ -111,7 +115,11 @@ export function loadFixture(provider: string, name: string): FixtureInteraction[
  * folder except error scenarios (`error-*`) and webhook bodies (`webhook-*`).
  */
 export function loadProviderFixtures(provider: IntegrationProvider): FixtureInteraction[] {
-  const dir = path.join(ADAPTERS_DIR, provider.toLowerCase(), "__fixtures__");
+  const norm = provider.toLowerCase().replace(/_/g, "-");
+  let dir = path.join(ADAPTERS_DIR, norm, "__fixtures__");
+  if (!existsSync(dir)) {
+    dir = path.join(ADAPTERS_DIR, provider.toLowerCase(), "__fixtures__");
+  }
   let names: string[] = [];
   try {
     names = readdirSync(dir).filter(
@@ -120,5 +128,5 @@ export function loadProviderFixtures(provider: IntegrationProvider): FixtureInte
   } catch {
     names = [];
   }
-  return names.sort().flatMap((f) => loadFixture(provider.toLowerCase(), f.replace(/\.json$/, "")));
+  return names.sort().flatMap((f) => loadFixture(norm, f.replace(/\.json$/, "")));
 }

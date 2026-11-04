@@ -1,0 +1,94 @@
+{
+  "provider": "freshdesk",
+  "description": "Fictional Freshdesk tickets: authored from docs, not captured.",
+  "interactions": [
+    {
+      "note": "validate / test connection (authored from docs, not captured)",
+      "request": {
+        "method": "GET",
+        "path": "/api/v2/tickets",
+        "query": {
+          "per_page": "1"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": [
+          {
+            "id": 1,
+            "subject": "Test connection ping",
+            "status": 2,
+            "priority": 1,
+            "created_at": "2026-11-05T00:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "note": "tickets export with conversations (authored from docs, not captured)",
+      "request": {
+        "method": "GET",
+        "path": "/api/v2/tickets",
+        "query": {
+          "include": "conversations,requester"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": [
+          {
+            "id": "fd_301",
+            "subject": "SSO login failure with Okta",
+            "status": 2,
+            "priority": 3,
+            "created_at": "2026-11-05T10:00:00Z",
+            "updated_at": "2026-11-05T10:30:00Z",
+            "requester": {
+              "id": 3001,
+              "name": "Maya Ortiz",
+              "email": "maya@brightwell.test"
+            },
+            "conversations": [
+              {
+                "id": "fd_conv_5001",
+                "body_text": "Our users are seeing 403 on SAML redirect.",
+                "incoming": true,
+                "from_email": "maya@brightwell.test",
+                "created_at": "2026-11-05T10:00:00Z"
+              },
+              {
+                "id": "fd_conv_5002",
+                "body_text": "Please check certificate thumbprint in your IdP.",
+                "incoming": false,
+                "from_email": "support@larkspur.test",
+                "created_at": "2026-11-05T10:30:00Z"
+              }
+            ]
+          },
+          {
+            "id": "fd_302",
+            "subject": "Spam message from web form",
+            "status": 2,
+            "priority": 1,
+            "created_at": "2026-11-05T10:15:00Z",
+            "updated_at": "2026-11-05T10:15:00Z",
+            "requester": {
+              "id": 3002,
+              "name": "Spam Bot",
+              "email": "spammer@outside.test"
+            },
+            "conversations": [
+              {
+                "id": "fd_conv_5003",
+                "body_text": "Buy cheap shoes online now.",
+                "incoming": true,
+                "from_email": "spammer@outside.test",
+                "created_at": "2026-11-05T10:15:00Z"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

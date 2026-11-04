@@ -43,7 +43,16 @@ const ACCOUNT_ID_CAP = 1_000;
  * Providers that are read on a schedule. Slack writes no records, and the Usage API is pushed to
  * (its events arrive as `usage.aggregate` jobs), so neither runs a sync.
  */
-const SYNCABLE = ["HUBSPOT", "SALESFORCE", "STRIPE", "CHARGEBEE", "MIXPANEL", "AMPLITUDE"] as const;
+const SYNCABLE = [
+  "HUBSPOT",
+  "SALESFORCE",
+  "STRIPE",
+  "CHARGEBEE",
+  "MIXPANEL",
+  "AMPLITUDE",
+  "ZENDESK",
+  "FRESHDESK",
+] as const;
 
 export interface SyncOutcome {
   status: "SUCCEEDED" | "FAILED" | "SKIPPED";
