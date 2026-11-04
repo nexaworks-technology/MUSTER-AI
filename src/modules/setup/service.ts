@@ -10,15 +10,19 @@ import { listIntegrations } from "@/modules/integrations/service";
 import { createSegment, listSegments, type SegmentFilter } from "@/modules/segments/service";
 import { getSettingsData } from "@/modules/settings/service";
 import { backtestRunning } from "@/modules/signals/service";
+import {
+  applyProposedPlaysToWorkspace,
+  proposePlaysForWorkspace,
+  type ProposedPlay,
+} from "./proposed-plays";
 
 /**
  * The setup wizard (spec §6O1, M5 §2): Connect → Import → Tiers and segments → Health model →
- * Go live. Admin only. Every step reads real data and writes through the owning module; the
- * proposed health model and its back-test sentence come from the M3 deterministic engine (no LLM
- * number). Going live clears `setupPending`, so the workspace gets its nightly run.
- * (M8 adds a "Proposed plays" step before Go live.)
+ * Proposed plays → Go live. Admin only. Every step reads real data and writes through the owning
+ * module; the proposed health model and its back-test sentence come from the M3 deterministic engine
+ * (no LLM number). Going live clears `setupPending`, so the workspace gets its nightly run.
  */
-export const SETUP_STEPS = ["connect", "import", "tiers", "health", "live"] as const;
+export const SETUP_STEPS = ["connect", "import", "tiers", "health", "plays", "live"] as const;
 const KEPT_DEFAULT = "health_model.default_kept";
 export type SetupStep = (typeof SETUP_STEPS)[number];
 
@@ -50,6 +54,8 @@ export async function getSetupState(actor: Actor) {
     models,
     backtesting,
     imports,
+    onboardingCount,
+    existingPlays,
   ] = await Promise.all([
     getOwnWorkspace(actor),
     listIntegrations(actor),
@@ -62,6 +68,8 @@ export async function getSetupState(actor: Actor) {
     listModels(actor),
     backtestRunning(actor),
     db.importJob.count({ where: { status: "COMPLETED" } }),
+    db.account.count({ where: { lifecycleStage: "ONBOARDING", archivedAt: null } }),
+    db.play.findMany({ select: { key: true, name: true, status: true } }),
   ]);
   const active = models.find((m) => m.status === "ACTIVE") ?? null;
   const proposal =
@@ -72,6 +80,17 @@ export async function getSetupState(actor: Actor) {
         (!active?.activatedAt || m.createdAt > active.activatedAt),
     ) ?? null;
 
+  const connectedList = integrations.filter(
+    (c) => c.integration && c.integration.status !== "DISCONNECTED",
+  );
+  const proposedPlays = proposePlaysForWorkspace({
+    connectedProviders: connectedList.map((c) => c.provider),
+    hasAccounts: accounts > 0,
+    hasContracts: contracts > 0,
+    hasTiers: tiers.length > 0,
+    hasOnboarding: onboardingCount > 0,
+  });
+
   // Kept for THIS proposal only: a later back-test asks again.
   const keptDefault = proposal
     ? (await db.auditLog.count({
@@ -81,7 +100,7 @@ export async function getSetupState(actor: Actor) {
   return {
     setupPending: workspace.setupPending,
     baseCurrency: workspace.baseCurrency,
-    connected: integrations.filter((c) => c.integration && c.integration.status !== "DISCONNECTED"),
+    connected: connectedList,
     counts: { accounts, contacts, contracts, importsDone: imports },
     tierRule: settings.tierRule,
     tierCounts: Object.fromEntries(tiers.map((t) => [t.tier, t._count._all])) as Partial<
@@ -108,7 +127,16 @@ export async function getSetupState(actor: Actor) {
       /** The Admin kept the default because the history was too thin to back-test (D-96). */
       keptDefault,
     },
+    plays: {
+      proposed: proposedPlays,
+      existing: existingPlays,
+    },
   };
+}
+
+export async function applyProposedPlays(actor: Actor, playKeys: string[]) {
+  admin(actor);
+  return await applyProposedPlaysToWorkspace(actor, playKeys);
 }
 
 export const tierRuleInput = z

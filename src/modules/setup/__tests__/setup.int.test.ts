@@ -6,6 +6,7 @@ import { listActiveWorkspaces } from "@/lib/db/workspace";
 import { createTestAdmin } from "@/test/fixtures";
 import { activateModel, runBacktestProposal } from "@/modules/health/service";
 import {
+  applyProposedPlays,
   createDefaultSegments,
   getSetupState,
   goLive,
@@ -113,6 +114,32 @@ describe("setup wizard", () => {
     expect((await getSetupState(S.actor)).segments.sort()).toEqual(
       ["High-touch accounts", "Onboarding", "Renewing in the next 90 days"].sort(),
     );
+  });
+
+  it("creates proposed plays as drafts during setup and audits it", async () => {
+    const S = await fresh("SetupPlays");
+    await S.db.account.create({
+      data: { workspaceId: S.actor.workspaceId, name: "Acme", tier: "HIGH_TOUCH" },
+    });
+
+    const state = await getSetupState(S.actor);
+    expect(state.plays.proposed.length).toBeGreaterThan(0);
+    const healthRisk = state.plays.proposed.find((p) => p.playKey === "health-risk");
+    expect(healthRisk).toBeDefined();
+
+    const created = await applyProposedPlays(S.actor, ["health-risk", "champion-loss"]);
+    expect(created).toBe(2);
+
+    const playsInDb = await S.db.play.findMany({
+      where: { workspaceId: S.actor.workspaceId },
+    });
+    expect(playsInDb).toHaveLength(2);
+    expect(playsInDb.every((p) => p.status === "DRAFT")).toBe(true);
+
+    const audit = await S.db.auditLog.findFirst({
+      where: { action: "setup.play_proposed", workspaceId: S.actor.workspaceId },
+    });
+    expect(audit).toBeDefined();
   });
 
   it("is Admin only", async () => {

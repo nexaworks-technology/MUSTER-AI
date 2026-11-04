@@ -10,6 +10,7 @@ import { activateModel, ModelActivationError } from "@/modules/health/service";
 import { ConnectError, runSyncNow } from "@/modules/integrations/service";
 import { enqueueBacktest, enqueueWorkspaceRun } from "@/modules/signals/service";
 import {
+  applyProposedPlays,
   createDefaultSegments,
   goLive,
   keepDefaultModel,
@@ -97,5 +98,13 @@ export async function keepDefaultModelAction() {
   return step("health", async () => {
     await keepDefaultModel(await actor());
     return "Kept the default model for now. Run the back-test again once you have more renewals and churns.";
+  });
+}
+
+export async function saveProposedPlaysAction(formData: FormData) {
+  return step("plays", async () => {
+    const keys = formData.getAll("playKeys").map((v) => v.toString());
+    const n = await applyProposedPlays(await actor(), keys);
+    return n ? `Created ${n} proposed play draft${n === 1 ? "" : "s"}.` : "Proposed plays are ready.";
   });
 }

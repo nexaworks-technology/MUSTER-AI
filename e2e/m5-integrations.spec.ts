@@ -220,7 +220,7 @@ test.describe("M5 integrations and setup", () => {
     const fresh = await createFreshWorkspace("M5Setup");
     await signIn(page, fresh.email);
     await page.goto("/setup");
-    await expect(page.getByRole("heading", { name: /Step 1 of 5: Connect/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Step 1 of 6: Connect/ })).toBeVisible();
     await page.getByRole("link", { name: "Skip to CSV import" }).click();
     await expect(page.getByTestId("setup-counts")).toContainText("0 accounts");
 

@@ -14,6 +14,7 @@ import {
   createSegmentsAction,
   goLiveAction,
   keepDefaultModelAction,
+  saveProposedPlaysAction,
   saveTierRuleAction,
   syncIntegrationAction,
 } from "@/modules/setup/actions/setup";
@@ -29,6 +30,7 @@ const TITLES: Record<SetupStep, string> = {
   import: "Import",
   tiers: "Tiers and segments",
   health: "Health model",
+  plays: "Proposed plays",
   live: "Go live",
 };
 
@@ -39,9 +41,8 @@ const TIER_LABEL: Record<string, string> = {
 };
 
 /**
- * /setup (spec §6O1, M5 §2): five steps, Admin only. Connect → Import → Tiers and segments →
- * Health model (the M3 back-test, approved by a person) → Go live. Works with no integration at
- * all (CSV path). M8 adds "Proposed plays" before Go live.
+ * /setup (spec §6O1, M5 §2, M8): six steps, Admin only. Connect → Import → Tiers and segments →
+ * Health model → Proposed plays → Go live. Works with no integration at all (CSV path).
  */
 export default async function SetupPage({ searchParams }: { searchParams: SearchParams }) {
   const ctx = await resolveWorkspaceContext(await requireSession());
@@ -65,7 +66,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Search
         <h1 className="text-2xl font-semibold">Set up {ctx.workspace.name}</h1>
         <p className="text-muted-foreground text-sm">
           {s.setupPending
-            ? "Five steps to your first real Today queue. You can leave and come back; nothing runs nightly until you go live."
+            ? "Six steps to your first real Today queue. You can leave and come back; nothing runs nightly until you go live."
             : "This workspace is live. You can still revisit any step."}
         </p>
       </div>
@@ -268,6 +269,54 @@ export default async function SetupPage({ searchParams }: { searchParams: Search
                 See the details or edit weights in Settings › Health model
               </Link>
             </p>
+          </div>
+        ) : null}
+
+        {current === "plays" ? (
+          <div className="space-y-4 text-sm">
+            <p>
+              Based on your connected integrations, accounts, and tiers, we deterministically proposed
+              the following plays. They will land as <strong>DRAFT</strong> plays, facing your normal
+              safety checks and approval gates before they can be published.
+            </p>
+            {s.plays.proposed.length === 0 ? (
+              <p className="text-muted-foreground">No specific plays proposed based on current setup.</p>
+            ) : (
+              <form action={saveProposedPlaysAction} className="space-y-3">
+                <div className="space-y-2 border rounded-md p-3 divide-y">
+                  {s.plays.proposed.map((p) => {
+                    const isExisting = s.plays.existing.some((e) => e.key === p.playKey);
+                    return (
+                      <div key={p.playKey} className="pt-2 first:pt-0 flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          id={`play-${p.playKey}`}
+                          name="playKeys"
+                          value={p.playKey}
+                          defaultChecked={true}
+                          className="mt-1"
+                        />
+                        <label htmlFor={`play-${p.playKey}`} className="space-y-0.5 cursor-pointer">
+                          <div className="font-medium">
+                            {p.name}{" "}
+                            <span className="text-xs text-muted-foreground font-normal">
+                              ({p.category})
+                            </span>
+                            {isExisting && (
+                              <span className="ml-2 text-xs text-emerald-600 font-normal">
+                                (already in drafts)
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground">{p.reason}</div>
+                        </label>
+                      </div>
+                    );
+                  })}
+                </div>
+                <Button type="submit">Create Proposed Play Drafts</Button>
+              </form>
+            )}
           </div>
         ) : null}
 
