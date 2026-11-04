@@ -1,0 +1,91 @@
+{
+  "case": "nothing-to-say",
+  "description": "The correct answer when the records give nothing to act on.",
+  "agent": "renewal-manager",
+  "bundle": [
+    {
+      "sourceType": "Renewal",
+      "sourceId": "ren_n",
+      "fields": {
+        "account": "Northgate Freight",
+        "renewalDate": "Dec 13, 2026",
+        "noticeDeadline": "Nov 13, 2026",
+        "daysToRenewal": 41,
+        "likelihoodBand": "high"
+      }
+    },
+    {
+      "sourceType": "HealthScoreSnapshot",
+      "sourceId": "hs_n",
+      "fields": {
+        "band": "healthy",
+        "adoption": 82,
+        "engagement": 90,
+        "support": 71,
+        "relationship": 88,
+        "commercial": 93,
+        "sentiment": null
+      }
+    },
+    {
+      "sourceType": "Signal",
+      "sourceId": "sig_seats",
+      "fields": {
+        "title": "60 of 158 seats in use",
+        "severity": "warn"
+      }
+    },
+    {
+      "sourceType": "Signal",
+      "sourceId": "sig_ticket",
+      "fields": {
+        "title": "Ticket open 9 days: Export fails for large files",
+        "severity": "warn"
+      }
+    },
+    {
+      "sourceType": "Goal",
+      "sourceId": "goal_1",
+      "fields": {
+        "text": "Cut month-end close to 3 days",
+        "status": "open"
+      }
+    },
+    {
+      "sourceType": "Contact",
+      "sourceId": "con_sam",
+      "fields": {
+        "name": "Sam Reyes",
+        "title": "Head of Operations"
+      }
+    }
+  ],
+  "facts": {
+    "confidence": 70,
+    "arrAtRisk": 14200000
+  },
+  "output": {
+    "reasoningSummary": "The renewal is close and the notice deadline is near with no plan; two open risks need handling before the call.",
+    "confidence": 0.7,
+    "citations": [
+      {
+        "sourceType": "Renewal",
+        "sourceId": "ren_n"
+      }
+    ],
+    "proposedActions": [],
+    "planSteps": [],
+    "talkTrack": [],
+    "outreach": {
+      "subject": null,
+      "body": null
+    },
+    "nextStep": null,
+    "insufficientData": {
+      "missing": ["No open risks, goals or contact to base a plan on"]
+    }
+  },
+  "expect": {
+    "status": "SUCCEEDED"
+  }
+}

@@ -87,6 +87,14 @@ export {
   onboardingManagerOutput,
   onboardingManagerInput,
 } from "./definitions/onboarding-manager";
+export { askRenewalManager, type RenewalPlanResult } from "./renewal-plan";
+export { sweepAllRenewalAgents, sweepRenewalAgents } from "./definitions/renewal-manager-trigger";
+export {
+  renewalManager,
+  renewalManagerOutput,
+  renewalManagerInput,
+  nextStepDate,
+} from "./definitions/renewal-manager";
 export {
   adoptionCoach,
   adoptionCoachOutput,

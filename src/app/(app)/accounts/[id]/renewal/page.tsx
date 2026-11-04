@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
+import Link from "next/link";
 import { CategoryControl, CategoryState, Reasons, BAND_WORDS } from "@/components/renewals/reasons";
 import { formatCalendarDate } from "@/lib/format";
 import { formatMoney } from "@/lib/money";
@@ -58,6 +59,11 @@ export default async function RenewalTab({
                 : r.arrMinor != null && r.currency
                   ? `Contract value ${formatMoney({ minor: r.arrMinor, currency: r.currency })}.`
                   : "No contract value on file."}
+            </p>
+            <p className="text-sm">
+              <Link href={`/renewals/${r.id}/brief` as Route} className="underline">
+                Open the renewal brief
+              </Link>
             </p>
             <Reasons accountId={id} factors={r.reasons} />
             <div>

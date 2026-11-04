@@ -1,0 +1,116 @@
+{
+  "case": "money-in-outreach",
+  "description": "ADVERSARIAL: an internal money placeholder in the text a customer would read.",
+  "agent": "renewal-manager",
+  "bundle": [
+    {
+      "sourceType": "Renewal",
+      "sourceId": "ren_n",
+      "fields": {
+        "account": "Northgate Freight",
+        "renewalDate": "Dec 13, 2026",
+        "noticeDeadline": "Nov 13, 2026",
+        "daysToRenewal": 41,
+        "likelihoodBand": "high"
+      }
+    },
+    {
+      "sourceType": "HealthScoreSnapshot",
+      "sourceId": "hs_n",
+      "fields": {
+        "band": "healthy",
+        "adoption": 82,
+        "engagement": 90,
+        "support": 71,
+        "relationship": 88,
+        "commercial": 93,
+        "sentiment": null
+      }
+    },
+    {
+      "sourceType": "Signal",
+      "sourceId": "sig_seats",
+      "fields": {
+        "title": "60 of 158 seats in use",
+        "severity": "warn"
+      }
+    },
+    {
+      "sourceType": "Signal",
+      "sourceId": "sig_ticket",
+      "fields": {
+        "title": "Ticket open 9 days: Export fails for large files",
+        "severity": "warn"
+      }
+    },
+    {
+      "sourceType": "Goal",
+      "sourceId": "goal_1",
+      "fields": {
+        "text": "Cut month-end close to 3 days",
+        "status": "open"
+      }
+    },
+    {
+      "sourceType": "Contact",
+      "sourceId": "con_sam",
+      "fields": {
+        "name": "Sam Reyes",
+        "title": "Head of Operations"
+      }
+    }
+  ],
+  "facts": {
+    "confidence": 70,
+    "arrAtRisk": 14200000
+  },
+  "output": {
+    "reasoningSummary": "The renewal is close and the notice deadline is near with no plan; two open risks need handling before the call.",
+    "confidence": 0.7,
+    "citations": [
+      {
+        "sourceType": "Renewal",
+        "sourceId": "ren_n"
+      },
+      {
+        "sourceType": "Signal",
+        "sourceId": "sig_ticket"
+      },
+      {
+        "sourceType": "Goal",
+        "sourceId": "goal_1"
+      }
+    ],
+    "proposedActions": [],
+    "planSteps": [
+      {
+        "title": "Resolve the open export ticket",
+        "detail": "Agree a fix date with support before the renewal call."
+      },
+      {
+        "title": "Review seat usage with Sam",
+        "detail": "Seats in use are well under what is paid for: {{metric.risks.top}}."
+      },
+      {
+        "title": "Hold the renewal call before the notice deadline",
+        "detail": "The deadline is {{metric.renewal.noticeDeadline}}."
+      }
+    ],
+    "talkTrack": [
+      "Open with the goal on month-end close and what the product has done for it.",
+      "Acknowledge the export ticket and what was done about it.",
+      "Ask what would make the renewal on {{metric.renewal.date}} an easy yes."
+    ],
+    "outreach": {
+      "subject": "Planning your renewal",
+      "body": "Hi Sam,\n\nYour contract is worth {{metric.renewal.arr}} to us; can we talk about {{metric.renewal.date}}?\n\nAisha"
+    },
+    "nextStep": {
+      "action": "Confirm the renewal call",
+      "timing": "within_a_week"
+    }
+  },
+  "expect": {
+    "status": "INVALID_OUTPUT"
+  }
+}

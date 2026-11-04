@@ -10,6 +10,7 @@ import {
   processAgentRun,
   processConsider,
   sweepAllHealthNarratives,
+  sweepAllRenewalAgents,
 } from "@/modules/agents/service";
 import { importJobPayload, runImportJob } from "@/modules/imports/service";
 import {
@@ -108,6 +109,10 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
     async "onboarding.stalled"(job) {
       return onOnboardingStalled(job.data);
     },
+    /** M7: an open renewal-window signal on a renewal with no brief asks the Renewal Manager once. */
+    async "renewals.agentsSweep"() {
+      return sweepAllRenewalAgents();
+    },
     /** M6: first value reached tells the owner. */
     async "onboarding.valueReached"(job) {
       return onOnboardingValueReached(job.data);
@@ -169,6 +174,8 @@ export const SCHEDULES = [
     job: "onboarding.agentsSweep",
     everyMs: 900_000,
   },
+  // M7: the Renewal Manager for renewals inside their window that have no brief yet.
+  { queue: "agents", id: "renewal-agents-sweep", job: "renewals.agentsSweep", everyMs: 900_000 },
   { queue: "maintenance", id: "task-escalation", job: "tasks.escalateOverdue", everyMs: 3_600_000 },
   { queue: "outcomes", id: "outcomes-checkpoint", job: "outcomes.checkpoint", everyMs: 21_600_000 },
   { queue: "maintenance", id: "today-rebuild", job: "today.rebuildAll", everyMs: 3_600_000 },

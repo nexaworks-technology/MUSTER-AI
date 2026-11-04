@@ -220,6 +220,12 @@ export default async function RenewalsPage({ searchParams }: { searchParams: Sea
                     <Link href={`/accounts/${r.account.id}/renewal` as Route} className="underline">
                       {r.account.name}
                     </Link>
+                    <Link
+                      href={`/renewals/${r.id}/brief` as Route}
+                      className="text-muted-foreground block text-xs underline"
+                    >
+                      Renewal brief
+                    </Link>
                     <span className="text-muted-foreground block text-xs">
                       {r.account.owner ?? "No owner"}
                     </span>
