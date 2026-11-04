@@ -1,0 +1,24 @@
+{
+  "name": "no seat count on the contract: nothing to compare",
+  "bundle": {
+    "contract": {
+      "id": "k1",
+      "seatsPurchased": null,
+      "startDate": "2026-01-06",
+      "renewalDate": null
+    },
+    "expansion": {
+      "people": null,
+      "credits": null,
+      "goals": [
+        {
+          "id": "g1",
+          "text": "Every studio lead on the product by Q1",
+          "metricKey": "seats",
+          "targetValue": 60
+        }
+      ]
+    }
+  },
+  "expect": []
+}

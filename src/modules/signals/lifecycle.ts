@@ -5,6 +5,7 @@ import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { writeOutboxEvent } from "@/lib/jobs/outbox";
 import { loadBundles, loadContext } from "@/modules/health/service";
 import { onboardingFactsFor, type OnboardingPlanFacts } from "@/modules/onboarding/service";
+import { loadExpansionFacts } from "./expansion-facts";
 import { syncSignalRules } from "./rule-rows";
 import { RULE_BY_KEY, type RuleKey } from "./rules/catalog";
 import {
@@ -64,6 +65,12 @@ export async function evaluateAndStore(
     }),
     onboarding ?? onboardingFactsFor(db, ids, asOf),
   ]);
+  const expansion = await loadExpansionFacts(
+    db,
+    asOf,
+    ids,
+    new Map([...bundles].flatMap(([id, b]) => (b.contract ? [[id, b.contract.id] as const] : []))),
+  );
   const failureCounts = Object.fromEntries(failures.map((f) => [f.id, f.failureCount]));
   const latest = new Map<string, Signal>();
   for (const s of existing) if (!latest.has(s.dedupeKey)) latest.set(s.dedupeKey, s);
@@ -79,6 +86,7 @@ export async function evaluateAndStore(
       invoiceFailureCounts: failureCounts,
       meetings: null,
       onboarding: onboardingFacts.get(accountId) ?? null,
+      expansion: expansion.get(accountId) ?? null,
     };
     const seen = new Set<string>();
     const evaluatedRules = new Set<string>();

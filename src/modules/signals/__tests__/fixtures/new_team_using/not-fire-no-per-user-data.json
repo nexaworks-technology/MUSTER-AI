@@ -1,0 +1,17 @@
+{
+  "name": "no per-user data: silence",
+  "bundle": {
+    "contract": {
+      "id": "k1",
+      "seatsPurchased": 40,
+      "startDate": "2026-01-06",
+      "renewalDate": null
+    },
+    "expansion": {
+      "credits": null,
+      "goals": [],
+      "people": null
+    }
+  },
+  "expect": []
+}

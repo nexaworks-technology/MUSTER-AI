@@ -1,0 +1,33 @@
+{
+  "name": "30 vs normal 22: info",
+  "bundle": {
+    "contract": {
+      "id": "k1",
+      "seatsPurchased": 40,
+      "startDate": "2026-01-06",
+      "renewalDate": null
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 120,
+          "toDaysAgo": 15,
+          "value": 22
+        },
+        {
+          "fromDaysAgo": 14,
+          "toDaysAgo": 1,
+          "value": 30
+        }
+      ],
+      "seatsUsed": null
+    }
+  },
+  "expect": [
+    {
+      "dedupeKey": "fast_growth:a1",
+      "severity": "INFO",
+      "title": "Usage grew to 136% of normal"
+    }
+  ]
+}

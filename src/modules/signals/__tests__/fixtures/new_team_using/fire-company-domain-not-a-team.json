@@ -1,0 +1,141 @@
+{
+  "name": "new people on the company's own domain: fires, no team named",
+  "bundle": {
+    "contract": {
+      "id": "k1",
+      "seatsPurchased": 40,
+      "startDate": "2026-01-06",
+      "renewalDate": null
+    },
+    "expansion": {
+      "credits": null,
+      "goals": [],
+      "people": {
+        "historyFrom": "2026-08-01",
+        "users": [
+          {
+            "externalUserId": "o0",
+            "firstSeen": "2026-08-01",
+            "contactId": "co0",
+            "email": "o0@ops.acme.test"
+          },
+          {
+            "externalUserId": "o1",
+            "firstSeen": "2026-08-01",
+            "contactId": "co1",
+            "email": "o1@ops.acme.test"
+          },
+          {
+            "externalUserId": "o2",
+            "firstSeen": "2026-08-01",
+            "contactId": "co2",
+            "email": "o2@ops.acme.test"
+          },
+          {
+            "externalUserId": "o3",
+            "firstSeen": "2026-08-01",
+            "contactId": "co3",
+            "email": "o3@ops.acme.test"
+          },
+          {
+            "externalUserId": "o4",
+            "firstSeen": "2026-08-01",
+            "contactId": "co4",
+            "email": "o4@ops.acme.test"
+          },
+          {
+            "externalUserId": "o5",
+            "firstSeen": "2026-08-01",
+            "contactId": "co5",
+            "email": "o5@ops.acme.test"
+          },
+          {
+            "externalUserId": "o6",
+            "firstSeen": "2026-08-01",
+            "contactId": "co6",
+            "email": "o6@ops.acme.test"
+          },
+          {
+            "externalUserId": "o7",
+            "firstSeen": "2026-08-01",
+            "contactId": "co7",
+            "email": "o7@ops.acme.test"
+          },
+          {
+            "externalUserId": "o8",
+            "firstSeen": "2026-08-01",
+            "contactId": "co8",
+            "email": "o8@ops.acme.test"
+          },
+          {
+            "externalUserId": "o9",
+            "firstSeen": "2026-08-01",
+            "contactId": "co9",
+            "email": "o9@ops.acme.test"
+          },
+          {
+            "externalUserId": "d0",
+            "firstSeen": "2026-10-20",
+            "contactId": "cd0",
+            "email": "new0@ops.acme.test"
+          },
+          {
+            "externalUserId": "d1",
+            "firstSeen": "2026-10-20",
+            "contactId": "cd1",
+            "email": "new1@ops.acme.test"
+          },
+          {
+            "externalUserId": "d2",
+            "firstSeen": "2026-10-20",
+            "contactId": "cd2",
+            "email": "new2@ops.acme.test"
+          },
+          {
+            "externalUserId": "d3",
+            "firstSeen": "2026-10-20",
+            "contactId": "cd3",
+            "email": "new3@ops.acme.test"
+          },
+          {
+            "externalUserId": "d4",
+            "firstSeen": "2026-10-20",
+            "contactId": "cd4",
+            "email": "new4@ops.acme.test"
+          },
+          {
+            "externalUserId": "d5",
+            "firstSeen": "2026-10-20",
+            "contactId": "cd5",
+            "email": "new5@ops.acme.test"
+          },
+          {
+            "externalUserId": "d6",
+            "firstSeen": "2026-10-20",
+            "contactId": "cd6",
+            "email": "new6@ops.acme.test"
+          },
+          {
+            "externalUserId": "d7",
+            "firstSeen": "2026-10-20",
+            "contactId": "cd7",
+            "email": "new7@ops.acme.test"
+          },
+          {
+            "externalUserId": "d8",
+            "firstSeen": "2026-10-20",
+            "contactId": "cd8",
+            "email": "new8@ops.acme.test"
+          }
+        ]
+      }
+    }
+  },
+  "expect": [
+    {
+      "dedupeKey": "new_team_using:a1",
+      "severity": "INFO",
+      "title": "9 new people started using the product"
+    }
+  ]
+}

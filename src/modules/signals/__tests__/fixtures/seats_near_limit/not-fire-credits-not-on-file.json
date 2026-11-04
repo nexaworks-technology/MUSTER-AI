@@ -1,0 +1,17 @@
+{
+  "name": "credits usage not reported: silence, not zero",
+  "bundle": {
+    "contract": {
+      "id": "k1",
+      "seatsPurchased": null,
+      "startDate": "2026-01-06",
+      "renewalDate": null
+    },
+    "expansion": {
+      "people": null,
+      "goals": [],
+      "credits": null
+    }
+  },
+  "expect": []
+}

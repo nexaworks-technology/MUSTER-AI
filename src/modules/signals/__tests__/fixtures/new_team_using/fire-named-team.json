@@ -1,0 +1,261 @@
+{
+  "name": "9 new people on design.acme.test after a stable 60 days: team named",
+  "bundle": {
+    "contract": {
+      "id": "k1",
+      "seatsPurchased": 40,
+      "startDate": "2026-01-06",
+      "renewalDate": null
+    },
+    "expansion": {
+      "credits": null,
+      "goals": [],
+      "people": {
+        "historyFrom": "2026-08-01",
+        "users": [
+          {
+            "externalUserId": "o0",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o1",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o2",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o3",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o4",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o5",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o6",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o7",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o8",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o9",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o10",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o11",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o12",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o13",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o14",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o15",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o16",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o17",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o18",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o19",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o20",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o21",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o22",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o23",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o24",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o25",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o26",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o27",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o28",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o29",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "d0",
+            "firstSeen": "2026-10-20",
+            "contactId": "cd0",
+            "email": "new0@design.acme.test"
+          },
+          {
+            "externalUserId": "d1",
+            "firstSeen": "2026-10-20",
+            "contactId": "cd1",
+            "email": "new1@design.acme.test"
+          },
+          {
+            "externalUserId": "d2",
+            "firstSeen": "2026-10-20",
+            "contactId": "cd2",
+            "email": "new2@design.acme.test"
+          },
+          {
+            "externalUserId": "d3",
+            "firstSeen": "2026-10-20",
+            "contactId": "cd3",
+            "email": "new3@design.acme.test"
+          },
+          {
+            "externalUserId": "d4",
+            "firstSeen": "2026-10-20",
+            "contactId": "cd4",
+            "email": "new4@design.acme.test"
+          },
+          {
+            "externalUserId": "d5",
+            "firstSeen": "2026-10-20",
+            "contactId": "cd5",
+            "email": "new5@design.acme.test"
+          },
+          {
+            "externalUserId": "d6",
+            "firstSeen": "2026-10-20",
+            "contactId": "cd6",
+            "email": "new6@design.acme.test"
+          },
+          {
+            "externalUserId": "d7",
+            "firstSeen": "2026-10-20",
+            "contactId": "cd7",
+            "email": "new7@design.acme.test"
+          },
+          {
+            "externalUserId": "d8",
+            "firstSeen": "2026-10-20",
+            "contactId": "cd8",
+            "email": "new8@design.acme.test"
+          }
+        ]
+      }
+    }
+  },
+  "expect": [
+    {
+      "dedupeKey": "new_team_using:a1",
+      "severity": "INFO",
+      "title": "New team using the product: Design (9 people)"
+    }
+  ]
+}

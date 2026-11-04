@@ -1,0 +1,33 @@
+{
+  "name": "125% but already open: stays",
+  "open": ["fast_growth:a1"],
+  "bundle": {
+    "contract": {
+      "id": "k1",
+      "seatsPurchased": 40,
+      "startDate": "2026-01-06",
+      "renewalDate": null
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 120,
+          "toDaysAgo": 15,
+          "value": 20
+        },
+        {
+          "fromDaysAgo": 14,
+          "toDaysAgo": 1,
+          "value": 25
+        }
+      ],
+      "seatsUsed": null
+    }
+  },
+  "expect": [
+    {
+      "dedupeKey": "fast_growth:a1",
+      "severity": "INFO"
+    }
+  ]
+}

@@ -29,6 +29,32 @@ import { parseParams, RULE_BY_KEY, type ParamsOf, type RuleKey } from "./catalog
  * point-in-time bundle, its thresholds and the as-of date; it never reads the clock or the
  * database. Golden fixtures in __tests__/fixtures prove each fires — and does not — as specified.
  */
+/**
+ * M7 B1: what the expansion rules read beyond the health bundle. Live-signal only (never read by
+ * health scoring, so the health input hash is unchanged). Absent = not loaded: nothing fires.
+ */
+export interface ExpansionFacts {
+  /** null = no per-user usage at all. `historyFrom` is the earliest day with per-user rows. */
+  people: {
+    historyFrom: CalendarDate;
+    users: Array<{
+      externalUserId: string;
+      firstSeen: CalendarDate;
+      contactId: string | null;
+      email: string | null;
+    }>;
+  } | null;
+  /** The contract's credits and the latest credits-used figure; null when either is not on file. */
+  credits: {
+    purchased: number;
+    used: number;
+    usedDate: CalendarDate;
+    usageRowId: string;
+  } | null;
+  /** Open goals whose measure is explicitly seats or users. */
+  goals: Array<{ id: string; text: string; metricKey: string; targetValue: number | null }>;
+}
+
 export interface SignalBundle extends AccountBundle {
   /** Live-signal only (never read by health scoring, D-56). */
   invoiceFailureCounts: Record<string, number>;
@@ -36,6 +62,8 @@ export interface SignalBundle extends AccountBundle {
   meetings: Array<{ id: string; date: CalendarDate }> | null;
   /** M6: the account's open onboarding plan, or absent / null when it has none. */
   onboarding?: OnboardingPlanFacts | null;
+  /** M7 B1: expansion facts; absent when not loaded (the rules then return nothing). */
+  expansion?: ExpansionFacts | null;
 }
 
 export type Severity = "INFO" | "WARN" | "CRITICAL";
@@ -94,6 +122,44 @@ function seatsInUse(b: SignalBundle): { used: number; source: Evidence } | null 
     used: row.seatsUsed!,
     source: { sourceType: "UsageDaily", sourceId: row.id, value: row.seatsUsed, date: row.date },
   };
+}
+
+function medianOf(xs: number[]): number | null {
+  if (xs.length === 0) return null;
+  const s = [...xs].sort((a, b) => a - b);
+  const m = s.length / 2;
+  return s.length % 2 ? s[Math.floor(m)]! : (s[m - 1]! + s[m]!) / 2;
+}
+
+/**
+ * The team behind a burst of new people, named only from data: an email subdomain (three or more
+ * labels, e.g. design.acme.com → "Design") shared by most of the new people that is not simply
+ * the domain most established people use. Anything else: null, and the signal says so.
+ */
+export function teamFromEmails(
+  fresh: Array<string | null>,
+  established: Array<string | null>,
+  p: { teamShare: number; teamMinPeople: number },
+): string | null {
+  const domain = (e: string | null) =>
+    e && e.includes("@") ? e.split("@").pop()!.toLowerCase() : null;
+  const count = (xs: Array<string | null>) => {
+    const m = new Map<string, number>();
+    for (const d of xs.map(domain)) if (d) m.set(d, (m.get(d) ?? 0) + 1);
+    return m;
+  };
+  const withEmail = fresh.filter((e) => domain(e)).length;
+  if (withEmail === 0) return null;
+  const top = [...count(fresh)].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))[0];
+  if (!top) return null;
+  const [d, n] = top;
+  if (n < p.teamMinPeople || n < Math.ceil(p.teamShare * withEmail)) return null;
+  const labels = d.split(".");
+  if (labels.length < 3) return null;
+  const known = established.filter((e) => domain(e)).length;
+  if (known > 0 && (count(established).get(d) ?? 0) * 2 >= known) return null;
+  const first = labels[0]!;
+  return first.charAt(0).toUpperCase() + first.slice(1);
 }
 
 const openTickets = (b: SignalBundle) =>
@@ -245,22 +311,173 @@ const EVALUATORS: { [K in RuleKey]: Evaluator<K> } = {
   },
 
   seats_near_limit: (b, p, ctx) => {
+    const out: SignalCandidate[] = [];
     const seats = b.contract?.seatsPurchased;
     const inUse = seatsInUse(b);
-    if (!b.contract || !seats || !inUse) return [];
-    const ratio = inUse.used / seats;
-    const key = `seats_near_limit:${b.accountId}:${b.contract.id}`;
-    if (ratio < p.clearBelow || (ratio < p.infoAt && !ctx.isOpen(key))) return [];
+    if (b.contract && seats && inUse) {
+      const ratio = inUse.used / seats;
+      const key = `seats_near_limit:${b.accountId}:${b.contract.id}`;
+      if (!(ratio < p.clearBelow || (ratio < p.infoAt && !ctx.isOpen(key))))
+        out.push({
+          dedupeKey: key,
+          severity: ratio >= p.warnAt ? "WARN" : "INFO",
+          title: `${inUse.used} of ${seats} seats in use`,
+          explanation: `${inUse.used === 1 ? "1 person" : `${inUse.used} people`} used the product in the last 28 days on a contract for ${seats} seat${seats === 1 ? "" : "s"} (${pct(ratio)}).`,
+          evidence: [
+            inUse.source,
+            { sourceType: "Contract", sourceId: b.contract.id, value: seats },
+          ],
+          values: { ratio: Math.round(ratio * 10_000) / 10_000, used: inUse.used, seats },
+        });
+    }
+    // M7 B1: credits, with the same thresholds. Only when the contract has credits and usage
+    // reports them; a missing figure is silence, never 0.
+    const credits = b.expansion?.credits;
+    if (b.contract && credits && credits.purchased > 0) {
+      const ratio = credits.used / credits.purchased;
+      const key = `seats_near_limit:${b.accountId}:${b.contract.id}:credits`;
+      if (!(ratio < p.clearBelow || (ratio < p.infoAt && !ctx.isOpen(key))))
+        out.push({
+          dedupeKey: key,
+          severity: ratio >= p.warnAt ? "WARN" : "INFO",
+          title: `${credits.used} of ${credits.purchased} credits used`,
+          explanation: `Usage on ${formatDay(credits.usedDate)} reports ${credits.used} credits used on a contract for ${credits.purchased} (${pct(ratio)}).`,
+          evidence: [
+            {
+              sourceType: "UsageDaily",
+              sourceId: credits.usageRowId,
+              value: credits.used,
+              date: credits.usedDate,
+            },
+            { sourceType: "Contract", sourceId: b.contract.id, value: credits.purchased },
+          ],
+          values: {
+            ratio: Math.round(ratio * 10_000) / 10_000,
+            used: credits.used,
+            credits: credits.purchased,
+          },
+        });
+    }
+    return out;
+  },
+
+  new_team_using: (b, p, ctx) => {
+    const people = b.expansion?.people;
+    if (!people || b.onboarding) return [];
+    const key = `new_team_using:${b.accountId}`;
+    const windowFrom = addDays(b.asOf, -p.windowDays);
+    const windowTo = addDays(b.asOf, -1);
+    const stableFrom = addDays(windowFrom, -p.stableDays);
+    // Without per-user history reaching before the stable period we cannot tell who is new.
+    if (people.historyFrom >= stableFrom) return [];
+    const fresh = people.users.filter((u) => inRange(u.firstSeen, windowFrom, windowTo));
+    if (fresh.length < p.minNewPeople) return [];
+    const earlier = people.users.filter((u) =>
+      inRange(u.firstSeen, stableFrom, addDays(windowFrom, -1)),
+    );
+    if (earlier.length > p.stableMaxNew && !ctx.isOpen(key)) return [];
+    const team = teamFromEmails(
+      fresh.map((u) => u.email),
+      people.users.filter((u) => u.firstSeen < windowFrom).map((u) => u.email),
+      p,
+    );
+    const first = fresh.map((u) => u.firstSeen).sort()[0]!;
     return [
       {
         dedupeKey: key,
-        severity: ratio >= p.warnAt ? "WARN" : "INFO",
-        title: `${inUse.used} of ${seats} seats in use`,
-        explanation: `${inUse.used === 1 ? "1 person" : `${inUse.used} people`} used the product in the last 28 days on a contract for ${seats} seat${seats === 1 ? "" : "s"} (${pct(ratio)}).`,
-        evidence: [inUse.source, { sourceType: "Contract", sourceId: b.contract.id, value: seats }],
-        values: { ratio: Math.round(ratio * 10_000) / 10_000, used: inUse.used, seats },
+        severity: "INFO",
+        title: team
+          ? `New team using the product: ${team} (${fresh.length} people)`
+          : `${fresh.length} new people started using the product`,
+        explanation: `${fresh.length} people with no earlier activity first used the product between ${formatDay(first)} and ${formatDay(windowTo)}, after ${p.stableDays} days with ${earlier.length} new ${earlier.length === 1 ? "person" : "people"}. ${
+          team
+            ? `Most of them share the email subdomain of the ${team} team.`
+            : "No shared email subdomain is on file for them, so the team is not named."
+        }`,
+        evidence: [
+          {
+            sourceType: "UserUsageDaily",
+            accountId: b.accountId,
+            from: first,
+            to: windowTo,
+            value: fresh.length,
+          },
+          ...fresh
+            .filter((u) => u.contactId)
+            .slice(0, 5)
+            .map((u) => ({ sourceType: "Contact", sourceId: u.contactId! })),
+        ],
+        values: { newPeople: fresh.length, team },
       },
     ];
+  },
+
+  fast_growth: (b, p, ctx) => {
+    if (b.onboarding) return [];
+    const w = currentUsage(b, 3);
+    if (!w.ok) return [];
+    const rows = (b.usage ?? []).filter((u) => u.date <= b.asOf);
+    // Eight weekly levels ending 14 days before the latest week: this account's own normal.
+    const weeks = Array.from({ length: 8 }, (_, k) => addDays(w.to, -14 - 7 * k));
+    const covered = weeks.filter(
+      (end) => rows.filter((u) => inRange(u.date, addDays(end, -6), end)).length >= 5,
+    );
+    if (covered.length < 8) return [];
+    const normal = medianOf(covered.map((end) => typicalWeekday(rows, end)));
+    if (normal === null || normal < p.minNormalUsers) return [];
+    const current = (typicalWeekday(rows, w.to) + typicalWeekday(rows, addDays(w.to, -7))) / 2;
+    const ratio = current / normal;
+    const key = `fast_growth:${b.accountId}`;
+    if (ratio < p.clearRatio || (ratio < p.growthRatio && !ctx.isOpen(key))) return [];
+    const normalFrom = addDays(weeks[7]!, -6);
+    return [
+      {
+        dedupeKey: key,
+        severity: ratio >= p.strongRatio ? "WARN" : "INFO",
+        title: `Usage grew to ${pct(ratio)} of normal`,
+        explanation: `Typical weekday active users over the last 14 days averaged ${Math.round(current * 10) / 10}, against this account's normal of ${Math.round(normal * 10) / 10} (${formatDay(normalFrom)} – ${formatDay(weeks[0]!)}).`,
+        evidence: [
+          {
+            sourceType: "UsageDaily",
+            accountId: b.accountId,
+            from: addDays(w.to, -13),
+            to: w.to,
+            value: Math.round(current * 10) / 10,
+          },
+          {
+            sourceType: "UsageDaily",
+            accountId: b.accountId,
+            from: normalFrom,
+            to: weeks[0]!,
+            value: Math.round(normal * 10) / 10,
+          },
+        ],
+        values: { ratio: Math.round(ratio * 10_000) / 10_000, current, normal },
+      },
+    ];
+  },
+
+  goal_stated_expansion: (b) => {
+    const seats = b.contract?.seatsPurchased;
+    if (!b.contract || !seats) return [];
+    return (b.expansion?.goals ?? [])
+      .filter(
+        (g) =>
+          (g.metricKey === "seats" || g.metricKey === "users") &&
+          g.targetValue !== null &&
+          g.targetValue > seats,
+      )
+      .map((g) => ({
+        dedupeKey: `goal_stated_expansion:${b.accountId}:${g.id}`,
+        severity: "INFO" as const,
+        title: `Goal needs ${g.targetValue} ${g.metricKey}; the contract has ${seats}`,
+        explanation: `The goal “${g.text}” targets ${g.targetValue} ${g.metricKey}, and the contract in force includes ${seats} seat${seats === 1 ? "" : "s"}.`,
+        evidence: [
+          { sourceType: "Goal", sourceId: g.id, value: g.targetValue },
+          { sourceType: "Contract", sourceId: b.contract!.id, value: seats },
+        ],
+        values: { target: g.targetValue, seats },
+      }));
   },
 
   seats_unused: (b, p, ctx) => {
@@ -571,6 +788,10 @@ export function materiallyWorse(
     case "seats_unused": {
       const p = parseParams(key, rawParams);
       return n(was.values.ratio) - n(now.values.ratio) >= p.materialPoints - EPS;
+    }
+    case "fast_growth": {
+      const p = parseParams(key, rawParams);
+      return n(now.values.ratio) - n(was.values.ratio) >= p.materialPoints - EPS;
     }
     case "payment_failed":
       return n(now.values.failures) > n(was.values.failures);

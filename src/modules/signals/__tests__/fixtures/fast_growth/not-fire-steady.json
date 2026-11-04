@@ -1,0 +1,22 @@
+{
+  "name": "steady usage",
+  "bundle": {
+    "contract": {
+      "id": "k1",
+      "seatsPurchased": 40,
+      "startDate": "2026-01-06",
+      "renewalDate": null
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 120,
+          "toDaysAgo": 1,
+          "value": 22
+        }
+      ],
+      "seatsUsed": null
+    }
+  },
+  "expect": []
+}

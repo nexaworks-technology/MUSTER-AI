@@ -1,0 +1,29 @@
+{
+  "name": "users goal of 55",
+  "bundle": {
+    "contract": {
+      "id": "k1",
+      "seatsPurchased": 40,
+      "startDate": "2026-01-06",
+      "renewalDate": null
+    },
+    "expansion": {
+      "people": null,
+      "credits": null,
+      "goals": [
+        {
+          "id": "g1",
+          "text": "Every studio lead on the product by Q1",
+          "metricKey": "users",
+          "targetValue": 55
+        }
+      ]
+    }
+  },
+  "expect": [
+    {
+      "dedupeKey": "goal_stated_expansion:a1:g1",
+      "severity": "INFO"
+    }
+  ]
+}

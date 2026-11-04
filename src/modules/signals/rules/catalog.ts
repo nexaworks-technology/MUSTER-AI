@@ -41,6 +41,31 @@ export const PARAMS = {
     .refine((p) => p.clearBelow < p.infoAt && p.infoAt <= p.warnAt, {
       message: "Clear level < info level ≤ warn level",
     }),
+  // M7 B1 (D8): expansion rules. Thresholds are workspace settings, audited like every rule's.
+  new_team_using: z
+    .object({
+      minNewPeople: z.number().int().min(2).max(500).default(8),
+      windowDays: days.default(21),
+      stableDays: days.default(60),
+      stableMaxNew: z.number().int().min(0).max(100).default(2),
+      teamShare: ratio.default(0.6),
+      teamMinPeople: z.number().int().min(2).max(500).default(3),
+    })
+    .refine((p) => p.teamShare > 0 && p.teamShare <= 1, {
+      message: "Team share must be above 0 and at most 100%",
+    }),
+  fast_growth: z
+    .object({
+      growthRatio: ratio.default(1.3),
+      strongRatio: ratio.default(1.5),
+      clearRatio: ratio.default(1.2),
+      minNormalUsers: z.number().min(0).default(3),
+      materialPoints: ratio.default(0.15),
+    })
+    .refine((p) => p.clearRatio < p.growthRatio && p.growthRatio <= p.strongRatio, {
+      message: "Clear level < growth level ≤ strong level",
+    }),
+  goal_stated_expansion: z.object({}).prefault({}),
   seats_unused: z
     .object({
       warnAtOrBelow: ratio.default(0.4),
@@ -175,11 +200,45 @@ export const RULES: readonly RuleMeta[] = [
     label: "Seats running out",
     category: "USAGE",
     polarity: "OPPORTUNITY",
-    meaning: "The account is using almost all the seats it bought, or more.",
+    meaning: "The account is using almost all the seats (or credits) it bought, or more.",
     howDetected:
-      "Distinct active users in the last 28 days ÷ seats bought. Info at 90%, warn at 100% or more; clears below 85%.",
+      "Distinct active users in the last 28 days ÷ seats bought; and, when the contract has credits and usage reports them, credits used ÷ credits bought. Info at 90%, warn at 100% or more; clears below 85%.",
     typicalLeadTime: "Usually a quarter or more before the renewal conversation.",
     falseAlarmCauses: "Temporary users (contractors, a trial team) or shared logins being split.",
+  },
+  {
+    key: "new_team_using",
+    label: "New team using the product",
+    category: "USAGE",
+    polarity: "OPPORTUNITY",
+    meaning: "A burst of people who had never used the product before have started.",
+    howDetected:
+      "At least 8 people first seen in the last 21 days, after 60 days in which at most 2 people were first seen. Needs per-user usage reaching back far enough to tell who is new. A team is named only when most of the new people share an email subdomain in the data; otherwise it is not named.",
+    typicalLeadTime: "A quarter or more before the renewal conversation: new teams buy seats.",
+    falseAlarmCauses:
+      "A data re-import or a changed login id makes existing people look new; a one-off training day.",
+  },
+  {
+    key: "fast_growth",
+    label: "Fast growth",
+    category: "USAGE",
+    polarity: "OPPORTUNITY",
+    meaning: "Far more people are using the product than this account normally has.",
+    howDetected:
+      "Typical weekday active users in the last 14 days, against this account's own normal over the 8 weeks ending 14 days ago: info at 130% or more, warn at 150% or more; clears below 120%. Not raised during onboarding, where growth is the ramp-up.",
+    typicalLeadTime: "Weeks to months before the account hits a paid limit.",
+    falseAlarmCauses: "A one-off event, a trial of a new team, or a data feed that doubled.",
+  },
+  {
+    key: "goal_stated_expansion",
+    label: "Stated goal needs more seats",
+    category: "PEOPLE",
+    polarity: "OPPORTUNITY",
+    meaning: "A goal the customer stated needs more seats or users than the contract includes.",
+    howDetected:
+      "Only goals whose measure is explicitly seats or users, with a target number: open goal target above the seats on the contract. Goals with any other measure are ignored until M9.",
+    typicalLeadTime: "Months: the customer has said where they are heading.",
+    falseAlarmCauses: "A goal quoted from a call that was aspirational, or a target already met.",
   },
   {
     key: "seats_unused",

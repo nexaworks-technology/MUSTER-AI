@@ -1,0 +1,41 @@
+{
+  "name": "seats and credits both over: two separate signals",
+  "bundle": {
+    "contract": {
+      "id": "k1",
+      "seatsPurchased": 40,
+      "startDate": "2026-01-06",
+      "renewalDate": null
+    },
+    "usage": {
+      "series": [
+        {
+          "fromDaysAgo": 40,
+          "toDaysAgo": 1,
+          "value": 30
+        }
+      ],
+      "seatsUsed": 44
+    },
+    "expansion": {
+      "people": null,
+      "goals": [],
+      "credits": {
+        "purchased": 1000,
+        "used": 1100,
+        "usedDate": "2026-11-01",
+        "usageRowId": "u9"
+      }
+    }
+  },
+  "expect": [
+    {
+      "dedupeKey": "seats_near_limit:a1:k1",
+      "severity": "WARN"
+    },
+    {
+      "dedupeKey": "seats_near_limit:a1:k1:credits",
+      "severity": "WARN"
+    }
+  ]
+}

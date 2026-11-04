@@ -1,0 +1,267 @@
+{
+  "name": "10 new people with no emails: fires, team not named",
+  "bundle": {
+    "contract": {
+      "id": "k1",
+      "seatsPurchased": 40,
+      "startDate": "2026-01-06",
+      "renewalDate": null
+    },
+    "expansion": {
+      "credits": null,
+      "goals": [],
+      "people": {
+        "historyFrom": "2026-08-01",
+        "users": [
+          {
+            "externalUserId": "o0",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o1",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o2",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o3",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o4",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o5",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o6",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o7",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o8",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o9",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o10",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o11",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o12",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o13",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o14",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o15",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o16",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o17",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o18",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o19",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o20",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o21",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o22",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o23",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o24",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o25",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o26",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o27",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o28",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "o29",
+            "firstSeen": "2026-08-01",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "n0",
+            "firstSeen": "2026-10-25",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "n1",
+            "firstSeen": "2026-10-25",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "n2",
+            "firstSeen": "2026-10-25",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "n3",
+            "firstSeen": "2026-10-25",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "n4",
+            "firstSeen": "2026-10-25",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "n5",
+            "firstSeen": "2026-10-25",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "n6",
+            "firstSeen": "2026-10-25",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "n7",
+            "firstSeen": "2026-10-25",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "n8",
+            "firstSeen": "2026-10-25",
+            "contactId": null,
+            "email": null
+          },
+          {
+            "externalUserId": "n9",
+            "firstSeen": "2026-10-25",
+            "contactId": null,
+            "email": null
+          }
+        ]
+      }
+    }
+  },
+  "expect": [
+    {
+      "dedupeKey": "new_team_using:a1",
+      "severity": "INFO",
+      "title": "10 new people started using the product"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "name": "400 of 1,000 credits: nothing",
+  "bundle": {
+    "contract": {
+      "id": "k1",
+      "seatsPurchased": null,
+      "startDate": "2026-01-06",
+      "renewalDate": null
+    },
+    "expansion": {
+      "people": null,
+      "goals": [],
+      "credits": {
+        "purchased": 1000,
+        "used": 400,
+        "usedDate": "2026-11-01",
+        "usageRowId": "u9"
+      }
+    }
+  },
+  "expect": []
+}
