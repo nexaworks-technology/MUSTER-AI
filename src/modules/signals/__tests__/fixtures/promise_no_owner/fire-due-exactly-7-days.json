@@ -1,0 +1,35 @@
+{
+  "name": "Due in exactly 7 days counts, 8 does not",
+  "bundle": {
+    "promises": [
+      {
+        "id": "q3",
+        "party": "US",
+        "what": "CSV export fix",
+        "dueDate": "2026-11-09",
+        "ownerMembershipId": null,
+        "evidence": null,
+        "sourceType": "CALL_TRANSCRIPT",
+        "sourceId": "t1",
+        "quote": "Engineering will have the CSV export fix to you by October 24."
+      },
+      {
+        "id": "q4",
+        "party": "US",
+        "what": "Other",
+        "dueDate": "2026-11-10",
+        "ownerMembershipId": null,
+        "evidence": null,
+        "sourceType": "CALL_TRANSCRIPT",
+        "sourceId": "t1",
+        "quote": "Engineering will have the CSV export fix to you by October 24."
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "promise_no_owner:a1:q3",
+      "severity": "INFO"
+    }
+  ]
+}

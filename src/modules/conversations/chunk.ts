@@ -53,10 +53,7 @@ function splitTurn(turn: string, room: number): string[] {
   return pieces;
 }
 
-export function chunkTranscript(
-  text: string,
-  opts: { maxTokens?: number } = {},
-): TextChunk[] {
+export function chunkTranscript(text: string, opts: { maxTokens?: number } = {}): TextChunk[] {
   const max = opts.maxTokens ?? DEFAULT_CHUNK_TOKENS;
   const { header, body } = splitHeader(text);
   if (body.length === 0 && !header) return [];

@@ -1,0 +1,27 @@
+{
+  "name": "brokenAfterDays set to 7: 9 days late is critical",
+  "bundle": {
+    "promises": [
+      {
+        "id": "p5",
+        "party": "US",
+        "what": "CSV export fix",
+        "dueDate": "2026-10-24",
+        "ownerMembershipId": null,
+        "evidence": null,
+        "sourceType": "CALL_TRANSCRIPT",
+        "sourceId": "t1",
+        "quote": "Engineering will have the CSV export fix to you by October 24."
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "promise_late:a1:p5",
+      "severity": "CRITICAL"
+    }
+  ],
+  "params": {
+    "brokenAfterDays": 7
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "Promise facts absent (not loaded): nothing fires",
+  "bundle": {
+    "promises": null
+  },
+  "expect": []
+}

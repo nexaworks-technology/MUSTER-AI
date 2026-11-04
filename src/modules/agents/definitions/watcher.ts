@@ -2,15 +2,17 @@ import type { ExtractionKind } from "@prisma/client";
 import { z } from "zod";
 import { logger } from "@/lib/logger";
 import { scopedDb, type ScopedDb, type TenantContext } from "@/lib/db/scoped";
-import { extractionModelOutput, validateExtraction } from "@/modules/conversations/service";
-import { chunkTranscript } from "@/modules/conversations/chunk";
 import {
+  chunkTranscript,
+  DEFAULT_THEMES,
+  extractionModelOutput,
+  groupableTheme,
   planReextract,
   planSources,
   StaleReextractError,
+  validateExtraction,
   type WatchedSource,
-} from "@/modules/conversations/extract";
-import { DEFAULT_THEMES, groupableTheme } from "@/modules/conversations/themes";
+} from "@/modules/conversations/service";
 import { defineAgent, type Effect } from "../define";
 import { createOnce, runAgent, type ExecutorDeps } from "../executor";
 import { baseAgentOutput, type ContextBundle } from "../schemas";
@@ -39,7 +41,11 @@ export const watcherInput = z.object({
 });
 export type WatcherInput = z.infer<typeof watcherInput>;
 
-const RECORD_TYPE = { MESSAGE: "Message", NOTE: "Note", CALL_TRANSCRIPT: "CallTranscript" } as const;
+const RECORD_TYPE = {
+  MESSAGE: "Message",
+  NOTE: "Note",
+  CALL_TRANSCRIPT: "CallTranscript",
+} as const;
 const SOURCE_OF = { Message: "MESSAGE", Note: "NOTE", CallTranscript: "CALL_TRANSCRIPT" } as const;
 
 export async function watcherSource(db: ScopedDb, input: WatcherInput) {

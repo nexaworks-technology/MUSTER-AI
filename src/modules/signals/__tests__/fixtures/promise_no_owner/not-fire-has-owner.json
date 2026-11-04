@@ -1,0 +1,19 @@
+{
+  "name": "An owned promise is fine",
+  "bundle": {
+    "promises": [
+      {
+        "id": "q5",
+        "party": "US",
+        "what": "CSV export fix",
+        "dueDate": "2026-11-05",
+        "ownerMembershipId": "m1",
+        "evidence": null,
+        "sourceType": "CALL_TRANSCRIPT",
+        "sourceId": "t1",
+        "quote": "Engineering will have the CSV export fix to you by October 24."
+      }
+    ]
+  },
+  "expect": []
+}

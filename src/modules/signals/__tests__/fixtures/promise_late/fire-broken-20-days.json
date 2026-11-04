@@ -1,0 +1,25 @@
+{
+  "name": "Due Oct 13, seen Nov 2: 20 days late is broken (critical)",
+  "bundle": {
+    "promises": [
+      {
+        "id": "p2",
+        "party": "US",
+        "what": "CSV export fix",
+        "dueDate": "2026-10-13",
+        "ownerMembershipId": null,
+        "evidence": null,
+        "sourceType": "CALL_TRANSCRIPT",
+        "sourceId": "t1",
+        "quote": "Engineering will have the CSV export fix to you by October 24."
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "promise_late:a1:p2",
+      "severity": "CRITICAL",
+      "title": "Promise late: CSV export fix (20 days)"
+    }
+  ]
+}

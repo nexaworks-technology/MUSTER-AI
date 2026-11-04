@@ -1,0 +1,19 @@
+{
+  "name": "A promise with no date can never be late",
+  "bundle": {
+    "promises": [
+      {
+        "id": "p9",
+        "party": "US",
+        "what": "CSV export fix",
+        "dueDate": null,
+        "ownerMembershipId": null,
+        "evidence": null,
+        "sourceType": "CALL_TRANSCRIPT",
+        "sourceId": "t1",
+        "quote": "Engineering will have the CSV export fix to you by October 24."
+      }
+    ]
+  },
+  "expect": []
+}

@@ -158,3 +158,16 @@ export {
   type KeptItem,
   type Dropped,
 } from "./extraction";
+export { approxTokens, chunkTranscript, DEFAULT_CHUNK_TOKENS, type TextChunk } from "./chunk";
+export {
+  planReextract,
+  planSources,
+  reextractPayload,
+  StaleReextractError,
+  triggerIdFor,
+  type ReextractPayload,
+  type WatchedSource,
+} from "./extract";
+export { compareVersions, currentExtractions } from "./current";
+export { promiseParty, NOT_CLEAR, type PromisePartyResult } from "./promise-party";
+export { DEFAULT_THEMES, groupableTheme, themeSettingSchema } from "./themes";

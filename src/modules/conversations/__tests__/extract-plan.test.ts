@@ -19,8 +19,12 @@ const inputs = {
 
 describe("extraction trigger ids", () => {
   it("keep the M4 shape for messages and notes and add the chunk for calls", () => {
-    expect(triggerIdFor({ sourceType: "MESSAGE", sourceId: "m1", chunkIndex: 0 }, V)).toBe("MESSAGE:m1@1.1.0");
-    expect(triggerIdFor({ sourceType: "NOTE", sourceId: "n1", chunkIndex: 0 }, V)).toBe("NOTE:n1@1.1.0");
+    expect(triggerIdFor({ sourceType: "MESSAGE", sourceId: "m1", chunkIndex: 0 }, V)).toBe(
+      "MESSAGE:m1@1.1.0",
+    );
+    expect(triggerIdFor({ sourceType: "NOTE", sourceId: "n1", chunkIndex: 0 }, V)).toBe(
+      "NOTE:n1@1.1.0",
+    );
     expect(triggerIdFor({ sourceType: "CALL_TRANSCRIPT", sourceId: "t1", chunkIndex: 2 }, V)).toBe(
       "CALL_TRANSCRIPT:t1#2@1.1.0",
     );
@@ -65,7 +69,9 @@ describe("planReextract (only on an explicit prompt-version bump)", () => {
     ]);
   });
   it("refuses when no earlier version ever ran (that is a backfill, not a re-extraction)", () => {
-    expect(() => planReextract({ ...inputs, done: new Set(), version: V })).toThrow(StaleReextractError);
+    expect(() => planReextract({ ...inputs, done: new Set(), version: V })).toThrow(
+      StaleReextractError,
+    );
   });
   it("is empty once every earlier-read source has been read at this version", () => {
     const done = new Set(["MESSAGE:m1@1.0.0", "MESSAGE:m1@1.1.0"]);
@@ -81,6 +87,9 @@ describe("the conversations.reextract payload carries ids only (Rule 7, S1 lesso
     });
   });
   it("rejects any extra field, so no customer text can ride along", () => {
-    expect(reextractPayload.safeParse({ workspaceId: "w1", promptVersion: "1.1.0", text: "hello" }).success).toBe(false);
+    expect(
+      reextractPayload.safeParse({ workspaceId: "w1", promptVersion: "1.1.0", text: "hello" })
+        .success,
+    ).toBe(false);
   });
 });

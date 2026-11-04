@@ -22,6 +22,7 @@ import {
   type Blocker,
   type OnboardingPlanFacts,
 } from "@/modules/onboarding/service";
+import { promiseStatus, type PromiseEvidence } from "@/modules/promises/schemas";
 import { parseParams, RULE_BY_KEY, type ParamsOf, type RuleKey } from "./catalog";
 
 /**
@@ -55,6 +56,19 @@ export interface ExpansionFacts {
   goals: Array<{ id: string; text: string; metricKey: string; targetValue: number | null }>;
 }
 
+/** M9: one promise as the promise rules read it (dates and records only, never a stored status). */
+export interface PromiseFacts {
+  id: string;
+  party: "US" | "CUSTOMER" | "UNCLEAR";
+  what: string;
+  dueDate: CalendarDate | null;
+  ownerMembershipId: string | null;
+  evidence: PromiseEvidence | null;
+  sourceType: "MESSAGE" | "NOTE" | "CALL_TRANSCRIPT" | "TICKET" | "SURVEY_RESPONSE" | "FILE" | null;
+  sourceId: string | null;
+  quote: string | null;
+}
+
 export interface SignalBundle extends AccountBundle {
   /** Live-signal only (never read by health scoring, D-56). */
   invoiceFailureCounts: Record<string, number>;
@@ -64,6 +78,8 @@ export interface SignalBundle extends AccountBundle {
   onboarding?: OnboardingPlanFacts | null;
   /** M7 B1: expansion facts; absent when not loaded (the rules then return nothing). */
   expansion?: ExpansionFacts | null;
+  /** M9: the account's promises; absent when not loaded (the promise rules then return nothing). */
+  promises?: PromiseFacts[] | null;
 }
 
 export type Severity = "INFO" | "WARN" | "CRITICAL";
@@ -90,6 +106,25 @@ type Evaluator<K extends RuleKey> = (
   p: ParamsOf<K>,
   ctx: EvalContext,
 ) => SignalCandidate[];
+
+const SOURCE_TYPE_NAME = {
+  MESSAGE: "Message",
+  NOTE: "Note",
+  CALL_TRANSCRIPT: "CallTranscript",
+  TICKET: "Ticket",
+  SURVEY_RESPONSE: "SurveyResponse",
+  FILE: "File",
+} as const;
+
+/** The promise itself, then the record it was said in: both open from the signal's evidence. */
+function promiseEvidence(p: PromiseFacts, daysLate: number | null): Evidence[] {
+  return [
+    { sourceType: "Promise", sourceId: p.id, value: daysLate, date: p.dueDate },
+    ...(p.sourceType && p.sourceId
+      ? [{ sourceType: SOURCE_TYPE_NAME[p.sourceType], sourceId: p.sourceId }]
+      : []),
+  ];
+}
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 const ROLE_WORDS: Record<string, string> = {
@@ -633,6 +668,57 @@ const EVALUATORS: { [K in RuleKey]: Evaluator<K> } = {
 
   // Entered by people with a dated public source (INTERP-6); never raised by an evaluator.
   outside_event: () => [],
+
+  // ─── M9: promises. Status comes from the one function in promises/status.ts (D1). ───
+  promise_late: (b, p) =>
+    (b.promises ?? [])
+      .filter((x) => x.party === "US")
+      .flatMap((x) => {
+        const r = promiseStatus({
+          dueDate: x.dueDate,
+          today: b.asOf,
+          evidence: x.evidence,
+          brokenAfterDays: p.brokenAfterDays,
+        });
+        if (r.status !== "LATE" && r.status !== "BROKEN") return [];
+        return [
+          {
+            dedupeKey: `promise_late:${b.accountId}:${x.id}`,
+            severity: r.status === "BROKEN" ? ("CRITICAL" as const) : ("WARN" as const),
+            title: `Promise late: ${x.what} (${r.daysLate} ${r.daysLate === 1 ? "day" : "days"})`,
+            explanation: `We promised “${x.what}” by ${formatDay(x.dueDate!)}; ${r.reason}${
+              x.quote ? ` Said: “${x.quote}”` : ""
+            }`,
+            evidence: promiseEvidence(x, r.daysLate),
+            values: { daysLate: r.daysLate, dueDate: x.dueDate },
+          },
+        ];
+      }),
+
+  promise_no_owner: (b, p) =>
+    (b.promises ?? [])
+      .filter((x) => x.party === "US" && x.ownerMembershipId === null && x.dueDate !== null)
+      .flatMap((x) => {
+        const r = promiseStatus({
+          dueDate: x.dueDate,
+          today: b.asOf,
+          evidence: x.evidence,
+          brokenAfterDays: 14,
+        });
+        if (r.status === "KEPT") return [];
+        const toDue = daysBetween(b.asOf, x.dueDate!);
+        if (toDue > p.dueWithinDays) return [];
+        return [
+          {
+            dedupeKey: `promise_no_owner:${b.accountId}:${x.id}`,
+            severity: toDue < 0 ? ("WARN" as const) : ("INFO" as const),
+            title: `Promise has no owner: ${x.what}`,
+            explanation: `We promised “${x.what}” by ${formatDay(x.dueDate!)} and nobody on our side owns it.`,
+            evidence: promiseEvidence(x, null),
+            values: { daysToDue: toDue },
+          },
+        ];
+      }),
 
   // ─── M6: onboarding, all through the one stall definition (onboarding/stall.ts, D4) ───
   onboarding_stall: (b, p) => {

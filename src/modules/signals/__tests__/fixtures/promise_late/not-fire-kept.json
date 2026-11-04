@@ -1,0 +1,23 @@
+{
+  "name": "Late by date but kept with evidence",
+  "bundle": {
+    "promises": [
+      {
+        "id": "p8",
+        "party": "US",
+        "what": "CSV export fix",
+        "dueDate": "2026-10-24",
+        "ownerMembershipId": null,
+        "evidence": {
+          "type": "Ticket",
+          "id": "t9",
+          "date": "2026-10-28"
+        },
+        "sourceType": "CALL_TRANSCRIPT",
+        "sourceId": "t1",
+        "quote": "Engineering will have the CSV export fix to you by October 24."
+      }
+    ]
+  },
+  "expect": []
+}

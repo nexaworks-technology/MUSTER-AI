@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { brokenAfterDaysSchema, DEFAULT_BROKEN_AFTER_DAYS } from "@/modules/promises/schemas";
 
 /**
  * The M3 signal rules (spec §6D, ARCHITECTURE §5.1–5.2): the four fields every signal must
@@ -141,6 +142,11 @@ export const PARAMS = {
     .prefault({}),
   onboarding_key_feature_unused: z.object({ keyFeatureByDay: days.default(30) }).prefault({}),
   onboarding_ttv_late: z.object({}).prefault({}),
+  // M9: promises (D1). `brokenAfterDays` is the one setting the promise status function reads.
+  promise_late: z
+    .object({ brokenAfterDays: brokenAfterDaysSchema.default(DEFAULT_BROKEN_AFTER_DAYS) })
+    .prefault({}),
+  promise_no_owner: z.object({ dueWithinDays: days.default(7) }).prefault({}),
 } as const;
 
 export type RuleKey = keyof typeof PARAMS;
@@ -422,6 +428,31 @@ export const RULES: readonly RuleMeta[] = [
     typicalLeadTime: "Weeks to months before renewal confidence drops.",
     falseAlarmCauses:
       "A larger rollout than usual, or a value definition that does not fit this customer.",
+  },
+  // ─── M9: promises (spec §6D "Promises") ───
+  {
+    key: "promise_late",
+    label: "Promise late",
+    category: "PROMISES",
+    polarity: "RISK",
+    meaning:
+      "Something we promised the customer is past its due date and nothing shows it was done.",
+    howDetected:
+      "A promise our side made, with a due date the text named, is past that date with no evidence it was kept (a closed ticket or a record a person attached). Warn from the day after; critical once it is 14 days late. The status comes from dates and records, never from a model.",
+    typicalLeadTime: "Days to weeks: a late promise is often where trust starts to fall.",
+    falseAlarmCauses:
+      "The work was done but nobody attached the record, the date was moved in a later call, or the promise was conditional.",
+  },
+  {
+    key: "promise_no_owner",
+    label: "Promise with no owner",
+    category: "PROMISES",
+    polarity: "RISK",
+    meaning: "A promise we made is due soon (or late) and nobody on our side owns it.",
+    howDetected:
+      "A promise our side made, not yet kept, due within 7 days or already late, with no owner assigned.",
+    typicalLeadTime: "Days: an unowned promise is the one that gets missed.",
+    falseAlarmCauses: "The owner is known to the team but was never entered in the tracker.",
   },
 ];
 

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { getQueue } from "@/lib/jobs/queues";
 import type { TenantContext } from "@/lib/db/scoped";
 import { runAgent, type Trigger } from "./executor";
-import { reextractPayload } from "@/modules/conversations/extract";
+import { reextractPayload } from "@/modules/conversations/service";
 import { backfillExtractions, reextractSources } from "./definitions/watcher";
 import { processConsider, sweepHealthNarratives } from "./definitions/health-analyst-trigger";
 import { getAgent } from "./registry";

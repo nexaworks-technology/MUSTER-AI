@@ -1,0 +1,39 @@
+{
+  "name": "Exactly 14 days late is critical, 13 is warn",
+  "bundle": {
+    "promises": [
+      {
+        "id": "p3",
+        "party": "US",
+        "what": "CSV export fix",
+        "dueDate": "2026-10-19",
+        "ownerMembershipId": null,
+        "evidence": null,
+        "sourceType": "CALL_TRANSCRIPT",
+        "sourceId": "t1",
+        "quote": "Engineering will have the CSV export fix to you by October 24."
+      },
+      {
+        "id": "p4",
+        "party": "US",
+        "what": "API limit increase",
+        "dueDate": "2026-10-20",
+        "ownerMembershipId": null,
+        "evidence": null,
+        "sourceType": "CALL_TRANSCRIPT",
+        "sourceId": "t1",
+        "quote": "Engineering will have the CSV export fix to you by October 24."
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "promise_late:a1:p3",
+      "severity": "CRITICAL"
+    },
+    {
+      "dedupeKey": "promise_late:a1:p4",
+      "severity": "WARN"
+    }
+  ]
+}

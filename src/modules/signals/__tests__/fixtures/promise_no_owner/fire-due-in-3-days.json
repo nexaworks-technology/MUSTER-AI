@@ -1,0 +1,25 @@
+{
+  "name": "Our promise due in 3 days with no owner (info)",
+  "bundle": {
+    "promises": [
+      {
+        "id": "q1",
+        "party": "US",
+        "what": "CSV export fix",
+        "dueDate": "2026-11-05",
+        "ownerMembershipId": null,
+        "evidence": null,
+        "sourceType": "CALL_TRANSCRIPT",
+        "sourceId": "t1",
+        "quote": "Engineering will have the CSV export fix to you by October 24."
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "promise_no_owner:a1:q1",
+      "severity": "INFO",
+      "title": "Promise has no owner: CSV export fix"
+    }
+  ]
+}

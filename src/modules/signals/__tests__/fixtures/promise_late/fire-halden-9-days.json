@@ -1,0 +1,25 @@
+{
+  "name": "Halden: we promised the CSV export fix by Oct 24; on Nov 2 it is 9 days late (warn)",
+  "bundle": {
+    "promises": [
+      {
+        "id": "p1",
+        "party": "US",
+        "what": "CSV export fix",
+        "dueDate": "2026-10-24",
+        "ownerMembershipId": null,
+        "evidence": null,
+        "sourceType": "CALL_TRANSCRIPT",
+        "sourceId": "t1",
+        "quote": "Engineering will have the CSV export fix to you by October 24."
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "promise_late:a1:p1",
+      "severity": "WARN",
+      "title": "Promise late: CSV export fix (9 days)"
+    }
+  ]
+}

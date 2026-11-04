@@ -1,0 +1,19 @@
+{
+  "name": "A customer promise needs no owner on our side",
+  "bundle": {
+    "promises": [
+      {
+        "id": "q6",
+        "party": "CUSTOMER",
+        "what": "CSV export fix",
+        "dueDate": "2026-11-05",
+        "ownerMembershipId": null,
+        "evidence": null,
+        "sourceType": "CALL_TRANSCRIPT",
+        "sourceId": "t1",
+        "quote": "Engineering will have the CSV export fix to you by October 24."
+      }
+    ]
+  },
+  "expect": []
+}

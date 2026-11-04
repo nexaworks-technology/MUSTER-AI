@@ -1,0 +1,24 @@
+{
+  "name": "Our late promise with no owner is a warn",
+  "bundle": {
+    "promises": [
+      {
+        "id": "q2",
+        "party": "US",
+        "what": "CSV export fix",
+        "dueDate": "2026-10-24",
+        "ownerMembershipId": null,
+        "evidence": null,
+        "sourceType": "CALL_TRANSCRIPT",
+        "sourceId": "t1",
+        "quote": "Engineering will have the CSV export fix to you by October 24."
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "promise_no_owner:a1:q2",
+      "severity": "WARN"
+    }
+  ]
+}

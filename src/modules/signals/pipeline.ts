@@ -1,3 +1,4 @@
+import { syncPromises } from "@/modules/promises/service";
 import type { Job } from "bullmq";
 import { z } from "zod";
 import { businessClock, todayIn, type Clock } from "@/lib/dates";
@@ -102,6 +103,9 @@ export async function kickoff(raw: unknown, deps: PipelineDeps) {
 /** Evaluate stage of one chunk (shared by the queue job and the seed's inline run). */
 async function evaluateCore(data: ChunkData, clock: Clock) {
   const ctx = { workspaceId: data.workspaceId };
+  // M9 `promises.sync`: promises and AI-read goals from the latest extractions, statuses recomputed
+  // by code for this business date, so the promise rules below read current records.
+  await syncPromises(ctx, { today: data.asOf, accountIds: data.accountIds });
   await storeUsageBaselines(ctx, data.asOf, data.accountIds);
   // M6 `onboarding.evaluate`: step completions, value reached and stall status, then the signal
   // rules read the same facts (D4). Its thresholds are the onboarding_stall rule's settings.

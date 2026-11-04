@@ -33,7 +33,13 @@ interface Fixture {
   sourceType: string;
   sourceText: string;
   output: { items: Array<{ kind: string; payload: Record<string, unknown> }> };
-  expect: { status: string; kinds: string[]; quotes: string[]; sentiment: string | null; dropped: number };
+  expect: {
+    status: string;
+    kinds: string[];
+    quotes: string[];
+    sentiment: string | null;
+    dropped: number;
+  };
 }
 
 const byKind = new Map<string, Fixture[]>();
@@ -63,14 +69,21 @@ describe("per-kind golden fixtures", () => {
     for (const f of fixtures)
       it(`${kind}/${f.case} (${f.polarity})`, () => {
         expect(f.kind).toBe(kind);
-        const bundle = [{ sourceType: f.sourceType, sourceId: "src", fields: { subject: null, text: f.sourceText } }];
+        const bundle = [
+          {
+            sourceType: f.sourceType,
+            sourceId: "src",
+            fields: { subject: null, text: f.sourceText },
+          },
+        ];
         const verdict = judge(getAgent("watcher"), bundle, f.output);
         expect(verdict.status).toBe(f.expect.status);
         const r = validateExtraction(f.sourceText, f.output);
         expect(r.kept.map((k) => k.kind)).toEqual(f.expect.kinds);
-        expect([...r.kept.map((k) => k.quote), ...(r.sentiment ? [r.sentiment.quote] : [])]).toEqual(
-          f.expect.quotes,
-        );
+        expect([
+          ...r.kept.map((k) => k.quote),
+          ...(r.sentiment ? [r.sentiment.quote] : []),
+        ]).toEqual(f.expect.quotes);
         expect(r.sentiment?.label ?? null).toBe(f.expect.sentiment);
         expect(r.dropped).toHaveLength(f.expect.dropped);
         if (f.polarity === "negative") expect(r.kept).toHaveLength(0);

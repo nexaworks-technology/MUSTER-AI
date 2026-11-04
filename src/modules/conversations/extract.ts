@@ -19,8 +19,7 @@ export interface PlannedSource extends WatchedSource {
 
 /** `MESSAGE:<id>@<version>`, `NOTE:<id>@…`, `CALL_TRANSCRIPT:<id>#<chunk>@…` (M4 shape kept). */
 export function triggerIdFor(s: WatchedSource, version: string): string {
-  const where =
-    s.sourceType === "CALL_TRANSCRIPT" ? `${s.sourceId}#${s.chunkIndex}` : s.sourceId;
+  const where = s.sourceType === "CALL_TRANSCRIPT" ? `${s.sourceId}#${s.chunkIndex}` : s.sourceId;
   return `${s.sourceType}:${where}@${version}`;
 }
 

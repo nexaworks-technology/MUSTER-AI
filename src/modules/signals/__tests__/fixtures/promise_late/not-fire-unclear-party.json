@@ -1,0 +1,19 @@
+{
+  "name": "When the text does not say who promised, nothing is asserted",
+  "bundle": {
+    "promises": [
+      {
+        "id": "p7",
+        "party": "UNCLEAR",
+        "what": "CSV export fix",
+        "dueDate": "2026-10-24",
+        "ownerMembershipId": null,
+        "evidence": null,
+        "sourceType": "CALL_TRANSCRIPT",
+        "sourceId": "t1",
+        "quote": "Engineering will have the CSV export fix to you by October 24."
+      }
+    ]
+  },
+  "expect": []
+}
