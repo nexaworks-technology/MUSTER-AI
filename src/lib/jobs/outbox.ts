@@ -27,8 +27,9 @@ export function writeOutboxEvent(tx: Prisma.TransactionClient, event: OutboxEven
   });
 }
 
-/** Event type → queue + job name. Each milestone registers the events it introduces. */
-export type OutboxRoutes = Readonly<Record<string, { queue: QueueName; job: string }>>;
+/** Event type → queue + job name (or multiple jobs for fan-out, D3). */
+export type OutboxRouteTarget = { queue: QueueName; job: string };
+export type OutboxRoutes = Readonly<Record<string, OutboxRouteTarget | readonly OutboxRouteTarget[]>>;
 
 export type Enqueue = (
   queue: QueueName,
@@ -48,6 +49,7 @@ export interface DispatchResult {
 /**
  * Claims up to `batchSize` due events (SKIP LOCKED, so several workers can dispatch safely),
  * enqueues each with jobId = event id (BullMQ dedupes re-enqueues), then marks it processed.
+ * Supports fanning out to multiple jobs while keeping single routes byte-identical (D3).
  */
 export async function dispatchOutbox(
   routes: OutboxRoutes,
@@ -79,12 +81,17 @@ export async function dispatchOutbox(
       const route = routes[event.type];
       try {
         if (!route) throw new Error(`No handler is registered for event type "${event.type}"`);
-        await enqueue(
-          route.queue,
-          route.job,
-          { ...event.payload, workspaceId: event.workspaceId, outboxEventId: event.id },
-          `outbox-${event.id}`,
-        );
+        const targets = Array.isArray(route) ? route : [route];
+        for (let targetIndex = 0; targetIndex < targets.length; targetIndex++) {
+          const target = targets[targetIndex]!;
+          const jobId = targets.length === 1 ? `outbox-${event.id}` : `outbox-${event.id}-${targetIndex}`;
+          await enqueue(
+            target.queue,
+            target.job,
+            { ...event.payload, workspaceId: event.workspaceId, outboxEventId: event.id },
+            jobId,
+          );
+        }
         await tx.outboxEvent.update({ where: { id: event.id }, data: { processedAt: new Date() } });
         dispatched++;
       } catch (error) {
@@ -114,18 +121,21 @@ export const OUTBOX_ROUTES: OutboxRoutes = {
   "onboarding.stalled": { queue: "agents", job: "onboarding.stalled" },
   /** M6: first value reached tells the owner. */
   "onboarding.valueReached": { queue: "agents", job: "onboarding.valueReached" },
+  /** M8: a decided approval resumes waiting play steps (D3). */
+  "approval.decided": { queue: "plays", job: "plays.approvalDecided" },
+  /** M8: a note created triggers plays matching noteTag (D3, D9). */
+  "note.created": { queue: "plays", job: "plays.noteCreated" },
+  /** M8: a signal opened triggers plays matching signal ruleKey (D3). */
+  "signal.opened": { queue: "plays", job: "plays.signalOpened" },
 };
 
 /**
  * Event types written before anything consumes them (D-66): kept as records, not claimed by the
  * dispatcher (no retries, no warnings) until the milestone that consumes them registers a route
  * and removes them from this list. M6 now consumes onboarding.stalled / onboarding.valueReached
- * (owner notice + Onboarding Manager); plays (M8) will add their own consumers. M3: signal.opened / signal.resolved / health.bandChanged
- * (consumed by the Health Analyst and play triggers, M4/M8). M4 consumes health.bandChanged;
- * signal.opened / signal.resolved wait for plays (M8).
+ * (owner notice + Onboarding Manager); plays (M8) consumes signal.opened, approval.decided, note.created.
  */
 export const AWAITING_CONSUMER: string[] = [
-  "signal.opened",
   "signal.resolved",
   "task.overdue",
   /** M5: written at the end of every integration sync; consumed by plays (M8). */

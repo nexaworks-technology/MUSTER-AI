@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import { writeAudit } from "@/lib/audit";
+import { writeOutboxEvent } from "@/lib/jobs/outbox";
 import { scopedDb, type ScopedDb } from "@/lib/db/scoped";
 import type { TimelineItem } from "@/modules/accounts/schemas";
 import {
@@ -85,6 +86,16 @@ export async function createNote(actor: Actor, raw: z.input<typeof createNoteInp
       },
       tx,
     );
+    await writeOutboxEvent(tx, {
+      workspaceId: actor.workspaceId,
+      type: "note.created",
+      payload: {
+        noteId: created.id,
+        accountId: account.id,
+        authorMembershipId: actor.membershipId,
+        tags: input.tags,
+      },
+    });
     return created;
   });
   const notNotified = mentioned

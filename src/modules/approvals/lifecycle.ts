@@ -401,6 +401,16 @@ export async function approve(
       },
       tx,
     );
+    await writeOutboxEvent(tx, {
+      workspaceId: actor.workspaceId,
+      type: "approval.decided",
+      payload: {
+        approvalId: a.id,
+        status: "APPROVED",
+        decidedById: actor.membershipId,
+        accountId: a.accountId,
+      },
+    });
     return updated;
   });
   if (approval.signalId)
@@ -490,6 +500,16 @@ export async function editAndApprove(
       },
       tx,
     );
+    await writeOutboxEvent(tx, {
+      workspaceId: actor.workspaceId,
+      type: "approval.decided",
+      payload: {
+        approvalId: a.id,
+        status: "APPROVED",
+        decidedById: actor.membershipId,
+        accountId: a.accountId,
+      },
+    });
     return updated;
   });
   if (approval.signalId)
@@ -540,6 +560,16 @@ export async function reject(
       },
       tx,
     );
+    await writeOutboxEvent(tx, {
+      workspaceId: actor.workspaceId,
+      type: "approval.decided",
+      payload: {
+        approvalId: a.id,
+        status: "REJECTED",
+        decidedById: actor.membershipId,
+        accountId: a.accountId,
+      },
+    });
     return updated;
   });
   return { approval };
