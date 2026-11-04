@@ -491,6 +491,7 @@ export {
   lastEnded,
 } from "./engine/components/people";
 export { day as formatDay } from "./engine/format";
+export { championState, type ChampionState } from "./champion";
 export { loadBundles } from "./loader";
 export { describeSource, sourceLookups, type ResolvedSource } from "./sources";
 

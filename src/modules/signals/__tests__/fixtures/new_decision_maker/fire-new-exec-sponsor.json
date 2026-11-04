@@ -1,0 +1,41 @@
+{
+  "name": "A new exec sponsor after a predecessor",
+  "bundle": {
+    "contacts": [
+      {
+        "id": "old",
+        "name": "Priya Shah",
+        "status": "ACTIVE",
+        "statusDate": null
+      },
+      {
+        "id": "new",
+        "name": "Tom Reed",
+        "status": "ACTIVE",
+        "statusDate": null
+      }
+    ],
+    "roles": [
+      {
+        "id": "r1",
+        "contactId": "old",
+        "role": "EXEC_SPONSOR",
+        "validFrom": "2025-09-28",
+        "validTo": "2026-10-03"
+      },
+      {
+        "id": "r2",
+        "contactId": "new",
+        "role": "EXEC_SPONSOR",
+        "validFrom": "2026-10-18",
+        "validTo": null
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "new_decision_maker:a1:new",
+      "severity": "INFO"
+    }
+  ]
+}

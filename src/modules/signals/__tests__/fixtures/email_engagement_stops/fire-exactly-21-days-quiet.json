@@ -1,0 +1,58 @@
+{
+  "name": "Last inbound exactly 21 days ago: nothing in the last 21 days",
+  "bundle": {
+    "messages": [
+      {
+        "id": "b0",
+        "conversationId": "cv",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-10-12",
+        "fromContactId": "maya",
+        "isBounce": false
+      },
+      {
+        "id": "b1",
+        "conversationId": "cv",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-10-04",
+        "fromContactId": "maya",
+        "isBounce": false
+      },
+      {
+        "id": "b2",
+        "conversationId": "cv",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-09-26",
+        "fromContactId": "maya",
+        "isBounce": false
+      },
+      {
+        "id": "b3",
+        "conversationId": "cv",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-09-18",
+        "fromContactId": "maya",
+        "isBounce": false
+      },
+      {
+        "id": "b4",
+        "conversationId": "cv",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-09-10",
+        "fromContactId": "maya",
+        "isBounce": false
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "email_engagement_stops:a1",
+      "severity": "WARN"
+    }
+  ]
+}

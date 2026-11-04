@@ -1,0 +1,24 @@
+{
+  "name": "Role started 10 days ago and nothing yet: not silent",
+  "bundle": {
+    "contacts": [
+      {
+        "id": "maya",
+        "name": "Maya Ortiz",
+        "status": "ACTIVE",
+        "statusDate": null
+      }
+    ],
+    "roles": [
+      {
+        "id": "r1",
+        "contactId": "maya",
+        "role": "CHAMPION",
+        "validFrom": "2026-10-23",
+        "validTo": null
+      }
+    ],
+    "messages": []
+  },
+  "expect": []
+}

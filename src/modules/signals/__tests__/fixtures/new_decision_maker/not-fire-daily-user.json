@@ -1,0 +1,36 @@
+{
+  "name": "A new daily user is not a decision maker",
+  "bundle": {
+    "contacts": [
+      {
+        "id": "old",
+        "name": "Priya Shah",
+        "status": "ACTIVE",
+        "statusDate": null
+      },
+      {
+        "id": "new",
+        "name": "Tom Reed",
+        "status": "ACTIVE",
+        "statusDate": null
+      }
+    ],
+    "roles": [
+      {
+        "id": "r1",
+        "contactId": "old",
+        "role": "DAILY_USER",
+        "validFrom": "2025-09-28",
+        "validTo": "2026-10-12"
+      },
+      {
+        "id": "r2",
+        "contactId": "new",
+        "role": "DAILY_USER",
+        "validFrom": "2026-10-13",
+        "validTo": null
+      }
+    ]
+  },
+  "expect": []
+}

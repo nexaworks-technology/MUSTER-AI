@@ -1,0 +1,24 @@
+{
+  "name": "A bounced champion is gone, not silent (contact_bounced_or_left covers it)",
+  "bundle": {
+    "contacts": [
+      {
+        "id": "maya",
+        "name": "Maya Ortiz",
+        "status": "BOUNCED",
+        "statusDate": "2026-10-27"
+      }
+    ],
+    "roles": [
+      {
+        "id": "r1",
+        "contactId": "maya",
+        "role": "CHAMPION",
+        "validFrom": "2025-09-08",
+        "validTo": null
+      }
+    ],
+    "messages": []
+  },
+  "expect": []
+}

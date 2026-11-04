@@ -7,6 +7,7 @@ import { loadBundles, loadContext } from "@/modules/health/service";
 import { onboardingFactsFor, type OnboardingPlanFacts } from "@/modules/onboarding/service";
 import { loadExpansionFacts } from "./expansion-facts";
 import { loadPromiseFacts } from "./promise-facts";
+import { loadPeopleFacts } from "./people-facts";
 import { loadTextFacts } from "./text-facts";
 import { syncSignalRules } from "./rule-rows";
 import { RULE_BY_KEY, type RuleKey } from "./rules/catalog";
@@ -76,6 +77,7 @@ export async function evaluateAndStore(
   );
   const promises = await loadPromiseFacts(db, ids);
   const text = await loadTextFacts(db, asOf, ids, healthCtx.timeZone);
+  const people = await loadPeopleFacts(db, asOf, ids, healthCtx.timeZone);
   const failureCounts = Object.fromEntries(failures.map((f) => [f.id, f.failureCount]));
   const latest = new Map<string, Signal>();
   for (const s of existing) if (!latest.has(s.dedupeKey)) latest.set(s.dedupeKey, s);
@@ -94,6 +96,7 @@ export async function evaluateAndStore(
       expansion: expansion.get(accountId) ?? null,
       promises: promises.get(accountId) ?? [],
       text: text.get(accountId) ?? [],
+      people: people.get(accountId) ?? { titleChanges: [] },
     };
     const seen = new Set<string>();
     const evaluatedRules = new Set<string>();

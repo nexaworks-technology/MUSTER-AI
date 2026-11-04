@@ -1,0 +1,30 @@
+{
+  "name": "Never heard from: counted from the role's start (31 days ago)",
+  "bundle": {
+    "contacts": [
+      {
+        "id": "maya",
+        "name": "Maya Ortiz",
+        "status": "ACTIVE",
+        "statusDate": null
+      }
+    ],
+    "roles": [
+      {
+        "id": "r1",
+        "contactId": "maya",
+        "role": "CHAMPION",
+        "validFrom": "2026-10-02",
+        "validTo": null
+      }
+    ],
+    "messages": []
+  },
+  "expect": [
+    {
+      "dedupeKey": "champion_silent:a1:maya",
+      "severity": "WARN",
+      "title": "Champion Maya Ortiz silent for 31 days"
+    }
+  ]
+}

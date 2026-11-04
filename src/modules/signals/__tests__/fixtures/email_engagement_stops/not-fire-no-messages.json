@@ -1,0 +1,7 @@
+{
+  "name": "No messages at all: no data, not a stop",
+  "bundle": {
+    "messages": null
+  },
+  "expect": []
+}

@@ -1,0 +1,39 @@
+{
+  "name": "29 days ago is inside the 30-day window",
+  "bundle": {
+    "contacts": [
+      {
+        "id": "maya",
+        "name": "Maya Ortiz",
+        "status": "ACTIVE",
+        "statusDate": null
+      }
+    ],
+    "roles": [
+      {
+        "id": "r1",
+        "contactId": "maya",
+        "role": "CHAMPION",
+        "validFrom": "2025-09-08",
+        "validTo": null
+      }
+    ],
+    "people": {
+      "titleChanges": [
+        {
+          "contactId": "maya",
+          "name": "Maya Ortiz",
+          "previousTitle": "Operations Lead",
+          "title": "VP Operations",
+          "changedOn": "2026-10-04"
+        }
+      ]
+    }
+  },
+  "expect": [
+    {
+      "dedupeKey": "champion_role_change:a1:maya:2026-10-04",
+      "severity": "WARN"
+    }
+  ]
+}

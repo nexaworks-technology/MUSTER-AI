@@ -199,6 +199,23 @@ export const PARAMS = {
     })
     .prefault({}),
   goal_stated: z.object({ windowDays: days.default(30) }).prefault({}),
+  // M9: people (D6: bounced / left stays with contact_bounced_or_left). `silentAfterDays` is the
+  // one definition in health/champion.ts (D-119); this rule only decides severity.
+  champion_silent: z
+    .object({ silentAfterDays: days.default(30), criticalAfterDays: days.default(60) })
+    .refine((p) => p.criticalAfterDays > p.silentAfterDays, {
+      message: "Critical must be later than the silent threshold",
+    })
+    .prefault({}),
+  champion_role_change: z.object({ windowDays: days.default(30) }).prefault({}),
+  new_decision_maker: z.object({ windowDays: days.default(60) }).prefault({}),
+  email_engagement_stops: z
+    .object({
+      baselineDays: days.default(90),
+      minMessages: z.number().int().min(2).max(100).default(4),
+      quietDays: days.default(21),
+    })
+    .prefault({}),
 } as const;
 
 export type RuleKey = keyof typeof PARAMS;
@@ -618,6 +635,53 @@ export const RULES: readonly RuleMeta[] = [
       "A verified GOAL extraction in the last 30 days, kept as a Goal with its quote. Tie the account's plan to it.",
     typicalLeadTime: "Whenever it is said: the best moment to align the success plan.",
     falseAlarmCauses: "An aspiration rather than a commitment, or a goal that belongs to another team.",
+  },
+  // ─── M9: people (spec §6D "People") ───
+  {
+    key: "champion_silent",
+    label: "Champion gone quiet",
+    category: "PEOPLE",
+    polarity: "RISK",
+    meaning: "The person recorded as champion has not been heard from for a month or more.",
+    howDetected:
+      "No inbound message from the champion and no product activity by them for 30 days or more (counted from the start of the role if never heard from); critical at 60. This is the same test the renewal confidence uses. A champion whose email bounced or who left is the bounced-or-left rule's, not this one's.",
+    typicalLeadTime: "30–60 days before usage or sentiment moves.",
+    falseAlarmCauses:
+      "A champion who works through a colleague, calls instead of writing, or is on leave.",
+  },
+  {
+    key: "champion_role_change",
+    label: "Champion's role changed",
+    category: "PEOPLE",
+    polarity: "RISK",
+    meaning: "The champion's job title changed.",
+    howDetected:
+      "The champion's recorded title changed in the last 30 days (the database stamps the date and keeps the previous title).",
+    typicalLeadTime: "Weeks: a new role often means new priorities.",
+    falseAlarmCauses:
+      "A promotion or a move inside the same company: the person is still there and may be a stronger champion. A title corrected after a typo is also a change.",
+  },
+  {
+    key: "new_decision_maker",
+    label: "New decision maker",
+    category: "PEOPLE",
+    polarity: "RISK",
+    meaning: "Someone new now holds the decision-maker or exec-sponsor role.",
+    howDetected:
+      "A person who started in the decision-maker or exec-sponsor role in the last 60 days, where an earlier holder of that role had already ended. A first entry with no predecessor is data entry, not a change.",
+    typicalLeadTime: "Weeks to a quarter before the renewal decision is revisited.",
+    falseAlarmCauses: "A role re-entered by hand with a new start date.",
+  },
+  {
+    key: "email_engagement_stops",
+    label: "Customer emails have stopped",
+    category: "CALLS_EMAIL",
+    polarity: "RISK",
+    meaning: "An account that wrote to us regularly has stopped writing.",
+    howDetected:
+      "At least 4 inbound emails in the 90 days before, and none in the last 21 days. Ticket traffic is not counted. Not wired to any play yet.",
+    typicalLeadTime: "Weeks.",
+    falseAlarmCauses: "Conversations moved to calls, chat or another channel we do not log.",
   },
 ];
 

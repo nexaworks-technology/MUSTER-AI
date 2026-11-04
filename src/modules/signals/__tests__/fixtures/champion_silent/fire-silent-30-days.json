@@ -1,0 +1,40 @@
+{
+  "name": "Champion last wrote 30 days ago: silent (warn)",
+  "bundle": {
+    "contacts": [
+      {
+        "id": "maya",
+        "name": "Maya Ortiz",
+        "status": "ACTIVE",
+        "statusDate": null
+      }
+    ],
+    "roles": [
+      {
+        "id": "r1",
+        "contactId": "maya",
+        "role": "CHAMPION",
+        "validFrom": "2025-09-08",
+        "validTo": null
+      }
+    ],
+    "messages": [
+      {
+        "id": "m1",
+        "conversationId": "cv",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-10-03",
+        "fromContactId": "maya",
+        "isBounce": false
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "champion_silent:a1:maya",
+      "severity": "WARN",
+      "title": "Champion Maya Ortiz silent for 30 days"
+    }
+  ]
+}

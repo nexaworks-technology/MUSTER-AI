@@ -1,0 +1,40 @@
+{
+  "name": "60 days of silence: critical",
+  "bundle": {
+    "contacts": [
+      {
+        "id": "maya",
+        "name": "Maya Ortiz",
+        "status": "ACTIVE",
+        "statusDate": null
+      }
+    ],
+    "roles": [
+      {
+        "id": "r1",
+        "contactId": "maya",
+        "role": "CHAMPION",
+        "validFrom": "2025-09-08",
+        "validTo": null
+      }
+    ],
+    "messages": [
+      {
+        "id": "m1",
+        "conversationId": "cv",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-09-03",
+        "fromContactId": "maya",
+        "isBounce": false
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "champion_silent:a1:maya",
+      "severity": "CRITICAL",
+      "title": "Champion Maya Ortiz silent for 60 days"
+    }
+  ]
+}

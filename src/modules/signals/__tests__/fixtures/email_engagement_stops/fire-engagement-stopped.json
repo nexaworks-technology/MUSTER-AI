@@ -1,0 +1,68 @@
+{
+  "name": "6 inbound emails in the 60 days before, none for 30 days (warn)",
+  "bundle": {
+    "messages": [
+      {
+        "id": "b0",
+        "conversationId": "cv",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-10-03",
+        "fromContactId": "maya",
+        "isBounce": false
+      },
+      {
+        "id": "b1",
+        "conversationId": "cv",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-09-25",
+        "fromContactId": "maya",
+        "isBounce": false
+      },
+      {
+        "id": "b2",
+        "conversationId": "cv",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-09-17",
+        "fromContactId": "maya",
+        "isBounce": false
+      },
+      {
+        "id": "b3",
+        "conversationId": "cv",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-09-09",
+        "fromContactId": "maya",
+        "isBounce": false
+      },
+      {
+        "id": "b4",
+        "conversationId": "cv",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-09-01",
+        "fromContactId": "maya",
+        "isBounce": false
+      },
+      {
+        "id": "b5",
+        "conversationId": "cv",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-08-24",
+        "fromContactId": "maya",
+        "isBounce": false
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "email_engagement_stops:a1",
+      "severity": "WARN",
+      "title": "Customer emails have stopped"
+    }
+  ]
+}

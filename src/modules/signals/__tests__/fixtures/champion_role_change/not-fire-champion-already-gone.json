@@ -1,0 +1,34 @@
+{
+  "name": "A bounced champion is covered by the bounced-or-left rule",
+  "bundle": {
+    "contacts": [
+      {
+        "id": "maya",
+        "name": "Maya Ortiz",
+        "status": "LEFT",
+        "statusDate": "2026-10-28"
+      }
+    ],
+    "roles": [
+      {
+        "id": "r1",
+        "contactId": "maya",
+        "role": "CHAMPION",
+        "validFrom": "2025-09-08",
+        "validTo": null
+      }
+    ],
+    "people": {
+      "titleChanges": [
+        {
+          "contactId": "maya",
+          "name": "Maya Ortiz",
+          "previousTitle": "Operations Lead",
+          "title": "VP Operations",
+          "changedOn": "2026-10-23"
+        }
+      ]
+    }
+  },
+  "expect": []
+}

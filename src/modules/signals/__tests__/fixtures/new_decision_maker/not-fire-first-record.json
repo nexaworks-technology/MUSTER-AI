@@ -1,0 +1,23 @@
+{
+  "name": "A first decision maker on record (no predecessor) is just data entry",
+  "bundle": {
+    "contacts": [
+      {
+        "id": "new",
+        "name": "Tom Reed",
+        "status": "ACTIVE",
+        "statusDate": null
+      }
+    ],
+    "roles": [
+      {
+        "id": "r2",
+        "contactId": "new",
+        "role": "DECISION_MAKER",
+        "validFrom": "2026-10-13",
+        "validTo": null
+      }
+    ]
+  },
+  "expect": []
+}

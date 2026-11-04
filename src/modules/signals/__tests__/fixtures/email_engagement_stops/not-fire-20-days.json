@@ -1,0 +1,53 @@
+{
+  "name": "Last inbound 20 days ago: still inside the quiet window",
+  "bundle": {
+    "messages": [
+      {
+        "id": "b0",
+        "conversationId": "cv",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-10-13",
+        "fromContactId": "maya",
+        "isBounce": false
+      },
+      {
+        "id": "b1",
+        "conversationId": "cv",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-10-05",
+        "fromContactId": "maya",
+        "isBounce": false
+      },
+      {
+        "id": "b2",
+        "conversationId": "cv",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-09-27",
+        "fromContactId": "maya",
+        "isBounce": false
+      },
+      {
+        "id": "b3",
+        "conversationId": "cv",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-09-19",
+        "fromContactId": "maya",
+        "isBounce": false
+      },
+      {
+        "id": "b4",
+        "conversationId": "cv",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-09-11",
+        "fromContactId": "maya",
+        "isBounce": false
+      }
+    ]
+  },
+  "expect": []
+}

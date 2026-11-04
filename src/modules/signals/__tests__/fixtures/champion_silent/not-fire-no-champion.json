@@ -1,0 +1,16 @@
+{
+  "name": "No champion on record: nothing is asserted (Rule 4)",
+  "bundle": {
+    "contacts": [
+      {
+        "id": "maya",
+        "name": "Maya Ortiz",
+        "status": "ACTIVE",
+        "statusDate": null
+      }
+    ],
+    "roles": [],
+    "messages": []
+  },
+  "expect": []
+}

@@ -1,0 +1,48 @@
+{
+  "name": "No email for 40 days but active in the product 5 days ago: heard from",
+  "bundle": {
+    "contacts": [
+      {
+        "id": "maya",
+        "name": "Maya Ortiz",
+        "status": "ACTIVE",
+        "statusDate": null
+      }
+    ],
+    "roles": [
+      {
+        "id": "r1",
+        "contactId": "maya",
+        "role": "CHAMPION",
+        "validFrom": "2025-09-08",
+        "validTo": null
+      }
+    ],
+    "messages": [
+      {
+        "id": "m1",
+        "conversationId": "cv",
+        "channel": "EMAIL",
+        "direction": "INBOUND",
+        "date": "2026-09-23",
+        "fromContactId": "maya",
+        "isBounce": false
+      }
+    ],
+    "userUsage": [
+      {
+        "externalUserId": "u1",
+        "contactId": "maya",
+        "name": "Maya",
+        "series": [
+          {
+            "fromDaysAgo": 5,
+            "toDaysAgo": 5,
+            "value": 4
+          }
+        ]
+      }
+    ]
+  },
+  "expect": []
+}

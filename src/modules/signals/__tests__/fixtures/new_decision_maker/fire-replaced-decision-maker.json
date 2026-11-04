@@ -1,0 +1,42 @@
+{
+  "name": "A new decision maker started 20 days ago, replacing one who left (info)",
+  "bundle": {
+    "contacts": [
+      {
+        "id": "old",
+        "name": "Priya Shah",
+        "status": "ACTIVE",
+        "statusDate": null
+      },
+      {
+        "id": "new",
+        "name": "Tom Reed",
+        "status": "ACTIVE",
+        "statusDate": null
+      }
+    ],
+    "roles": [
+      {
+        "id": "r1",
+        "contactId": "old",
+        "role": "DECISION_MAKER",
+        "validFrom": "2025-09-28",
+        "validTo": "2026-10-12"
+      },
+      {
+        "id": "r2",
+        "contactId": "new",
+        "role": "DECISION_MAKER",
+        "validFrom": "2026-10-13",
+        "validTo": null
+      }
+    ]
+  },
+  "expect": [
+    {
+      "dedupeKey": "new_decision_maker:a1:new",
+      "severity": "INFO",
+      "title": "New decision maker: Tom Reed"
+    }
+  ]
+}
