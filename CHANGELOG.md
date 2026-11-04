@@ -6,6 +6,21 @@ All notable user-facing changes. Format: [Keep a Changelog](https://keepachangel
 
 ### Added
 
+- Renewals: a radar of every renewal in the next year, lowest confidence first, with the reasons and the records behind
+  each figure; your own forecast category (Commit, Best case, At risk) sits beside the computed band and a
+  disagreement is flagged. Account 360 has Renewal and Expansion tabs; a past renewal shows what the forecast said.
+- Renewal brief: locked figures read from the records (health by part, open risks, goals, expansion chance), each
+  with its sources, and the Renewal Manager's plan and talk track, whose numbers are filled in by code. Its outreach
+  waits in Approvals; its next step becomes a task.
+- Revenue (needs revenue access): an ARR waterfall that reconciles to the contracts, money at risk, expected billing,
+  coverage and team load. Without access, money reads "Restricted" everywhere.
+- Expansion: accounts running out of seats or credits, a new team, fast growth or a stated seats goal, with an
+  estimate worked out from the account's own subscription and its method shown (no price on file means no number).
+  The Expansion Finder drafts a proof-led conversation to Approvals. Export to HubSpot or Salesforce goes through
+  write-back: off by default, approval first.
+- Outcomes: a flag later followed by a renewal, expansion, contraction or churn records it with the evidence, as
+  attributed value, not proven cause.
+
 - Onboarding: every new customer has a plan built from a template, with steps owned by us or the customer. A
   step is done only when a person marks it or the product itself shows it (with the usage days as proof).
   The Onboarding screen lists every account being onboarded, stalled first, with the likely blocker in plain

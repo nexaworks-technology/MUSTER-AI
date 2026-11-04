@@ -24,7 +24,7 @@ Scope discipline:
 - [x] M4: Agent Framework, Today & Approvals
 - [x] M5: Integrations Core
 - [x] M6: Onboarding & Adoption
-- [ ] M7: Renewals, Revenue & Expansion
+- [x] M7: Renewals, Revenue & Expansion (2026-11-05, see `docs/milestones/M7-LOG.md`; Q-69 to Q-72 answered by default)
 - [ ] M8: Plays Engine
 - [ ] M9: Conversations, Inbox, Promises & Sentiment
 - [ ] M10: Meetings, QBR, Success Plans & Portal
