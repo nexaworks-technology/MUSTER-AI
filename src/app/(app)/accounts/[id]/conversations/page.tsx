@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ExtractionLabels } from "@/components/app/extraction-labels";
 import { formatDateTime } from "@/lib/format";
 import { conversationPageFor, listConversations } from "@/modules/conversations/service";
 import { loadAccount } from "../data";
@@ -52,6 +53,7 @@ export default async function ConversationsPage({
                       {formatDateTime(m.sentAt, tz)}
                     </div>
                     <p className="whitespace-pre-wrap">{m.bodyText}</p>
+                    <ExtractionLabels labels={m.labels} />
                   </li>
                 ))}
                 {c.transcripts.map((t) => (
@@ -60,6 +62,7 @@ export default async function ConversationsPage({
                       Transcript · {formatDateTime(t.occurredAt, tz)}
                       {t.durationSec ? ` · ${Math.round(t.durationSec / 60)} min` : ""}
                     </div>
+                    <ExtractionLabels labels={t.labels} />
                     <pre
                       className="max-h-96 overflow-y-auto font-sans text-sm whitespace-pre-wrap"
                       tabIndex={0}

@@ -1,10 +1,12 @@
-import type { InboxMatchedBy, RecordSource } from "@prisma/client";
+import type { Extraction, InboxMatchedBy, InboxStatus, Prisma, RecordSource } from "@prisma/client";
 import { writeAudit } from "@/lib/audit";
 import { businessClock } from "@/lib/dates";
 import { listActiveWorkspaces } from "@/lib/db/workspace";
 import { requirePermission } from "@/lib/auth/permissions";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
-import type { Actor } from "@/modules/accounts/service";
+import { bookWhere, type Actor } from "@/modules/accounts/service";
+import { currentExtractions, labelOf, type DisplayLabel } from "@/modules/conversations/service";
+import { detectSensitive } from "@/modules/outbound/service";
 import { matchSender, senderAddress, senderDomain } from "./matching";
 
 /**
@@ -455,4 +457,252 @@ export async function syncAllInboxes(): Promise<
   for (const w of await listActiveWorkspaces())
     out[w.slug] = await syncInbox({ workspaceId: w.id }, { now: businessClock() });
   return out;
+}
+
+// ─── Read model for /inbox (M9 B1) ─────────────────────────────────────────────────────────
+
+export interface InboxRow {
+  id: string;
+  account: { id: string; name: string };
+  sourceType: "MESSAGE" | "TICKET";
+  sourceId: string;
+  status: InboxStatus;
+  matchedBy: InboxMatchedBy;
+  receivedAt: Date;
+  title: string;
+  snippet: string;
+  from: string;
+  /** Read from Extraction at display; never stored on the row (Rule 4). */
+  intent: string | null;
+  sentiment: { label: string; quote: string } | null;
+  labels: Array<DisplayLabel & { quote: string }>;
+  sensitive: { isSensitive: boolean; reasons: string[] };
+  theme: string | null;
+  relatedTickets: Array<{ id: string; subject: string }>;
+  hasDraft: boolean;
+  draftOutboundMessageId: string | null;
+}
+
+export const INBOX_PAGE = 20;
+const SNIPPET = 180;
+const snip = (s: string) => {
+  const t = s.replace(/\s+/g, " ").trim();
+  return t.length > SNIPPET ? `${t.slice(0, SNIPPET - 1)}…` : t;
+};
+const encodeCursor = (d: Date, id: string) => `${d.toISOString()}|${id}`;
+function decodeCursor(c: string): { at: Date; id: string } | null {
+  const [iso, id] = c.split("|");
+  const at = iso ? new Date(iso) : null;
+  return at && !Number.isNaN(+at) && id ? { at, id } : null;
+}
+
+/**
+ * The inbox page: triage rows (newest first, cursor-paged) joined with what their source records
+ * and verified extractions say, in a fixed number of reads whatever the page holds.
+ */
+export async function listInbox(
+  actor: Actor,
+  q: { cursor?: string; status?: "OPEN" | "ALL"; accountId?: string },
+  take = INBOX_PAGE,
+): Promise<{ items: InboxRow[]; nextCursor: string | null }> {
+  const grant = requirePermission(actor, "accounts:view");
+  const db = scopedDb(actor);
+  const cur = q.cursor ? decodeCursor(q.cursor) : null;
+  const where: Prisma.InboxItemWhereInput = {
+    account: bookWhere(actor, grant.scope),
+    ...(q.status === "ALL" ? {} : { status: { in: ["NEW", "DRAFTED"] } }),
+    ...(q.accountId ? { accountId: q.accountId } : {}),
+    ...(cur
+      ? { OR: [{ receivedAt: { lt: cur.at } }, { receivedAt: cur.at, id: { lt: cur.id } }] }
+      : {}),
+  };
+  const found = await db.inboxItem.findMany({
+    where,
+    orderBy: [{ receivedAt: "desc" }, { id: "desc" }],
+    take: take + 1,
+    include: { account: { select: { id: true, name: true } } },
+  });
+  const page = found.slice(0, take);
+  const nextCursor =
+    found.length > take ? encodeCursor(page[take - 1]!.receivedAt, page[take - 1]!.id) : null;
+  if (page.length === 0) return { items: [], nextCursor };
+
+  const accountIds = [...new Set(page.map((i) => i.accountId))];
+  const messageIds = page.filter((i) => i.sourceType === "MESSAGE").map((i) => i.sourceId);
+  const [messages, tickets] = await Promise.all([
+    db.message.findMany({
+      where: { id: { in: messageIds } },
+      select: {
+        id: true,
+        subject: true,
+        bodyText: true,
+        fromAddress: true,
+        fromContact: { select: { name: true } },
+      },
+    }),
+    // Every ticket of these accounts: the page's own, and the others a theme can link to.
+    db.ticket.findMany({
+      where: { accountId: { in: accountIds }, conversationId: { not: null } },
+      select: { id: true, accountId: true, subject: true, conversationId: true, openedAt: true },
+      orderBy: [{ openedAt: "desc" }, { id: "asc" }],
+      take: 500,
+    }),
+  ]);
+  const ticketMessages = await db.message.findMany({
+    where: { conversationId: { in: tickets.map((t) => t.conversationId!) }, direction: "INBOUND" },
+    select: {
+      id: true,
+      conversationId: true,
+      bodyText: true,
+      sentAt: true,
+      fromContact: { select: { name: true } },
+    },
+    orderBy: [{ sentAt: "desc" }, { id: "asc" }],
+  });
+  const latestInbound = new Map<string, (typeof ticketMessages)[number]>();
+  for (const m of ticketMessages)
+    if (!latestInbound.has(m.conversationId)) latestInbound.set(m.conversationId, m);
+  const readSources = [...messageIds, ...ticketMessages.map((m) => m.id)];
+  const read = await currentExtractions(db, {
+    accountIds,
+    sourceType: "MESSAGE",
+    sourceIds: readSources,
+  });
+  const bySource = new Map<string, Extraction[]>();
+  for (const r of read) bySource.set(r.sourceId, [...(bySource.get(r.sourceId) ?? []), r]);
+  const themeOf = (rows: Extraction[]) => {
+    const t = rows.find((r) => r.kind === "COMPLAINT" || r.kind === "THEME")?.payload as
+      { theme?: string } | undefined;
+    return t?.theme && t.theme !== "other" ? t.theme : null;
+  };
+  // Ticket → its theme, from the extractions on any of its customer messages.
+  const ticketTheme = new Map<string, string>();
+  for (const t of tickets) {
+    const msgIds = ticketMessages
+      .filter((m) => m.conversationId === t.conversationId)
+      .map((m) => m.id);
+    const theme = themeOf(msgIds.flatMap((id) => bySource.get(id) ?? []));
+    if (theme) ticketTheme.set(t.id, theme);
+  }
+  const ticketById = new Map(tickets.map((t) => [t.id, t]));
+  const messageById = new Map(messages.map((m) => [m.id, m]));
+
+  const items: InboxRow[] = page.map((i) => {
+    let title = "";
+    let body = "";
+    let from = "Unknown sender";
+    let sourceMessageIds: string[] = [];
+    if (i.sourceType === "MESSAGE") {
+      const m = messageById.get(i.sourceId);
+      title = m?.subject ?? "(no subject)";
+      body = m?.bodyText ?? "";
+      from = m?.fromContact?.name ?? m?.fromAddress ?? from;
+      sourceMessageIds = [i.sourceId];
+    } else {
+      const t = ticketById.get(i.sourceId);
+      const last = t ? latestInbound.get(t.conversationId!) : undefined;
+      title = t?.subject ?? "(ticket)";
+      body = last?.bodyText ?? "";
+      from = last?.fromContact?.name ?? "Ticket requester";
+      sourceMessageIds = t
+        ? ticketMessages.filter((m) => m.conversationId === t.conversationId).map((m) => m.id)
+        : [];
+    }
+    const mine = sourceMessageIds.flatMap((id) => bySource.get(id) ?? []);
+    const sentiment = mine.find((r) => r.kind === "SENTIMENT");
+    const intent = mine.find((r) => r.kind === "INTENT");
+    const theme = themeOf(mine);
+    const sens = detectSensitive({
+      texts: [title, body],
+      extractions: mine.map((r) => ({ kind: r.kind, payload: r.payload })),
+    });
+    return {
+      id: i.id,
+      account: i.account,
+      sourceType: i.sourceType,
+      sourceId: i.sourceId,
+      status: i.status,
+      matchedBy: i.matchedBy,
+      receivedAt: i.receivedAt,
+      title,
+      snippet: snip(body),
+      from,
+      intent: (intent?.payload as { intent?: string } | undefined)?.intent ?? null,
+      sentiment: sentiment
+        ? {
+            label: String((sentiment.payload as { label?: string }).label ?? ""),
+            quote: sentiment.quote,
+          }
+        : null,
+      labels: mine
+        .filter((r) => r.kind !== "SENTIMENT" && r.kind !== "INTENT")
+        .map((r) => ({ ...labelOf(r.kind, r.payload as Record<string, unknown>), quote: r.quote })),
+      sensitive: { isSensitive: sens.isSensitive, reasons: sens.reasons },
+      theme,
+      relatedTickets: theme
+        ? tickets
+            .filter(
+              (t) =>
+                t.accountId === i.accountId &&
+                t.id !== i.sourceId &&
+                ticketTheme.get(t.id) === theme,
+            )
+            .map((t) => ({ id: t.id, subject: t.subject }))
+        : [],
+      hasDraft: i.draftOutboundMessageId !== null,
+      draftOutboundMessageId: i.draftOutboundMessageId,
+    };
+  });
+  return { items, nextCursor };
+}
+
+export interface UnmatchedRow {
+  id: string;
+  fromAddress: string;
+  subject: string | null;
+  snippet: string;
+  receivedAt: Date;
+  reason: string;
+  candidates: Array<{ id: string; name: string }>;
+}
+
+/** Mail waiting for a person to place it (newest first). Needs `accounts:edit`, like assigning. */
+export async function listUnmatched(actor: Actor): Promise<UnmatchedRow[]> {
+  requirePermission(actor, "accounts:edit");
+  const db = scopedDb(actor);
+  const rows = await db.unmatchedInbound.findMany({
+    where: { status: "PENDING" },
+    orderBy: [{ receivedAt: "desc" }, { id: "desc" }],
+    take: 100,
+  });
+  const ids = [...new Set(rows.flatMap((r) => r.candidateAccountIds))];
+  const accounts = await db.account.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, name: true },
+  });
+  const name = new Map(accounts.map((a) => [a.id, a.name]));
+  return rows.map((r) => ({
+    id: r.id,
+    fromAddress: r.fromAddress,
+    subject: r.subject,
+    snippet: snip(r.bodyText ?? ""),
+    receivedAt: r.receivedAt,
+    reason: r.reason,
+    candidates: r.candidateAccountIds.flatMap((id) =>
+      name.has(id) ? [{ id, name: name.get(id)! }] : [],
+    ),
+  }));
+}
+
+/** Accounts a person may put unmatched mail on (their book, not archived), by name. */
+export async function listAssignableAccounts(
+  actor: Actor,
+): Promise<Array<{ id: string; name: string }>> {
+  const grant = requirePermission(actor, "accounts:edit");
+  return scopedDb(actor).account.findMany({
+    where: { AND: [bookWhere(actor, grant.scope), { archivedAt: null }] },
+    select: { id: true, name: true },
+    orderBy: [{ name: "asc" }, { id: "asc" }],
+    take: 300,
+  });
 }

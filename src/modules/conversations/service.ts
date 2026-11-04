@@ -1,6 +1,8 @@
 import { scopedDb, type ScopedDb } from "@/lib/db/scoped";
 import type { TimelineItem } from "@/modules/accounts/schemas";
 import { AccountNotFoundError, getAccount, type Actor } from "@/modules/accounts/service";
+import { currentExtractions } from "./current";
+import { labelOf, type DisplayLabel } from "./labels";
 
 /**
  * Conversations for Account 360: email/chat threads and calls (tickets have their own tab).
@@ -71,13 +73,25 @@ export async function listConversations(actor: Actor, accountId: string, cursor 
       },
     },
   });
+  const page = rows.slice(0, CONVERSATION_PAGE);
+  // What the Watcher read, at display (Rule 4): the latest prompt version's labels, with quotes.
+  const sourceIds = page.flatMap((c) => [
+    ...c.messages.map((m) => m.id),
+    ...c.transcripts.map((t) => t.id),
+  ]);
+  const read = await currentExtractions(scopedDb(actor), { accountIds: [accountId], sourceIds });
+  const labelsFor = (sourceId: string): Array<DisplayLabel & { quote: string }> =>
+    read
+      .filter((r) => r.sourceId === sourceId)
+      .sort((a, b) => a.chunkIndex - b.chunkIndex || a.itemIndex - b.itemIndex)
+      .map((r) => ({ ...labelOf(r.kind, r.payload as Record<string, unknown>), quote: r.quote }));
   return {
-    conversations: rows.slice(0, CONVERSATION_PAGE).map((c) => ({
+    conversations: page.map((c) => ({
       id: c.id,
       channel: c.channel,
       subject: c.subject,
       lastMessageAt: c.lastMessageAt,
-      transcripts: c.transcripts,
+      transcripts: c.transcripts.map((t) => ({ ...t, labels: labelsFor(t.id) })),
       messages: c.messages.map((m) => ({
         id: m.id,
         direction: m.direction,
@@ -85,6 +99,7 @@ export async function listConversations(actor: Actor, accountId: string, cursor 
         subject: m.subject,
         bodyText: m.bodyText,
         from: m.fromContact?.name ?? m.fromMember?.user.name ?? m.fromAddress ?? "Unknown sender",
+        labels: labelsFor(m.id),
       })),
     })),
     nextCursor: rows.length > CONVERSATION_PAGE ? cursor + CONVERSATION_PAGE : null,
@@ -169,5 +184,6 @@ export {
   type WatchedSource,
 } from "./extract";
 export { compareVersions, currentExtractions } from "./current";
+export { labelOf, SENSITIVE_LABEL_KINDS, type DisplayLabel, type LabelTone } from "./labels";
 export { promiseParty, NOT_CLEAR, type PromisePartyResult } from "./promise-party";
 export { DEFAULT_THEMES, groupableTheme, themeSettingSchema } from "./themes";

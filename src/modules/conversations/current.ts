@@ -43,6 +43,7 @@ export async function currentExtractions(
     kinds?: ExtractionKind[];
     accountIds?: string[];
     sourceType?: ExtractionSourceType;
+    sourceIds?: string[];
     since?: Date;
   } = {},
 ): Promise<Extraction[]> {
@@ -51,6 +52,7 @@ export async function currentExtractions(
       ...(where.kinds ? { kind: { in: where.kinds } } : {}),
       ...(where.accountIds ? { accountId: { in: where.accountIds } } : {}),
       ...(where.sourceType ? { sourceType: where.sourceType } : {}),
+      ...(where.sourceIds ? { sourceId: { in: where.sourceIds } } : {}),
       ...(where.since ? { createdAt: { gte: where.since } } : {}),
     },
     orderBy: [{ createdAt: "asc" }, { id: "asc" }],

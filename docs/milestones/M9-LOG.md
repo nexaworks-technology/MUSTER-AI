@@ -99,3 +99,9 @@ Session B: every screen (`/inbox`, Unmatched queue UI, `/promises`, Account 360 
 Code with them: `promise_late` removed from `DORMANT_TRIGGERS`; Promise Late seeded live (still DRAFT until a human publishes); Engagement Loss relabelled; `seedPlaysForWorkspace` relabels a still-DRAFT, version-1 play of those two keys in existing workspaces (a workspace's edits are never overwritten). New test: `promise-late-play.int.test.ts` (acceptance #18: both plays pass the safety check; Promise Late publishes and enters on a `promise_late` signal).
 
 Question numbers: M9's Session A questions (Q-66–Q-70) collided with M6's Q-66/Q-68 and are renumbered **Q-73–Q-77** in `QUESTIONS.md`, `DECISIONS.md` and this log (Q-73 seed sentiment assertion, Q-74 Promise Late wake, Q-75 failed Watcher runs final, Q-76 signals category filter, Q-77 `inputsHash` unstable across seeds).
+
+## Session B — red-first evidence (written and run BEFORE the implementation)
+
+| Slice | Test files written first | Red result |
+|---|---|---|
+| B1 | `labels.test.ts`, `inbox/__tests__/list.int.test.ts` (8), `conversation-labels.int.test.ts` (4) | `Cannot find module '../labels'`; `listInbox is not a function`; labels `undefined` on every message |
