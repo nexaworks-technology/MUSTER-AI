@@ -1,0 +1,148 @@
+=== portfolio-health-trend (RED: tests written before the computation exists) ===
+$ pnpm test src/modules/reports/__tests__/portfolio-health-trend.test.ts
+$ vitest run src/modules/reports/__tests__/portfolio-health-trend.test.ts
+ RUN  v5.0.5 /Users/sahil/customer sucesss platform
+ ❯ |app| src/modules/reports/__tests__/portfolio-health-trend.test.ts (0 test)
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  |app| src/modules/reports/__tests__/portfolio-health-trend.test.ts [ src/modules/reports/__tests__/portfolio-health-trend.test.ts ]
+Error: Cannot find module '../portfolio-health-trend' imported from /Users/sahil/customer sucesss platform/src/modules/reports/__tests__/portfolio-health-trend.test.ts
+ ❯ src/modules/reports/__tests__/portfolio-health-trend.test.ts:2:1
+      1| import { describe, expect, it } from "vitest";
+      2| import { portfolioHealthTrend, type HealthTrendInput } from "../portfo…
+       | ^
+      3| import { everyFigureIsProven, fig } from "./helpers";
+      4|
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  21:27:00
+   Duration  618ms (setup 45%, worker 28%, transform 26%, environment 1%)
+[ELIFECYCLE] Test failed. See above for more details.
+
+=== adoption (RED: tests written before the computation exists) ===
+$ pnpm test src/modules/reports/__tests__/adoption.test.ts
+$ vitest run src/modules/reports/__tests__/adoption.test.ts
+ RUN  v5.0.5 /Users/sahil/customer sucesss platform
+ ❯ |app| src/modules/reports/__tests__/adoption.test.ts (0 test)
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  |app| src/modules/reports/__tests__/adoption.test.ts [ src/modules/reports/__tests__/adoption.test.ts ]
+Error: Cannot find module '../adoption' imported from /Users/sahil/customer sucesss platform/src/modules/reports/__tests__/adoption.test.ts
+ ❯ src/modules/reports/__tests__/adoption.test.ts:3:1
+      1| import { describe, expect, it } from "vitest";
+      2| import type { AdoptionInput } from "@/modules/usage/service";
+      3| import { adoptionReport } from "../adoption";
+       | ^
+      4| import { everyFigureIsProven, fig } from "./helpers";
+      5|
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  21:27:01
+   Duration  565ms (setup 48%, worker 28%, transform 23%, environment 1%)
+[ELIFECYCLE] Test failed. See above for more details.
+
+=== onboarding-ttv (RED: tests written before the computation exists) ===
+$ pnpm test src/modules/reports/__tests__/onboarding-ttv.test.ts
+$ vitest run src/modules/reports/__tests__/onboarding-ttv.test.ts
+ RUN  v5.0.5 /Users/sahil/customer sucesss platform
+ ❯ |app| src/modules/reports/__tests__/onboarding-ttv.test.ts (0 test)
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  |app| src/modules/reports/__tests__/onboarding-ttv.test.ts [ src/modules/reports/__tests__/onboarding-ttv.test.ts ]
+Error: Cannot find module '../onboarding-ttv' imported from /Users/sahil/customer sucesss platform/src/modules/reports/__tests__/onboarding-ttv.test.ts
+ ❯ src/modules/reports/__tests__/onboarding-ttv.test.ts:2:1
+      1| import { describe, expect, it } from "vitest";
+      2| import { onboardingTtvReport, type TtvReportInput } from "../onboardin…
+       | ^
+      3| import { everyFigureIsProven, fig } from "./helpers";
+      4|
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  21:27:02
+   Duration  568ms (setup 48%, worker 28%, transform 23%, environment 1%)
+[ELIFECYCLE] Test failed. See above for more details.
+
+=== renewal-outcomes (RED: tests written before the computation exists) ===
+$ pnpm test src/modules/reports/__tests__/renewal-outcomes.test.ts
+$ vitest run src/modules/reports/__tests__/renewal-outcomes.test.ts
+ RUN  v5.0.5 /Users/sahil/customer sucesss platform
+ ❯ |app| src/modules/reports/__tests__/renewal-outcomes.test.ts (0 test)
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  |app| src/modules/reports/__tests__/renewal-outcomes.test.ts [ src/modules/reports/__tests__/renewal-outcomes.test.ts ]
+Error: Cannot find module '../renewal-outcomes' imported from /Users/sahil/customer sucesss platform/src/modules/reports/__tests__/renewal-outcomes.test.ts
+ ❯ src/modules/reports/__tests__/renewal-outcomes.test.ts:2:1
+      1| import { describe, expect, it } from "vitest";
+      2| import { renewalOutcomesReport, type RenewalOutcomesInput } from "../r…
+       | ^
+      3| import { everyFigureIsProven, fig } from "./helpers";
+      4|
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  21:27:03
+   Duration  576ms (setup 48%, worker 28%, transform 23%, environment 1%)
+[ELIFECYCLE] Test failed. See above for more details.
+
+=== expansion-found (RED: tests written before the computation exists) ===
+$ pnpm test src/modules/reports/__tests__/expansion-found.test.ts
+$ vitest run src/modules/reports/__tests__/expansion-found.test.ts
+ RUN  v5.0.5 /Users/sahil/customer sucesss platform
+ ❯ |app| src/modules/reports/__tests__/expansion-found.test.ts (0 test)
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  |app| src/modules/reports/__tests__/expansion-found.test.ts [ src/modules/reports/__tests__/expansion-found.test.ts ]
+Error: Cannot find module '../expansion-found' imported from /Users/sahil/customer sucesss platform/src/modules/reports/__tests__/expansion-found.test.ts
+ ❯ src/modules/reports/__tests__/expansion-found.test.ts:2:1
+      1| import { describe, expect, it } from "vitest";
+      2| import { expansionFoundReport, type ExpansionInput } from "../expansio…
+       | ^
+      3| import { everyFigureIsProven, fig } from "./helpers";
+      4|
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  21:27:04
+   Duration  607ms (setup 47%, worker 27%, transform 26%, environment 1%)
+[ELIFECYCLE] Test failed. See above for more details.
+
+=== support-risk (RED: tests written before the computation exists) ===
+$ pnpm test src/modules/reports/__tests__/support-risk.test.ts
+$ vitest run src/modules/reports/__tests__/support-risk.test.ts
+ RUN  v5.0.5 /Users/sahil/customer sucesss platform
+ ❯ |app| src/modules/reports/__tests__/support-risk.test.ts (0 test)
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  |app| src/modules/reports/__tests__/support-risk.test.ts [ src/modules/reports/__tests__/support-risk.test.ts ]
+Error: Cannot find module '../support-risk' imported from /Users/sahil/customer sucesss platform/src/modules/reports/__tests__/support-risk.test.ts
+ ❯ src/modules/reports/__tests__/support-risk.test.ts:2:1
+      1| import { describe, expect, it } from "vitest";
+      2| import { supportRiskReport, type SupportRiskInput } from "../support-r…
+       | ^
+      3| import { everyFigureIsProven, fig } from "./helpers";
+      4|
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  21:27:05
+   Duration  559ms (setup 46%, worker 28%, transform 24%, environment 1%)
+[ELIFECYCLE] Test failed. See above for more details.
+
+=== team-activity (RED: tests written before the computation exists) ===
+$ pnpm test src/modules/reports/__tests__/team-activity.test.ts
+$ vitest run src/modules/reports/__tests__/team-activity.test.ts
+ RUN  v5.0.5 /Users/sahil/customer sucesss platform
+ ❯ |app| src/modules/reports/__tests__/team-activity.test.ts (0 test)
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  |app| src/modules/reports/__tests__/team-activity.test.ts [ src/modules/reports/__tests__/team-activity.test.ts ]
+Error: Cannot find module '../team-activity' imported from /Users/sahil/customer sucesss platform/src/modules/reports/__tests__/team-activity.test.ts
+ ❯ src/modules/reports/__tests__/team-activity.test.ts:2:1
+      1| import { describe, expect, it } from "vitest";
+      2| import { teamActivityReport, type TeamActivityInput } from "../team-ac…
+       | ^
+      3| import { everyFigureIsProven, fig } from "./helpers";
+      4|
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  21:27:05
+   Duration  562ms (setup 46%, worker 31%, transform 22%, environment 1%)
+[ELIFECYCLE] Test failed. See above for more details.
+
