@@ -230,6 +230,15 @@ describe("evaluateLongCheckpoints", () => {
     expect((await read(outcome.id)).isTrueAlarm).toBeNull();
   });
 
+  it("a scoped run (demo/backfill) evaluates only the named accounts", async () => {
+    const inScope = await flagged(100);
+    const outOfScope = await flagged(100);
+    await evaluateLongCheckpoints(ctx, () => NOW, { accountIds: [inScope.account.id] });
+    expect((await read(inScope.outcome.id)).d90Outcome).not.toBeNull();
+    expect((await read(outOfScope.outcome.id)).d30Outcome).toBeNull();
+    expect((await read(outOfScope.outcome.id)).d90Outcome).toBeNull();
+  });
+
   it("never evaluates another workspace's records", async () => {
     const { actor: other } = await createTestAdmin("OutLongB");
     const odb = scopedDb(other);

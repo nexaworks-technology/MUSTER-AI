@@ -167,6 +167,8 @@ async function main() {
   );
 
   // 4. The checkpoints, by the real code, a grace week after each checkpoint date.
+  // Scoped to Harborwood: the demo clock must never freeze any other account's checkpoints.
+  const scope = { accountIds: [account.id] };
   const flaggedOn = localDate(record.flaggedAt, ws.timezone);
   for (const [label, day] of [
     ["day 7", addDays(flaggedOn, 7 + 1)],
@@ -174,9 +176,9 @@ async function main() {
     ["day 90", addDays(flaggedOn, 90 + 7)],
   ] as const) {
     const clock = () => at(day);
-    await evaluateSevenDayCheckpoints(ctx, clock);
-    await evaluateRevenueCheckpoints(ctx, clock);
-    await evaluateLongCheckpoints({ ...ctx, timezone: ws.timezone }, clock);
+    await evaluateSevenDayCheckpoints(ctx, clock, scope);
+    await evaluateRevenueCheckpoints(ctx, clock, scope);
+    await evaluateLongCheckpoints({ ...ctx, timezone: ws.timezone }, clock, scope);
     say(day, `checkpoint pass for ${label} done`);
   }
   const final = await db.outcomeRecord.findUniqueOrThrow({ where: { id: record.id } });

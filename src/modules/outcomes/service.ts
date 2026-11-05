@@ -83,6 +83,8 @@ export interface Checkpoint {
 export async function evaluateSevenDayCheckpoints(
   ctx: TenantContext,
   clock: Clock = businessClock,
+  /** Demo/backfill scope (M11): only these accounts; the job always runs workspace-wide. */
+  only?: { accountIds: string[] },
 ) {
   const db = scopedDb(ctx);
   const now = clock();
@@ -90,6 +92,7 @@ export async function evaluateSevenDayCheckpoints(
     where: {
       d7Outcome: { equals: Prisma.DbNull },
       flaggedAt: { lte: new Date(+now - 7 * DAY) },
+      ...(only ? { accountId: { in: only.accountIds } } : {}),
     },
   });
   const counts: Record<string, number> = {};
@@ -212,7 +215,12 @@ const canonical = (v: unknown): string =>
  * open (a correction replaces an earlier outcome) and for a week after; a record whose window holds
  * nothing keeps no status. Idempotent: an unchanged result writes nothing.
  */
-export async function evaluateRevenueCheckpoints(ctx: TenantContext, clock: Clock = businessClock) {
+export async function evaluateRevenueCheckpoints(
+  ctx: TenantContext,
+  clock: Clock = businessClock,
+  /** Demo/backfill scope (M11): only these accounts; the job always runs workspace-wide. */
+  only?: { accountIds: string[] },
+) {
   const db = scopedDb(ctx);
   const now = clock();
   const records = await db.outcomeRecord.findMany({
@@ -221,6 +229,7 @@ export async function evaluateRevenueCheckpoints(ctx: TenantContext, clock: Cloc
         lte: now,
         gt: new Date(+now - (REVENUE_WINDOW_DAYS + GRACE_DAYS) * DAY),
       },
+      ...(only ? { accountId: { in: only.accountIds } } : {}),
     },
   });
   if (records.length === 0) return { evaluated: 0, changed: 0 };

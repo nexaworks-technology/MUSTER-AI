@@ -37,6 +37,8 @@ const SNAPSHOT_LOOKBACK_DAYS = 120;
 export async function evaluateLongCheckpoints(
   ctx: TenantContext & { timezone: string },
   clock: Clock = businessClock,
+  /** Demo/backfill scope (M11): only these accounts; the job always runs workspace-wide. */
+  only?: { accountIds: string[] },
 ) {
   const db = scopedDb(ctx);
   const tz = ctx.timezone;
@@ -46,6 +48,7 @@ export async function evaluateLongCheckpoints(
   const candidates = await db.outcomeRecord.findMany({
     where: {
       flaggedAt: { lte: new Date(+now - minAge * DAY) },
+      ...(only ? { accountId: { in: only.accountIds } } : {}),
       OR: [{ d30Outcome: { equals: Prisma.DbNull } }, { d90Outcome: { equals: Prisma.DbNull } }],
     },
     orderBy: { flaggedAt: "asc" },
