@@ -1,0 +1,61 @@
+# A7 RED run (test fixture invalid enum before correction: setup fails, 17 tests skipped). rbac-matrix.test.ts was green on first run (83 passed; doc and code agree).
+ RUN  v5.0.5 /Users/sahil/customer sucesss platform
+stdout | src/lib/auth/__tests__/revenue-redaction.int.test.ts
+prisma:error 
+Invalid `prisma.$executeRaw()` invocation:
+{
+  query: "SELECT set_config('app.workspace_id', $1, true)",
+  parameters: {
+    values: "[\"cmw40zz3c0000itcnelczvzgi\"]",
+    __prismaRawParameters__: true
+  }
+}
+Invalid value for argument `interval`. Expected BillingInterval.
+prisma:error 
+Invalid `db.subscription.create()` invocation in
+/Users/sahil/customer sucesss platform/src/lib/auth/__tests__/revenue-redaction.int.test.ts:135:37
+  132     currency: "USD",
+  133   },
+  134 });
+→ 135 const sub = await db.subscription.create({
+        data: {
+          accountId: "cmw40zz3q000kitcn6dgttdz7",
+          contractId: "cmw40zz3t000mitcnso9a7cdv",
+          plan: "Pro",
+          interval: "YEARLY",
+                    ~~~~~~~~
+          amountMinor: 4321987n,
+          currency: "USD",
+          workspaceId: "cmw40zz3c0000itcnelczvzgi"
+        }
+      })
+Invalid value for argument `interval`. Expected BillingInterval.
+ ❯ |app| src/lib/auth/__tests__/revenue-redaction.int.test.ts (17 tests | 17 skipped) 31ms
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  |app| src/lib/auth/__tests__/revenue-redaction.int.test.ts [ src/lib/auth/__tests__/revenue-redaction.int.test.ts ]
+PrismaClientValidationError: 
+Invalid `db.subscription.create()` invocation in
+/Users/sahil/customer sucesss platform/src/lib/auth/__tests__/revenue-redaction.int.test.ts:135:37
+  132     currency: "USD",
+  133   },
+  134 });
+→ 135 const sub = await db.subscription.create({
+        data: {
+          accountId: "cmw40zz3q000kitcn6dgttdz7",
+          contractId: "cmw40zz3t000mitcnso9a7cdv",
+          plan: "Pro",
+          interval: "YEARLY",
+                    ~~~~~~~~
+          amountMinor: 4321987n,
+          currency: "USD",
+          workspaceId: "cmw40zz3c0000itcnelczvzgi"
+        }
+      })
+Invalid value for argument `interval`. Expected BillingInterval.
+ ❯ Nn node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.9.3__typescript@5.9.3/node_modules/@prisma/client/src/runtime/core/errorRendering/throwValidationException.ts:45:9
+ ❯ throwValidationException node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.9.3__typescript@5.9.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:202:7
+ ❯ ei.handleAndLogRequestError node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.9.3__typescript@5.9.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12
+ ❯ ei.request node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.9.3__typescript@5.9.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+ Test Files  1 failed (1)
+      Tests  17 skipped (17)
