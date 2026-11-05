@@ -2,14 +2,21 @@ import crypto from "node:crypto";
 import { z } from "zod";
 import { writeAudit } from "@/lib/audit";
 import { businessClock, type Clock } from "@/lib/dates";
-import { rawDb } from "@/lib/db/raw";
+import { withSurveyTokenSession } from "@/lib/db/token-access";
 import { scopedDb } from "@/lib/db/scoped";
 import type { Actor } from "@/modules/accounts/service";
 import { requestApproval } from "@/modules/approvals/service";
 import { computeSurveyMetrics, type SurveyMetricsResult } from "./metrics";
 
-const SECRET =
-  process.env.APP_SECRET ?? process.env.NEXTAUTH_SECRET ?? "$REMOVED_SURVEY_FALLBACK";
+/**
+ * The survey-link signing secret, from env only (Rule 9). The hard-coded fallback was removed in
+ * M11 housekeeping: a known default would let anyone forge survey responses.
+ */
+function surveySecret(): string {
+  const secret = process.env.APP_SECRET ?? process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET;
+  if (!secret) throw new Error("Survey links need APP_SECRET, NEXTAUTH_SECRET or AUTH_SECRET");
+  return secret;
+}
 
 export interface SurveyTokenPayload {
   workspaceId: string;
@@ -23,7 +30,7 @@ export function createSurveyToken(payload: Omit<SurveyTokenPayload, "issuedAt">)
   const full: SurveyTokenPayload = { ...payload, issuedAt: Date.now() };
   const json = JSON.stringify(full);
   const data = Buffer.from(json).toString("base64url");
-  const sig = crypto.createHmac("sha256", SECRET).update(data).digest("base64url");
+  const sig = crypto.createHmac("sha256", surveySecret()).update(data).digest("base64url");
   return `${data}.${sig}`;
 }
 
@@ -31,7 +38,7 @@ export function verifySurveyToken(token: string): SurveyTokenPayload {
   const parts = token.split(".");
   if (parts.length !== 2) throw new Error("Invalid survey token format.");
   const [data, sig] = parts;
-  const expectedSig = crypto.createHmac("sha256", SECRET).update(data!).digest("base64url");
+  const expectedSig = crypto.createHmac("sha256", surveySecret()).update(data!).digest("base64url");
   if (sig !== expectedSig) throw new Error("Invalid survey token signature.");
   try {
     const json = Buffer.from(data!, "base64url").toString("utf8");
@@ -183,14 +190,8 @@ export async function submitSurveyResponse(raw: SubmitResponseInput, opts: { clo
   const payload = verifySurveyToken(input.token);
   const now = (opts.clock ?? businessClock)();
 
-  return rawDb.$transaction(async (tx) => {
-    // Set RLS tenant and token variables
-    await tx.$executeRawUnsafe(
-      `SELECT set_config('app.workspace_id', $1, true), set_config('app.survey_token', $2, true)`,
-      payload.workspaceId,
-      input.token,
-    );
-
+  // RLS tenant and survey-token settings are set by the helper (src/lib/db/token-access.ts).
+  return withSurveyTokenSession(payload.workspaceId, input.token, async (tx) => {
     // Validate score bounds against survey type
     const survey = await tx.survey.findUniqueOrThrow({
       where: { id: payload.surveyId },

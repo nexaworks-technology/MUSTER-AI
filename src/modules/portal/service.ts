@@ -1,5 +1,5 @@
 import { randomBytes, createHash } from "node:crypto";
-import { rawDb } from "@/lib/db/raw";
+import { findPortalAccessByTokenHash } from "@/lib/db/token-access";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import type { PortalAccess, SuccessPlan, Document, Survey, Goal, GoalStatus } from "@prisma/client";
 import { writeAudit } from "@/lib/audit";
@@ -114,10 +114,7 @@ export async function verifyPortalAccess(rawToken: string): Promise<PortalSessio
 
   const tokenHash = hashToken(rawToken);
 
-  const [, access] = await rawDb.$transaction([
-    rawDb.$executeRaw`SELECT set_config('app.portal_token_hash', ${tokenHash}, true)`,
-    rawDb.portalAccess.findFirst({ where: { tokenHash } }),
-  ]);
+  const access = await findPortalAccessByTokenHash(tokenHash);
 
   if (!access) {
     throw new PortalAuthError("Invalid portal token.");
@@ -132,13 +129,10 @@ export async function verifyPortalAccess(rawToken: string): Promise<PortalSessio
   }
 
   // Update lastUsedAt timestamp under workspace RLS
-  await rawDb.$transaction([
-    rawDb.$executeRaw`SELECT set_config('app.workspace_id', ${access.workspaceId}, true)`,
-    rawDb.portalAccess.update({
-      where: { id: access.id },
-      data: { lastUsedAt: new Date() },
-    }),
-  ]);
+  await scopedDb({ workspaceId: access.workspaceId }).portalAccess.update({
+    where: { id: access.id },
+    data: { lastUsedAt: new Date() },
+  });
 
   return {
     workspaceId: access.workspaceId,
