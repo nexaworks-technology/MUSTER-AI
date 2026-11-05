@@ -1,0 +1,4 @@
+     × flags a hard-coded secret fallback after ?? 4ms
+     × does not flag a URL whose password is a template interpolation 1ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  2 failed | 2 passed (4)

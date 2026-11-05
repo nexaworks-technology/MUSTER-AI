@@ -31,7 +31,14 @@ const RULES: ReadonlyArray<{ rule: string; pattern: RegExp }> = [
   },
   {
     rule: "url-credentials",
-    pattern: /[a-z][a-z0-9+.-]*:\/\/[^\s:/@]+:[^\s@/]{6,}@(?!localhost|127\.0\.0\.1)/i,
+    // A template interpolation (`${APP_PASS}@`) is code, not a credential (M12 A2).
+    pattern: /[a-z][a-z0-9+.-]*:\/\/[^\s:/@]+:(?!\$\{)[^\s@/]{6,}@(?!localhost|127\.0\.0\.1)/i,
+  },
+  // M12 A2: a hard-coded fallback after `??` to a quoted literal naming a secret (the shape of the removed M10 survey
+  // default). A `$`-placeholder or another env var is not a finding.
+  {
+    rule: "secret-fallback-default",
+    pattern: /\?\?\s*["'\x60](?!\$)[^"'\x60\n]*secret[^"'\x60\n]*["'\x60]/i,
   },
 ];
 
