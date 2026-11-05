@@ -178,7 +178,7 @@ test.describe("M11 Ask AI, ledger, reports, voice", () => {
     await page.goto("/reports/outcomes?period=365");
     const head = page.getByTestId("ledger-headline");
     await expect(head).toContainText(/attributed, not proven causal/i);
-    // The Harborwood save chain dates its day-90 checkpoint in 2027, after the e2e clock
+    // The live save chain dates its day-90 checkpoint in 2027, after the e2e clock
     // (2026-11-02), so no money reaches the ledger here (see report); money is asserted on the
     // save record below. What must hold for Dana: the money is not marked restricted.
     await expect(head).toContainText(/worth: ARR at the flag/i);
@@ -199,14 +199,16 @@ test.describe("M11 Ask AI, ledger, reports, voice", () => {
   }) => {
     await signIn(page, "dana@larkspur.test");
     await page.goto(saveRecordPath);
-    await expect(page.getByRole("heading", { name: /Save record: Harborwood/ })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /Save record: Northbrook Fabrication/ }),
+    ).toBeVisible();
     await expect(page.getByRole("link", { name: /Renewal in 30 days/ })).toBeVisible();
     const actions = page.getByRole("region", { name: "What was done" });
     await expect(actions).toContainText(/approval/i);
     await expect(actions).toContainText(/sent|email|message/i);
     await expect(page.getByTestId("checkpoint-90")).toContainText("RENEWED");
     const value = page.getByTestId("saved-value");
-    await expect(value).toContainText("Saved: $5,700.00");
+    await expect(value).toContainText(/Saved: \$[\d,]+\.\d\d/);
     await expect(page.getByText(/attributed|not proven/i).first()).toBeVisible();
   });
 

@@ -45,7 +45,10 @@ async function main() {
   if (!ws) throw new Error(`No workspace with slug "${slug}"`);
   const ctx = { workspaceId: ws.id };
   const db = scopedDb(ctx);
-  const account = await db.account.findFirstOrThrow({ where: { name: "Harborwood Accounting" } });
+  // Harborwood for the founder demo; e2e passes an account outside the 90-day radar, because a
+  // recorded renewal outcome is append-only and other specs assert the radar's open renewals.
+  const accountName = arg("account") ?? "Harborwood Accounting";
+  const account = await db.account.findFirstOrThrow({ where: { name: accountName } });
   const dana = await db.membership.findFirstOrThrow({
     where: { user: { email: "dana@larkspur.test" } },
     include: { user: true },
@@ -59,7 +62,7 @@ async function main() {
     bookScope: dana.bookScope,
   };
   console.log(
-    "=== M11 save chain — Harborwood Accounting (demo-only business clock; nothing hand-written) ===",
+    `=== M11 save chain — ${accountName} (demo-only business clock; nothing hand-written) ===`,
   );
 
   // 1. The flag, from the real rules on the real renewal date.
@@ -68,7 +71,7 @@ async function main() {
     orderBy: { renewalDate: "asc" },
     include: { contract: true },
   });
-  if (!renewal) throw new Error("Harborwood has no renewal on file");
+  if (!renewal) throw new Error(`${accountName} has no renewal on file`);
   const renewsOn = calendarDateOf(renewal.renewalDate);
   const flagDay = addDays(renewsOn, -30);
   const existingSignal = await db.signal.findFirst({
@@ -76,7 +79,7 @@ async function main() {
   });
   if (!existingSignal) {
     const res = await evaluateAndStore(ctx, [account.id], flagDay, () => at(flagDay, 2));
-    say(flagDay, `signal rules ran for Harborwood: ${JSON.stringify(res)}`);
+    say(flagDay, `signal rules ran for ${accountName}: ${JSON.stringify(res)}`);
   }
   const signal = await db.signal.findFirstOrThrow({
     where: { accountId: account.id, ruleKey: "renewal_window_30" },
@@ -167,7 +170,7 @@ async function main() {
   );
 
   // 4. The checkpoints, by the real code, a grace week after each checkpoint date.
-  // Scoped to Harborwood: the demo clock must never freeze any other account's checkpoints.
+  // Scoped to this account: the demo clock must never freeze any other account's checkpoints.
   const scope = { accountIds: [account.id] };
   const flaggedOn = localDate(record.flaggedAt, ws.timezone);
   for (const [label, day] of [

@@ -39,7 +39,7 @@ async function main() {
   const { recordingKey } = await import("@/lib/ai/recorded");
   const { findWorkspaceBySlug } = await import("@/lib/db/workspace");
   const { closeQueues, getQueue, queuePrefix, redisConnection } = await import("@/lib/jobs/queues");
-  const { weeklyDigestJobId } = await import("@/lib/jobs/ids");
+  const { manualRunId } = await import("@/lib/jobs/ids");
   const { prepareRun, leaderReporter } = await import("@/modules/agents/service");
   const { ensureWeeklySnapshots } = await import("@/modules/reports/service");
   const { processorFor } = await import("@/worker/processors");
@@ -114,7 +114,9 @@ async function main() {
     const job = await getQueue("reports").add(
       "reports.weeklyDigest",
       { workspaceId: ws.id },
-      { jobId: weeklyDigestJobId(ws.id, week.weekStart) },
+      // A manual trigger is uniqueness-intended (D-81): every run is a job. The digest service
+      // itself is idempotent per business week, so a second run in the same week writes nothing.
+      { jobId: manualRunId() },
     );
     const result = (await job.waitUntilFinished(events, 120_000)) as Record<string, unknown>;
     console.log(`reports.weeklyDigest ${slug}: ${JSON.stringify(result)}`);

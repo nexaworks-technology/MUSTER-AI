@@ -5,7 +5,7 @@ export const REC = { AI_PROVIDER: "recorded", AI_RECORDINGS_DIR: ".dev-recording
 
 /**
  * M11 e2e data, built by the real scripts before any browser step (no AI provider in the app):
- * Ask AI demo questions (recorded transport, once), the Harborwood save chain (idempotent) and the
+ * Ask AI demo questions (recorded transport, once), the live save chain on Northbrook Fabrication (idempotent) and the
  * weekly digest (once per week). Safe to call from several spec files.
  */
 export async function ensureM11Data(workspace: string): Promise<{ saveRecordPath: string }> {
@@ -41,7 +41,14 @@ export async function ensureM11Data(workspace: string): Promise<{ saveRecordPath
     );
     expect(ask).toContain("SUCCEEDED");
   }
-  const chain = runScript("scripts/demo-m11-save-chain.ts", ["--workspace", workspace]);
+  const chain = runScript("scripts/demo-m11-save-chain.ts", [
+    "--workspace",
+    workspace,
+    // Outside the 90-day radar: a recorded renewal is append-only and M7's radar test asserts
+    // the open renewals inside it (this spec sorts before m7-… in Playwright's file order).
+    "--account",
+    "Northbrook Fabrication",
+  ]);
   const saveRecordPath = /save record: (\/reports\/outcomes\/\S+)/.exec(chain)![1]!;
   runScript("scripts/leader-digest.ts", ["--workspace", workspace], REC);
   return { saveRecordPath };
