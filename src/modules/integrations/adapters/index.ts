@@ -10,6 +10,8 @@ import { stripeAdapter } from "./stripe";
 import { usageApiAdapter } from "./usage-api";
 import { zendeskAdapter } from "./zendesk";
 import { freshdeskAdapter } from "./freshdesk";
+import { googleEmailAdapter } from "./google-email";
+import { microsoftEmailAdapter } from "./microsoft-email";
 
 /**
  * Adapter registry. Each launch connector registers here once it has fixtures and contract tests
@@ -31,6 +33,8 @@ export const ADAPTERS: Partial<Record<IntegrationProvider, AnyAdapter>> = {
   AMPLITUDE: amplitudeAdapter,
   ZENDESK: zendeskAdapter,
   FRESHDESK: freshdeskAdapter,
+  GOOGLE_EMAIL: googleEmailAdapter,
+  MICROSOFT_EMAIL: microsoftEmailAdapter,
 };
 
 export class AdapterMissingError extends Error {

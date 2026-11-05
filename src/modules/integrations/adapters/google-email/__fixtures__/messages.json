@@ -1,0 +1,152 @@
+{
+  "provider": "google-email",
+  "description": "Gmail messages and draft writeback: authored from docs, not captured.",
+  "interactions": [
+    {
+      "note": "OAuth token exchange (authored from docs, not captured)",
+      "request": {
+        "method": "POST",
+        "path": "/token",
+        "bodyIncludes": "grant_type=authorization_code"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "access_token": "gmail-token-123",
+          "refresh_token": "gmail-refresh-123",
+          "expires_in": 3600,
+          "token_type": "Bearer"
+        }
+      }
+    },
+    {
+      "note": "OAuth token refresh (authored from docs, not captured)",
+      "request": {
+        "method": "POST",
+        "path": "/token",
+        "bodyIncludes": "grant_type=refresh_token"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "access_token": "gmail-token-refreshed",
+          "expires_in": 3600,
+          "token_type": "Bearer"
+        }
+      }
+    },
+    {
+      "note": "test connection / profile check (authored from docs, not captured)",
+      "request": {
+        "method": "GET",
+        "path": "/gmail/v1/users/me/profile"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "emailAddress": "csm@company.test",
+          "messagesTotal": 2,
+          "threadsTotal": 2,
+          "historyId": "100200"
+        }
+      }
+    },
+    {
+      "note": "list messages (authored from docs, not captured)",
+      "request": {
+        "method": "GET",
+        "path": "/gmail/v1/users/me/messages"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "messages": [
+            { "id": "gmail_msg_001", "threadId": "gmail_thread_001" },
+            { "id": "gmail_msg_002", "threadId": "gmail_thread_002" }
+          ],
+          "resultSizeEstimate": 2
+        }
+      }
+    },
+    {
+      "note": "get message 1 detail (authored from docs, not captured)",
+      "request": {
+        "method": "GET",
+        "path": "/gmail/v1/users/me/messages/gmail_msg_001"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "id": "gmail_msg_001",
+          "threadId": "gmail_thread_001",
+          "labelIds": ["INBOX"],
+          "snippet": "We want to add 50 seats to our existing plan.",
+          "internalDate": "1762333200000",
+          "payload": {
+            "headers": [
+              { "name": "From", "value": "Sarah Customer <sarah@customer.test>" },
+              { "name": "To", "value": "csm@company.test" },
+              { "name": "Subject", "value": "Q4 Expansion & Contract Renewal" },
+              { "name": "Date", "value": "Thu, 05 Nov 2026 09:00:00 +0000" }
+            ],
+            "body": {
+              "data": "V2Ugd2FudCB0byBhZGQgNTAgc2VhdHMgdG8gb3VyIGV4aXN0aW5nIHBsYW4u"
+            }
+          }
+        }
+      }
+    },
+    {
+      "note": "get message 2 detail (authored from docs, not captured)",
+      "request": {
+        "method": "GET",
+        "path": "/gmail/v1/users/me/messages/gmail_msg_002"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "id": "gmail_msg_002",
+          "threadId": "gmail_thread_002",
+          "labelIds": ["INBOX"],
+          "snippet": "Looking forward to next review and checking renewal metrics.",
+          "internalDate": "1762335000000",
+          "payload": {
+            "headers": [
+              { "name": "From", "value": "Tom Customer <tom@customer.test>" },
+              { "name": "To", "value": "csm@company.test" },
+              { "name": "Subject", "value": "Quarterly review prep" },
+              { "name": "Date", "value": "Thu, 05 Nov 2026 09:30:00 +0000" }
+            ],
+            "body": {
+              "data": "TG9va2luZyBmb3J3YXJkIHRvIG5leHQgcmV2aWV3"
+            }
+          }
+        }
+      }
+    },
+    {
+      "note": "create draft in mailbox (authored from docs, not captured)",
+      "request": {
+        "method": "POST",
+        "path": "/gmail/v1/users/me/drafts"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "id": "draft_gmail_999",
+          "message": {
+            "id": "draft_msg_999",
+            "threadId": "gmail_thread_001"
+          }
+        }
+      }
+    }
+  ]
+}

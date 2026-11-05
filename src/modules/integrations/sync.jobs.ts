@@ -52,6 +52,8 @@ const SYNCABLE = [
   "AMPLITUDE",
   "ZENDESK",
   "FRESHDESK",
+  "GOOGLE_EMAIL",
+  "MICROSOFT_EMAIL",
 ] as const;
 
 export interface SyncOutcome {

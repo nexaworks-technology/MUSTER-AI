@@ -1,0 +1,147 @@
+{
+  "provider": "microsoft-email",
+  "description": "Microsoft Graph messages and draft writeback: authored from docs, not captured.",
+  "interactions": [
+    {
+      "note": "OAuth token exchange (authored from docs, not captured)",
+      "request": {
+        "method": "POST",
+        "path": "/common/oauth2/v2.0/token",
+        "bodyIncludes": "grant_type=authorization_code"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "access_token": "graph-token-123",
+          "refresh_token": "graph-refresh-123",
+          "expires_in": 3600,
+          "token_type": "Bearer"
+        }
+      }
+    },
+    {
+      "note": "OAuth token refresh (authored from docs, not captured)",
+      "request": {
+        "method": "POST",
+        "path": "/common/oauth2/v2.0/token",
+        "bodyIncludes": "grant_type=refresh_token"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "access_token": "graph-token-refreshed",
+          "expires_in": 3600,
+          "token_type": "Bearer"
+        }
+      }
+    },
+    {
+      "note": "test connection / me check (authored from docs, not captured)",
+      "request": {
+        "method": "GET",
+        "path": "/v1.0/me"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "id": "user_graph_001",
+          "displayName": "Company CSM",
+          "mail": "csm@company.test",
+          "userPrincipalName": "csm@company.test"
+        }
+      }
+    },
+    {
+      "note": "delta query messages (authored from docs, not captured)",
+      "request": {
+        "method": "GET",
+        "path": "/v1.0/me/mailFolders/inbox/messages/delta"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "value": [
+            {
+              "id": "graph_msg_001",
+              "conversationId": "graph_conv_001",
+              "sentDateTime": "2026-11-05T09:00:00Z",
+              "subject": "Security Assessment & SSO Setup",
+              "bodyPreview": "We need our SAML metadata verified for next quarter",
+              "body": {
+                "contentType": "Text",
+                "content": "We need our SAML metadata verified for next quarter and security questionnaire answered."
+              },
+              "from": {
+                "emailAddress": {
+                  "address": "david@enterprise.test",
+                  "name": "David Enterprise"
+                }
+              },
+              "toRecipients": [
+                {
+                  "emailAddress": {
+                    "address": "csm@company.test",
+                    "name": "CSM"
+                  }
+                }
+              ],
+              "isDraft": false
+            },
+            {
+              "id": "graph_msg_002",
+              "conversationId": "graph_conv_002",
+              "sentDateTime": "2026-11-05T09:45:00Z",
+              "subject": "Invoice clarification",
+              "bodyPreview": "Can you confirm the payment schedule for invoice 1042?",
+              "body": {
+                "contentType": "Text",
+                "content": "Can you confirm the payment schedule for invoice 1042?"
+              },
+              "from": {
+                "emailAddress": {
+                  "address": "elena@enterprise.test",
+                  "name": "Elena Enterprise"
+                }
+              },
+              "toRecipients": [
+                {
+                  "emailAddress": {
+                    "address": "csm@company.test",
+                    "name": "CSM"
+                  }
+                }
+              ],
+              "isDraft": false
+            }
+          ],
+          "@odata.deltaLink": "https://graph.microsoft.com/v1.0/me/mailFolders/inbox/messages/delta?$deltatoken=delta-token-xyz"
+        }
+      }
+    },
+    {
+      "note": "create draft in mailbox (authored from docs, not captured)",
+      "request": {
+        "method": "POST",
+        "path": "/v1.0/me/messages"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "id": "draft_graph_888",
+          "conversationId": "graph_conv_001",
+          "isDraft": true,
+          "subject": "Draft",
+          "body": {
+            "contentType": "Text",
+            "content": "Hi David, our SAML documentation is attached."
+          }
+        }
+      }
+    }
+  ]
+}

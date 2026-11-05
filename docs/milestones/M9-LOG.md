@@ -239,4 +239,21 @@ D-147–D-150 in `DECISIONS.md`; Q-78–Q-81 in `QUESTIONS.md` (the Session A qu
   - Sync-twice proof: Second sync with same fixture creates 0 rows, updates 0 rows, marks all as unchanged.
 - **Evidence:** `contract.test.ts` (Zendesk: 5/5, Freshdesk: 5/5), `support-connectors.int.test.ts` (3/3), `pnpm test src/modules/integrations` (27 files / 193 tests passed).
 
+## Slice B7 — Gmail & Microsoft Graph email adapters
+
+- **Red-first evidence:**
+  - `src/modules/integrations/adapters/google-email/__tests__/contract.test.ts` failed before implementation with `Cannot find module '..'`.
+  - `src/modules/integrations/adapters/microsoft-email/__tests__/contract.test.ts` failed before implementation with `Cannot find module '..'`.
+  - `src/modules/integrations/__tests__/email-connectors.int.test.ts` failed initially on missing adapters and write-back gate refusal.
+- **What was built:**
+  - Gmail adapter (`google-email`): OAuth2 authorization, exchange, and refresh; read-only message polling mapping RFC headers and body to `NormalizedMail`; mailbox draft creation via `writeBack` with field `"draft"`; error mapping via `describeProviderError`.
+  - Microsoft Graph adapter (`microsoft-email`): OAuth2 authorization, exchange, and refresh; read-only message polling with delta query mapping to `NormalizedMail`; mailbox draft creation via `writeBack` with field `"draft"`; error mapping via `describeProviderError`.
+  - Hard privacy rule: Only email matching a known contact email or account domain is kept (`matchSender`); all unmatched email is discarded without being stored (0 Message rows, 0 UnmatchedInbound rows, 0 Conversation rows).
+  - Write-back gate: "Draft in mailbox" is refused when write-back is disabled on the integration (`WriteBackRefusedError`), and refused over live transport without `WRITE_BACK_LIVE=true` per D-116.
+  - Settings › Integrations cards updated with Email category and OAuth connect links; queue payload hygiene preserved (job payloads contain ids only, message bodies remain on record rows).
+  - Recorded fixtures labelled `"authored from docs, not captured"`.
+  - Sync-twice proof: Second sync with same fixture creates 0 rows, marks all as unchanged.
+- **Evidence:** `contract.test.ts` (Gmail: 6/6, Graph: 6/6), `email-connectors.int.test.ts` (3/3), full integrations test suite passed (30 files / 208 tests).
+
+
 

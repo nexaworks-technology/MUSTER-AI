@@ -88,6 +88,10 @@ export const envSchema = z
     SLACK_CLIENT_ID: optionalString,
     SLACK_CLIENT_SECRET: optionalString,
     SLACK_SIGNING_SECRET: optionalString,
+    GOOGLE_EMAIL_CLIENT_ID: optionalString,
+    GOOGLE_EMAIL_CLIENT_SECRET: optionalString,
+    MICROSOFT_EMAIL_CLIENT_ID: optionalString,
+    MICROSOFT_EMAIL_CLIENT_SECRET: optionalString,
     /**
      * How Slack messages leave (D4, D-95): "log" writes them to `.dev-slack/` (development, test,
      * e2e, demo); "live" posts with the workspace's bot token. "log" is refused in production.

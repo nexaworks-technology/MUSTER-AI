@@ -122,6 +122,8 @@ export async function listIntegrations(actor: Actor): Promise<ProviderCard[]> {
     "AMPLITUDE",
     "ZENDESK",
     "FRESHDESK",
+    "GOOGLE_EMAIL",
+    "MICROSOFT_EMAIL",
     "SLACK",
   ];
   return order
