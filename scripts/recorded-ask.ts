@@ -49,9 +49,16 @@ const base = {
 const money = (v: string) => `$${Number(v).toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
 
 /** Planner: which tools to call for this question, from what earlier steps returned. */
-function plan(question: string, step: number, results: Result[]) {
+function plan(
+  question: string,
+  step: number,
+  results: Result[],
+  attached: Array<{ fileId: string }> = [],
+) {
   const done = { action: "answer" as const, calls: [] };
-  const names = [...question.replace(/^(Move|What is|Which)\s+/, "").matchAll(/([A-Z][\w&]+(?: [A-Z][\w&]+)+)/g)]
+  const names = [
+    ...question.replace(/^(Move|What is|Which)\s+/, "").matchAll(/([A-Z][\w&]+(?: [A-Z][\w&]+)+)/g),
+  ]
     .map((m) => m[1]!)
     .filter((n) => !/^(Which|What|Move|Renewal Risk)/.test(n));
   const accountIds = (name: string) =>
@@ -59,6 +66,16 @@ function plan(question: string, step: number, results: Result[]) {
       .flatMap((r) => r.records)
       .filter((r) => r.ref.startsWith("Account:") && r.label === name)
       .map((r) => r.ref.slice("Account:".length));
+  if (attached.length)
+    return step === 1
+      ? {
+          action: "call",
+          calls: attached.map((f) => ({
+            tool: "readUploadedFile",
+            input: { fileId: f.fileId, ...(/notice/i.test(question) ? { query: "notice" } : {}) },
+          })),
+        }
+      : done;
   if (/competitor/i.test(question))
     return step === 1
       ? {
@@ -103,6 +120,18 @@ function plan(question: string, step: number, results: Result[]) {
 /** Answer: composed only from the bundle the run was given. */
 function answer(question: string, bundle: BundleRec[], notFound: string) {
   const of = (t: string) => bundle.filter((r) => r.sourceType === t);
+  const passages = of("FileObject");
+  if (passages.length) {
+    const sentences = (t: string) => t.split(/(?<=[.!?])\s+/);
+    const p = passages.find((x) => /notice/i.test(String(x.fields.text))) ?? passages[0]!;
+    const all = sentences(String(p.fields.text));
+    const quote = (all.find((x) => /notice/i.test(x)) ?? all[0]!).trim();
+    return {
+      ...base,
+      answer: `The file says: “${quote}” (${p.fields.fileName}).`,
+      citations: [{ sourceType: "FileObject", sourceId: p.sourceId, quote }],
+    };
+  }
   if (/competitor/i.test(question)) {
     const xs = of("Extraction");
     if (!xs.length) return null;
@@ -190,8 +219,12 @@ function composer(dir: string, question: string): AiProvider {
     async generateStructured<T>(req: StructuredRequest<T>) {
       let output: unknown;
       if (req.promptRef.startsWith("ask-ai-plan@")) {
-        const { step, results } = JSON.parse(req.input) as { step: number; results: Result[] };
-        output = plan(question, step, results);
+        const { step, results, attachedFiles } = JSON.parse(req.input) as {
+          step: number;
+          results: Result[];
+          attachedFiles?: Array<{ fileId: string }>;
+        };
+        output = plan(question, step, results, attachedFiles ?? []);
       } else {
         const bundle = JSON.parse(req.input.slice(req.input.indexOf("["))) as BundleRec[];
         const nf =
@@ -254,8 +287,14 @@ async function main() {
     } else console.log(`[DEMO SETUP] the play "${play.name}" is already published`);
   }
   const dir = path.resolve(e.AI_RECORDINGS_DIR);
+  const threadId = arg("thread");
+  const fileIds = arg("file") ? [arg("file")!] : undefined;
   for (const q of arg("question") ? [arg("question")!] : DEMO_QUESTIONS) {
-    const res = await askQuestion(actor, { question: q }, { provider: composer(dir, q) });
+    const res = await askQuestion(
+      actor,
+      { question: q, ...(threadId ? { threadId } : {}), ...(fileIds ? { fileIds } : {}) },
+      { provider: composer(dir, q) },
+    );
     console.log(`ask-ai "${q}" as ${email}: ${res.status} (run ${res.runId ?? "-"})`);
   }
 }
