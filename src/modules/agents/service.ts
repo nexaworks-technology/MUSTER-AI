@@ -115,16 +115,8 @@ export {
   adoptionCoachOutput,
   adoptionCoachInput,
 } from "./definitions/adoption-coach";
-export {
-  digitalCsm,
-  digitalCsmOutput,
-  digitalCsmInput,
-} from "./definitions/digital-csm";
-export {
-  playBuilder,
-  playBuilderOutput,
-  playBuilderInput,
-} from "./definitions/play-builder";
+export { digitalCsm, digitalCsmOutput, digitalCsmInput } from "./definitions/digital-csm";
+export { playBuilder, playBuilderOutput, playBuilderInput } from "./definitions/play-builder";
 export * from "./voice.service";
 export {
   listAgentTeam,
@@ -133,3 +125,11 @@ export {
   AgentRunNotFoundError,
   type RunDetail,
 } from "./team";
+
+export {
+  leaderReporter,
+  leaderReporterInput,
+  leaderReporterOutput,
+  figureSourceId,
+  type LeaderReporterOutput,
+} from "./definitions/leader-reporter";

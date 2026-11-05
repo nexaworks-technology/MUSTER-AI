@@ -12,6 +12,7 @@ import { supportRisk } from "./support-risk";
 import { promiseKeeper } from "./promise-keeper";
 import { championGuard } from "./champion-guard";
 import { meetingQbr } from "./meeting-qbr";
+import { leaderReporter } from "./leader-reporter";
 
 /** The agents M4 ships (ARCHITECTURE §6.2; D-30: only the spec's 13 + Ask AI). */
 export const M4_AGENTS: AnyAgentDef[] = [healthAnalyst, watcher, outreach];
@@ -30,3 +31,6 @@ export const M9_AGENTS: AnyAgentDef[] = [supportRisk, promiseKeeper, championGua
 
 /** The agents M10 adds (spec §5 Meetings & QBRs, §6E10). */
 export const M10_AGENTS: AnyAgentDef[] = [meetingQbr];
+
+/** The agents M11 adds (spec §5 Reports, ARCHITECTURE §6.2 row 13: Leader Reporter). */
+export const M11_AGENTS: AnyAgentDef[] = [leaderReporter];

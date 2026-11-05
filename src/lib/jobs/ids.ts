@@ -25,3 +25,11 @@ export const realtimeRunId = (reason: string, real: Clock = realClock) =>
 /** One back-test request for a workspace. */
 export const backtestJobId = (workspaceId: string, real: Clock = realClock) =>
   `${workspaceId}.backtest.${suffix(real)}`;
+
+/**
+ * The weekly leader digest for one workspace and one business week (M11 S7, D-91). Dedupe-intended:
+ * `weekStart` is the Monday (a business date) of the week, so a second enqueue in the same week is
+ * dropped by the queue; the digest service is idempotent per week as well.
+ */
+export const weeklyDigestJobId = (workspaceId: string, weekStart: string) =>
+  `${workspaceId}.reports-weekly.${weekStart}`;

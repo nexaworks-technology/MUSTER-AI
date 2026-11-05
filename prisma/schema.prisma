@@ -1005,6 +1005,10 @@ enum NotificationType {
   ONBOARDING_STALLED
   /// M6: an onboarding plan reached first value (refId = plan id).
   ONBOARDING_VALUE_REACHED
+  /// M11 (S7): this week's Leader Reporter digest is ready (refType ReportDigest, refId = the run id).
+  LEADER_DIGEST
+  /// M11 (S7): the digest could not be written; the reports are ready (refType ReportDigestNotice, refId = week start).
+  LEADER_DIGEST_FAILED
 }
 
 /// [W] A unit of work for one member (spec §6F3). Agents and plays create tasks from M4/M8.

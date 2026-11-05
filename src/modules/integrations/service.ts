@@ -39,7 +39,9 @@ export {
   notifyApprovalRequested,
   notifySignalsOpened,
   sendDigestIfDue,
+  sendLeaderDigest,
   SENSITIVE_DECISIONS_FROM_SLACK,
+  type SlackDeps,
 } from "./slack/service";
 export {
   processWebhookEvent,

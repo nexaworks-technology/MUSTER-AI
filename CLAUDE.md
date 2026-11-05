@@ -39,6 +39,10 @@ you must flag the disagreement in `docs/QUESTIONS.md` — never silently follow 
 - Renewal outcome demo (M7, dev only): `pnpm exec tsx --env-file=.env scripts/demo-renewal-outcome.ts --workspace <slug> [--account "<name>"]`
   — adds the successor contract record, then runs `renewals.sync` and the revenue checkpoint for that account;
   records RENEWED with the forecast frozen as it stood (default Harborwood Accounting; re-running changes nothing)
+- Outcome checkpoints now (M11): `pnpm outcomes:backfill --workspace <slug>` — runs the 7-day, revenue and frozen
+  30/90-day checkpoints through the same functions as the `outcomes.checkpoint` job; safe to re-run
+- Leader Reporter weekly digest (M11, dev trigger): `AI_PROVIDER=recorded pnpm reports:digest --workspace <slug>`
+  — generates the week's report snapshots, runs the digest through the real queue; idempotent per business week
 - Fresh workspace in setup (M5 `/setup` demo): `pnpm db:seed -- --empty-workspace` (Juniper Labs, admin@juniper.test)
 - Connectors on recorded fixtures (tests, e2e, demo; refused in production): `INTEGRATIONS_TRANSPORT=fixture`
 - Typecheck: `pnpm typecheck` · Lint: `pnpm lint` · Format check: `pnpm format:check`

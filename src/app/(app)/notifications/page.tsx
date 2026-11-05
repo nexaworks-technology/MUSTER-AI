@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
@@ -41,7 +41,14 @@ export default async function NotificationsPage() {
                   {formatDateTime(n.createdAt, ctx.workspace.timezone)}
                 </div>
               </div>
-              {n.accountId ? (
+              {n.refType === "ReportDigest" || n.refType === "ReportDigestNotice" ? (
+                <Link
+                  href={(n.refType === "ReportDigest" ? "/reports/digest" : "/reports") as Route}
+                  className="shrink-0 text-xs underline"
+                >
+                  Open
+                </Link>
+              ) : n.accountId ? (
                 <Link
                   href={
                     n.refType === "Note"

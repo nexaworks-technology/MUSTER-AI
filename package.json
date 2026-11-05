@@ -27,6 +27,7 @@
     "jobs:nightly": "tsx --env-file=.env scripts/jobs-nightly.ts",
     "outcomes:backfill": "tsx --env-file=.env scripts/outcomes-backfill.ts",
     "eval": "tsx --env-file=.env scripts/eval.ts",
+    "reports:digest": "tsx --env-file=.env scripts/leader-digest.ts",
     "agents:extract": "tsx --env-file=.env scripts/agents-extract.ts",
     "demo:webhook": "tsx --env-file=.env scripts/demo-webhook.ts",
     "demo:usage": "tsx --env-file=.env scripts/demo-usage.ts"

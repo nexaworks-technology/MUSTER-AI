@@ -36,6 +36,7 @@ import {
   evaluateRevenueCheckpoints,
   evaluateSevenDayCheckpoints,
 } from "@/modules/outcomes/service";
+import { runWeeklyDigest } from "@/modules/reports/service";
 import { escalateOverdueTasks } from "@/modules/tasks/service";
 import { rebuildWorkspaceToday } from "@/modules/today/service";
 import { createPipelineProcessors } from "@/modules/signals/service";
@@ -49,6 +50,8 @@ import {
   processPlayStep,
 } from "@/modules/plays/service";
 import { prepareBrief, sweepAllUpcomingMeetingBriefs } from "@/modules/meetings/service";
+
+const weeklyDigestPayload = z.object({ workspaceId: z.string().min(1) });
 
 const pipeline = createPipelineProcessors({ clock: businessClock });
 
@@ -65,6 +68,13 @@ export async function syncNightlySchedules(opts: { enabled?: boolean } = {}): Pr
       `nightly-${w.id}`,
       { pattern: "0 2 * * *", tz: w.timezone },
       { name: "nightly.kickoff", data: { workspaceId: w.id }, opts: { attempts: 3 } },
+    );
+  // M11 S7: the Leader Reporter's weekly digest, Monday 07:00 in the workspace's time zone.
+  for (const w of workspaces)
+    await getQueue("reports").upsertJobScheduler(
+      `reports-weekly-${w.id}`,
+      { pattern: "0 7 * * 1", tz: w.timezone },
+      { name: "reports.weeklyDigest", data: { workspaceId: w.id }, opts: { attempts: 2 } },
     );
   return workspaces.length;
 }
@@ -105,6 +115,15 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
   /** M3: the nightly run and the real-time hook (signals → health), scoped by payload. */
   signals: pipeline.signals,
   health: pipeline.health,
+  /** M11 S7: the weekly leader digest, one job per workspace; idempotent per business week. */
+  reports: {
+    async "reports.weeklyDigest"(job) {
+      const { workspaceId } = weeklyDigestPayload.parse(job.data);
+      const w = (await listActiveWorkspaces()).find((x) => x.id === workspaceId);
+      if (!w) return { skipped: "workspace is not active" };
+      return runWeeklyDigest({ workspaceId: w.id, timezone: w.timezone }, businessClock);
+    },
+  },
   /** M4: the 7-day outcome checkpoint (ARCHITECTURE §6.5); idempotent per record. M11: 30/90. */
   outcomes: {
     async "outcomes.checkpoint"() {

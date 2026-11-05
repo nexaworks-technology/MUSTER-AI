@@ -389,6 +389,69 @@ export async function sendDigestIfDue(
   return { sent, reason: "due" };
 }
 
+/** Slack's control characters, so text written by a model can never become a link or a mention. */
+const slackText = (s: string) =>
+  s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+
+/**
+ * The weekly leader digest (M11 S7): a DM to each given leader who is linked to Slack, once per
+ * recipient and digest run (DB unique index). The caller passes only internal leaders and text
+ * that came from a SUCCEEDED, validated Leader Reporter run with no money in it; nothing here
+ * ever goes to a customer. Returns how many DMs were posted.
+ */
+export async function sendLeaderDigest(
+  ctx: TenantContext,
+  digest: { runId: string; weekStart: string; lines: string[]; recipientMembershipIds: string[] },
+  deps: SlackDeps = {},
+): Promise<{ sent: number; reason: "sent" | "slack not connected" }> {
+  const slack = await slackFor(ctx, deps);
+  if (!slack) return { sent: 0, reason: "slack not connected" };
+  const links = await scopedDb(ctx).slackUserLink.findMany({
+    where: {
+      integrationId: slack.integrationId,
+      membershipId: { in: digest.recipientMembershipIds },
+    },
+  });
+  const heading = `*Weekly digest: week of ${digest.weekStart}*`;
+  const body = [heading, ...digest.lines.map((l) => `• ${slackText(l)}`)].join("\n");
+  let sent = 0;
+  for (const link of links) {
+    if (
+      await deliverOnce(
+        ctx,
+        slack,
+        {
+          recipientMembershipId: link.membershipId,
+          slackUserId: link.slackUserId,
+          type: "LEADER_DIGEST",
+          refType: "ReportDigest",
+          refId: digest.runId,
+          title: `Weekly digest, week of ${digest.weekStart}`,
+        },
+        {
+          text: `Weekly digest: week of ${digest.weekStart}`,
+          blocks: [
+            { type: "section", text: { type: "mrkdwn", text: body.slice(0, 2900) } },
+            {
+              type: "actions",
+              elements: [
+                {
+                  type: "button",
+                  text: { type: "plain_text", text: "Open the digest" },
+                  url: appLink("/reports/digest"),
+                  action_id: "digest.open",
+                },
+              ],
+            },
+          ],
+        },
+      )
+    )
+      sent++;
+  }
+  return { sent, reason: "sent" };
+}
+
 // ─── Interactivity (Approve / Reject from Slack) ─────────────────────────────
 
 const interaction = z.object({

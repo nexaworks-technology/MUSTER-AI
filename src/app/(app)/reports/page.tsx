@@ -54,6 +54,17 @@ export default async function ReportsPage() {
         </ul>
       </section>
 
+      {scope === "ALL" ? (
+        <p className="text-sm">
+          <Link href={"/reports/digest" as Route} className="underline">
+            Weekly digest
+          </Link>{" "}
+          <span className="text-muted-foreground">
+            The AI&apos;s short summary of this week&apos;s reports, with links to each figure.
+          </span>
+        </p>
+      ) : null}
+
       <section aria-labelledby="proof-h" className="space-y-2">
         <h2 id="proof-h" className="text-lg font-semibold">
           Did it work?

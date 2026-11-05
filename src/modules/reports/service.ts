@@ -192,8 +192,9 @@ export async function generateReport(
     await writeAudit(
       {
         workspaceId: actor.workspaceId,
-        actorType: "USER",
-        actorId: actor.userId,
+        // A scheduled snapshot is made by the system, not by the Admin whose book scope it used.
+        actorType: trigger === "SCHEDULED" ? "SYSTEM" : "USER",
+        actorId: trigger === "SCHEDULED" ? null : actor.userId,
         action: "report.generated",
         targetType: "ReportSnapshot",
         targetId: created.id,
@@ -253,3 +254,13 @@ export { REPORT_KEYS, REPORT_TITLES, isReportKey } from "./types";
 export { PERIOD_DAYS, generateInput, normalizeFilters, reportFilters } from "./schemas";
 export type { Figure, ReportData, ReportKey } from "./types";
 export { figureText, filtersQuery } from "./format";
+export {
+  runWeeklyDigest,
+  ensureWeeklySnapshots,
+  getLatestDigest,
+  businessWeekStart,
+  DIGEST_REPORTS,
+  type DigestDeps,
+  type DigestResult,
+  type LatestDigest,
+} from "./digest.service";
