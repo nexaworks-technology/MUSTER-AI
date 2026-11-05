@@ -1,4 +1,5 @@
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
+import { liveSnapshotWhere } from "@/modules/health/service";
 import type { Prisma, Document } from "@prisma/client";
 import { runAgent, type ExecutorDeps } from "../agents/executor";
 import { meetingQbr } from "../agents/definitions/meeting-qbr";
@@ -30,7 +31,9 @@ export interface GenerateQbrInput {
 
 function toQbrView(doc: Document): QbrDocumentView {
   const metricsData = (doc.metrics as Record<string, unknown>) ?? {};
-  const narrativeData = Array.isArray(doc.narrative) ? (doc.narrative as unknown as QbrBlock[]) : [];
+  const narrativeData = Array.isArray(doc.narrative)
+    ? (doc.narrative as unknown as QbrBlock[])
+    : [];
 
   const period = typeof metricsData.period === "string" ? metricsData.period : "QBR Period";
   const metrics = metricsData.computed ?? metricsData;
@@ -75,7 +78,7 @@ export async function generateQbr(
 
   const [snapshot, contract, usage, promises, tickets] = await Promise.all([
     db.healthScoreSnapshot.findFirst({
-      where: { accountId: input.accountId },
+      where: liveSnapshotWhere({ accountId: input.accountId }),
       orderBy: { asOf: "desc" },
     }),
     db.contract.findFirst({
@@ -145,12 +148,13 @@ export async function generateQbr(
     where: { id: outcome.runId },
   });
 
-  const agentOutput = (run.output as {
-    title?: string;
-    summary?: string;
-    decisions?: string[];
-    actionItems?: Array<{ title: string; ownerName?: string }>;
-  }) ?? {};
+  const agentOutput =
+    (run.output as {
+      title?: string;
+      summary?: string;
+      decisions?: string[];
+      actionItems?: Array<{ title: string; ownerName?: string }>;
+    }) ?? {};
 
   const initialBlocks: QbrBlock[] = [
     {
@@ -163,15 +167,18 @@ export async function generateQbr(
       id: "b2",
       type: "business_outcomes",
       title: "Business Outcomes & Decisions",
-      text: (agentOutput.decisions ?? []).length > 0
-        ? agentOutput.decisions!.join("\n")
-        : "All primary milestones achieved in accordance with agreed schedule.",
+      text:
+        (agentOutput.decisions ?? []).length > 0
+          ? agentOutput.decisions!.join("\n")
+          : "All primary milestones achieved in accordance with agreed schedule.",
     },
     {
       id: "b3",
       type: "action_items",
       title: "Action Items & Mutual Plan",
-      text: (agentOutput.actionItems ?? []).map((a) => `- ${a.title}`).join("\n") || "No open action items pending.",
+      text:
+        (agentOutput.actionItems ?? []).map((a) => `- ${a.title}`).join("\n") ||
+        "No open action items pending.",
     },
   ];
 

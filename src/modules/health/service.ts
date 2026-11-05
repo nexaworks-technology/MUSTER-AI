@@ -673,3 +673,6 @@ export {
 } from "./backtest-service";
 export { sentence as backtestSentence } from "./engine/backtest";
 export type { Outcome as LabelledOutcome } from "./engine/backtest";
+
+/** D-158: the one filter every live-health reader must use (excludes back-test rows). */
+export { liveSnapshotWhere } from "./live";

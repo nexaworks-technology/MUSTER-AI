@@ -136,6 +136,9 @@ model Workspace {
   unmatchedInbounds   UnmatchedInbound[]
   meetings            Meeting[]
   meetingAttendees    MeetingAttendee[]
+  reportSnapshots     ReportSnapshot[]
+  askThreads          AskThread[]
+  askMessages         AskMessage[]
   successPlans        SuccessPlan[]
   surveys             Survey[]
   surveyResponses     SurveyResponse[]
@@ -156,10 +159,11 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  authAccounts AuthAccount[]
-  sessions     Session[]
-  memberships  Membership[]
+  authAccounts      AuthAccount[]
+  sessions          Session[]
+  memberships       Membership[]
   organizedMeetings Meeting[]         @relation("MeetingOrganizer")
+  askThreads        AskThread[]
   meetingAttendees  MeetingAttendee[]
 }
 
@@ -248,6 +252,8 @@ model Membership {
   approvalsDecided      Approval[]             @relation("ApprovalDecider")
   approvalsProposed     Approval[]             @relation("ApprovalProposer")
   draftRevisions        DraftRevision[]        @relation("DraftEditor")
+  reportsGenerated      ReportSnapshot[]       @relation("ReportGenerator")
+  askThreads            AskThread[]            @relation("AskThreadMember")
   outboundCreated       OutboundMessage[]      @relation("OutboundCreator")
   todayItems            TodayItem[]
   integrationsMade      Integration[]          @relation("IntegrationConnector")
@@ -1126,6 +1132,7 @@ enum FilePurpose {
   CONTRACT_DOCUMENT
   CSV_IMPORT
   CALL_TRANSCRIPT
+  ASK_ATTACHMENT
 }
 
 enum ScanStatus {
@@ -1783,6 +1790,8 @@ model AgentRun {
   promises         Promise[]         @relation("PromiseAgentRun")
   documents        Document[]        @relation("DocumentAgentRun")
   meetingSummaries Meeting[]         @relation("MeetingSummaryAgentRun")
+  reportDigests    ReportSnapshot[]  @relation("ReportDigestRun")
+  askMessages      AskMessage[]      @relation("AskMessageRun")
   playStepRuns     PlayStepRun[]
 
   @@unique([workspaceId, id])
@@ -2403,11 +2412,11 @@ model Goal {
   createdAt             DateTime     @default(now())
   updatedAt             DateTime     @updatedAt
 
-  workspace  Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  account    Account     @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
-  extraction Extraction? @relation(fields: [workspaceId, extractionId], references: [workspaceId, id], onDelete: SetNull)
-  agentRun   AgentRun?   @relation("GoalAgentRun", fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
-  createdBy  Membership? @relation("GoalCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account     Account      @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  extraction  Extraction?  @relation(fields: [workspaceId, extractionId], references: [workspaceId, id], onDelete: SetNull)
+  agentRun    AgentRun?    @relation("GoalAgentRun", fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
+  createdBy   Membership?  @relation("GoalCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: Restrict)
   successPlan SuccessPlan? @relation(fields: [workspaceId, successPlanId], references: [workspaceId, id], onDelete: SetNull)
 
   @@unique([workspaceId, id])
@@ -2595,9 +2604,9 @@ model Document {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  account   Account   @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
-  agentRun  AgentRun? @relation("DocumentAgentRun", fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account       Account   @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  agentRun      AgentRun? @relation("DocumentAgentRun", fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
   renewals      Renewal[] @relation("RenewalBrief")
   meetingBriefs Meeting[] @relation("MeetingBrief")
 
@@ -3162,4 +3171,82 @@ model PortalAccess {
   @@unique([workspaceId, tokenHash])
   @@index([workspaceId, accountId])
   @@index([workspaceId, contactId])
+}
+
+// ─── M11: reports, Ask AI, outcome checkpoints (spec §6H, §6I) ───────────────
+
+enum ReportTrigger {
+  SCHEDULED
+  MANUAL
+}
+
+enum AskRole {
+  USER
+  ASSISTANT
+}
+
+/// [W] One computed report for one period and filter set: a dated, immutable artefact (D-160).
+/// DB trigger: reportKey, periodStart, periodEnd, filters, filtersHash, data and generatedAt never
+/// change; digestAgentRunId may go from NULL to a value once.
+model ReportSnapshot {
+  id                      String        @id @default(cuid())
+  workspaceId             String
+  reportKey               String
+  periodStart             DateTime      @db.Date
+  periodEnd               DateTime      @db.Date
+  filters                 Json          @default("{}")
+  filtersHash             String
+  data                    Json
+  trigger                 ReportTrigger
+  generatedByMembershipId String?
+  generatedAt             DateTime
+  digestAgentRunId        String?
+  createdAt               DateTime      @default(now())
+
+  workspace      Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  generatedBy    Membership? @relation("ReportGenerator", fields: [workspaceId, generatedByMembershipId], references: [workspaceId, id], onDelete: SetNull)
+  digestAgentRun AgentRun?   @relation("ReportDigestRun", fields: [workspaceId, digestAgentRunId], references: [workspaceId, id], onDelete: NoAction)
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, reportKey, periodEnd])
+}
+
+/// [W] One Ask AI conversation, private to the member who started it.
+model AskThread {
+  id           String   @id @default(cuid())
+  workspaceId  String
+  userId       String
+  membershipId String
+  title        String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  workspace  Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  membership Membership   @relation("AskThreadMember", fields: [workspaceId, membershipId], references: [workspaceId, id], onDelete: Cascade)
+  messages   AskMessage[]
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, userId, createdAt])
+}
+
+/// [W] One message of an Ask thread. CHECK ask_message_agent_run_required: an ASSISTANT message
+/// always names the AgentRun that produced it (Rule 5, no orphan AI text).
+model AskMessage {
+  id          String   @id @default(cuid())
+  workspaceId String
+  threadId    String
+  role        AskRole
+  content     String
+  toolCalls   Json     @default("[]")
+  citations   Json     @default("[]")
+  agentRunId  String?
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  thread    AskThread @relation(fields: [workspaceId, threadId], references: [workspaceId, id], onDelete: Cascade)
+  agentRun  AgentRun? @relation("AskMessageRun", fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, threadId, createdAt])
 }

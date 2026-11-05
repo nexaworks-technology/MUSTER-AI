@@ -4,7 +4,8 @@
  */
 export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 
-export type UploadPurpose = "CONTRACT_DOCUMENT" | "CSV_IMPORT" | "CALL_TRANSCRIPT";
+export type UploadPurpose =
+  "CONTRACT_DOCUMENT" | "CSV_IMPORT" | "CALL_TRANSCRIPT" | "ASK_ATTACHMENT";
 
 export interface AllowedType {
   ext: string;
@@ -36,4 +37,6 @@ export const ALLOWED_BY_PURPOSE: Record<UploadPurpose, readonly string[]> = {
   CONTRACT_DOCUMENT: ["pdf", "docx", "png", "jpg", "txt"],
   CSV_IMPORT: ["csv"],
   CALL_TRANSCRIPT: ["vtt", "srt", "txt", "json"],
+  // S1: text types only (D-168); the PDF sniffer is already shared, but Ask file Q&A wires it in Session 2.
+  ASK_ATTACHMENT: ["vtt", "srt", "txt", "json"],
 };

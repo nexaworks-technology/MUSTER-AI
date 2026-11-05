@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { liveSnapshotWhere } from "@/modules/health/service";
 import type { Prisma } from "@prisma/client";
 import { defineAgent, type BuiltContext, type Effect } from "../define";
 import { baseAgentOutput, type ContextBundle } from "../schemas";
@@ -99,7 +100,7 @@ export const meetingQbr = defineAgent({
 
       // Latest health snapshot
       const snapshot = await db.healthScoreSnapshot.findFirst({
-        where: { accountId: input.accountId },
+        where: liveSnapshotWhere({ accountId: input.accountId }),
         orderBy: { asOf: "desc" },
         include: { riskReason: true },
       });
