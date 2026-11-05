@@ -14,6 +14,7 @@ import {
 } from "@/modules/outbound/service";
 import { markActed } from "@/modules/outcomes/service";
 import { getSettingsData } from "@/modules/settings/service";
+import { changeList, executeApprovedChanges, type ChangesOutcome } from "./changes";
 import { resolveLevel } from "./level-resolver";
 
 /**
@@ -72,6 +73,8 @@ export const requestApprovalInput = z.object({
       value: z.string().min(1),
     })
     .optional(),
+  /** M11 (D-160): the exact change list a human approves; executed by approve(), never before. */
+  changes: changeList.optional(),
   email: z
     .object({
       contactId: z.string().min(1),
@@ -138,6 +141,7 @@ export async function requestApproval(
         payload: json({
           ...(input.email ? { subject: input.email.subject } : {}),
           ...(input.writeBack ? { writeBack: input.writeBack } : {}),
+          ...(input.changes ? { changes: input.changes } : {}),
         }),
         reason: input.reason,
         proof: json(input.proof),
@@ -332,6 +336,8 @@ export interface DecisionResult {
   send?: DispatchResult | { status: "NOT_SENT"; reasons: string[] };
   /** WRITE_BACK approvals (M5): what the write-back gate did once approved. */
   writeBack?: { status: "PUSHED" | "REFUSED" | "FAILED" | "ALREADY_PUSHED"; plain: string };
+  /** M11: what an approved change list did, item by item (absent when it carries none). */
+  changes?: ChangesOutcome;
 }
 
 async function loadPending(actor: Actor, approvalId: string, via: DecisionChannel) {
@@ -437,6 +443,7 @@ export async function approve(
     approval,
     send: await sendIfEmail(actor, approval, opts.dispatch),
     writeBack: await writeBackIfApproved(actor, approval),
+    changes: await executeApprovedChanges(actor, approval),
   };
 }
 

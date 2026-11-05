@@ -3,14 +3,10 @@ import type { PlayStatus, Prisma } from "@prisma/client";
 import { writeAudit } from "@/lib/audit";
 import { requirePermission, can } from "@/lib/auth/permissions";
 import { scopedDb } from "@/lib/db/scoped";
-import type { Actor } from "@/modules/accounts/service";
+import { requireEditableAccount, type Actor } from "@/modules/accounts/service";
 import { compileSegment, type SegmentFilter } from "@/modules/segments/service";
 import { checkDeadPlay } from "./dead-play";
-import {
-  playDefinitionSchema,
-  type PlayDefinition,
-  type PlayStepDefinition,
-} from "./definition";
+import { playDefinitionSchema, type PlayDefinition, type PlayStepDefinition } from "./definition";
 import { enterPlay } from "./runner";
 import { validatePlaySafety } from "./safety";
 
@@ -29,7 +25,13 @@ export class PlayNotFoundError extends Error {
 }
 
 export type PublishResult =
-  | { status: "PUBLISHED"; playId: string; versionId: string; version: number; enteredCount?: number }
+  | {
+      status: "PUBLISHED";
+      playId: string;
+      versionId: string;
+      version: number;
+      enteredCount?: number;
+    }
   | { status: "REFUSED"; refusals: string[]; stepRefusals?: Record<string, string[]> };
 
 export function plainLanguageSummary(def: PlayDefinition): string {
@@ -370,11 +372,7 @@ export async function killPlay(actor: Actor, playId: string) {
   });
 }
 
-export async function duplicatePlay(
-  actor: Actor,
-  playId: string,
-  options?: { name?: string },
-) {
+export async function duplicatePlay(actor: Actor, playId: string, options?: { name?: string }) {
   requirePermission(actor, "plays:createDraft");
   const db = scopedDb(actor);
 
@@ -441,11 +439,7 @@ export async function duplicatePlay(
   });
 }
 
-export async function revertPlayVersion(
-  actor: Actor,
-  playId: string,
-  targetVersion: number,
-) {
+export async function revertPlayVersion(actor: Actor, playId: string, targetVersion: number) {
   requirePermission(actor, "plays:createDraft");
   const db = scopedDb(actor);
 
@@ -505,10 +499,7 @@ export async function revertPlayVersion(
   });
 }
 
-export async function listPlays(
-  actor: Actor,
-  query?: { status?: PlayStatus; category?: string },
-) {
+export async function listPlays(actor: Actor, query?: { status?: PlayStatus; category?: string }) {
   requirePermission(actor, "accounts:view");
   const db = scopedDb(actor);
 
@@ -545,7 +536,8 @@ export async function listPlays(
       isSeeded: p.isSeeded,
       version: latestVersion?.version ?? 1,
       publishedAt: latestVersion?.publishedAt ?? null,
-      publishedBy: latestVersion?.publishedBy?.user.name ?? latestVersion?.publishedBy?.user.email ?? null,
+      publishedBy:
+        latestVersion?.publishedBy?.user.name ?? latestVersion?.publishedBy?.user.email ?? null,
       totalRuns: p._count.runs,
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
@@ -670,18 +662,13 @@ export async function getPlayResults(actor: Actor, playId: string) {
   const completedSteps = allStepRuns.filter(
     (sr) => sr.status === "DONE" || (sr.status as string) === "AUTO_RECORDED",
   );
-  const waitingSteps = allStepRuns.filter(
-    (sr) => sr.status === "WAITING_APPROVAL",
-  );
+  const waitingSteps = allStepRuns.filter((sr) => sr.status === "WAITING_APPROVAL");
 
   const moneyVisible = Boolean(can(actor, "revenue:view"));
-  const totalArrProtectedMinor = Array.from(uniqueAccountIds).reduce(
-    (acc, accId) => {
-      const run = play.runs.find((r) => r.accountId === accId);
-      return acc + (run?.account.arrMinor ? BigInt(run.account.arrMinor) : 0n);
-    },
-    0n,
-  );
+  const totalArrProtectedMinor = Array.from(uniqueAccountIds).reduce((acc, accId) => {
+    const run = play.runs.find((r) => r.accountId === accId);
+    return acc + (run?.account.arrMinor ? BigInt(run.account.arrMinor) : 0n);
+  }, 0n);
 
   return {
     play: {
@@ -723,4 +710,39 @@ export async function getPlayResults(actor: Actor, playId: string) {
     })),
     skips,
   };
+}
+
+/** A play enrolment that cannot happen, in plain words (M11 S9). */
+export class PlayEnrolError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "PlayEnrolError";
+  }
+}
+
+/**
+ * M11 S9: a person enrols one account in a published play (an approved Ask AI change list). The
+ * person must be able to edit the account (book scope); the runner's own rules then apply
+ * unchanged (published version, one open run per play and account, lost/archived accounts skipped,
+ * conditions). Idempotent per triggerRef.
+ */
+export async function enrolAccountInPlay(
+  actor: Actor,
+  input: { playId: string; accountId: string; triggerRef: string },
+): Promise<{ playRunId: string }> {
+  await requireEditableAccount(actor, input.accountId);
+  const res = await enterPlay(
+    { workspaceId: actor.workspaceId },
+    {
+      workspaceId: actor.workspaceId,
+      playId: input.playId,
+      accountId: input.accountId,
+      triggerRef: input.triggerRef,
+    },
+  );
+  if ((res.status === "RUNNING" || res.status === "COMPLETED") && res.playRunId)
+    return { playRunId: res.playRunId };
+  if (res.status === "ALREADY_ENTERED")
+    throw new PlayEnrolError("Already enrolled from this approval.");
+  throw new PlayEnrolError(res.reason ?? "The play did not start for this account.");
 }

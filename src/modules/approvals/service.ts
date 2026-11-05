@@ -26,3 +26,11 @@ export {
   type DecisionChannel,
 } from "./lifecycle";
 export { resolveProof, parseProof, type ProofLink, type ProofRef } from "./proof";
+export {
+  changeItem,
+  changeList,
+  type ChangeItem,
+  type ChangeResult,
+  type ChangesOutcome,
+  type LabelledChange,
+} from "./changes";

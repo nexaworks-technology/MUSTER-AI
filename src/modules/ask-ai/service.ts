@@ -11,3 +11,4 @@ export {
   type FieldValue,
   type ToolOutput,
 } from "./tools";
+export { proposeChanges, proposeInput, type ProposalResult, type ProposeInput } from "./proposals";
