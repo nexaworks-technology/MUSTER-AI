@@ -1,15 +1,15 @@
 import crypto from "node:crypto";
 import { z } from "zod";
-import type { SurveyStatus, SurveyTrigger, SurveyType } from "@prisma/client";
 import { writeAudit } from "@/lib/audit";
 import { businessClock, type Clock } from "@/lib/dates";
 import { rawDb } from "@/lib/db/raw";
 import { scopedDb } from "@/lib/db/scoped";
 import type { Actor } from "@/modules/accounts/service";
-import { requestApproval } from "@/modules/approvals/lifecycle";
+import { requestApproval } from "@/modules/approvals/service";
 import { computeSurveyMetrics, type SurveyMetricsResult } from "./metrics";
 
-const SECRET = process.env.APP_SECRET ?? process.env.NEXTAUTH_SECRET ?? "$REMOVED_SURVEY_FALLBACK";
+const SECRET =
+  process.env.APP_SECRET ?? process.env.NEXTAUTH_SECRET ?? "$REMOVED_SURVEY_FALLBACK";
 
 export interface SurveyTokenPayload {
   workspaceId: string;
@@ -93,7 +93,10 @@ export async function getSurvey(actor: Actor, surveyId: string) {
   });
 }
 
-export async function getSurveyMetrics(actor: Actor, surveyId: string): Promise<SurveyMetricsResult> {
+export async function getSurveyMetrics(
+  actor: Actor,
+  surveyId: string,
+): Promise<SurveyMetricsResult> {
   const db = scopedDb(actor);
   const survey = await db.survey.findUniqueOrThrow({
     where: { id: surveyId },

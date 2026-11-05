@@ -11,7 +11,6 @@ import { ids, seedId } from "./ids";
 export async function seedM10(db: ScopedDb, workspaceId: string): Promise<void> {
   const brightwellId = ids.account("brightwell");
   const benContactId = ids.contact("brightwell", "ben");
-  const leoMembershipId = ids.membership("leo");
 
   // 1. Seed NPS Survey & Ben Okafor's response (feeding health)
   await db.play.updateMany({
@@ -48,13 +47,15 @@ export async function seedM10(db: ScopedDb, workspaceId: string): Promise<void> 
       accountId: brightwellId,
       contactId: benContactId,
       score: 4,
-      comment: "Product functionality is solid, but we need clearer ROI before the upcoming renewal.",
+      comment:
+        "Product functionality is solid, but we need clearer ROI before the upcoming renewal.",
       token: "token-brightwell-ben-nps",
       respondedAt,
     },
     update: {
       score: 4,
-      comment: "Product functionality is solid, but we need clearer ROI before the upcoming renewal.",
+      comment:
+        "Product functionality is solid, but we need clearer ROI before the upcoming renewal.",
       respondedAt,
     },
   });

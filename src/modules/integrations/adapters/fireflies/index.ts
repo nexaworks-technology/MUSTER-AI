@@ -1,8 +1,8 @@
 import { z } from "zod";
-import type { AdapterContext, IntegrationAdapter } from "../../adapter";
+import type { IntegrationAdapter } from "../../adapter";
 import type { Credentials } from "../../credentials";
 import { describeProviderError } from "../../errors";
-import type { NormalizedBatch, NormalizedTranscript } from "../../normalized";
+import type { NormalizedTranscript } from "../../normalized";
 import { requestJson } from "../../transport";
 
 const FIREFLIES_GRAPHQL = "https://api.fireflies.ai/graphql";

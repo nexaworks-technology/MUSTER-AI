@@ -1,14 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { businessClock, utcMidnight } from "@/lib/dates";
 import { scopedDb } from "@/lib/db/scoped";
-import { approve, bulkDecide } from "@/modules/approvals/lifecycle";
+import { bulkDecide } from "@/modules/approvals/service";
 import { createTestAdmin } from "@/test/fixtures";
-import {
-  createSurvey,
-  dispatchSurvey,
-  getSurveyMetrics,
-  submitSurveyResponse,
-} from "../service";
+import { createSurvey, dispatchSurvey, getSurveyMetrics, submitSurveyResponse } from "../service";
 
 describe("Surveys Engine & Approvals Integration", () => {
   it("creates a survey and calculates metrics cleanly", async () => {

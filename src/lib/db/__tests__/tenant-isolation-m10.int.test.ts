@@ -1,6 +1,5 @@
 import { Prisma } from "@prisma/client";
 import { beforeAll, describe, expect, it } from "vitest";
-import { rawDb } from "@/lib/db/raw";
 import { scopedDb } from "@/lib/db/scoped";
 import { createTestAdmin } from "@/test/fixtures";
 
@@ -26,7 +25,12 @@ async function setup(label: string) {
   });
 
   const contact = await db.contact.create({
-    data: { workspaceId, accountId: account.id, name: `${label} contact`, email: `${label}@example.test` },
+    data: {
+      workspaceId,
+      accountId: account.id,
+      name: `${label} contact`,
+      email: `${label}@example.test`,
+    },
   });
 
   const run = await db.agentRun.create({
@@ -275,7 +279,9 @@ describe("M10 tenant isolation (Meeting, MeetingAttendee, SuccessPlan, Survey, S
   describe("Survey and SurveyResponse", () => {
     it("A cannot read B's survey or response", async () => {
       expect(await A.db.survey.findUnique({ where: { id: B.survey.id } })).toBeNull();
-      expect(await A.db.surveyResponse.findUnique({ where: { id: B.surveyResponse.id } })).toBeNull();
+      expect(
+        await A.db.surveyResponse.findUnique({ where: { id: B.surveyResponse.id } }),
+      ).toBeNull();
     });
 
     it("A updating B's surveyResponse changes 0 rows; own update changes 1", async () => {

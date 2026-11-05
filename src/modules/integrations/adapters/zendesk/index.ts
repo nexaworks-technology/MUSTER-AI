@@ -176,7 +176,10 @@ export const zendeskAdapter: IntegrationAdapter<ZendeskConfig> = {
     }
   },
 
-  async *sync(ctx: AdapterContext<ZendeskConfig>, opts: { kind: "FULL" | "INCREMENTAL"; cursor?: string }) {
+  async *sync(
+    ctx: AdapterContext<ZendeskConfig>,
+    opts: { kind: "FULL" | "INCREMENTAL"; cursor?: string },
+  ) {
     const subdomain = getSubdomain(ctx.credentials, ctx.config);
     const startTime = opts.cursor ?? "0";
     const url = new URL(`https://${subdomain}.zendesk.com/api/v2/incremental/tickets.json`);
@@ -230,7 +233,9 @@ export const zendeskAdapter: IntegrationAdapter<ZendeskConfig> = {
           const authorEmail = c.author_email ?? authorUser?.email;
           const isRequester =
             (c.author_id && t.requester_id && String(c.author_id) === String(t.requester_id)) ||
-            (authorEmail && requesterEmail && authorEmail.toLowerCase() === requesterEmail.toLowerCase());
+            (authorEmail &&
+              requesterEmail &&
+              authorEmail.toLowerCase() === requesterEmail.toLowerCase());
           return {
             externalId: String(c.id),
             direction: isRequester ? ("INBOUND" as const) : ("OUTBOUND" as const),
@@ -317,6 +322,10 @@ export const zendeskAdapter: IntegrationAdapter<ZendeskConfig> = {
   },
 
   describeError(err: unknown) {
-    return describeProviderError(err, "Zendesk", "Enter your Zendesk subdomain, admin email and API token.");
+    return describeProviderError(
+      err,
+      "Zendesk",
+      "Enter your Zendesk subdomain, admin email and API token.",
+    );
   },
 };

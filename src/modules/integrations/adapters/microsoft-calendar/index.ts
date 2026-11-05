@@ -1,20 +1,16 @@
 import { z } from "zod";
 import { env } from "@/lib/config/env";
-import type { AdapterContext, IntegrationAdapter } from "../../adapter";
+import type { IntegrationAdapter } from "../../adapter";
 import type { Credentials } from "../../credentials";
 import { describeProviderError } from "../../errors";
-import type { NormalizedBatch, NormalizedMeeting } from "../../normalized";
+import type { NormalizedMeeting } from "../../normalized";
 import { requestJson } from "../../transport";
 
 const GRAPH_API = "https://graph.microsoft.com";
 const AUTH_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize";
 const TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
 
-export const MS_CALENDAR_SCOPES = [
-  "offline_access",
-  "User.Read",
-  "Calendars.Read",
-] as const;
+export const MS_CALENDAR_SCOPES = ["offline_access", "User.Read", "Calendars.Read"] as const;
 
 export const microsoftCalendarConfig = z.record(z.string(), z.unknown()).default({});
 type Cfg = z.infer<typeof microsoftCalendarConfig>;
@@ -51,7 +47,10 @@ const eventListSchema = z.object({
             z.object({
               type: z.string().optional(),
               status: z.object({ response: z.string().optional() }).optional(),
-              emailAddress: z.object({ address: z.string().optional(), name: z.string().optional() }),
+              emailAddress: z.object({
+                address: z.string().optional(),
+                name: z.string().optional(),
+              }),
             }),
           )
           .default([]),
@@ -69,7 +68,8 @@ function auth(c: Credentials): Record<string, string> {
 
 function clientCredentials() {
   const cid = process.env.MICROSOFT_CALENDAR_CLIENT_ID ?? process.env.MICROSOFT_CLIENT_ID;
-  const secret = process.env.MICROSOFT_CALENDAR_CLIENT_SECRET ?? process.env.MICROSOFT_CLIENT_SECRET;
+  const secret =
+    process.env.MICROSOFT_CALENDAR_CLIENT_SECRET ?? process.env.MICROSOFT_CLIENT_SECRET;
   if (!cid || !secret) {
     const e = env();
     if (e.INTEGRATIONS_TRANSPORT === "fixture" || e.NODE_ENV === "test")
@@ -173,7 +173,11 @@ export const microsoftCalendarAdapter: IntegrationAdapter<Cfg> = {
   },
 
   describeError: (err) =>
-    describeProviderError(err, "Outlook Calendar", "Reconnect Outlook Calendar from Settings › Integrations."),
+    describeProviderError(
+      err,
+      "Outlook Calendar",
+      "Reconnect Outlook Calendar from Settings › Integrations.",
+    ),
 
   async *sync(ctx, opts) {
     let nextUrl: string | undefined = opts.cursor ?? `${GRAPH_API}/v1.0/me/events`;

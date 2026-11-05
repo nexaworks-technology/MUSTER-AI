@@ -134,7 +134,10 @@ export const freshdeskAdapter: IntegrationAdapter<FreshdeskConfig> = {
     }
   },
 
-  async *sync(ctx: AdapterContext<FreshdeskConfig>, opts: { kind: "FULL" | "INCREMENTAL"; cursor?: string }) {
+  async *sync(
+    ctx: AdapterContext<FreshdeskConfig>,
+    opts: { kind: "FULL" | "INCREMENTAL"; cursor?: string },
+  ) {
     const domain = getDomain(ctx.credentials, ctx.config);
     const url = new URL(`https://${domain}.freshdesk.com/api/v2/tickets`);
     url.searchParams.set("include", "conversations,requester");
@@ -278,7 +281,9 @@ export const freshdeskAdapter: IntegrationAdapter<FreshdeskConfig> = {
               ? [
                   {
                     externalId: String(wh.conversation.id),
-                    direction: wh.conversation.incoming ? ("INBOUND" as const) : ("OUTBOUND" as const),
+                    direction: wh.conversation.incoming
+                      ? ("INBOUND" as const)
+                      : ("OUTBOUND" as const),
                     fromAddress: wh.requester_email,
                     fromName: wh.requester_name,
                     toAddresses: [],

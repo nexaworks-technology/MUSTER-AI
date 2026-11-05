@@ -1,19 +1,15 @@
 import { z } from "zod";
-import type { AdapterContext, IntegrationAdapter } from "../../adapter";
+import type { IntegrationAdapter } from "../../adapter";
 import type { Credentials } from "../../credentials";
 import { describeProviderError } from "../../errors";
-import type { NormalizedBatch, NormalizedTranscript } from "../../normalized";
+import type { NormalizedTranscript } from "../../normalized";
 import { requestJson } from "../../transport";
 
 const ZOOM_API = "https://api.zoom.us";
 const AUTH_URL = "https://zoom.us/oauth/authorize";
 const TOKEN_URL = "https://zoom.us/oauth/token";
 
-export const ZOOM_SCOPES = [
-  "user:read",
-  "cloud_recording:read",
-  "meeting:read",
-] as const;
+export const ZOOM_SCOPES = ["user:read", "cloud_recording:read", "meeting:read"] as const;
 
 export const zoomConfig = z.record(z.string(), z.unknown()).default({});
 type Cfg = z.infer<typeof zoomConfig>;
@@ -216,7 +212,9 @@ export const zoomAdapter: IntegrationAdapter<Cfg> = {
 
         // Fetch transcript if transcript file exists
         let text = meeting.topic;
-        const transcriptFile = meeting.recording_files.find((f: { file_type: string }) => f.file_type === "TRANSCRIPT");
+        const transcriptFile = meeting.recording_files.find(
+          (f: { file_type: string }) => f.file_type === "TRANSCRIPT",
+        );
         if (transcriptFile) {
           try {
             const transContent = await requestJson(

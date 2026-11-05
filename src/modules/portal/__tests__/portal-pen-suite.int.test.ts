@@ -115,7 +115,11 @@ describe("Slice 10: Customer Portal & Penetration Suite (Rule 2 & Decision 5)", 
     await expect(verifyPortalAccess(rawToken)).rejects.toThrow(/revoked/i);
 
     const audit = await db.auditLog.findMany({
-      where: { workspaceId: admin.workspaceId, targetId: access.id, action: "portal.access_revoked" },
+      where: {
+        workspaceId: admin.workspaceId,
+        targetId: access.id,
+        action: "portal.access_revoked",
+      },
     });
     expect(audit.length).toBe(1);
   });
@@ -133,7 +137,7 @@ describe("Slice 10: Customer Portal & Penetration Suite (Rule 2 & Decision 5)", 
         ownerMembershipId: admin.membershipId,
       },
     });
-    const contactA = await db.contact.create({
+    await db.contact.create({
       data: {
         workspaceId: admin.workspaceId,
         accountId: accountA.id,

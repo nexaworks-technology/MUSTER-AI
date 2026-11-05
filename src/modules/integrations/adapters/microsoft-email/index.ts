@@ -10,12 +10,7 @@ const API = "https://graph.microsoft.com";
 const AUTH = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize";
 const TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
 
-export const GRAPH_SCOPES = [
-  "Mail.Read",
-  "Mail.ReadWrite",
-  "offline_access",
-  "User.Read",
-] as const;
+export const GRAPH_SCOPES = ["Mail.Read", "Mail.ReadWrite", "offline_access", "User.Read"] as const;
 
 export const microsoftEmailConfig = z.record(z.string(), z.unknown()).default({});
 type Cfg = z.infer<typeof microsoftEmailConfig>;

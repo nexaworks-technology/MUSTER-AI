@@ -4,12 +4,7 @@ import { createTestAdmin } from "@/test/fixtures";
 import { dispatchOutbox, OUTBOX_ROUTES } from "@/lib/jobs/outbox";
 import { PROCESSORS } from "@/worker/processors";
 import type { AiProvider } from "@/lib/ai";
-import {
-  prepareBrief,
-  scheduleBriefForMeeting,
-  sweepUpcomingMeetingBriefs,
-} from "../service";
-import type { Job } from "bullmq";
+import { prepareBrief, scheduleBriefForMeeting, sweepUpcomingMeetingBriefs } from "../service";
 
 const makeMockProvider = (accountId: string): AiProvider => ({
   name: "recorded",
@@ -79,9 +74,13 @@ describe("Pre-call brief scheduler and worker job (T-30)", () => {
       where: { workspaceId: ws, type: "meetings.prepareBrief" },
     });
     expect(events.length).toBeGreaterThanOrEqual(1);
-    const event = events.find((e) => (e.payload as Record<string, unknown>).meetingId === meeting.id);
+    const event = events.find(
+      (e) => (e.payload as Record<string, unknown>).meetingId === meeting.id,
+    );
     expect(event).toBeDefined();
-    expect(Math.abs(event!.availableAt.getTime() - expectedAvailableAt.getTime())).toBeLessThan(1000);
+    expect(Math.abs(event!.availableAt.getTime() - expectedAvailableAt.getTime())).toBeLessThan(
+      1000,
+    );
 
     // 2. Mock enqueue and dispatch outbox
     const enqueued: Array<{ queue: string; job: string; data: unknown }> = [];
@@ -106,11 +105,6 @@ describe("Pre-call brief scheduler and worker job (T-30)", () => {
     // 3. Worker processor executes the job
     const processor = PROCESSORS.agents?.["meetings.prepareBrief"];
     expect(processor).toBeDefined();
-
-    const mockJob = {
-      name: "meetings.prepareBrief",
-      data: enqueued[0]!.data,
-    } as Job;
 
     // Run processor with mockProvider deps
     await prepareBrief(

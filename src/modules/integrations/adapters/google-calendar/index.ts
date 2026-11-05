@@ -1,18 +1,16 @@
 import { z } from "zod";
 import { env } from "@/lib/config/env";
-import type { AdapterContext, IntegrationAdapter } from "../../adapter";
+import type { IntegrationAdapter } from "../../adapter";
 import type { Credentials } from "../../credentials";
 import { describeProviderError } from "../../errors";
-import type { NormalizedBatch, NormalizedMeeting } from "../../normalized";
+import type { NormalizedMeeting } from "../../normalized";
 import { requestJson } from "../../transport";
 
 const API = "https://www.googleapis.com";
 const AUTH = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 
-export const GCAL_SCOPES = [
-  "https://www.googleapis.com/auth/calendar.events.readonly",
-] as const;
+export const GCAL_SCOPES = ["https://www.googleapis.com/auth/calendar.events.readonly"] as const;
 
 export const googleCalendarConfig = z.record(z.string(), z.unknown()).default({});
 type Cfg = z.infer<typeof googleCalendarConfig>;
@@ -162,7 +160,11 @@ export const googleCalendarAdapter: IntegrationAdapter<Cfg> = {
   },
 
   describeError: (err) =>
-    describeProviderError(err, "Google Calendar", "Reconnect Google Calendar from Settings › Integrations."),
+    describeProviderError(
+      err,
+      "Google Calendar",
+      "Reconnect Google Calendar from Settings › Integrations.",
+    ),
 
   async *sync(ctx, opts) {
     let pageToken = opts.cursor;

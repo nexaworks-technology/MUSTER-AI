@@ -10,7 +10,11 @@ import { rawDb } from "../src/lib/db/raw";
 import { scopedDb } from "../src/lib/db/scoped";
 import type { AiProvider } from "../src/lib/ai";
 import { generateQbr, lockQbrDocument, updateQbrNarrative } from "../src/modules/qbr/service";
-import { createPortalAccess, getPortalView, updatePortalGoalProgress } from "../src/modules/portal/service";
+import {
+  createPortalAccess,
+  getPortalView,
+  updatePortalGoalProgress,
+} from "../src/modules/portal/service";
 
 const line = (s = "") => console.log(s);
 const head = (s: string) => {
@@ -70,9 +74,11 @@ async function main() {
   };
 
   const brightwell = await db.account.findFirstOrThrow({ where: { name: "Brightwell Logistics" } });
-  const benContact = await db.contact.findFirstOrThrow({ where: { email: "ben.okafor@brightwell-logistics.test" } });
+  const benContact = await db.contact.findFirstOrThrow({
+    where: { email: "ben.okafor@brightwell-logistics.test" },
+  });
 
-  let results = {
+  const results = {
     flow1: "FAIL",
     flow2: "FAIL",
     flow3: "FAIL",
@@ -93,7 +99,9 @@ async function main() {
 
     if (meeting.briefDocument) {
       const metrics = meeting.briefDocument.metrics as Record<string, unknown>;
-      line(`brief metrics: healthRisk=${metrics.healthRisk}, score=${metrics.healthScore}, renewal=${metrics.renewalDate}`);
+      line(
+        `brief metrics: healthRisk=${metrics.healthRisk}, score=${metrics.healthScore}, renewal=${metrics.renewalDate}`,
+      );
       const narrative = meeting.briefDocument.narrative as Array<{ title: string; text: string }>;
       line(`brief sections: ${narrative.map((n) => n.title).join("; ")}`);
       if (metrics.healthRisk === "AT_RISK" && narrative.length >= 2) {
@@ -167,7 +175,9 @@ async function main() {
       accountId: brightwell.id,
       contactId: benContact.id,
     });
-    line(`issued portal token: length=${rawToken.length}, expires=${access.expiresAt.toISOString()}`);
+    line(
+      `issued portal token: length=${rawToken.length}, expires=${access.expiresAt.toISOString()}`,
+    );
 
     const portalView = await getPortalView(rawToken);
     line(`portal view account: ${portalView.account.name}`);
@@ -194,7 +204,9 @@ async function main() {
       },
       orderBy: { createdAt: "desc" },
     });
-    line(`audit entry: actorType=${audit?.actorType}, actorId=${audit?.actorId}, action=${audit?.action}`);
+    line(
+      `audit entry: actorType=${audit?.actorType}, actorId=${audit?.actorId}, action=${audit?.action}`,
+    );
 
     if (portalView.successPlans.length >= 1 && updatedGoal.status === "ACHIEVED" && audit) {
       results.flow3 = "PASS";
@@ -212,7 +224,9 @@ async function main() {
       where: { accountId: brightwell.id, contactId: benContact.id },
       include: { survey: true },
     });
-    line(`survey response: type=${response.survey.type}, score=${response.score}/10, comment="${response.comment}"`);
+    line(
+      `survey response: type=${response.survey.type}, score=${response.score}/10, comment="${response.comment}"`,
+    );
 
     // Inspect Brightwell health score snapshot from seed
     const snapshot = await db.healthScoreSnapshot.findFirstOrThrow({
@@ -227,9 +241,15 @@ async function main() {
     const sentimentReason = await db.healthReason.findFirst({
       where: { snapshotId: snapshot.id, component: "survey_average" },
     });
-    const sources = (Array.isArray(sentimentReason?.sources) ? sentimentReason.sources : []) as Array<{ sourceType: string; sourceId: string }>;
-    line(`Sentiment reason sources: ${sources.map((s) => `${s.sourceType}:${s.sourceId}`).join(", ")}`);
-    const pointsToResponse = sources.some((s) => s.sourceType === "SurveyResponse" && s.sourceId === response.id);
+    const sources = (
+      Array.isArray(sentimentReason?.sources) ? sentimentReason.sources : []
+    ) as Array<{ sourceType: string; sourceId: string }>;
+    line(
+      `Sentiment reason sources: ${sources.map((s) => `${s.sourceType}:${s.sourceId}`).join(", ")}`,
+    );
+    const pointsToResponse = sources.some(
+      (s) => s.sourceType === "SurveyResponse" && s.sourceId === response.id,
+    );
 
     // Verify other accounts have null sentiment for seed asOf date
     const otherWithSentiment = await db.healthScoreSnapshot.count({
