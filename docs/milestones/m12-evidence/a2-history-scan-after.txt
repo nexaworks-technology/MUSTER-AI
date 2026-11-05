@@ -1,0 +1,2 @@
+history-secret-check: 220 commits, 2585 text blobs, 0 tags scanned in <scratch>/rewritten-clone/rewrite2 (+3 known leaked values)
+history-secret-check: no secrets found

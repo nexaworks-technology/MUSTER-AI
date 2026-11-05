@@ -1,0 +1,20 @@
+history-secret-check: 220 commits, 2585 text blobs, 0 tags scanned in /Users/sahil/customer sucesss platform (+3 known leaked values)
+  known-leaked-value#3  blob 567d3fcfab19 docs/milestones/M11-LOG.md
+  known-leaked-value#2  blob f6b2b1e7e063 scripts/__tests__/secret-patterns-m9.test.ts
+  secret-fallback-default  blob 8c9bc08b0066 src/modules/surveys/service.ts:12
+  known-leaked-value#3  blob 8c9bc08b0066 src/modules/surveys/service.ts
+  secret-fallback-default  blob 31407acef9da src/modules/surveys/service.ts:12
+  known-leaked-value#3  blob 31407acef9da src/modules/surveys/service.ts
+  db-password  blob 9c33d814fabd scripts/demo-fresh-db.ts:27
+  db-password  blob 9c33d814fabd scripts/demo-fresh-db.ts:29
+  known-leaked-value#1  blob 9c33d814fabd scripts/demo-fresh-db.ts
+  known-leaked-value#2  blob 9c33d814fabd scripts/demo-fresh-db.ts
+  db-password  blob 4483a691582f scripts/demo-fresh-db.ts:29
+  db-password  blob 4483a691582f scripts/demo-fresh-db.ts:31
+  known-leaked-value#1  blob 4483a691582f scripts/demo-fresh-db.ts
+  known-leaked-value#2  blob 4483a691582f scripts/demo-fresh-db.ts
+  stripe-webhook-secret  blob f8ac671d123b src/modules/campaigns/__tests__/campaign-pacing-webhook.int.test.ts:180
+  slack-token  blob f45f14ca3af8 src/modules/integrations/adapters/slack/__fixtures__/auth.json:16
+  slack-token  blob 50349ffc504b src/modules/integrations/adapters/slack/__tests__/contract.test.ts:52
+  slack-token  blob 50349ffc504b src/modules/integrations/adapters/slack/__tests__/contract.test.ts:60
+history-secret-check: 18 finding(s)
