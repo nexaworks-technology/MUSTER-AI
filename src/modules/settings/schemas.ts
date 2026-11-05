@@ -98,6 +98,15 @@ export const workspaceSettingsData = z.object({
       dailyTokenBudget: z.number().int().min(0).default(2_000_000),
     })
     .prefault({}),
+  ask: z
+    .object({
+      /**
+       * Q-11: offer the browser's own dictation on the Ask AI box. Off by default; audio is handled
+       * by the browser vendor and never reaches our servers.
+       */
+      voiceDictation: z.boolean().default(false),
+    })
+    .prefault({}),
   outbound: z
     .object({
       /**
@@ -142,3 +151,7 @@ export const workspaceSettingsData = z.object({
 });
 
 export type WorkspaceSettingsData = z.infer<typeof workspaceSettingsData>;
+
+/** The disclosure shown beside the toggle and under the dictation button (Q-11). */
+export const VOICE_DICTATION_DISCLOSURE =
+  "When on, the Ask AI box offers your browser's dictation. Audio is handled by your browser vendor, not by NexaWorks; no audio reaches our servers.";

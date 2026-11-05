@@ -49,7 +49,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
             {nav.map((item) => (
               <li key={item.label}>
                 <Link
-                  href={item.href}
+                  // A UrlObject: with this many typed routes, passing the whole `Route` union to
+                  // `href` crashes the TypeScript compiler (internal assertion), so the nav links by path.
+                  href={{ pathname: item.href }}
                   className="hover:bg-accent focus-visible:ring-ring/50 block rounded-md px-3 py-1.5 text-sm whitespace-nowrap focus-visible:ring-[3px] focus-visible:outline-none"
                 >
                   {item.label}

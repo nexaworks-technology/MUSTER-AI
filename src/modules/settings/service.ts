@@ -467,6 +467,38 @@ export async function disableAutoSend(actor: Actor) {
   return { autoSendEnabled: false };
 }
 
+/**
+ * Admin-only (`workspace:manageSettings`): turns the browser-dictation button on Ask AI on or off
+ * (Q-11). Nothing server-side processes audio. Audited.
+ */
+export async function setVoiceDictation(actor: Actor, enabled: boolean) {
+  requirePermission(actor, "workspace:manageSettings");
+  const existing = await getSettingsData(actor.workspaceId);
+  const data = { ...existing, ask: { ...existing.ask, voiceDictation: enabled } };
+  await scopedDb(actor).$tenantTransaction(async (tx) => {
+    await tx.workspaceSettings.upsert({
+      where: { workspaceId: actor.workspaceId },
+      create: { workspaceId: actor.workspaceId, data },
+      update: { data },
+    });
+    await writeAudit(
+      {
+        workspaceId: actor.workspaceId,
+        actorType: "USER",
+        actorId: actor.userId,
+        action: "settings.voice_dictation_changed",
+        targetType: "WorkspaceSettings",
+        targetId: actor.workspaceId,
+        summary: `${enabled ? "Turned on" : "Turned off"} browser dictation in Ask AI`,
+        before: { voiceDictation: existing.ask.voiceDictation },
+        after: { voiceDictation: enabled },
+      },
+      tx,
+    );
+  });
+  return { voiceDictation: enabled };
+}
+
 /** Reads WorkspaceSettings.data with every default applied (no row = all defaults). */
 export async function getSettingsData(workspaceId: string): Promise<WorkspaceSettingsData> {
   const row = await scopedDb({ workspaceId }).workspaceSettings.findUnique({

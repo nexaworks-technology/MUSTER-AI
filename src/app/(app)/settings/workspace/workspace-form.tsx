@@ -7,7 +7,39 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { FormState } from "@/modules/settings/actions/shared";
-import { saveWorkspaceProfileAction } from "@/modules/settings/actions/workspace";
+import {
+  saveVoiceDictationAction,
+  saveWorkspaceProfileAction,
+} from "@/modules/settings/actions/workspace";
+
+/** Q-11: Admin toggle for the browser-dictation button on Ask AI. */
+export function VoiceDictationForm(props: { enabled: boolean; disclosure: string }) {
+  const [state, action, pending] = useActionState<FormState, FormData>(
+    saveVoiceDictationAction,
+    {},
+  );
+  return (
+    <form action={action} className="grid max-w-md gap-3 border-t pt-4">
+      <h2 className="text-base font-semibold">Ask AI dictation</h2>
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          name="voiceDictation"
+          defaultChecked={props.enabled}
+          data-testid="voice-dictation-toggle"
+        />
+        Offer dictation in the Ask AI box
+      </label>
+      <p className="text-muted-foreground text-xs">{props.disclosure}</p>
+      <div className="flex items-center gap-3">
+        <Button type="submit" disabled={pending}>
+          {pending ? "Saving…" : "Save"}
+        </Button>
+        <FormMessage state={state} />
+      </div>
+    </form>
+  );
+}
 
 export function WorkspaceForm(props: {
   name: string;

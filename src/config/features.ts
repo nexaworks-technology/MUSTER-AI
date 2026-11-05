@@ -6,7 +6,7 @@ import { can, type MemberAccess, type Permission } from "@/lib/auth/permissions"
  * builds its screen has shipped; until then it is hidden and its URL is a normal 404 (Rule 6 —
  * no placeholder screens). Bump SHIPPED_MILESTONE and set `href` when a screen lands.
  */
-export const SHIPPED_MILESTONE = 10;
+export const SHIPPED_MILESTONE = 11;
 
 export interface NavItem {
   label: string;
@@ -33,8 +33,8 @@ export const NAV: readonly NavItem[] = [
   { label: "Meetings & QBRs", href: null, milestone: 10 },
   { label: "Success Plans", href: null, milestone: 10 },
   { label: "Revenue", href: "/revenue", milestone: 7, permission: "revenue:view" },
-  { label: "Reports", href: null, milestone: 11 },
-  { label: "Ask AI", href: null, milestone: 11 },
+  { label: "Reports", href: "/reports", milestone: 11, permission: "reports:view" },
+  { label: "Ask AI", href: "/ask", milestone: 11 },
   { label: "Customers", href: null, milestone: 10 },
   {
     label: "Settings",
