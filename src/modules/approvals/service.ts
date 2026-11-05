@@ -11,6 +11,7 @@ export {
   approvalListQuery,
   getApproval,
   approve,
+  canDecideApproval,
   editAndApprove,
   reject,
   bulkDecide,

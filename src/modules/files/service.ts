@@ -53,7 +53,14 @@ async function authorize(
   purpose: UploadPurpose,
   accountId: string | null,
   mode: "read" | "write",
+  file?: { uploadedByMembershipId: string | null },
 ) {
+  if (purpose === "ASK_ATTACHMENT") {
+    // Owner-only (M11): no account, no revenue permission — only the member who uploaded it.
+    if (mode === "read" && file?.uploadedByMembershipId !== actor.membershipId)
+      throw new FileNotFoundError();
+    return;
+  }
   if (purpose === "CSV_IMPORT") {
     requirePermission(actor, "data:import");
     return;
@@ -154,7 +161,7 @@ export async function storeUpload(
 export async function readFile(actor: Actor, fileId: string, deps: FileDeps = {}) {
   const file = await scopedDb(actor).fileObject.findUnique({ where: { id: fileId } });
   if (!file) throw new FileNotFoundError();
-  await authorize(actor, file.purpose, file.accountId, "read");
+  await authorize(actor, file.purpose, file.accountId, "read", file);
   if (file.scanStatus !== "CLEAN") throw new FileNotReadyError();
   // Defence in depth: the stored key must sit under this workspace's prefix.
   const prefix = `ws/${actor.workspaceId}/`;

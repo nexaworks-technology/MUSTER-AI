@@ -340,10 +340,26 @@ export interface DecisionResult {
   changes?: ChangesOutcome;
 }
 
+/** Per-kind role rule for who may decide (campaigns: Admin or CS Leader only). */
+function kindAllowed(actor: Actor, kind: string): boolean {
+  return kind !== "CAMPAIGN" || actor.role === "ADMIN" || actor.role === "CS_LEADER";
+}
+
+/**
+ * Whether `actor` could decide this approval right now in /approvals: the decide permission, the
+ * per-kind role rule, and still pending. The one check every decide control (the Approvals screen
+ * and the Ask AI confirmation card) uses; approve()/reject() enforce the same rules again.
+ */
+export function canDecideApproval(actor: Actor, a: { kind: string; status: string }): boolean {
+  return (
+    Boolean(can(actor, "approvals:decide")) && kindAllowed(actor, a.kind) && a.status === "PENDING"
+  );
+}
+
 async function loadPending(actor: Actor, approvalId: string, via: DecisionChannel) {
   requirePermission(actor, "approvals:decide");
   const a = await getApproval(actor, approvalId);
-  if (a.kind === "CAMPAIGN" && actor.role !== "ADMIN" && actor.role !== "CS_LEADER") {
+  if (!kindAllowed(actor, a.kind)) {
     throw new ForbiddenError(
       "approvals:decide",
       "Only an Admin or CS Leader may decide a campaign approval",

@@ -17,6 +17,18 @@ export {
   getThread,
   listThreads,
   AskThreadNotFoundError,
+  AskFileNotInThreadError,
   MAX_STEPS,
   type AskResult,
 } from "./loop";
+export {
+  attachFile,
+  readAttachmentText,
+  selectPassages,
+  threadAttachmentIds,
+  FILE_NOT_VISIBLE,
+  NOT_SCANNED,
+} from "./files";
+export { loadApprovalCard, decideFromAsk, type AskApprovalCard } from "./cards";
+export { loadThreadView, type ThreadMessageView } from "./thread-view";
+export { dictationOffered, browserHasSpeechRecognition } from "./schemas";

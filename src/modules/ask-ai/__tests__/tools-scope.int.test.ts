@@ -86,6 +86,8 @@ function inputFor(tool: string, accountId: string): Record<string, unknown> {
       return { days: 365 };
     case "readDocument":
       return { documentId: accountId };
+    case "readUploadedFile":
+      return { fileId: accountId };
     default:
       return { accountId };
   }
@@ -116,6 +118,7 @@ describe("Ask AI tools run as the asking user", () => {
         "searchAccounts",
         "searchConversations",
         "listPlays",
+        "readUploadedFile",
       ].sort(),
     );
     expect(names.some((n) => /sql|raw|write|update|delete|workspace/i.test(n))).toBe(false);

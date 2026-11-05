@@ -1,4 +1,4 @@
-import type { Prisma} from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { type AgentRun } from "@prisma/client";
 import { z } from "zod";
 import {
@@ -12,6 +12,7 @@ import {
 import { writeAudit } from "@/lib/audit";
 import { scopedDb } from "@/lib/db/scoped";
 import type { AskAiOutput, ExecutorDeps } from "@/modules/agents/service";
+import { threadAttachmentIds } from "./files";
 import { ASK_TOOLS, runAskTool, type AskActor, type AskRecord } from "./tools";
 
 /**
@@ -31,6 +32,13 @@ export class AskThreadNotFoundError extends Error {
   constructor() {
     super("Conversation not found");
     this.name = "AskThreadNotFoundError";
+  }
+}
+
+export class AskFileNotInThreadError extends Error {
+  constructor() {
+    super("That file is not attached to this conversation");
+    this.name = "AskFileNotInThreadError";
   }
 }
 
@@ -95,16 +103,18 @@ export async function getThread(actor: AskActor, threadId: string) {
 
 export async function askQuestion(
   actor: AskActor,
-  raw: { question: string; threadId?: string },
+  raw: { question: string; threadId?: string; fileIds?: string[] },
   deps: ExecutorDeps & { promptsDir?: string } = {},
 ): Promise<AskResult> {
-  const { question, threadId } = z
+  const { question, threadId, fileIds } = z
     .object({
       question: z.string().trim().min(1).max(2000),
       threadId: z.string().min(1).optional(),
+      fileIds: z.array(z.string().min(1).max(64)).max(10).optional(),
     })
     .parse(raw);
   const db = scopedDb(actor);
+  if (fileIds?.length && !threadId) throw new AskFileNotInThreadError();
   const thread = threadId
     ? await ownThread(actor, threadId)
     : await db.askThread.create({
@@ -115,6 +125,26 @@ export async function askQuestion(
           title: question.slice(0, 120),
         },
       });
+  // Attached files must be this asker's own and bound to THIS thread; the planner is told their ids.
+  let attachedFiles: Array<{ fileId: string; fileName: string; scanned: boolean }> = [];
+  if (fileIds?.length) {
+    const linked = new Set(await threadAttachmentIds(actor, thread.id));
+    if (fileIds.some((f) => !linked.has(f))) throw new AskFileNotInThreadError();
+    const rows = await db.fileObject.findMany({
+      where: {
+        id: { in: fileIds },
+        purpose: "ASK_ATTACHMENT",
+        uploadedByMembershipId: actor.membershipId,
+      },
+      select: { id: true, filename: true, scanStatus: true },
+    });
+    if (rows.length !== new Set(fileIds).size) throw new AskFileNotInThreadError();
+    attachedFiles = rows.map((r) => ({
+      fileId: r.id,
+      fileName: r.filename,
+      scanned: r.scanStatus === "CLEAN",
+    }));
+  }
   const earlier = await db.askMessage.findMany({
     where: { threadId: thread.id },
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
@@ -165,6 +195,7 @@ export async function askQuestion(
         system,
         input: JSON.stringify({
           step,
+          ...(attachedFiles.length ? { attachedFiles } : {}),
           results: results.map((r) => ({
             tool: r.tool,
             input: r.input,

@@ -13,6 +13,7 @@ import { listPromises } from "@/modules/promises/service";
 import { listRenewals } from "@/modules/renewals/service";
 import { listAccountSignals, listSignals } from "@/modules/signals/service";
 import { listTickets } from "@/modules/support/service";
+import { readAttachmentText, selectPassages } from "./files";
 
 /**
  * Ask AI's tools (M11 S8, ARCHITECTURE §6.2 row 14). Every tool is a READ built on a module
@@ -464,6 +465,28 @@ export const ASK_TOOLS: AskTool[] = [
           },
         ],
         "I cannot see that document.",
+      );
+    },
+  }),
+  define({
+    name: "readUploadedFile",
+    description:
+      "Passages of a file YOU attached in this chat (PDF, txt, vtt, srt, json), by file id; pass a query to get the passages around those words. Only your own scanned files can be read.",
+    input: z.object({ fileId: id, query: z.string().trim().max(200).optional() }),
+    async run(actor, input) {
+      const file = await readAttachmentText(actor, input.fileId);
+      if (!file.ok) return { records: [], notFound: file.message };
+      const passages = selectPassages(file.text, input.query);
+      return found(
+        passages.map((p) => ({
+          ref: `FileObject:${input.fileId}#${p.start}-${p.end}`,
+          type: "FileObject",
+          id: `${input.fileId}#${p.start}-${p.end}`,
+          label: `${file.fileName}, characters ${p.start}-${p.end}`,
+          href: null,
+          fields: { fileName: file.fileName, start: p.start, end: p.end, text: p.text },
+        })),
+        `There is no text to read in ${file.fileName}.`,
       );
     },
   }),

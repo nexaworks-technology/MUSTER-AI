@@ -2,11 +2,10 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ApprovalActions } from "@/components/app/approval-actions";
-import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { scopedDb } from "@/lib/db/scoped";
 import { LEVEL_WORDS, sensitiveLabel } from "@/modules/approvals/schemas";
-import { getApproval, parseProof, resolveProof } from "@/modules/approvals/service";
+import { canDecideApproval, getApproval, parseProof, resolveProof } from "@/modules/approvals/service";
 
 export const metadata: Metadata = { title: "Approval" };
 
@@ -29,7 +28,7 @@ export default async function ApprovalPage({ params }: { params: Promise<{ id: s
   const proof = a.accountId ? await resolveProof(scopedDb(ctx), a.accountId, parseProof(a.proof)) : [];
   const message = a.outboundMessages[0] ?? null;
   const latest = a.revisions.at(-1) ?? null;
-  const canDecide = Boolean(can(ctx, "approvals:decide")) && a.status === "PENDING";
+  const canDecide = canDecideApproval(ctx, a);
   const tz = ctx.workspace.timezone;
   const guards = Array.isArray(message?.guardResults)
     ? (message.guardResults as Array<{ guard: string; passed: boolean; detail: string }>)

@@ -37,6 +37,6 @@ export const ALLOWED_BY_PURPOSE: Record<UploadPurpose, readonly string[]> = {
   CONTRACT_DOCUMENT: ["pdf", "docx", "png", "jpg", "txt"],
   CSV_IMPORT: ["csv"],
   CALL_TRANSCRIPT: ["vtt", "srt", "txt", "json"],
-  // S1: text types only (D-168); the PDF sniffer is already shared, but Ask file Q&A wires it in Session 2.
-  ASK_ATTACHMENT: ["vtt", "srt", "txt", "json"],
+  // D-165: PDFs are read as text by `unpdf` (M11 S11); the content sniffer is the shared one.
+  ASK_ATTACHMENT: ["pdf", "vtt", "srt", "txt", "json"],
 };
