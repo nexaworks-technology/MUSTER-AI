@@ -1,0 +1,6 @@
+     × a nested scoped read sees committed rows of the workspace 15ms
+     × a nested scoped read sees the transaction's own uncommitted write 5ms
+     × a nested scoped write joins the transaction and rolls back with it 8ms
+     × a nested scoped raw query runs under the transaction's workspace 2ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  4 failed | 1 passed (5)

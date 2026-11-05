@@ -26,8 +26,38 @@ export class TenantViolationError extends Error {
 const CREATE_OPS = new Set(["create", "createMany", "createManyAndReturn"]);
 const UPDATE_OPS = new Set(["update", "updateMany", "updateManyAndReturn"]);
 
-/** Workspace of the interactive tenant transaction currently running, if any. */
-const activeTransaction = new AsyncLocalStorage<{ workspaceId: string }>();
+/**
+ * The interactive tenant transaction currently running, if any: its workspace, its client, and
+ * whether the current operation is already executing on that client (`onTx`).
+ */
+interface ActiveTransaction {
+  workspaceId: string;
+  tx: Prisma.TransactionClient;
+  onTx: boolean;
+}
+const activeTransaction = new AsyncLocalStorage<ActiveTransaction>();
+
+/** "Account" → "account": the delegate key of a model on a Prisma client. */
+const delegateOf = (model: string) => model.charAt(0).toLowerCase() + model.slice(1);
+
+/**
+ * M12 A5 (Q-54): an operation from ANY scoped client of the same workspace while a tenant
+ * transaction is open runs on that transaction's connection — the workspace is set there and the
+ * transaction's own writes are visible. Before, it ran on another pooled connection with no
+ * workspace setting and RLS silently returned nothing. Re-entry is marked (`onTx`) so the
+ * re-issued call executes directly instead of looping.
+ */
+function onActiveTransaction<T>(
+  workspaceId: string,
+  reissue: (tx: Prisma.TransactionClient) => Promise<T>,
+): Promise<T> | null {
+  const active = activeTransaction.getStore();
+  if (!active || active.onTx) return null;
+  if (active.workspaceId !== workspaceId) {
+    throw new TenantViolationError("operation for another workspace inside a tenant transaction");
+  }
+  return activeTransaction.run({ ...active, onTx: true }, async () => reissue(active.tx));
+}
 
 type Args = Record<string, unknown>;
 
@@ -90,6 +120,7 @@ function setWorkspace(workspaceId: string) {
 async function underRls<T>(workspaceId: string, run: () => Prisma.PrismaPromise<T>): Promise<T> {
   const active = activeTransaction.getStore();
   if (active) {
+    // Reached only on the transaction's own client (onTx), where the workspace is already set.
     if (active.workspaceId !== workspaceId) {
       throw new TenantViolationError("operation for another workspace inside a tenant transaction");
     }
@@ -107,6 +138,13 @@ function buildScopedClient(workspaceId: string) {
         async $allOperations({ model, operation, args, query }) {
           if (!isTenantModel(model)) return query(args);
           const scoped = scopeArgs(operation, args, workspaceId);
+          const routed = onActiveTransaction(workspaceId, async (tx) => {
+            const delegate = (
+              tx as unknown as Record<string, Record<string, (a: unknown) => Promise<unknown>>>
+            )[delegateOf(model)];
+            return delegate![operation]!(scoped);
+          });
+          if (routed) return routed;
           // `query` accepts the operation's own argument type; scopeArgs only adds workspaceId.
           return underRls(
             workspaceId,
@@ -115,9 +153,17 @@ function buildScopedClient(workspaceId: string) {
         },
       },
       async $queryRaw({ args, query }) {
+        const routed = onActiveTransaction(workspaceId, (tx) =>
+          tx.$queryRaw(args as unknown as Prisma.Sql),
+        );
+        if (routed) return routed;
         return underRls(workspaceId, () => query(args) as Prisma.PrismaPromise<unknown>);
       },
       async $executeRaw({ args, query }) {
+        const routed = onActiveTransaction(workspaceId, (tx) =>
+          tx.$executeRaw(args as unknown as Prisma.Sql),
+        );
+        if (routed) return routed;
         return underRls(workspaceId, () => query(args) as Prisma.PrismaPromise<number>);
       },
       async $queryRawUnsafe({ operation }) {
@@ -137,7 +183,7 @@ function buildScopedClient(workspaceId: string) {
           $transaction: <R>(f: (tx: Prisma.TransactionClient) => Promise<R>) => Promise<R>;
         };
         return client.$transaction((tx) =>
-          activeTransaction.run({ workspaceId }, async () => {
+          activeTransaction.run({ workspaceId, tx, onTx: false }, async () => {
             await tx.$executeRaw`SELECT set_config('app.workspace_id', ${workspaceId}, true)`;
             return fn(tx);
           }),

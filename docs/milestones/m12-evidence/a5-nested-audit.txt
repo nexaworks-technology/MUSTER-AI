@@ -1,0 +1,2 @@
+# M12 A5 — scopedDb(...) lexically inside a $tenantTransaction callback (non-test code)
+# 0 call site(s); all now run on the transaction's connection (scoped.ts routing).
