@@ -1,6 +1,13 @@
 import { scopedDb, type ScopedDb } from "@/lib/db/scoped";
 import type { TimelineItem } from "@/modules/accounts/schemas";
-import { AccountNotFoundError, getAccount, type Actor } from "@/modules/accounts/service";
+import type { ExtractionKind } from "@prisma/client";
+import { requirePermission } from "@/lib/auth/permissions";
+import {
+  AccountNotFoundError,
+  bookWhere,
+  getAccount,
+  type Actor,
+} from "@/modules/accounts/service";
 import { currentExtractions } from "./current";
 import { labelOf, type DisplayLabel } from "./labels";
 
@@ -162,6 +169,53 @@ export async function conversationTimeline(
       sourceId: t.id,
     })),
   ];
+}
+
+/**
+ * M11 (Ask AI `searchConversations`): the current extractions — verbatim quotes the Watcher
+ * verified against their source — for the accounts in the actor's book, newest first. Optional
+ * kind filter, account filter, quote text filter and date floor. Read-only; book-scoped.
+ */
+export async function searchExtractions(
+  actor: Actor,
+  q: { kinds?: ExtractionKind[]; accountId?: string; text?: string; since?: Date; take?: number },
+) {
+  const grant = requirePermission(actor, "accounts:view");
+  const db = scopedDb(actor);
+  const accounts = await db.account.findMany({
+    where: {
+      AND: [bookWhere(actor, grant.scope), q.accountId ? { id: q.accountId } : {}],
+    },
+    select: { id: true, name: true },
+  });
+  if (accounts.length === 0) return [];
+  const names = new Map(accounts.map((a) => [a.id, a.name]));
+  const rows = await currentExtractions(db, {
+    accountIds: [...names.keys()],
+    ...(q.kinds ? { kinds: q.kinds } : {}),
+    ...(q.since ? { since: q.since } : {}),
+  });
+  const needle = q.text?.trim().toLowerCase();
+  return rows
+    .filter(
+      (r) =>
+        !needle ||
+        r.quote.toLowerCase().includes(needle) ||
+        JSON.stringify(r.payload).toLowerCase().includes(needle),
+    )
+    .reverse()
+    .slice(0, q.take ?? 25)
+    .map((r) => ({
+      id: r.id,
+      accountId: r.accountId,
+      accountName: names.get(r.accountId) ?? "",
+      kind: r.kind,
+      label: labelOf(r.kind, r.payload as Record<string, unknown>).text,
+      quote: r.quote,
+      sourceType: r.sourceType,
+      sourceId: r.sourceId,
+      createdAt: r.createdAt,
+    }));
 }
 
 export {

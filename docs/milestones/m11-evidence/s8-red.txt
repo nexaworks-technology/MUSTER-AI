@@ -1,0 +1,12 @@
+      7|
+      8| /**
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  22:26:45
+   Duration  786ms (setup 44%, worker 29%, transform 25%, environment 1%)
+
+[ELIFECYCLE] Test failed. See above for more details.
