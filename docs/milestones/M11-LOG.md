@@ -264,3 +264,7 @@ AgentRun evidence (acceptance #13, dev DB, `m11-evidence/agentrun-query.txt`):
     - `reports.weeklyDigest` (per-workspace Monday cron);
     - snapshot generation for the four digest reports.
 11. **§11 pilot instrumentation hooks:** Ask AI questions and answers (status, citations, proposals → approvals decided); ledger saves per period; cries-wolf rule changes (`signal_rule.updated`); digest delivered/failed.
+
+## Erratum (added in M12)
+
+The M12 hand-off item 4 mentioned the removed survey fallback string. That literal was replaced by `$REMOVED_SURVEY_FALLBACK` in the M12 A2 history rewrite (D-172), and the scrub that item asked for is done (M12 A2).

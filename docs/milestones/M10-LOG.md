@@ -241,3 +241,8 @@ Flow 4 (Survey intake & health feeding):      [PASS]
 | 17 | Meetings/QBR/Success Plans screens within query budgets (no N+1) | PASS | `pipeline.int.test.ts` (7/7), `plans.test.ts` (10/10) |
 | 18 | axe passes on meetings, brief, QBR editor, success plans, portal pages (desktop + 375 px) | PASS | `e2e/a11y-m10.spec.ts` (2/2 passed on desktop & mobile) |
 | 19 | M3's dormant `no_meeting_in_x_days` rule switched on once meetings exist and fires with evidence; Engagement component stays missing/null per D-154 | PASS | `src/modules/signals/rules/as-of.ts`, `as-of-m9.test.ts` (2/2), `rules.test.ts` (257/257) |
+
+## Errata (added in M12, 2026-11-06)
+
+1. **Brightwell figures.** The "52.50 / 52.5" overall and the AT_RISK band in this log's Decision 2 table and demo output are wrong. Per Q-86 (founder-decided 2026-11-06), the M10 result on a clean seed is overall 64.87, band WATCH, sentiment 40, matching the committed test `prisma/seed/__tests__/seed-m9.int.test.ts` (Brightwell assertion). The text above is left as written.
+2. **Survey intake.** Acceptance #7 and #8's PASS (survey intake and health feeding) was proven at service level only (`surveys/service.ts`, `surveys.int.test.ts`). The public route a customer would use to answer a survey never existed: the emailed link pointed at a hard-coded `https://app.nexaworks.com/portal/surveys?token=...` (not APP_URL), and no such page was built. The token also had no expiry, a non-constant-time signature comparison and an unvalidated payload. This is an M10 bug, fixed in M12 slice A10 (see M12-LOG).
