@@ -183,8 +183,8 @@ export default async function AiAccuracyPage({ searchParams }: { searchParams: S
         </Link>
         <h1 className="mt-1 text-2xl font-semibold">AI accuracy</h1>
         <p className="text-muted-foreground text-sm">
-          Risks flagged in the last {view.windowDays} days, judged by what happened to the account.
-          Every row links to the records behind it.
+          Risks whose 90-day check date fell in the last {view.windowDays} days, judged by what
+          happened to the account. Every row links to the records behind it.
         </p>
       </div>
 

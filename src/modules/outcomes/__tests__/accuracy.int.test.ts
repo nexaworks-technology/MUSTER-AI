@@ -66,7 +66,8 @@ async function flag(
         },
       })
     ).id;
-  const flaggedAt = new Date(NOW.getTime() - 10 * DAY);
+  // 90-day check date 10 days ago: inside the default window (D-167 judges by check date).
+  const flaggedAt = new Date(NOW.getTime() - 100 * DAY);
   const signal = await db.signal.create({
     data: {
       workspaceId: s.ws,

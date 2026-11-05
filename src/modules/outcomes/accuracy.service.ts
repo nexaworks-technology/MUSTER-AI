@@ -52,12 +52,17 @@ export async function loadAccuracy(
     criesWolfMinDetermined: settings.criesWolfMinDetermined,
   };
   const now = clock();
-  const since = new Date(`${addDays(now.toISOString().slice(0, 10), -windowDays)}T00:00:00Z`);
+  const today = now.toISOString().slice(0, 10);
+  // Judged on the same basis as the ledger: risks whose 90-day check date fell in the window
+  // (a flag raised in the last 90 days cannot have an outcome yet, D-167).
+  const since = new Date(`${addDays(today, -windowDays)}T00:00:00Z`);
+  const flaggedFrom = new Date(`${addDays(today, -windowDays - 90)}T00:00:00Z`);
+  const flaggedTo = new Date(`${addDays(today, -90)}T00:00:00Z`);
   const book = bookWhere(actor, grant.scope);
 
   const [records, approvals] = await Promise.all([
     db.outcomeRecord.findMany({
-      where: { flagType: "RISK", flaggedAt: { gte: since }, account: book },
+      where: { flagType: "RISK", flaggedAt: { gte: flaggedFrom, lt: flaggedTo }, account: book },
       select: {
         id: true,
         accountId: true,
