@@ -33,7 +33,7 @@ describe("S7: The 15 Seeded Plays (spec §5, §6I1, D9)", () => {
     }
   });
 
-  it("12 live plays pass the safety check (M9: Promise Late is live on its detector)", async () => {
+  it("15 live plays pass the safety check (M10: all 15 seeded plays are now live on their detectors)", async () => {
     const liveKeys = [
       "health-risk",
       "renewal-risk",
@@ -47,6 +47,9 @@ describe("S7: The 15 Seeded Plays (spec §5, §6I1, D9)", () => {
       "support-escalation",
       "promise-late",
       "cancellation-save",
+      "engagement-loss",
+      "qbr-due",
+      "business-review-followup",
     ];
 
     for (const key of liveKeys) {
@@ -60,36 +63,32 @@ describe("S7: The 15 Seeded Plays (spec §5, §6I1, D9)", () => {
     }
   });
 
-  it("3 dormant plays fail safety check naming their exact missing detector and home milestone (D9)", async () => {
-    const dormantExpectations: Record<string, { detector: string; milestone: string }> = {
-      "engagement-loss": {
-        detector: "engagement_loss",
-        milestone: "M10 (needs meetings)",
-      },
-      "qbr-due": {
-        detector: "qbr.due",
-        milestone: "M10",
-      },
-      "business-review-followup": {
-        detector: "business_review.followup",
-        milestone: "M10",
-      },
+  it("dormant triggers fail safety check naming their missing detector (D9)", async () => {
+    const testLocalDormant = {
+      name: "Dormant Test Play",
+      description: "Test play with dormant trigger",
+      category: "general" as const,
+      trigger: { type: "event" as const, eventType: "meeting.ended" },
+      steps: [
+        {
+          key: "s1",
+          name: "Step 1",
+          handler: "task" as const,
+          params: { title: "Test", dueDays: 1 },
+          approvalLevelByTier: {
+            HIGH_TOUCH: "DO_AUTOMATICALLY" as const,
+            MID_TOUCH: "DO_AUTOMATICALLY" as const,
+            LONG_TAIL: "DO_AUTOMATICALLY" as const,
+          },
+          safe: true,
+          sensitive: false,
+        },
+      ],
     };
 
-    for (const [key, exp] of Object.entries(dormantExpectations)) {
-      const play = SEEDED_PLAYS.find((p) => p.key === key);
-      expect(play).toBeDefined();
-      expect(play!.isDormant).toBe(true);
-      expect(play!.homeMilestone).toBe(exp.milestone);
-
-      const res = await validatePlaySafety(play!.definition);
-      expect(res.passed).toBe(false);
-      expect(
-        res.refusals.some(
-          (r) => r.includes(exp.detector) && r.includes(exp.milestone),
-        ),
-      ).toBe(true);
-    }
+    const res = await validatePlaySafety(testLocalDormant);
+    expect(res.passed).toBe(false);
+    expect(res.refusals.some((r) => r.includes("meeting.ended") && r.includes("no detector yet"))).toBe(true);
   });
 
   it("seedPlaysForWorkspace creates all 15 plays as DRAFT with isSeeded=true (idempotent, create-only)", async () => {

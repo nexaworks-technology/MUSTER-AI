@@ -61,11 +61,20 @@ test.describe("M3 health and signals", () => {
       "href",
       /\/people#contact-/,
     );
-    // Sentiment: no data, excluded, weight spread over the rest.
+    // Sentiment (M10 Decision 2 Option A): activated on Ben Okafor's NPS SurveyResponse.
     const sentiment = page.getByTestId("pillar-SENTIMENT");
-    await expect(sentiment.locator("summary")).toContainText("Not enough data");
+    await expect(sentiment.locator("summary")).toContainText("40 · weight 10%");
     await sentiment.locator("summary").click();
-    await expect(sentiment.getByText(/Its 10% weight is spread across the pillars/)).toBeVisible();
+    await expect(
+      sentiment.getByText(/1 survey response\(s\) in the last 90 days/),
+    ).toBeVisible();
+    await expect(
+      sentiment
+        .locator('[data-testid="health-reason"][data-kind="EVIDENCE"]')
+        .getByRole("list", { name: "Sources" })
+        .getByRole("link")
+        .first(),
+    ).toBeVisible();
 
     await adoption
       .getByRole("link", { name: /^Usage, Oct 26 – Nov 1, 2026$/ })
@@ -81,6 +90,15 @@ test.describe("M3 health and signals", () => {
     ).toBeVisible();
     await drop.getByText("About this signal").click();
     await expect(drop.getByText("How early it appears")).toBeVisible();
+
+    // Missing-data weight-spread behaviour remains covered (verified on Halden Retail, which has no sentiment inputs).
+    await page.goto(`${account("halden")}/health`);
+    const haldenSentiment = page.getByTestId("pillar-SENTIMENT");
+    await expect(haldenSentiment.locator("summary")).toContainText("Not enough data");
+    await haldenSentiment.locator("summary").click();
+    await expect(
+      haldenSentiment.getByText(/Its 10% weight is spread across the pillars/),
+    ).toBeVisible();
   });
 
   test("every proof link on Brightwell's Health and Signals tabs lands on the record it names", async ({

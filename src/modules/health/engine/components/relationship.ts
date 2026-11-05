@@ -171,13 +171,47 @@ function pulse(b: AccountBundle, env: ComponentEnv): ComponentResult {
   };
 }
 
+function npsDecisionMakers(b: AccountBundle): ComponentResult {
+  const from = addDays(b.asOf, -90);
+  const dmContactIds = new Set(
+    b.roles
+      .filter((r) => r.role === "DECISION_MAKER" && validOn(r, b.asOf))
+      .map((r) => r.contactId),
+  );
+  const dmSurveys = (b.surveys ?? []).filter(
+    (s) =>
+      s.type === "NPS" &&
+      s.contactId !== null &&
+      dmContactIds.has(s.contactId) &&
+      s.date >= from &&
+      s.date <= b.asOf,
+  );
+  if (dmSurveys.length === 0) {
+    return missing("nps_decision_makers", "nps_decision_makers", "No survey responses yet.");
+  }
+  const sum = dmSurveys.reduce((acc, s) => acc + Math.round((s.score / 10) * 100), 0);
+  const mean = Math.round(sum / dmSurveys.length);
+  return {
+    score: mean,
+    reason: {
+      component: "nps_decision_makers",
+      kind: "EVIDENCE",
+      input: "nps_decision_makers",
+      message: `${dmSurveys.length} NPS response(s) from decision maker(s) in the last 90 days, averaging ${mean}/100.`,
+      value: mean,
+      periodStart: from,
+      periodEnd: b.asOf,
+      sources: dmSurveys.map((s) => ({ sourceType: "SurveyResponse", sourceId: s.id })),
+    },
+  };
+}
+
 export const RELATIONSHIP: PillarComponents = {
   champion_present: (b) => holder(b, "CHAMPION", "Champion", "champion_present", "champion_status"),
   decision_maker: (b) =>
     holder(b, "DECISION_MAKER", "Decision maker", "decision_maker", "decision_maker_status"),
   breadth,
   champion_change_90d: championChange,
-  nps_decision_makers: () =>
-    missing("nps_decision_makers", "nps_decision_makers", "No survey responses yet."),
+  nps_decision_makers: npsDecisionMakers,
   pulse,
 };

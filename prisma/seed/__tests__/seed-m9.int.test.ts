@@ -197,6 +197,12 @@ describe("no seeded health number moved (D4: the founder's stop condition)", () 
     expect(latest.size).toBe(BASELINE.snapshots.length);
     for (const b of BASELINE.snapshots) {
       const s = latest.get(b.accountId!)!;
+      // M10 Decision 2 (Option A, approved): Brightwell Sentiment activates on Ben Okafor's NPS response.
+      // All other 59 seeded accounts match the baseline exactly.
+      const expected =
+        b.accountId === acct("brightwell")
+          ? { ...b, overall: "64.87", sentiment: "40" }
+          : b;
       expect({
         accountId: s.accountId,
         asOf: s.asOf.toISOString().slice(0, 10),
@@ -208,7 +214,7 @@ describe("no seeded health number moved (D4: the founder's stop condition)", () 
         commercial: s.commercial?.toString() ?? null,
         sentiment: s.sentiment?.toString() ?? null,
         riskLevel: s.riskLevel,
-      }).toEqual(Object.fromEntries(Object.entries(b).filter(([k]) => k !== "inputsHash")));
+      }).toEqual(Object.fromEntries(Object.entries(expected).filter(([k]) => k !== "inputsHash")));
     }
   });
 

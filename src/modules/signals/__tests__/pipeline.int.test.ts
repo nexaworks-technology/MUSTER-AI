@@ -212,9 +212,10 @@ describe("nightly pipeline through the real queue", () => {
     // some), and (M9) four for promises.sync (current extractions and their runs, promises, the
     // brokenAfterDays rule row) and one for the promise facts, and (M9 text rules) five for the text facts (current extractions and
     // their runs, the theme setting, and the dates of the messages, calls and notes) and (M9 people) one
-    // for contact title changes. Fixed per chunk; it must never scale
-    // with accounts.
-    expect(five.queries).toBeLessThanOrEqual(92);
+    // and (M10) one for meeting facts, (M10 surveys) two for survey responses (signals + health bundles),
+    // and (M10 QBR) three for QBR cadence sync (context, contracts, documents). Fixed per chunk; it must never scale
+    // with accounts. Cap updated to 96 (observed exactly 96, no unexplained headroom).
+    expect(five.queries).toBeLessThanOrEqual(96);
   });
 
   it("the real-time hook evaluates one account through the queue at once", async () => {

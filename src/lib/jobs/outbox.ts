@@ -127,6 +127,12 @@ export const OUTBOX_ROUTES: OutboxRoutes = {
   "note.created": { queue: "plays", job: "plays.noteCreated" },
   /** M8: a signal opened triggers plays matching signal ruleKey (D3). */
   "signal.opened": { queue: "plays", job: "plays.signalOpened" },
+  /** M10: pre-call brief generated before each meeting (T-30min and on demand). */
+  "meetings.prepareBrief": { queue: "agents", job: "meetings.prepareBrief" },
+  /** M10: QBR due triggers the QBR Due play (Decision 4). */
+  "qbr.due": { queue: "plays", job: "plays.event" },
+  /** M10: QBR lock triggers Business Review Follow-up play (Decision 4). */
+  "business_review.followup": { queue: "plays", job: "plays.event" },
 };
 
 /**

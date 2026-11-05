@@ -60,9 +60,10 @@ export async function todayCandidates(
   const tz = ws.timezone;
   const now = clock();
   const today = todayIn(tz, clock);
+  const startOfToday = startOfLocalDay(today, tz);
   // Due before tomorrow starts in the workspace time zone (D-50): today and anything overdue.
   const endOfToday = startOfLocalDay(addDays(today, 1), tz);
-  const [tasks, escalated, signals, approvals, renewals] = await Promise.all([
+  const [tasks, escalated, signals, approvals, renewals, meetings] = await Promise.all([
     db.task.findMany({
       where: {
         ownerMembershipId: m.membershipId,
@@ -89,6 +90,14 @@ export async function todayCandidates(
         renewalDate: { gte: utcMidnight(today), lte: utcMidnight(addDays(today, 90)) },
       },
       select: accountSelect,
+    }),
+    db.meeting.findMany({
+      where: {
+        account: myAccounts(m),
+        startsAt: { gte: startOfToday, lt: endOfToday },
+        status: { not: "CANCELLED" },
+      },
+      include: { account: { select: accountSelect } },
     }),
   ]);
   const escalatedTasks = escalated.length
@@ -163,6 +172,19 @@ export async function todayCandidates(
       ...acct(a),
       driver: { kind: "RENEWAL", renewalDate: calendarDateOf(a.renewalDate!) },
     })),
+    ...meetings.map((mtg): Candidate => {
+      const hh = mtg.startsAt.getUTCHours().toString().padStart(2, "0");
+      const mm = mtg.startsAt.getUTCMinutes().toString().padStart(2, "0");
+      const briefPart = mtg.briefDocumentId ? " — brief ready" : "";
+      return {
+        itemType: "MEETING",
+        refId: mtg.id,
+        title: `${mtg.title} at ${hh}:${mm}${briefPart}`,
+        ...acct(mtg.account),
+        dueAt: mtg.startsAt,
+        driver: { kind: "MEETING" },
+      };
+    }),
   ];
 }
 

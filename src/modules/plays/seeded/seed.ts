@@ -2,7 +2,12 @@ import type { Prisma } from "@prisma/client";
 import { scopedDb } from "@/lib/db/scoped";
 import { SEEDED_PLAYS } from "./definitions";
 
-const RELABELLED = new Set(["promise-late", "engagement-loss"]);
+const RELABELLED = new Set([
+  "promise-late",
+  "engagement-loss",
+  "qbr-due",
+  "business-review-followup",
+]);
 
 /**
  * Seeds the 15 default plays for a workspace (spec §5, §6I1, D9).

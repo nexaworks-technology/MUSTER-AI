@@ -15,6 +15,7 @@ export const SETTINGS_TABS: ReadonlyArray<{ label: string; href: Route; permissi
     { label: "Data health", href: "/settings/data-health", permission: "data:import" },
     { label: "Signals", href: "/settings/signals", permission: "healthModel:propose" },
     { label: "Health model", href: "/settings/health-model", permission: "healthModel:propose" },
+    { label: "Surveys", href: "/settings/surveys" as Route, permission: "healthModel:propose" },
     {
       label: "Onboarding templates",
       href: "/settings/onboarding-templates",

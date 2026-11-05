@@ -460,6 +460,7 @@ describe("S5: Play Runner, Step Handlers, Approval Wait/Resume, Stall Sweep & Di
 
     const steps = await db.playStepRun.findMany({
       where: { playRunId: res.playRunId! },
+      orderBy: { createdAt: "asc" },
     });
     expect(steps.map((s) => s.stepKey)).toEqual([
       "s-notify",

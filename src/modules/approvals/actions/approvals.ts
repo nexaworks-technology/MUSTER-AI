@@ -40,6 +40,8 @@ function outcome(r: DecisionResult, verb: string): ApprovalActionState {
   if (r.send.status === "ALREADY_SENT") return { ok: `${verb}. The email had already been sent.` };
   if (r.send.status === "HELD")
     return { ok: `${verb}, but the email is held: ${r.send.heldReason}` };
+  if (r.send.status === "RESCHEDULED")
+    return { ok: `${verb}, but the send was rescheduled: ${r.send.reason}` };
   return { ok: `${verb}, but the email was not sent.`, notSent: r.send.reasons };
 }
 

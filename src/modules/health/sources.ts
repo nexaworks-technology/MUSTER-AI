@@ -19,6 +19,7 @@ export const SOURCE_TYPES = [
   "Contact",
   "StakeholderRole",
   "CsmPulse",
+  "SurveyResponse",
 ] as const;
 
 export interface SourceLookups {
@@ -140,6 +141,8 @@ export function describeSource(
     }
     case "CsmPulse":
       return { label: "CSM Pulse", href: `${base}/health#pulse`, missing: false };
+    case "SurveyResponse":
+      return { label: "Survey response", href: `${base}/people`, missing: false };
     default:
       throw new Error(`No link for source type ${ref.sourceType}`);
   }
@@ -150,7 +153,7 @@ export async function sourceLookups(db: ScopedDb, refs: SourceRef[]): Promise<So
   const ids = (t: string) => [
     ...new Set(refs.filter((r) => r.sourceType === t && r.sourceId).map((r) => r.sourceId!)),
   ];
-  const [usage, roles, contacts, invoices, tickets, contracts, events, messages, pulses] =
+  const [usage, roles, contacts, invoices, tickets, contracts, events, messages, pulses, surveys] =
     await Promise.all([
       db.usageDaily.findMany({
         where: { id: { in: ids("UsageDaily") } },
@@ -190,9 +193,13 @@ export async function sourceLookups(db: ScopedDb, refs: SourceRef[]): Promise<So
         },
       }),
       db.csmPulse.findMany({ where: { id: { in: ids("CsmPulse") } }, select: { id: true } }),
+      db.surveyResponse.findMany({
+        where: { id: { in: ids("SurveyResponse") } },
+        select: { id: true },
+      }),
     ]);
   const existing = new Set<string>(
-    [usage, roles, contacts, invoices, tickets, contracts, events, messages, pulses].flatMap(
+    [usage, roles, contacts, invoices, tickets, contracts, events, messages, pulses, surveys].flatMap(
       (rows) => rows.map((r) => r.id),
     ),
   );

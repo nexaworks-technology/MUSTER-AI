@@ -34,10 +34,15 @@ describe("health reason sources", () => {
     ]),
     // m2 is a reply on a ticket: ticket threads live on the Tickets tab, not Conversations.
     messageTicket: new Map([["m2", { ticketId: "t1", subject: "Export fails" }]]),
-    existing: new Set(["u1", "r1", "c1", "i1", "t1", "k1", "e1", "m1", "m2", "p1"]),
+    existing: new Set(["u1", "r1", "c1", "i1", "t1", "k1", "e1", "m1", "m2", "p1", "s1"]),
   };
 
   it.each([
+    [
+      { sourceType: "SurveyResponse", sourceId: "s1" },
+      "Survey response",
+      "/accounts/acc1/people",
+    ],
     [
       { sourceType: "UsageDaily", accountId: a, from: "2026-10-26", to: "2026-11-01" },
       "Usage, Oct 26 – Nov 1, 2026",

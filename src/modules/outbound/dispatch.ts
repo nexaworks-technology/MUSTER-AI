@@ -36,7 +36,8 @@ export class DispatchRefusedError extends Error {
 export type DispatchResult =
   | { status: "SENT"; providerMessageId: string; transport: string }
   | { status: "ALREADY_SENT"; providerMessageId: string | null }
-  | { status: "HELD"; heldReason: string; approvalId: string };
+  | { status: "HELD"; heldReason: string; approvalId: string }
+  | { status: "RESCHEDULED"; scheduledFor: Date; reason: string };
 
 export interface DispatchDeps {
   clock?: Clock;
@@ -44,6 +45,7 @@ export interface DispatchDeps {
   transport?: CustomerTransport;
 }
 
+const HOUR = 3_600_000;
 const json = (v: unknown) => JSON.parse(JSON.stringify(v)) as Prisma.InputJsonValue;
 const SENDABLE = ["AWAITING_APPROVAL", "HELD", "FAILED"] as const;
 
@@ -285,9 +287,20 @@ export async function dispatch(
     "account_lost",
     "suppressed",
   ];
+  const isSurvey = Boolean(m.sourceKey && m.sourceKey.startsWith("survey:"));
+  const SURVEY_GUARDS: GuardName[] = [
+    "contact_recently_emailed",
+    "account_recently_emailed",
+    "quiet_hours",
+    "serious_ticket_open",
+    "account_lost",
+    "suppressed",
+  ];
   const blocking =
     m.sendMode === "APPROVED"
-      ? [...checks, suppressed].filter((c) => !c.passed)
+      ? isSurvey
+        ? [...checks, ...guards.filter((g) => SURVEY_GUARDS.includes(g.guard))].filter((c) => !c.passed)
+        : [...checks, suppressed].filter((c) => !c.passed)
       : m.sendMode === "CAMPAIGN"
         ? [
             ...checks,
@@ -296,6 +309,56 @@ export async function dispatch(
         : [...checks, ...guards].filter((c) => !c.passed);
 
   if (blocking.length) {
+    if (isSurvey && checks.every((c) => c.passed)) {
+      const frequencyFails = blocking.filter((b) =>
+        ["contact_recently_emailed", "account_recently_emailed", "quiet_hours"].includes(b.guard),
+      );
+      if (
+        frequencyFails.length > 0 &&
+        blocking.every((b) =>
+          ["contact_recently_emailed", "account_recently_emailed", "quiet_hours"].includes(b.guard),
+        )
+      ) {
+        const contactAvailable = gctx.lastSentToContactAt
+          ? new Date(gctx.lastSentToContactAt.getTime() + gctx.contactCooldownHours * HOUR)
+          : now;
+        const accountAvailable = gctx.lastOtherSendToAccountAt
+          ? new Date(gctx.lastOtherSendToAccountAt.getTime() + gctx.otherPlayCooldownHours * HOUR)
+          : now;
+        const scheduledFor = new Date(
+          Math.max(contactAvailable.getTime(), accountAvailable.getTime(), now.getTime() + HOUR),
+        );
+        const reason = `Rescheduled to ${scheduledFor.toISOString()}: ${frequencyFails.map((g) => g.detail).join("; ")}`;
+        await db.$tenantTransaction(async (tx) => {
+          await tx.outboundMessage.update({
+            where: { id: m.id },
+            data: {
+              status: "HELD",
+              heldReason: `RESCHEDULED until ${scheduledFor.toISOString()}: ${frequencyFails.map((g) => g.detail).join("; ")}`,
+              guardResults: json(results),
+            },
+          });
+          await writeAudit(
+            {
+              workspaceId: ctx.workspaceId,
+              actorType: "SYSTEM",
+              action: "outbound.rescheduled",
+              targetType: "OutboundMessage",
+              targetId: m.id,
+              summary: `Rescheduled to ${scheduledFor.toISOString()} due to frequency cap`,
+              after: { scheduledFor: scheduledFor.toISOString(), guardResults: results },
+            },
+            tx,
+          );
+        });
+        return {
+          status: "RESCHEDULED",
+          scheduledFor,
+          reason,
+        };
+      }
+    }
+
     const heldReason = blocking.map((b) => b.detail).join(" ");
     if (m.sendMode === "APPROVED" || (m.sendMode === "CAMPAIGN" && checks.some((c) => !c.passed))) {
       await db.$tenantTransaction(async (tx) => {

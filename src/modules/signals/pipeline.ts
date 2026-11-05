@@ -175,6 +175,9 @@ async function scoreCore(data: ChunkData) {
   await syncExpansion(ctx, data.accountIds, data.asOf);
   // D9: revenue events against the contract in force; a disagreement is a data-quality item.
   await syncArrChecks(ctx, data.accountIds, data.asOf);
+  // M10: nightly cadence detector for QBRs (>= 90 days).
+  const { syncQbrDue } = await import("@/modules/qbr/cadence");
+  await syncQbrDue(ctx, data.accountIds, data.asOf);
   return { ...counts, bandChanges: changed.length };
 }
 

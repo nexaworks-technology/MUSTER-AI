@@ -66,12 +66,12 @@ export default async function TodayPage({ searchParams }: { searchParams: Search
           <h2 id={`today-${s.key}`} className="text-base font-semibold">
             {s.label} <span className="text-muted-foreground font-normal">({s.total})</span>
           </h2>
-          {s.key === "MEETING" ? (
+          {s.items.length === 0 ? (
             <p className="text-muted-foreground text-sm">
-              No calendar connected. Meetings appear here once one is.
+              {s.key === "MEETING"
+                ? "No calendar connected. Meetings appear here once one is."
+                : "Nothing here."}
             </p>
-          ) : s.items.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Nothing here.</p>
           ) : (
             <ol className="divide-y rounded-md border">
               {s.items.map((i) => (

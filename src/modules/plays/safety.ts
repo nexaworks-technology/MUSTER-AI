@@ -44,12 +44,8 @@ const ALLOWED_MERGE_FIELDS = [
 ];
 
 const DORMANT_TRIGGERS: Record<string, string> = {
-  engagement_loss:
-    "Trigger engagement_loss has no detector yet (Activity & Engagement, M10 (needs meetings)).",
-  "qbr.due": "Trigger qbr.due has no detector yet (QBR Due, M10).",
-  "meeting.qbr_due": "Trigger meeting.qbr_due has no detector yet (QBR Due, M10).",
-  "meeting.ended": "Trigger meeting.ended has no detector yet (Business Review Follow-up, M10).",
-  "business_review.followup": "Trigger business_review.followup has no detector yet (Business Review Follow-up, M10).",
+  "meeting.ended": "Trigger meeting.ended has no detector yet.",
+  dormant_trigger: "Trigger dormant_trigger has no detector yet.",
 };
 
 export async function validatePlaySafety(

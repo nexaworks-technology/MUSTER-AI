@@ -1,8 +1,10 @@
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
-import type { Document } from "@prisma/client";
+import type { Document, Prisma } from "@prisma/client";
 import { runAgent, type ExecutorDeps, type RunOutcome } from "../agents/executor";
 import { meetingQbr } from "../agents/definitions/meeting-qbr";
 import { watcher } from "../agents/definitions/watcher";
+import { writeOutboxEvent } from "@/lib/jobs/outbox";
+import { listActiveWorkspaces } from "@/lib/db/workspace";
 
 export interface PrepareBriefInput {
   meetingId: string;
@@ -121,4 +123,65 @@ export async function summarizeCall(
   }
 
   return outcome;
+}
+
+/**
+ * Schedules an outbox event to generate a pre-call brief at T-30 minutes before meeting startsAt.
+ */
+export async function scheduleBriefForMeeting(
+  tx: Prisma.TransactionClient,
+  workspaceId: string,
+  meeting: { id: string; startsAt: Date; accountId?: string | null },
+) {
+  if (!meeting.accountId) return null;
+  const leadMs = 30 * 60 * 1000;
+  const availableAt = new Date(Math.max(Date.now(), meeting.startsAt.getTime() - leadMs));
+  return writeOutboxEvent(tx, {
+    workspaceId,
+    type: "meetings.prepareBrief",
+    payload: { workspaceId, meetingId: meeting.id },
+    availableAt,
+  });
+}
+
+/**
+ * Sweep for upcoming meetings in a workspace starting in the next 45 minutes with no brief document.
+ */
+export async function sweepUpcomingMeetingBriefs(
+  ctx: TenantContext,
+  now = new Date(),
+  deps: ExecutorDeps = {},
+): Promise<number> {
+  const db = scopedDb(ctx);
+  const in45m = new Date(now.getTime() + 45 * 60 * 1000);
+  const upcoming = await db.meeting.findMany({
+    where: {
+      status: "SCHEDULED",
+      accountId: { not: null },
+      briefDocumentId: null,
+      startsAt: { gte: now, lte: in45m },
+    },
+    select: { id: true },
+  });
+
+  let prepared = 0;
+  for (const m of upcoming) {
+    try {
+      await prepareBrief(ctx, { meetingId: m.id }, deps);
+      prepared++;
+    } catch {
+      // continues sweep on individual error
+    }
+  }
+  return prepared;
+}
+
+export async function sweepAllUpcomingMeetingBriefs(
+  deps: ExecutorDeps = {},
+): Promise<Record<string, number>> {
+  const out: Record<string, number> = {};
+  for (const w of await listActiveWorkspaces()) {
+    out[w.slug] = await sweepUpcomingMeetingBriefs({ workspaceId: w.id }, new Date(), deps);
+  }
+  return out;
 }

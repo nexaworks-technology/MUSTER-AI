@@ -27,7 +27,7 @@ Scope discipline:
 - [x] M7: Renewals, Revenue & Expansion (2026-11-05, see `docs/milestones/M7-LOG.md`; Q-69 to Q-72 answered by default)
 - [x] M8: Plays Engine
 - [x] M9: Conversations, Inbox, Promises & Sentiment (2026-11-06, finished with all four connectors, contract tests, and gate green; see `docs/milestones/M9-LOG.md`)
-- [ ] M10: Meetings, QBR, Success Plans & Portal
+- [x] M10: Meetings, QBR, Success Plans & Portal
 - [ ] M11: Ask AI, Reports & Outcome Ledger
 - [ ] M12: Hardening & Deploy
 

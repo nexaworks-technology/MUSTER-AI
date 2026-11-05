@@ -1,4 +1,5 @@
 import { syncAllInboxes } from "@/modules/inbox/service";
+import { z } from "zod";
 import type { Job } from "bullmq";
 import { env } from "@/lib/config/env";
 import { dispatchOutbox, OUTBOX_ROUTES } from "@/lib/jobs/outbox";
@@ -40,11 +41,13 @@ import { createPipelineProcessors } from "@/modules/signals/service";
 import {
   processPlayApprovalDecided,
   processPlayEnter,
+  processPlayEvent,
   processPlayNoteCreated,
   processPlaySignalOpened,
   processPlayStallSweep,
   processPlayStep,
 } from "@/modules/plays/service";
+import { prepareBrief, sweepAllUpcomingMeetingBriefs } from "@/modules/meetings/service";
 
 const pipeline = createPipelineProcessors({ clock: businessClock });
 
@@ -156,6 +159,24 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
     async "onboarding.agentsSweep"() {
       return sweepAllOnboardingAgents();
     },
+    /** M10: pre-call brief prepared at T-30 or on demand. */
+    async "meetings.prepareBrief"(job) {
+      const data = z
+        .object({
+          workspaceId: z.string(),
+          meetingId: z.string(),
+          briefVersion: z.number().optional(),
+        })
+        .parse(job.data);
+      return prepareBrief(
+        { workspaceId: data.workspaceId },
+        { meetingId: data.meetingId, briefVersion: data.briefVersion },
+      );
+    },
+    /** M10: periodic sweep for upcoming meetings starting in the next 45 minutes with no brief. */
+    async "meetings.briefSweep"() {
+      return sweepAllUpcomingMeetingBriefs();
+    },
   },
   maintenance: {
     async "nightly.schedules"() {
@@ -212,6 +233,9 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
     async "plays.signalOpened"(job) {
       return processPlaySignalOpened(job.data);
     },
+    async "plays.event"(job) {
+      return processPlayEvent(job.data);
+    },
     async "plays.stallSweep"(job) {
       return processPlayStallSweep(job.data);
     },
@@ -245,6 +269,8 @@ export const SCHEDULES = [
   // M7: the Renewal Manager for renewals inside their window that have no brief yet.
   { queue: "agents", id: "renewal-agents-sweep", job: "renewals.agentsSweep", everyMs: 900_000 },
   { queue: "agents", id: "expansion-agents-sweep", job: "expansion.agentsSweep", everyMs: 900_000 },
+  // M10: pre-call briefs for upcoming meetings.
+  { queue: "agents", id: "meeting-brief-sweep", job: "meetings.briefSweep", everyMs: 900_000 },
   // M9: triage rows for inbound emails and tickets that already exist.
   { queue: "maintenance", id: "inbox-sync", job: "inbox.sync", everyMs: 900_000 },
   { queue: "maintenance", id: "task-escalation", job: "tasks.escalateOverdue", everyMs: 3_600_000 },

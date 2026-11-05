@@ -284,7 +284,8 @@ describe("Play safety gate (pre-publish hard gate, safety.ts)", () => {
   });
 
   it("refusal: dormant-trigger play cannot activate (D9)", async () => {
-    // 1. Promise Late is live since M9 (its detector exists): no dormancy refusal
+    // 1. Live plays: detectors exist, no dormancy refusal
+    // Promise Late (M9)
     const promiseLatePlay: PlayDefinition = {
       ...validBasePlay,
       trigger: { type: "signal", ruleKey: "promise_late" },
@@ -292,32 +293,38 @@ describe("Play safety gate (pre-publish hard gate, safety.ts)", () => {
     const res1 = await validatePlaySafety(promiseLatePlay);
     expect(res1.refusals.some((r) => r.includes("no detector yet"))).toBe(false);
 
-    // 2. Engagement Loss (M10, needs meetings)
+    // Engagement Loss (M10: live on no_meeting_in_x_days signal)
     const engagementLossPlay: PlayDefinition = {
       ...validBasePlay,
-      trigger: { type: "signal", ruleKey: "engagement_loss" },
+      trigger: { type: "signal", ruleKey: "no_meeting_in_x_days" },
     };
     const res2 = await validatePlaySafety(engagementLossPlay);
-    expect(res2.passed).toBe(false);
-    expect(res2.refusals.some((r) => r.includes("engagement_loss") && (r.includes("M9") || r.includes("M10")))).toBe(true);
+    expect(res2.refusals.some((r) => r.includes("no detector yet"))).toBe(false);
 
-    // 3. QBR Due (M10)
+    // QBR Due (M10: live on qbr.due event)
     const qbrDuePlay: PlayDefinition = {
       ...validBasePlay,
-      trigger: { type: "event", eventType: "meeting.qbr_due" },
+      trigger: { type: "event", eventType: "qbr.due" },
     };
     const res3 = await validatePlaySafety(qbrDuePlay);
-    expect(res3.passed).toBe(false);
-    expect(res3.refusals.some((r) => r.includes("qbr") && r.includes("M10"))).toBe(true);
+    expect(res3.refusals.some((r) => r.includes("no detector yet"))).toBe(false);
 
-    // 4. Business Review Follow-up (M10)
+    // Business Review Follow-up (M10: live on business_review.followup event)
     const brFollowupPlay: PlayDefinition = {
+      ...validBasePlay,
+      trigger: { type: "event", eventType: "business_review.followup" },
+    };
+    const res4 = await validatePlaySafety(brFollowupPlay);
+    expect(res4.refusals.some((r) => r.includes("no detector yet"))).toBe(false);
+
+    // 2. Test-local dormant trigger: fails safety check naming missing detector (underlying guard holds)
+    const dormantPlay: PlayDefinition = {
       ...validBasePlay,
       trigger: { type: "event", eventType: "meeting.ended" },
     };
-    const res4 = await validatePlaySafety(brFollowupPlay);
-    expect(res4.passed).toBe(false);
-    expect(res4.refusals.some((r) => r.includes("meeting.ended") && r.includes("M10"))).toBe(true);
+    const resDormant = await validatePlaySafety(dormantPlay);
+    expect(resDormant.passed).toBe(false);
+    expect(resDormant.refusals.some((r) => r.includes("meeting.ended") && r.includes("no detector yet"))).toBe(true);
   });
 
   it("refusal: unreachable step or impossible branch condition", async () => {

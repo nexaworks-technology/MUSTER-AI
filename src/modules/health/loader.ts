@@ -68,6 +68,7 @@ export async function loadBundles(
     invoices,
     revenueEvents,
     pulses,
+    surveys,
   ] = await Promise.all([
     db.account.findMany({
       where: { id: { in: ids } },
@@ -198,6 +199,18 @@ export async function loadBundles(
         membership: { select: { user: { select: { name: true, email: true } } } },
       },
     }),
+    db.surveyResponse.findMany({
+      where: { ...inIds, respondedAt: { lt: dayEnd } },
+      select: {
+        id: true,
+        accountId: true,
+        contactId: true,
+        surveyId: true,
+        score: true,
+        respondedAt: true,
+        survey: { select: { type: true } },
+      },
+    }),
   ]);
 
   const group = <T extends { accountId: string }>(rows: T[]) => {
@@ -215,6 +228,7 @@ export async function loadBundles(
   const byRole = group(roles);
   const byInvoice = group(invoices);
   const byEvent = group(revenueEvents);
+  const bySurvey = group(surveys);
   const messaged = new Set(messagedEver.map((m) => m.accountId));
   const peerById = new Map(peers.list.map((p) => [p.id, p]));
 
@@ -361,6 +375,14 @@ export async function loadBundles(
             expiresDate: local(pulse.expiresAt),
           }
         : null,
+      surveys: (bySurvey.get(a.id) ?? []).map((s) => ({
+        id: s.id,
+        surveyId: s.surveyId,
+        type: s.survey.type,
+        score: s.score,
+        contactId: s.contactId,
+        date: local(s.respondedAt),
+      })),
     });
   }
   return out;

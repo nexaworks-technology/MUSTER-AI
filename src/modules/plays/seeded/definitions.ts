@@ -540,17 +540,15 @@ export const SEEDED_PLAYS: SeededPlay[] = [
     },
   },
 
-  // 12. QBR Due (Dormant - M10)
+  // 12. QBR Due (Awake in M10 per Decision 4)
   {
     key: "qbr-due",
     name: "QBR Due",
-    description: "[Dormant - M10] Trigger qbr.due has no detector yet (QBR Due, M10).",
+    description: "Triggers when 90+ days have passed since last completed QBR or contract start.",
     category: "general",
-    isDormant: true,
-    homeMilestone: "M10",
     definition: {
       name: "QBR Due",
-      description: "[Dormant - M10] Trigger qbr.due has no detector yet (QBR Due, M10).",
+      description: "Triggers when 90+ days have passed since last completed QBR or contract start.",
       category: "general",
       trigger: { type: "event", eventType: "qbr.due" },
       steps: [
@@ -574,19 +572,17 @@ export const SEEDED_PLAYS: SeededPlay[] = [
     },
   },
 
-  // 13. Engagement Loss / Re-engagement (Dormant - M9/M10)
+  // 13. Engagement Loss / Re-engagement (Awake in M10 on no_meeting_in_x_days signal per Decision 1/3)
   {
     key: "engagement-loss",
     name: "Engagement Loss",
-    description: "[Dormant - M10 (needs meetings)] Trigger engagement_loss has no detector yet (Activity & Engagement, M10 (needs meetings)).",
+    description: "Fires when no meeting has been held in 60 days (or configured threshold).",
     category: "risk",
-    isDormant: true,
-    homeMilestone: "M10 (needs meetings)",
     definition: {
       name: "Engagement Loss",
-      description: "[Dormant - M10 (needs meetings)] Trigger engagement_loss has no detector yet (Activity & Engagement, M10 (needs meetings)).",
+      description: "Fires when no meeting has been held in 60 days (or configured threshold).",
       category: "risk",
-      trigger: { type: "signal", ruleKey: "engagement_loss" },
+      trigger: { type: "signal", ruleKey: "no_meeting_in_x_days" },
       steps: [
         {
           key: "task-engagement",
@@ -658,17 +654,15 @@ export const SEEDED_PLAYS: SeededPlay[] = [
     },
   },
 
-  // 15. Business Review Follow-up (Dormant - M10)
+  // 15. Business Review Follow-up (Awake in M10 per Decision 4)
   {
     key: "business-review-followup",
     name: "Business Review Follow-up",
-    description: "[Dormant - M10] Trigger business_review.followup has no detector yet (Business Review Follow-up, M10).",
+    description: "Triggers on QBR document completion/lock to assign follow-up and action item distribution.",
     category: "general",
-    isDormant: true,
-    homeMilestone: "M10",
     definition: {
       name: "Business Review Follow-up",
-      description: "[Dormant - M10] Trigger business_review.followup has no detector yet (Business Review Follow-up, M10).",
+      description: "Triggers on QBR document completion/lock to assign follow-up and action item distribution.",
       category: "general",
       trigger: { type: "event", eventType: "business_review.followup" },
       steps: [

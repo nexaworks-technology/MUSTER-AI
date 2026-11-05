@@ -162,6 +162,15 @@ export interface AccountBundle {
     createdDate: CalendarDate;
     expiresDate: CalendarDate;
   } | null;
+  /** Survey responses feeding Sentiment and Relationship (M10, D-155). */
+  surveys?: Array<{
+    id: string;
+    surveyId: string;
+    type: "NPS" | "CSAT" | "CES";
+    score: number;
+    contactId: string | null;
+    date: CalendarDate;
+  }> | null;
 }
 
 /** What a component may read besides the bundle: its curve and the model's fixed params. */

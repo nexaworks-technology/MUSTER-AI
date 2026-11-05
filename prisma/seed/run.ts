@@ -10,6 +10,7 @@ import { seedWork } from "./demo/work";
 import { seedHealth } from "./demo/health";
 import { seedOnboarding } from "./demo/onboarding";
 import { seedExtractions } from "./demo/extractions";
+import { seedM10 } from "./demo/m10";
 import { withDatabaseLock } from "@/lib/db/locks";
 import { recomputeLastTouch, runDataQualityScan } from "@/modules/accounts/service";
 import { seedPlaysForWorkspace } from "./plays";
@@ -109,6 +110,7 @@ async function seedDemoData(workspaceId: string): Promise<void> {
   // M9: the real Watcher over the story records (recorded answers), the inbox and the Unmatched
   // example, before the nightly pass so its promise and text rules read them like any other night.
   await seedExtractions(db, workspaceId);
+  await seedM10(db, workspaceId);
   await seedHealth(db, workspaceId);
   // The onboarding events the seed's own nightly pass raised describe the seeded past, not news:
   // marked processed, so the first worker start does not notify owners or ask the Onboarding

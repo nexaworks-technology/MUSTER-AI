@@ -1,6 +1,7 @@
 import { Prisma, type RecordSource } from "@prisma/client";
 import type { IngestCounts, IngestProblem } from "./ingest.service";
 import type { NormalizedMeeting, NormalizedTranscript } from "./normalized";
+import { scheduleBriefForMeeting } from "@/modules/meetings/service";
 
 type Tx = Prisma.TransactionClient;
 
@@ -180,6 +181,13 @@ export async function ingestMeetings(
       meetingId = created.id;
       await run.addRefs("Meeting", "Meeting", [[m.externalId, created.id]]);
       run.counts.created++;
+      if (m.status === "SCHEDULED" && accountId) {
+        await scheduleBriefForMeeting(tx, target.workspaceId, {
+          id: created.id,
+          startsAt: m.startsAt,
+          accountId,
+        });
+      }
     }
 
     // Process attendees

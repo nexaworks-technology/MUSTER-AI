@@ -1108,6 +1108,40 @@ export async function processPlaySignalOpened(data: {
   return { entered };
 }
 
+export async function processPlayEvent(data: {
+  workspaceId: string;
+  accountId: string;
+  eventType?: string;
+  documentId?: string;
+  daysSinceLastQbr?: number;
+  asOf?: string;
+}) {
+  const eventType = data.eventType ?? (data.documentId ? "business_review.followup" : "qbr.due");
+  const db = scopedDb({ workspaceId: data.workspaceId });
+  const plays = await db.play.findMany({
+    where: { status: "PUBLISHED", currentVersionId: { not: null } },
+    include: { currentVersion: true },
+  });
+  const entered: string[] = [];
+  for (const play of plays) {
+    if (!play.currentVersion) continue;
+    const def = play.currentVersion.definition as unknown as PlayDefinition;
+    if (def.trigger?.type === "event" && def.trigger.eventType === eventType) {
+      const res = await enterPlay(
+        { workspaceId: data.workspaceId },
+        {
+          workspaceId: data.workspaceId,
+          playId: play.id,
+          accountId: data.accountId,
+          triggerRef: `${eventType}:${data.documentId ?? data.asOf ?? Date.now()}`,
+        },
+      );
+      if (res.status === "RUNNING") entered.push(play.id);
+    }
+  }
+  return { entered };
+}
+
 export async function processPlayStallSweep(data?: { workspaceId?: string }) {
   if (data?.workspaceId) {
     return sweepStalledPlayRuns({ workspaceId: data.workspaceId });

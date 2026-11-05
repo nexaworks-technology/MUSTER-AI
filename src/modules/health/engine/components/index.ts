@@ -62,18 +62,48 @@ function sentimentShare(b: AccountBundle): ComponentResult {
   };
 }
 
-const SENTIMENT: PillarComponents = {
-  sentiment_share: (b) => sentimentShare(b),
-  survey_average: () => ({
-    score: null,
+function normalizeSurveyScore(type: "NPS" | "CSAT" | "CES", score: number): number {
+  if (type === "NPS") return Math.max(0, Math.min(100, Math.round((score / 10) * 100)));
+  if (type === "CSAT") return Math.max(0, Math.min(100, Math.round((score / 5) * 100)));
+  if (type === "CES") return Math.max(0, Math.min(100, Math.round((score / 7) * 100)));
+  return Math.max(0, Math.min(100, score));
+}
+
+function surveyAverage(b: AccountBundle): ComponentResult {
+  const from = addDays(b.asOf, -90);
+  const inWindow = (b.surveys ?? []).filter((s) => s.date >= from && s.date <= b.asOf);
+  if (inWindow.length === 0) {
+    return {
+      score: null,
+      reason: {
+        component: "survey_average",
+        kind: "MISSING_DATA",
+        input: "survey_average",
+        message: "No survey responses yet.",
+        sources: [],
+      },
+    };
+  }
+  const sum = inWindow.reduce((acc, s) => acc + normalizeSurveyScore(s.type, s.score), 0);
+  const mean = Math.round(sum / inWindow.length);
+  return {
+    score: mean,
     reason: {
       component: "survey_average",
-      kind: "MISSING_DATA",
+      kind: "EVIDENCE",
       input: "survey_average",
-      message: "No survey responses yet.",
-      sources: [],
+      message: `${inWindow.length} survey response(s) in the last 90 days, averaging ${mean}/100.`,
+      value: mean,
+      periodStart: from,
+      periodEnd: b.asOf,
+      sources: inWindow.map((s) => ({ sourceType: "SurveyResponse", sourceId: s.id })),
     },
-  }),
+  };
+}
+
+const SENTIMENT: PillarComponents = {
+  sentiment_share: (b) => sentimentShare(b),
+  survey_average: (b) => surveyAverage(b),
 };
 
 export const COMPONENTS: Record<Pillar, PillarComponents> = {

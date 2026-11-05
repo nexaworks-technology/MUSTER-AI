@@ -236,9 +236,15 @@ ALTER TABLE "SurveyResponse" FORCE ROW LEVEL SECURITY;
 CREATE POLICY tenant_isolation ON "SurveyResponse"
   USING ("workspaceId" = current_setting('app.workspace_id', true))
   WITH CHECK ("workspaceId" = current_setting('app.workspace_id', true));
+CREATE POLICY survey_token_read ON "SurveyResponse"
+  FOR SELECT
+  USING ("token" = current_setting('app.survey_token', true));
 
 ALTER TABLE "PortalAccess" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "PortalAccess" FORCE ROW LEVEL SECURITY;
 CREATE POLICY tenant_isolation ON "PortalAccess"
   USING ("workspaceId" = current_setting('app.workspace_id', true))
   WITH CHECK ("workspaceId" = current_setting('app.workspace_id', true));
+CREATE POLICY portal_token_read ON "PortalAccess"
+  FOR SELECT
+  USING ("tokenHash" = current_setting('app.portal_token_hash', true));
