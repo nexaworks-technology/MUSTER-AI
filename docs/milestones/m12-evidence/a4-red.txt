@@ -1,0 +1,49 @@
+$ vitest run src/lib/db/__tests__/trigger-utc-m12.int.test.ts
+
+ RUN  v5.0.5 /Users/sahil/customer sucesss platform
+
+ ❯ |app| src/lib/db/__tests__/trigger-utc-m12.int.test.ts (2 tests | 2 failed) 30ms
+   ❯ stamp triggers store UTC under session time zone Asia/Kolkata (1)
+     × contact.statusChangedAt, ticket.escalatedAt and ticket.priorityChangedAt 24ms
+   ❯ stamp triggers store UTC under session time zone America/Los_Angeles (1)
+     × contact.statusChangedAt, ticket.escalatedAt and ticket.priorityChangedAt 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |app| src/lib/db/__tests__/trigger-utc-m12.int.test.ts > stamp triggers store UTC under session time zone Asia/Kolkata > contact.statusChangedAt, ticket.escalatedAt and ticket.priorityChangedAt
+AssertionError: expected 19799990 to be less than 5000
+ ❯ near src/lib/db/__tests__/trigger-utc-m12.int.test.ts:15:56
+     13| function near(d: Date | null) {
+     14|   expect(d).not.toBeNull();
+     15|   expect(Math.abs((d as Date).getTime() - Date.now())).toBeLessThan(TO…
+       |                                                        ^
+     16| }
+     17|
+ ❯ src/lib/db/__tests__/trigger-utc-m12.int.test.ts:38:7
+ ❯ Proxy._transactionWithCallback node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.9.3__typescript@5.9.3/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:722:18
+ ❯ src/lib/db/__tests__/trigger-utc-m12.int.test.ts:22:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  |app| src/lib/db/__tests__/trigger-utc-m12.int.test.ts > stamp triggers store UTC under session time zone America/Los_Angeles > contact.statusChangedAt, ticket.escalatedAt and ticket.priorityChangedAt
+AssertionError: expected 28800002 to be less than 5000
+ ❯ near src/lib/db/__tests__/trigger-utc-m12.int.test.ts:15:56
+     13| function near(d: Date | null) {
+     14|   expect(d).not.toBeNull();
+     15|   expect(Math.abs((d as Date).getTime() - Date.now())).toBeLessThan(TO…
+       |                                                        ^
+     16| }
+     17|
+ ❯ src/lib/db/__tests__/trigger-utc-m12.int.test.ts:38:7
+ ❯ Proxy._transactionWithCallback node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.9.3__typescript@5.9.3/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:722:18
+ ❯ src/lib/db/__tests__/trigger-utc-m12.int.test.ts:22:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  02:25:18
+   Duration  662ms (tests 37%, import 31%, transform 26%, setup 4%, worker 2%)
+
+[ELIFECYCLE] Test failed. See above for more details.
