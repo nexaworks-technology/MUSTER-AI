@@ -1975,6 +1975,8 @@ model OutboundMessage {
   @@unique([workspaceId, approvalId])
   @@index([workspaceId, contactId, sentAt])
   @@index([workspaceId, accountId, sentAt])
+  /// Created by the M8 campaigns migration; declared here in M12 A3 so schema and folder agree.
+  @@index([workspaceId, campaignId])
 }
 
 enum SuppressionReason {
@@ -2759,7 +2761,7 @@ model VoiceSample {
   approvedForVoice  Boolean  @default(true)
   createdById       String?
   createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  updatedAt         DateTime @default(now()) @updatedAt
 
   workspace       Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   outboundMessage OutboundMessage? @relation(fields: [workspaceId, outboundMessageId], references: [workspaceId, id], onDelete: SetNull)
@@ -2798,10 +2800,10 @@ model Campaign {
   status      CampaignStatus @default(DRAFT)
   scheduledAt DateTime?
   pacePerHour Int            @default(100)
-  approvalId  String?
+  approvalId  String?        @unique
   createdById String?
   createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  updatedAt   DateTime       @default(now()) @updatedAt
 
   workspace        Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   segment          Segment             @relation(fields: [workspaceId, segmentId], references: [workspaceId, id], onDelete: Restrict)
@@ -2834,7 +2836,7 @@ model CampaignRecipient {
   bouncedAt         DateTime?
   unsubscribedAt    DateTime?
   createdAt         DateTime                @default(now())
-  updatedAt         DateTime                @updatedAt
+  updatedAt         DateTime                @default(now()) @updatedAt
 
   workspace       Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   campaign        Campaign         @relation(fields: [workspaceId, campaignId], references: [workspaceId, id], onDelete: Cascade)

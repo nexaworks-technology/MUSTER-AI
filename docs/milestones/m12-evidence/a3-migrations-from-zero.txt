@@ -1,0 +1,7 @@
+# M12 A3 — migrations from zero (2026-11-06)
+folder: 37 migrations
+nexaworks_scratch_m12a3: applied=37 rows=37 missing_from_db=0 checksum_mismatch=0
+nexaworks_dev: applied=37 rows=37 missing_from_db=0 checksum_mismatch=0
+nexaworks_test: applied=37 rows=37 missing_from_db=0 checksum_mismatch=0
+scratch: prisma migrate deploy from an empty database → all migrations applied
+scratch vs schema.prisma: prisma migrate diff → empty migration
