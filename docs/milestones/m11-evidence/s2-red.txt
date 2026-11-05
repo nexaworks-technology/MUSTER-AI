@@ -1,0 +1,15 @@
+      1| import { describe, expect, it } from "vitest";
+      2| import {
+       | ^
+      3|   CHECKPOINT_GRACE_DAYS,
+      4|   checkpointDue,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  21:13:14
+   Duration  609ms (setup 43%, worker 30%, transform 26%, environment 1%)
+
+[ELIFECYCLE] Test failed. See above for more details.

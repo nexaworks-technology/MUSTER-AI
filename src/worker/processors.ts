@@ -32,6 +32,7 @@ import {
   sweepAllOnboardingAgents,
 } from "@/modules/onboarding/service";
 import {
+  evaluateLongCheckpoints,
   evaluateRevenueCheckpoints,
   evaluateSevenDayCheckpoints,
 } from "@/modules/outcomes/service";
@@ -104,7 +105,7 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
   /** M3: the nightly run and the real-time hook (signals → health), scoped by payload. */
   signals: pipeline.signals,
   health: pipeline.health,
-  /** M4: the 7-day outcome checkpoint (ARCHITECTURE §6.5); idempotent per record. */
+  /** M4: the 7-day outcome checkpoint (ARCHITECTURE §6.5); idempotent per record. M11: 30/90. */
   outcomes: {
     async "outcomes.checkpoint"() {
       const out: Record<string, number> = {};
@@ -112,6 +113,8 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
         out[w.slug] = (await evaluateSevenDayCheckpoints({ workspaceId: w.id })).evaluated;
         // M7: renewed / expanded / contracted / churned, from renewal outcomes and revenue events.
         await evaluateRevenueCheckpoints({ workspaceId: w.id });
+        // M11: the frozen 30/90-day checkpoints on workspace business dates (D-161).
+        await evaluateLongCheckpoints({ workspaceId: w.id, timezone: w.timezone });
       }
       return out;
     },

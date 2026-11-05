@@ -11,6 +11,7 @@ import { seedHealth } from "./demo/health";
 import { seedOnboarding } from "./demo/onboarding";
 import { seedExtractions } from "./demo/extractions";
 import { seedM10 } from "./demo/m10";
+import { seedM11 } from "./demo/m11";
 import { withDatabaseLock } from "@/lib/db/locks";
 import { recomputeLastTouch, runDataQualityScan } from "@/modules/accounts/service";
 import { seedPlaysForWorkspace } from "./plays";
@@ -94,7 +95,7 @@ async function seedWorkspace(
   return workspace;
 }
 
-async function seedDemoData(workspaceId: string): Promise<void> {
+async function seedDemoData(workspaceId: string, timezone: string): Promise<void> {
   const db = scopedDb({ workspaceId });
   await seedAccounts(db, workspaceId);
   await seedCommercial(db, workspaceId);
@@ -112,6 +113,9 @@ async function seedDemoData(workspaceId: string): Promise<void> {
   await seedExtractions(db, workspaceId);
   await seedM10(db, workspaceId);
   await seedHealth(db, workspaceId);
+  // M11 (D-166): the outcome ledger's history as raw flags + actions; the real checkpoint code
+  // computes every result. After the nightly pass so today's signals are already in place.
+  await seedM11(db, workspaceId, timezone);
   // The onboarding events the seed's own nightly pass raised describe the seeded past, not news:
   // marked processed, so the first worker start does not notify owners or ask the Onboarding
   // Manager about history. A real stall or value day after the seed raises its own event (D-109).
@@ -142,7 +146,7 @@ export async function runSeed({
   return withDatabaseLock("demo-seed", async () => {
     const larkspur = await seedWorkspace(DEMO_WORKSPACE, DEMO_USERS);
     // Demo data goes to Larkspur only; Ferngrove stays an empty second tenant (SEED_DATA §2).
-    await seedDemoData(larkspur.id);
+    await seedDemoData(larkspur.id, larkspur.timezone);
     const seeded = [larkspur];
     if (includeTestTenant) seeded.push(await seedWorkspace(TEST_TENANT, TEST_TENANT_USERS));
     if (emptyWorkspace)

@@ -1,0 +1,120 @@
+H|Ashgrove Manufacturing|96.73|HEALTHY|96.63|93.33|100.00|95.00|100.00|-
+H|Aspenwood Fitness|88.91|HEALTHY|86.33|97.19|100.00|94.64|100.00|-
+H|Beaconcrest Transport|95.71|HEALTHY|96.14|91.80|100.00|100.00|85.00|-
+H|Beaconpoint Advisory|96.17|HEALTHY|95.48|94.38|100.00|100.00|100.00|-
+H|Bluefin Charters|91.76|HEALTHY|90.58|-|100.00|-|100.00|-
+H|Bluemark Fitness|97.09|HEALTHY|99.25|58.16|100.00|100.00|100.00|-
+H|Blueridge Accounting|99.73|HEALTHY|99.67|-|100.00|100.00|100.00|-
+H|Brightgate Fitness|94.72|HEALTHY|93.21|100.00|100.00|100.00|100.00|-
+H|Brighthaven Transport|89.33|HEALTHY|86.28|100.00|100.00|100.00|100.00|-
+H|Brightwell Logistics|52.52|AT_RISK|44.42|63.06|100.00|61.43|99.09|-
+H|Cobalt Ridge Transit|50.42|AT_RISK|43.34|-|100.00|-|100.00|-
+H|Copperleaf Studios|99.71|HEALTHY|100.00|94.77|100.00|100.00|100.00|-
+H|Evergreengate Care Partners|92.67|HEALTHY|90.64|99.06|100.00|100.00|100.00|-
+H|Evergreenmark Freight|99.38|HEALTHY|99.25|-|100.00|100.00|100.00|-
+H|Fairhaven Dental Group|99.60|HEALTHY|100.00|100.00|100.00|92.86|100.00|-
+H|Falconbrook Freight|100.00|HEALTHY|100.00|-|100.00|100.00|100.00|-
+H|Falconpoint Legal|99.38|HEALTHY|99.25|-|100.00|100.00|100.00|-
+H|Glenmore Foods|97.67|HEALTHY|99.03|89.75|100.00|81.82|100.00|-
+H|Goldenbrook Medical|83.64|HEALTHY|80.14|-|100.00|100.00|100.00|-
+H|Goldenpoint Studios|94.90|HEALTHY|95.22|90.00|100.00|100.00|85.00|-
+H|Halden Retail|97.72|HEALTHY|100.00|100.00|66.10|92.86|100.00|-
+H|Harborbrook Advisory|99.74|HEALTHY|99.67|100.00|100.00|100.00|100.00|-
+H|Harborbrook Solicitors|96.81|HEALTHY|95.90|100.00|100.00|100.00|100.00|-
+H|Harborcrest Athletics|90.53|HEALTHY|88.50|-|100.00|100.00|100.00|-
+H|Harborway Market|99.38|HEALTHY|99.25|-|100.00|100.00|100.00|-
+H|Harborwood Accounting|100.00|HEALTHY|100.00|-|100.00|100.00|100.00|-
+H|Hollowhaven Freight|89.92|HEALTHY|87.77|89.83|100.00|100.00|100.00|-
+H|Ironmark Manufacturing|98.35|HEALTHY|98.00|-|100.00|100.00|100.00|-
+H|Ironpoint Stores|94.22|HEALTHY|95.22|62.86|100.00|100.00|100.00|-
+H|Ironway Accounting|98.76|HEALTHY|98.50|-|100.00|100.00|100.00|-
+H|Juniper Vet Partners|90.54|HEALTHY|89.19|-|100.00|-|100.00|-
+H|Kestrel Robotics|94.55|HEALTHY|93.50|100.00|100.00|92.86|100.00|-
+H|Larkcrest Legal|98.44|HEALTHY|98.00|100.00|100.00|100.00|100.00|-
+H|Larkwood Works|89.33|HEALTHY|86.28|100.00|100.00|100.00|100.00|-
+H|Lumen Freightworks|76.45|HEALTHY|73.09|-|100.00|-|100.00|-
+H|Marlow & Finch|94.58|HEALTHY|93.41|100.00|100.00|94.64|100.00|-
+H|Meridianhaven Consulting|91.06|HEALTHY|88.50|100.00|100.00|100.00|100.00|-
+H|Northbrook Fabrication|99.74|HEALTHY|99.67|100.00|100.00|100.00|100.00|-
+H|Northgate Freight|88.44|HEALTHY|88.53|100.00|72.80|94.64|85.00|-
+H|Northridge Accounting|100.00|HEALTHY|100.00|-|100.00|100.00|100.00|-
+H|Oakcrest Couriers|91.25|HEALTHY|90.43|81.74|100.00|94.64|100.00|-
+H|Oakline Industries|97.77|HEALTHY|97.13|100.00|100.00|100.00|100.00|-
+H|Orchard Lane Bakery Supply|82.32|HEALTHY|81.03|-|100.00|100.00|65.00|-
+H|Ostara Home Goods|95.41|HEALTHY|94.75|-|100.00|-|100.00|-
+H|Pinecrest Health|39.56|AT_RISK|22.30|100.00|100.00|100.00|100.00|-
+H|Pioneerfield Solicitors|92.69|HEALTHY|91.83|97.83|100.00|100.00|85.00|-
+H|Pioneermark Manufacturing|99.10|HEALTHY|99.25|94.32|100.00|100.00|100.00|-
+H|Prairieline Studios|90.20|HEALTHY|88.50|84.55|100.00|100.00|100.00|-
+H|Prairieway Industries|99.34|HEALTHY|99.15|100.00|100.00|100.00|100.00|-
+H|Quillmark Legal|91.09|HEALTHY|89.06|100.00|100.00|92.86|100.00|-
+H|Redfern Outdoor|44.83|AT_RISK|29.25|97.50|100.00|100.00|100.00|-
+H|Ridgeback Security|99.84|HEALTHY|99.81|-|100.00|-|100.00|-
+H|Saltmarsh Media|47.77|AT_RISK|40.31|-|100.00|-|100.00|-
+H|Silverline Couriers|99.75|HEALTHY|99.68|100.00|100.00|100.00|100.00|-
+H|Silverline Couriers Inc.|77.28|HEALTHY|72.42|-|100.00|100.00|100.00|-
+H|Summitdale Solicitors|98.35|HEALTHY|98.00|-|100.00|100.00|100.00|-
+H|Summitway Advisory|99.74|HEALTHY|99.67|100.00|100.00|100.00|100.00|-
+H|Sundial Fitness|74.18|HEALTHY|70.80|79.15|100.00|100.00|65.00|-
+H|Tidewater Clinics|84.40|HEALTHY|82.38|97.50|100.00|68.50|100.00|-
+H|Wrenfield Labs|86.60|HEALTHY|84.69|-|100.00|-|100.00|-
+R|Ashgrove Manufacturing|2027-05-11|80|HIGH|UPCOMING
+R|Aspenwood Fitness|2026-11-11|70|HIGH|UPCOMING
+R|Beaconcrest Transport|2027-01-10|70|HIGH|UPCOMING
+R|Beaconpoint Advisory|2027-05-10|80|HIGH|UPCOMING
+R|Bluefin Charters|2027-05-01|80|HIGH|UPCOMING
+R|Bluemark Fitness|2027-05-30|80|HIGH|UPCOMING
+R|Blueridge Accounting|2027-09-27|80|HIGH|UPCOMING
+R|Brightgate Fitness|2027-03-01|80|HIGH|UPCOMING
+R|Brighthaven Transport|2027-07-09|80|HIGH|UPCOMING
+R|Brightwell Logistics|2027-02-28|40|MEDIUM|UPCOMING
+R|Cobalt Ridge Transit|2027-10-13|40|MEDIUM|UPCOMING
+R|Copperleaf Studios|2027-03-22|80|HIGH|UPCOMING
+R|Evergreengate Care Partners|2027-02-19|80|HIGH|UPCOMING
+R|Evergreenmark Freight|2027-05-20|80|HIGH|UPCOMING
+R|Falconbrook Freight|2027-09-17|80|HIGH|UPCOMING
+R|Falconpoint Legal|2027-07-19|80|HIGH|UPCOMING
+R|Glenmore Foods|2027-06-20|80|HIGH|UPCOMING
+R|Goldenbrook Medical|2027-03-31|80|HIGH|UPCOMING
+R|Goldenpoint Studios|2027-03-11|80|HIGH|UPCOMING
+R|Halden Retail|2027-07-10|80|HIGH|UPCOMING
+R|Harborbrook Advisory|2027-10-07|80|HIGH|UPCOMING
+R|Harborbrook Solicitors|2026-11-21|70|HIGH|UPCOMING
+R|Harborcrest Athletics|2027-10-17|80|HIGH|UPCOMING
+R|Harborway Market|2027-08-08|80|HIGH|UPCOMING
+R|Harborwood Accounting|2026-12-21|70|HIGH|RENEWED
+R|Harborwood Accounting|2027-12-21|40|MEDIUM|RENEWED
+R|Harborwood Accounting|2028-12-20|80|HIGH|UPCOMING
+R|Hollowhaven Freight|2027-06-19|80|HIGH|UPCOMING
+R|Ironmark Manufacturing|2027-06-09|80|HIGH|UPCOMING
+R|Ironpoint Stores|2027-08-18|80|HIGH|UPCOMING
+R|Ironway Accounting|2027-07-29|80|HIGH|UPCOMING
+R|Juniper Vet Partners|2027-09-02|80|HIGH|UPCOMING
+R|Larkcrest Legal|2027-08-28|80|HIGH|UPCOMING
+R|Larkwood Works|2026-12-11|70|HIGH|UPCOMING
+R|Lumen Freightworks|2027-08-19|80|HIGH|UPCOMING
+R|Marlow & Finch|2027-05-26|80|HIGH|UPCOMING
+R|Meridianhaven Consulting|2026-12-01|70|HIGH|UPCOMING
+R|Northbrook Fabrication|2027-03-21|80|HIGH|UPCOMING
+R|Northgate Freight|2026-12-13|70|HIGH|UPCOMING
+R|Northridge Accounting|2027-09-07|80|HIGH|UPCOMING
+R|Oakcrest Couriers|2027-02-09|80|HIGH|UPCOMING
+R|Oakline Industries|2027-04-30|80|HIGH|UPCOMING
+R|Orchard Lane Bakery Supply|2027-02-05|80|HIGH|UPCOMING
+R|Ostara Home Goods|2027-09-16|80|HIGH|UPCOMING
+R|Pinecrest Health|2027-09-30|40|MEDIUM|UPCOMING
+R|Pioneerfield Solicitors|2027-01-20|80|HIGH|UPCOMING
+R|Pioneermark Manufacturing|2027-04-20|80|HIGH|UPCOMING
+R|Prairieline Studios|2026-12-31|80|HIGH|UPCOMING
+R|Prairieway Industries|2027-01-30|80|HIGH|UPCOMING
+R|Quillmark Legal|2027-01-15|80|HIGH|UPCOMING
+R|Redfern Outdoor|2027-05-31|40|MEDIUM|UPCOMING
+R|Ridgeback Security|2027-10-05|80|HIGH|UPCOMING
+R|Saltmarsh Media|2027-10-28|40|MEDIUM|UPCOMING
+R|Silverline Couriers|2027-07-30|80|HIGH|UPCOMING
+R|Silverline Couriers Inc.|2027-08-29|80|HIGH|UPCOMING
+R|Summitdale Solicitors|2027-04-10|80|HIGH|UPCOMING
+R|Summitway Advisory|2027-06-29|80|HIGH|UPCOMING
+R|Sundial Fitness|2027-04-01|80|HIGH|UPCOMING
+R|Tidewater Clinics|2027-04-11|80|HIGH|UPCOMING
+R|Wrenfield Labs|2027-10-21|80|HIGH|UPCOMING

@@ -25,6 +25,7 @@
     "dev:worker": "tsx watch --env-file=.env src/worker/index.ts",
     "db:seed": "tsx --env-file=.env prisma/seed.ts",
     "jobs:nightly": "tsx --env-file=.env scripts/jobs-nightly.ts",
+    "outcomes:backfill": "tsx --env-file=.env scripts/outcomes-backfill.ts",
     "eval": "tsx --env-file=.env scripts/eval.ts",
     "agents:extract": "tsx --env-file=.env scripts/agents-extract.ts",
     "demo:webhook": "tsx --env-file=.env scripts/demo-webhook.ts",

@@ -2,6 +2,7 @@ import { Prisma, type OutcomeRecord } from "@prisma/client";
 import { writeAudit } from "@/lib/audit";
 import { businessClock, type Clock } from "@/lib/dates";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
+import { revenueStatusOf, type RevenueEventFact, type RevenueStatus } from "./checkpoints";
 
 /**
  * The outcome ledger's write side for M4 (spec §6L3, ARCHITECTURE §6.5): did anyone act on a
@@ -164,7 +165,10 @@ export async function evaluateSevenDayCheckpoints(
 
 // ─── M7 B5: revenue statuses ────────────────────────────────────────────────────────────────
 
-export type RevenueStatus = "RENEWED" | "EXPANDED" | "CONTRACTED" | "CHURNED";
+export type { RevenueStatus };
+// M11: the 30/90-day checkpoints (pure rules + their write side), reached through this module's service.
+export { classifyAlarm, decideCheckpoint, type LongCheckpoint } from "./checkpoints";
+export { evaluateLongCheckpoints } from "./checkpoints.service";
 
 /** What happened to revenue after a flag, with the records behind it (Q-15: attributed, not causal). */
 export interface RevenueCheckpoint {
@@ -243,7 +247,7 @@ export async function evaluateRevenueCheckpoints(ctx: TenantContext, clock: Cloc
       },
     }),
   ]);
-  // The effective outcome of a renewal is the one no other row corrects.
+  // The effective outcome of a renewal is the one no other row corrects (across all rows loaded).
   const superseded = new Set(outcomes.flatMap((o) => (o.supersedesId ? [o.supersedesId] : [])));
   const effective = outcomes.filter((o) => !superseded.has(o.id));
   let changed = 0;
@@ -255,46 +259,20 @@ export async function evaluateRevenueCheckpoints(ctx: TenantContext, clock: Cloc
       outcomes: effective.filter((o) => o.accountId === r.accountId && inWindow(o.occurredOn)),
       events: events.filter((e) => e.accountId === r.accountId && inWindow(e.effectiveDate)),
     };
-    const churned = [
-      ...mine.outcomes
-        .filter((o) => o.result === "CHURNED")
-        .map((o) => ({ k: "o" as const, ...o })),
-      ...mine.events.filter((e) => e.type === "CHURN").map((e) => ({ k: "e" as const, ...e })),
-    ];
-    const contracted = mine.events.filter((e) => e.type === "CONTRACTION");
-    const renewed = mine.outcomes.filter((o) => o.result === "RENEWED");
+    // M11: the status rule is shared with the 30/90-day checkpoints (one definition).
+    const decided = revenueStatusOf(
+      r.flagType,
+      mine.outcomes.map((o) => ({ ...o, on: day(o.occurredOn) })),
+      mine.events.map((e) => ({
+        ...e,
+        type: e.type as RevenueEventFact["type"],
+        on: day(e.effectiveDate),
+      })),
+    );
+    const status: RevenueStatus | null = decided?.status ?? null;
+    const evidence = (decided?.evidence ?? []) as RevenueCheckpoint["evidence"];
+    const dates = decided?.dates ?? [];
     const expanded = mine.events.filter((e) => e.type === "EXPANSION" && e.deltaArrMinor > 0n);
-    const ref = (xs: Array<{ id: string }>, sourceType: "RenewalOutcome" | "RevenueEvent") =>
-      xs.map((x) => ({ sourceType, sourceId: x.id }));
-    let status: RevenueStatus | null = null;
-    let evidence: RevenueCheckpoint["evidence"] = [];
-    let dates: Date[] = [];
-    if (churned.length) {
-      status = "CHURNED";
-      evidence = [
-        ...ref(
-          churned.filter((c) => c.k === "o"),
-          "RenewalOutcome",
-        ),
-        ...ref(
-          churned.filter((c) => c.k === "e"),
-          "RevenueEvent",
-        ),
-      ];
-      dates = churned.map((c) => (c.k === "o" ? c.occurredOn : c.effectiveDate));
-    } else if (contracted.length) {
-      status = "CONTRACTED";
-      evidence = ref(contracted, "RevenueEvent");
-      dates = contracted.map((c) => c.effectiveDate);
-    } else if (r.flagType === "RISK" && renewed.length) {
-      status = "RENEWED";
-      evidence = ref(renewed, "RenewalOutcome");
-      dates = renewed.map((c) => c.occurredOn);
-    } else if (r.flagType === "OPPORTUNITY" && expanded.length) {
-      status = "EXPANDED";
-      evidence = ref(expanded, "RevenueEvent");
-      dates = expanded.map((c) => c.effectiveDate);
-    }
     const expandedCurrency = expanded[0]?.currency ?? null;
     const valueSaved =
       status === "RENEWED" && r.actionTaken === "ACTED" ? (r.arrAtFlagMinor ?? null) : null;
@@ -308,7 +286,7 @@ export async function evaluateRevenueCheckpoints(ctx: TenantContext, clock: Cloc
       ? {
           status,
           evaluatedAt: now.toISOString(),
-          occurredOn: dates.map(day).sort().at(-1)!,
+          occurredOn: [...dates].sort().at(-1)!,
           attributed: true,
           note: ATTRIBUTION_NOTE,
           detail: {
