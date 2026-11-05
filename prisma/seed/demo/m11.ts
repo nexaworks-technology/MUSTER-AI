@@ -219,6 +219,13 @@ export async function seedM11(db: ScopedDb, workspaceId: string, timezone: strin
     });
   }
 
+  // The M11 demo/e2e publishes Renewal Risk through the Plays service; the seed returns it to
+  // DRAFT (as seed M10 does for Promise Late after the M9 e2e).
+  await db.play.updateMany({
+    where: { key: "renewal-risk", status: "PUBLISHED" },
+    data: { status: "DRAFT" },
+  });
+
   // The real checkpoint code computes every result (idempotent: stored checkpoints are skipped).
   const clock = () => daysAgo(0);
   await evaluateSevenDayCheckpoints({ workspaceId }, clock);
