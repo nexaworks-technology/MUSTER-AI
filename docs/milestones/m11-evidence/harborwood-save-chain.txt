@@ -1,0 +1,17 @@
+=== M11 save chain — Harborwood Accounting (demo-only business clock; nothing hand-written) ===
+[DEMO CLOCK 2026-11-21] signal rules ran for Harborwood: {"opened":6,"updated":0,"resolved":1,"suppressed":0}
+[DEMO CLOCK 2026-11-21] FLAG  signal cmw3sy3ug000vrf0i0n80pl3m "Renewal in 30 days" (WARN, RISK); outcome record cmw3sy3uh000xrf0itultgae0, ARR at flag 570000 minor USD
+[DEMO CLOCK 2026-11-22] ACTION approval cmw3sy3uv0013rf0i7xt6d9tx approved by Dana; send: "SENT"
+[DEMO CLOCK 2026-11-22]        outbound message cmw3sy3uz0015rf0i9vdc3cw3 status SENT
+[DEMO CLOCK 2026-12-22] WIN   renewal cmw3sck6800u4rfsro15qhu57 recorded RENEWED on 2026-12-21 from contract records (forecast frozen at 70% HIGH); RenewalOutcome cmw3sy3we001prf0ii15a8g80
+[DEMO CLOCK 2026-11-28] checkpoint pass for day 7 done
+[DEMO CLOCK 2026-12-27] checkpoint pass for day 30 done
+[DEMO CLOCK 2027-02-25] checkpoint pass for day 90 done
+--- result (stored, frozen) ---
+actionTaken=ACTED firstActionAt=2026-11-22T10:00:00.000Z
+d7=NO_CHANGE d30=NO_CHANGE d90=RENEWED (due 2027-02-18, acted at checkpoint: ACTED)
+d90 evidence: [{"sourceId":"cmw3sy3we001prf0ii15a8g80","sourceType":"RenewalOutcome"}]
+saved per the ledger (Q-15): yes — ARR at flag 570000 minor USD
+M7 valueSavedMinor (renewals only): 570000
+save record: /reports/outcomes/cmw3sy3uh000xrf0itultgae0
+To see it in the ledger, run the app with ALLOW_FAKE_CLOCK=true APP_FAKE_NOW=2027-02-25T12:00:00Z (demo-only seam, non-production).
