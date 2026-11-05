@@ -14,32 +14,40 @@ import {
  * Every agent the product runs (ARCHITECTURE §6.2). Only the spec's 13 agents + Ask AI may be
  * added (D-30). Definitions register themselves here as their milestone ships them.
  */
-const AGENTS = new Map<string, AnyAgentDef>(
-  [
-    ...M4_AGENTS,
-    ...M6_AGENTS,
-    ...M7_AGENTS,
-    ...M8_AGENTS,
-    ...M9_AGENTS,
-    ...M10_AGENTS,
-    ...M11_AGENTS,
-  ].map((d) => [d.key, d]),
-);
+let registry: Map<string, AnyAgentDef> | null = null;
+/**
+ * Built on first use, not at import: definitions import module services that can import this
+ * module back, so an eager map could read a definition before its module finished loading.
+ */
+function agents(): Map<string, AnyAgentDef> {
+  registry ??= new Map<string, AnyAgentDef>(
+    [
+      ...M4_AGENTS,
+      ...M6_AGENTS,
+      ...M7_AGENTS,
+      ...M8_AGENTS,
+      ...M9_AGENTS,
+      ...M10_AGENTS,
+      ...M11_AGENTS,
+    ].map((d) => [d.key, d]),
+  );
+  return registry;
+}
 
 export function registerAgent(def: AnyAgentDef): AnyAgentDef {
-  const existing = AGENTS.get(def.key);
+  const existing = agents().get(def.key);
   if (existing && existing !== def) throw new Error(`agent "${def.key}" is registered twice`);
-  AGENTS.set(def.key, def);
+  agents().set(def.key, def);
   return def;
 }
 
 export function getAgent(key: string): AnyAgentDef {
-  const def = AGENTS.get(key);
+  const def = agents().get(key);
   if (!def) throw new Error(`unknown agent "${key}"`);
   return def;
 }
 
-export const listAgents = (): AnyAgentDef[] => [...AGENTS.values()];
+export const listAgents = (): AnyAgentDef[] => [...agents().values()];
 
 /**
  * Startup check (M4 §2): every registered agent's prompt file exists, and its frontmatter name,
