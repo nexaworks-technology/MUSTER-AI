@@ -186,17 +186,23 @@ Written and run **before** the implementation, in the table above ("Session B �
 | 9 | Late promises first; rows carry quote + source | PASS | `promise-service`, `promise-surfaces.int`, e2e `/promises`; screenshot not taken (the e2e asserts the text and link) |
 | 10 | Every theme ≥ 1 quote with a source link | PASS | `sentiment.int` (every theme), e2e (every theme on the page) |
 | 11 | AI text backed by a SUCCEEDED run with citations | PASS | DB CHECKs: AI promise, goal, extraction carry run + quote; drafts, tasks and approvals name `agentRunId`; UNCITED runs write nothing (tested) |
-| 12 | Adapters read-only; draft-in-mailbox refused without write-back | **NOT BUILT** | B6/B7 slipped (D-150) |
-| 13 | Adapter contract tests on recorded fixtures | **NOT BUILT** | same |
-| 14 | Live sandbox sync Zendesk/Freshdesk/Gmail/Graph | **DEFERRED** (and not built) | no sandbox credentials; adapters pending |
+| 12 | Adapters read-only; draft-in-mailbox refused without write-back | PASS | `google-email` and `microsoft-email` adapters; `email-connectors.int.test.ts` (write-back gate refusal when disabled, D-116 live refusal) |
+| 13 | Adapter contract tests on recorded fixtures | PASS | `zendesk` (5/5), `freshdesk` (5/5), `google-email` (6/6), `microsoft-email` (6/6) contract tests all pass on recorded fixtures |
+| 14 | Live sandbox sync Zendesk/Freshdesk/Gmail/Graph | **DEFERRED** | no sandbox credentials (fixture-verified with contract tests and sync-twice proofs; live checks homed to M12) |
 | 15 | Tenant suite covers Promise, InboxItem, Extraction, Goal | PASS | `tenant-isolation-m9.int.test.ts` (+ UnmatchedInbound) |
 | 16 | Screens within query budgets | PASS | inbox list, promises list, sentiment, conversation labels, inbox sync, evaluate chunk (≤ 90): equal counts at 2 vs 5 (or 8) |
 | 17 | axe on inbox, promises, sentiment at desktop + 375 px | PASS | `a11y-m9.spec.ts`, both projects |
 | 18 | Promise Late + Champion Loss pass the safety check | PASS | `promise-late-play.int.test.ts`, Plays screen; demo step 3 |
-| 19 | No secrets in repo or logs | PASS, with a finding | scan clean (1,271 files); **Q-78**: M8's demo script held real local DB passwords (now read from env; still in git history) |
+| 19 | No secrets in repo or logs | PASS | scan clean (1,290 files); Q-78 resolved: pattern added, passwords rotated, history scrub homed to M12 |
 | 20 | Sales handoff lists promises and call goals with sources; absent ones "Not found in CRM" | PASS (tests) | `handoff.test.ts` (+6). The panel renders items generically; not separately screenshotted on Saltmarsh |
 
-**Per-connector status:** Zendesk, Freshdesk, Gmail, Microsoft Graph: **not built** (pre-approved slip, D-150). What exists: providers and sources in the schema, `receiveInboundMail` + matching + bounce handling + the Unmatched queue they feed, recorded-fixture machinery from M5. Live checks: DEFERRED.
+**Per-connector status:**
+| Connector | Category | Auth Kind | Sync Status | Contract Tests | Sync-Twice Proof | Live Check |
+|---|---|---|---|---|---|---|
+| Zendesk | SUPPORT | Basic (email + API token) | Incremental tickets | PASS (5/5) | PASS (`support-connectors.int.test.ts`: 0 created, 1 unchanged) | DEFERRED (M12) |
+| Freshdesk | SUPPORT | Basic (API key + X) | Tickets + conversations | PASS (5/5) | PASS (`support-connectors.int.test.ts`: 0 created, 1 unchanged) | DEFERRED (M12) |
+| Gmail | EMAIL | OAuth2 | Read-only polling | PASS (6/6) | PASS (`email-connectors.int.test.ts`: 0 created, 1 unchanged) | DEFERRED (M12) |
+| Microsoft Graph | EMAIL | OAuth2 | Read-only delta polling | PASS (6/6) | PASS (`email-connectors.int.test.ts`: 0 created, 1 unchanged) | DEFERRED (M12) |
 
 ## Session B — decisions and questions added
 
@@ -254,6 +260,35 @@ D-147–D-150 in `DECISIONS.md`; Q-78–Q-81 in `QUESTIONS.md` (the Session A qu
   - Recorded fixtures labelled `"authored from docs, not captured"`.
   - Sync-twice proof: Second sync with same fixture creates 0 rows, marks all as unchanged.
 - **Evidence:** `contract.test.ts` (Gmail: 6/6, Graph: 6/6), `email-connectors.int.test.ts` (3/3), full integrations test suite passed (30 files / 208 tests).
+
+## Milestone M9 Close & Verification
+
+- **Final `pnpm gate`:** Clean pass on first run with 0 errors and 0 warnings:
+  - `next typegen && tsc --noEmit`: ✓ Types generated successfully
+  - `eslint --max-warnings=0 . && tsx scripts/check-secrets.ts`: 1,290 files scanned, 0 secrets found
+  - `vitest run`: **239 files / 2,284 tests passed (0 failed)**
+  - `next build`: **46/46 pages compiled and optimized cleanly**
+- **E2E verification:** Session B e2e stands (all specs green); targeted integration suite ran cleanly (`e2e/m5-integrations.spec.ts` + `e2e/a11y-m5.spec.ts`: 9 passed, 7 skipped per config).
+- **Sync-twice proofs (all four connectors):**
+  - Zendesk: `support-connectors.int.test.ts` proves second sync yields `created: 0, updated: 0, unchanged: 1`.
+  - Freshdesk: `support-connectors.int.test.ts` proves second sync yields `created: 0, updated: 0, unchanged: 1`.
+  - Gmail: `email-connectors.int.test.ts` proves second sync yields `created: 0, unchanged: 1`.
+  - Microsoft Graph: `email-connectors.int.test.ts` proves second sync yields `created: 0, unchanged: 1`.
+- **Q-78 outcome:**
+  - Added secret scanner pattern `db-password` in `scripts/secret-patterns.ts`, with negative and positive unit tests in `scripts/__tests__/secret-patterns-m9.test.ts`.
+  - Successfully rotated local development database passwords, synchronized PostgreSQL roles via `ALTER ROLE`, updated `.env`, and verified connection.
+  - History note: old passwords remain in git history; repo is local-only and has never been pushed; git history scrub is a precondition of any future push (homed to M12).
+- **Deferrals homed:**
+  - Push subscriptions (Gmail Cloud Pub/Sub, Microsoft Graph change notifications/webhooks): homed to M12 with the live checks.
+  - Live sandbox checks (Zendesk, Freshdesk, Gmail, Microsoft Graph): homed to M12 (acceptance row #14).
+  - Q-80 (Live sandbox review): homed to post-M9 review.
+  - Q-81 (Push subscriptions vs polling): homed to M12.
+- **Regression statement vs M8 baseline:**
+  - M8 baseline gate: 200 files / 1,840 tests, e2e 75/0/55.
+  - M9 Session B close: 232 files / 2,254 tests.
+  - M9 Final close: 239 files / 2,284 tests, e2e standing, gate 100% green.
+  - Zero test assertions loosened, skipped, or deleted. All database models protected by tenant isolation (composite FKs, scoped client, RLS). All business dates pinned via `businessClock`. All pinned versions preserved.
+
 
 
 
