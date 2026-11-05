@@ -28,7 +28,7 @@ Scope discipline:
 - [x] M8: Plays Engine
 - [x] M9: Conversations, Inbox, Promises & Sentiment (2026-11-06, finished with all four connectors, contract tests, and gate green; see `docs/milestones/M9-LOG.md`)
 - [x] M10: Meetings, QBR, Success Plans & Portal
-- [ ] M11: Ask AI, Reports & Outcome Ledger
+- [x] M11: Ask AI, Reports & Outcome Ledger
 - [ ] M12: Hardening & Deploy
 
 ---

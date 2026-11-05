@@ -1,0 +1,6 @@
+BEGIN
+-- ask-ai answers: every ASSISTANT message has an AgentRun with prompt, model, input refs
+4|4|4
+-- leader-reporter digests
+leader-reporter|SUCCEEDED|leader-reporter|1.0.0|recorded|41|4
+COMMIT

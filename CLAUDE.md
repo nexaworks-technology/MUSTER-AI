@@ -43,6 +43,10 @@ you must flag the disagreement in `docs/QUESTIONS.md` — never silently follow 
   30/90-day checkpoints through the same functions as the `outcomes.checkpoint` job; safe to re-run
 - Leader Reporter weekly digest (M11, dev trigger): `AI_PROVIDER=recorded pnpm reports:digest --workspace <slug>`
   — generates the week's report snapshots, runs the digest through the real queue; idempotent per business week
+- Ask AI recorded demo (M11, dev/e2e): `AI_PROVIDER=recorded AI_RECORDINGS_DIR=.dev-recordings/<name> pnpm exec tsx --env-file=.env scripts/recorded-ask.ts --workspace <slug> [--publish-play renewal-risk] [--thread <id> --file <id> --question "<q>"]`
+  — composes answers from the asker's tool records and runs them through the real loop; proposals land in Approvals
+- Live save chain on a demo clock (M11, dev only): `pnpm exec tsx --env-file=.env scripts/demo-m11-save-chain.ts --workspace <slug> [--account "<name>"]`
+  — real rules flag, approval + send, renewal sync, frozen checkpoints for that one account (default Harborwood); refused in production
 - Fresh workspace in setup (M5 `/setup` demo): `pnpm db:seed -- --empty-workspace` (Juniper Labs, admin@juniper.test)
 - Connectors on recorded fixtures (tests, e2e, demo; refused in production): `INTEGRATIONS_TRANSPORT=fixture`
 - Typecheck: `pnpm typecheck` · Lint: `pnpm lint` · Format check: `pnpm format:check`
