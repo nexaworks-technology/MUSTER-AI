@@ -7,6 +7,7 @@ import { env } from "@/lib/config/env";
 import { rawDb } from "@/lib/db/raw";
 import { createAuthAdapter } from "./adapter";
 import { auditAuthEvent } from "./audit-events";
+import { authCookies } from "@/lib/security/cookies";
 import { burnPasswordCheck, verifyPassword } from "./password";
 
 /**
@@ -36,6 +37,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => {
     adapter,
     secret: env().AUTH_SECRET,
     trustHost: true,
+    useSecureCookies: env().NODE_ENV === "production",
+    cookies: authCookies(env().NODE_ENV === "production"),
     session: { strategy: "database", maxAge: SESSION_MAX_AGE_SECONDS },
     pages: { signIn: "/sign-in", error: "/sign-in" },
     providers: [
