@@ -9,6 +9,7 @@ import { loadExpansionFacts } from "./expansion-facts";
 import { loadPromiseFacts } from "./promise-facts";
 import { loadPeopleFacts } from "./people-facts";
 import { loadTextFacts } from "./text-facts";
+import { loadMeetingFacts } from "./meeting-facts";
 import { syncSignalRules } from "./rule-rows";
 import { RULE_BY_KEY, type RuleKey } from "./rules/catalog";
 import {
@@ -78,6 +79,7 @@ export async function evaluateAndStore(
   const promises = await loadPromiseFacts(db, ids);
   const text = await loadTextFacts(db, asOf, ids, healthCtx.timeZone);
   const people = await loadPeopleFacts(db, asOf, ids, healthCtx.timeZone);
+  const meetings = await loadMeetingFacts(db, ids);
   const failureCounts = Object.fromEntries(failures.map((f) => [f.id, f.failureCount]));
   const latest = new Map<string, Signal>();
   for (const s of existing) if (!latest.has(s.dedupeKey)) latest.set(s.dedupeKey, s);
@@ -91,7 +93,7 @@ export async function evaluateAndStore(
     const bundle: SignalBundle = {
       ...base,
       invoiceFailureCounts: failureCounts,
-      meetings: null,
+      meetings: meetings ? (meetings.get(accountId) ?? []) : null,
       onboarding: onboardingFacts.get(accountId) ?? null,
       expansion: expansion.get(accountId) ?? null,
       promises: promises.get(accountId) ?? [],

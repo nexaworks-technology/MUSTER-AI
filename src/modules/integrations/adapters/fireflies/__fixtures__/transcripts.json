@@ -1,0 +1,63 @@
+{
+  "provider": "fireflies",
+  "description": "Fireflies.ai GraphQL fixture authored from docs",
+  "interactions": [
+    {
+      "note": "Validate API Key / check user",
+      "request": {
+        "method": "POST",
+        "path": "/graphql",
+        "bodyIncludes": "user {"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "data": {
+            "user": {
+              "id": "ff-user-1",
+              "email": "leo@larkspur.test",
+              "name": "Leo Marsh"
+            }
+          }
+        }
+      }
+    },
+    {
+      "note": "Query transcripts",
+      "request": {
+        "method": "POST",
+        "path": "/graphql",
+        "bodyIncludes": "transcripts {"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "data": {
+            "transcripts": [
+              {
+                "id": "ff-trans-1",
+                "title": "Brightwell Logistics Quarterly Catchup",
+                "date": 1762100000000,
+                "duration": 1800,
+                "participants": [
+                  "leo@larkspur.test",
+                  "ben.okafor@brightwell.test"
+                ],
+                "sentences": [
+                  {
+                    "speaker_name": "Leo Marsh",
+                    "text": "Hello Ben, thanks for joining today."
+                  },
+                  {
+                    "speaker_name": "Ben Okafor",
+                    "text": "Glad to be here. We are eager to review our delivery integrations."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

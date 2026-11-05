@@ -58,6 +58,12 @@ async function authorize(
     requirePermission(actor, "data:import");
     return;
   }
+  if (purpose === "CALL_TRANSCRIPT") {
+    if (!accountId) throw new FileNotFoundError();
+    if (mode === "write") await requireEditableAccount(actor, accountId);
+    else if (!(await getAccount(actor, accountId))) throw new FileNotFoundError();
+    return;
+  }
   // Contract documents carry pricing terms: revenue access plus the account in the book.
   requirePermission(actor, "revenue:view");
   if (!accountId) throw new FileNotFoundError();

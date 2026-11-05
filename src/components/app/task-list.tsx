@@ -9,7 +9,7 @@ export interface TaskRow {
   dueAt: Date | null;
   completedAt: Date | null;
   account: { id: string; name: string } | null;
-  owner: { user: { name: string | null; email: string } };
+  owner: { user: { name: string | null; email: string } } | null;
 }
 
 /** Task list shared by /tasks and the Account 360 Tasks tab. Overdue items are flagged. */
@@ -52,7 +52,7 @@ export function TaskList({
                     {" · "}
                   </>
                 ) : null}
-                {t.owner.user.name ?? t.owner.user.email}
+                {t.owner ? (t.owner.user.name ?? t.owner.user.email) : "Unassigned"}
                 {" · "}
                 {t.status === "DONE"
                   ? `done ${formatDate(t.completedAt, tz)}`

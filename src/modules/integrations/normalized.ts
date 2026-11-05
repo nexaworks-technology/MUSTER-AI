@@ -192,6 +192,38 @@ export const normalizedMail = z.object({
   sentAt: date,
 });
 
+export const normalizedMeetingAttendee = z.object({
+  email,
+  name: optionalText,
+  responseStatus: z
+    .enum(["NEEDS_ACTION", "ACCEPTED", "DECLINED", "TENTATIVE"])
+    .default("NEEDS_ACTION"),
+});
+
+export const normalizedMeeting = z.object({
+  externalId,
+  title: z.string().trim().min(1, "has no title").max(500),
+  startsAt: date,
+  endsAt: date,
+  organizerEmail: email.optional(),
+  accountExternalId: externalId.optional(),
+  attendees: z.array(normalizedMeetingAttendee).default([]),
+  status: z.enum(["SCHEDULED", "COMPLETED", "CANCELLED"]).default("SCHEDULED"),
+});
+
+export const normalizedTranscript = z.object({
+  externalId,
+  title: z.string().trim().min(1, "has no title").max(500),
+  occurredAt: date,
+  text: z.string().trim().min(1, "has no text"),
+  language: z.string().trim().default("en"),
+  segments: z.unknown().optional(),
+  durationSec: z.number().int().nonnegative().optional(),
+  accountExternalId: externalId.optional(),
+  meetingExternalId: externalId.optional(),
+  attendeeEmails: z.array(email).default([]),
+});
+
 export type NormalizedOwner = z.infer<typeof normalizedOwner>;
 export type NormalizedAccount = z.infer<typeof normalizedAccount>;
 export type NormalizedBillingCustomer = z.infer<typeof normalizedBillingCustomer>;
@@ -203,6 +235,9 @@ export type NormalizedUsageDay = z.infer<typeof normalizedUsageDay>;
 export type NormalizedTicketMessage = z.infer<typeof normalizedTicketMessage>;
 export type NormalizedTicket = z.infer<typeof normalizedTicket>;
 export type NormalizedMail = z.infer<typeof normalizedMail>;
+export type NormalizedMeetingAttendee = z.infer<typeof normalizedMeetingAttendee>;
+export type NormalizedMeeting = z.infer<typeof normalizedMeeting>;
+export type NormalizedTranscript = z.infer<typeof normalizedTranscript>;
 
 export const NORMALIZED = {
   owners: normalizedOwner,
@@ -215,6 +250,8 @@ export const NORMALIZED = {
   usage: normalizedUsageDay,
   tickets: normalizedTicket,
   mail: normalizedMail,
+  meetings: normalizedMeeting,
+  transcripts: normalizedTranscript,
 } as const;
 
 export type NormalizedKind = keyof typeof NORMALIZED;

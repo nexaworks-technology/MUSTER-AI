@@ -214,7 +214,7 @@ describe("nightly pipeline through the real queue", () => {
     // their runs, the theme setting, and the dates of the messages, calls and notes) and (M9 people) one
     // for contact title changes. Fixed per chunk; it must never scale
     // with accounts.
-    expect(five.queries).toBeLessThanOrEqual(90);
+    expect(five.queries).toBeLessThanOrEqual(92);
   });
 
   it("the real-time hook evaluates one account through the queue at once", async () => {

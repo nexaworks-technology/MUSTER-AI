@@ -1,13 +1,13 @@
 import { loadPrompt } from "@/lib/ai";
 import type { AnyAgentDef } from "./define";
-import { M4_AGENTS, M6_AGENTS, M7_AGENTS, M8_AGENTS, M9_AGENTS } from "./definitions";
+import { M4_AGENTS, M6_AGENTS, M7_AGENTS, M8_AGENTS, M9_AGENTS, M10_AGENTS } from "./definitions";
 
 /**
  * Every agent the product runs (ARCHITECTURE §6.2). Only the spec's 13 agents + Ask AI may be
  * added (D-30). Definitions register themselves here as their milestone ships them.
  */
 const AGENTS = new Map<string, AnyAgentDef>(
-  [...M4_AGENTS, ...M6_AGENTS, ...M7_AGENTS, ...M8_AGENTS, ...M9_AGENTS].map((d) => [d.key, d]),
+  [...M4_AGENTS, ...M6_AGENTS, ...M7_AGENTS, ...M8_AGENTS, ...M9_AGENTS, ...M10_AGENTS].map((d) => [d.key, d]),
 );
 
 export function registerAgent(def: AnyAgentDef): AnyAgentDef {

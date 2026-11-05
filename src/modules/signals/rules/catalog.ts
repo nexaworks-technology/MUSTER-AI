@@ -409,7 +409,6 @@ export const RULES: readonly RuleMeta[] = [
       "Days since the last meeting: 45 for high-touch, 60 for mid-touch, none for long-tail.",
     typicalLeadTime: "Weeks to months before the relationship goes cold.",
     falseAlarmCauses: "Meetings held but not logged, or a deliberately low-touch account.",
-    dormantReason: "Needs meeting data (arrives in M10).",
   },
   {
     key: "contact_bounced_or_left",

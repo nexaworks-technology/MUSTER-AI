@@ -105,15 +105,15 @@ describe("signal rules per workspace", () => {
   });
 
   it("keep a dormant rule disabled — the database refuses to enable it (D-61)", async () => {
-    const meeting = await db.signalRule.findFirstOrThrow({
-      where: { ruleKey: "no_meeting_in_x_days" },
-    });
-    expect(meeting).toMatchObject({
-      enabled: false,
-      dormantReason: "Needs meeting data (arrives in M10).",
+    // In M10, no_meeting_in_x_days woke on real meeting data (Decision 1).
+    // Test the database constraint dormant_disabled holds when dormantReason is present.
+    const rule = await db.signalRule.findFirstOrThrow();
+    await db.signalRule.update({
+      where: { id: rule.id },
+      data: { enabled: false, dormantReason: "Test dormant reason" },
     });
     await expect(
-      db.signalRule.update({ where: { id: meeting.id }, data: { enabled: true } }),
+      db.signalRule.update({ where: { id: rule.id }, data: { enabled: true } }),
     ).rejects.toThrow(/dormant_disabled/);
   });
 

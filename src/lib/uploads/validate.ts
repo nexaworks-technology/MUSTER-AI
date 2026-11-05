@@ -71,7 +71,7 @@ export async function validateUpload(input: {
         error: `This file doesn't look like a ${type.label}, so it wasn't uploaded.`,
       };
   } else {
-    if (detected)
+    if (detected && (EXT_ALIASES[detected.ext] ?? detected.ext) !== ext)
       return {
         ok: false,
         error: `This file is not a plain-text ${type.label}, so it wasn't uploaded.`,
@@ -87,6 +87,22 @@ export async function validateUpload(input: {
         ok: false,
         error: `This file is not a plain-text ${type.label}, so it wasn't uploaded.`,
       };
+    }
+    if (ext === "vtt") {
+      const trimmed = text.replace(/^\uFEFF/, "").trimStart();
+      if (!trimmed.startsWith("WEBVTT")) {
+        return { ok: false, error: "A WebVTT file must begin with 'WEBVTT'." };
+      }
+    } else if (ext === "srt") {
+      if (!text.includes("-->")) {
+        return { ok: false, error: "A SubRip (.srt) file must contain timestamp arrows (-->)." };
+      }
+    } else if (ext === "json") {
+      try {
+        JSON.parse(text);
+      } catch {
+        return { ok: false, error: "The file is not valid JSON." };
+      }
     }
   }
   return { ok: true, ext, mime: type.mime, safeName };

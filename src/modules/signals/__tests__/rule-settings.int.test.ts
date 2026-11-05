@@ -71,9 +71,18 @@ describe("Settings › Signals", () => {
   });
 
   it("refuses to switch on a dormant rule", async () => {
+    // In M10, no_meeting_in_x_days woke on real meeting data (Decision 1).
+    // Test the API refuses to enable any dormant rule when dormantReason is set.
+    const db = scopedDb(admin);
+    const rule = await db.signalRule.findFirstOrThrow();
+    await db.signalRule.update({
+      where: { id: rule.id },
+      data: { enabled: false, dormantReason: "Test dormant reason" },
+    });
     await expect(
-      updateRuleSettings(admin, "no_meeting_in_x_days", { enabled: true }),
-    ).rejects.toThrow(/Needs meeting data/);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      updateRuleSettings(admin, rule.ruleKey as any, { enabled: true }),
+    ).rejects.toThrow(/Test dormant reason/);
   });
 
   it("new signals carry the rule version and thresholds that raised them", async () => {

@@ -1,0 +1,103 @@
+{
+  "provider": "zoom",
+  "description": "Zoom Cloud Recording and Meetings REST API fixture authored from docs",
+  "interactions": [
+    {
+      "note": "Get user profile / check connection",
+      "request": {
+        "method": "GET",
+        "path": "/v2/users/me"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "id": "zoom-user-1",
+          "email": "leo@larkspur.test",
+          "first_name": "Leo",
+          "last_name": "Marsh"
+        }
+      }
+    },
+    {
+      "note": "Token exchange",
+      "request": {
+        "method": "POST",
+        "path": "/oauth/token"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "access_token": "zoom-access-token-123",
+          "refresh_token": "zoom-refresh-token-123",
+          "expires_in": 3600,
+          "token_type": "Bearer"
+        }
+      }
+    },
+    {
+      "note": "List cloud recordings",
+      "request": {
+        "method": "GET",
+        "path": "/v2/users/me/recordings"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "from": "2026-10-01",
+          "to": "2026-11-05",
+          "meetings": [
+            {
+              "id": 987654321,
+              "uuid": "zoom-rec-1",
+              "topic": "Brightwell Quarterly Sync",
+              "start_time": "2026-11-03T10:00:00Z",
+              "duration": 45,
+              "recording_files": [
+                {
+                  "id": "rec-file-1",
+                  "file_type": "TRANSCRIPT",
+                  "download_url": "https://api.zoom.us/v2/recordings/zoom-rec-1/transcript"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "note": "Get past meeting participants",
+      "request": {
+        "method": "GET",
+        "path": "/v2/past_meetings/zoom-rec-1/participants"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "participants": [
+            {
+              "user_email": "leo@larkspur.test",
+              "name": "Leo Marsh"
+            },
+            {
+              "user_email": "ben.okafor@brightwell.test",
+              "name": "Ben Okafor"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "note": "Get transcript text",
+      "request": {
+        "method": "GET",
+        "path": "/v2/recordings/zoom-rec-1/transcript"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "transcript": "Leo Marsh: Welcome to our sync.\nBen Okafor: Thank you, let us discuss milestones."
+        }
+      }
+    }
+  ]
+}

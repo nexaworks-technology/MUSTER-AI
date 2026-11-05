@@ -139,7 +139,7 @@ export async function todayCandidates(
         driver: {
           kind: "ESCALATED_TASK",
           dueDate: localDate(t.dueAt!, tz),
-          ownerName: t.owner.user.name ?? "a CSM",
+          ownerName: t.owner?.user.name ?? "a CSM",
         },
       })),
     ...signals.map((s): Candidate => ({

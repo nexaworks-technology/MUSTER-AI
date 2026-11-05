@@ -43,7 +43,7 @@ export async function escalateOverdueTasks(ctx: TenantContext, clock: Clock = bu
       });
       if (claimed.count === 0) return;
       const where = t.account ? ` (${t.account.name})` : "";
-      const recipients = new Set([...leaders.map((l) => l.id), t.ownerMembershipId]);
+      const recipients = new Set([...leaders.map((l) => l.id), ...(t.ownerMembershipId ? [t.ownerMembershipId] : [])]);
       for (const recipientMembershipId of recipients)
         await tx.notification.create({
           data: {
@@ -53,7 +53,7 @@ export async function escalateOverdueTasks(ctx: TenantContext, clock: Clock = bu
             title:
               recipientMembershipId === t.ownerMembershipId
                 ? `Overdue and escalated to your CS Leader: ${t.title}${where}`
-                : `Overdue: ${t.owner.user.name ?? "A CSM"}'s task "${t.title}"${where}`,
+                : `Overdue: ${t.owner?.user.name ?? "A CSM"}'s task "${t.title}"${where}`,
             refType: "Task",
             refId: t.id,
             accountId: t.accountId,

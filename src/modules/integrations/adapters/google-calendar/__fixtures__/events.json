@@ -1,0 +1,75 @@
+{
+  "provider": "google-calendar",
+  "description": "Google Calendar events fixture authored from docs",
+  "interactions": [
+    {
+      "note": "Get primary calendar profile / check",
+      "request": {
+        "method": "GET",
+        "path": "/calendar/v3/users/me/calendarList/primary"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "id": "csm@larkspur.test",
+          "summary": "Leo Marsh Calendar",
+          "timeZone": "America/New_York"
+        }
+      }
+    },
+    {
+      "note": "Token exchange",
+      "request": {
+        "method": "POST",
+        "path": "/token"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "access_token": "gcal-access-token-123",
+          "refresh_token": "gcal-refresh-token-123",
+          "expires_in": 3600,
+          "token_type": "Bearer"
+        }
+      }
+    },
+    {
+      "note": "List events full sync",
+      "request": {
+        "method": "GET",
+        "path": "/calendar/v3/calendars/primary/events"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "gcal-evt-1",
+              "summary": "Brightwell Logistics sync",
+              "status": "confirmed",
+              "start": { "dateTime": "2026-11-02T14:00:00Z" },
+              "end": { "dateTime": "2026-11-02T14:45:00Z" },
+              "organizer": { "email": "leo@larkspur.test" },
+              "attendees": [
+                { "email": "leo@larkspur.test", "displayName": "Leo Marsh", "responseStatus": "accepted" },
+                { "email": "ben.okafor@brightwell.test", "displayName": "Ben Okafor", "responseStatus": "accepted" }
+              ]
+            },
+            {
+              "id": "gcal-evt-2",
+              "summary": "Glenmore Foods Quarterly Checkin",
+              "status": "confirmed",
+              "start": { "dateTime": "2026-08-31T10:00:00Z" },
+              "end": { "dateTime": "2026-08-31T10:30:00Z" },
+              "organizer": { "email": "aisha@larkspur.test" },
+              "attendees": [
+                { "email": "aisha@larkspur.test", "displayName": "Aisha Patel", "responseStatus": "accepted" },
+                { "email": "sarah@glenmorefoods.test", "displayName": "Sarah Jenkins", "responseStatus": "accepted" }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

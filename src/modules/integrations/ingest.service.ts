@@ -19,6 +19,7 @@ import {
 } from "./normalized";
 import { ingestUsage } from "./ingest-usage";
 import { ingestTickets, ingestMail } from "./ingest-conversations";
+import { ingestMeetings, ingestTranscripts } from "./ingest-meetings";
 import { mergeFields, readFieldSources, type FieldConflict, type FieldValue } from "./provenance";
 import { SOURCE_NAMES } from "./providers";
 
@@ -97,6 +98,8 @@ const OBJECT: Record<NormalizedKind, string> = {
   usage: "Usage",
   tickets: "Ticket",
   mail: "Message",
+  meetings: "Meeting",
+  transcripts: "CallTranscript",
 };
 
 const FIELD_LABEL: Record<string, string> = {
@@ -813,6 +816,8 @@ const HANDLERS: {
   usage: ingestUsage,
   tickets: ingestTickets,
   mail: ingestMail,
+  meetings: ingestMeetings,
+  transcripts: ingestTranscripts,
 };
 
 /** Upserts one normalized page. Idempotent; never throws for record problems. */

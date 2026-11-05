@@ -1,0 +1,71 @@
+{
+  "provider": "microsoft-calendar",
+  "description": "Microsoft Graph calendar events fixture authored from docs",
+  "interactions": [
+    {
+      "note": "Get user profile / check",
+      "request": {
+        "method": "GET",
+        "path": "/v1.0/me"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "id": "graph-user-456",
+          "mail": "leo@larkspur.test",
+          "userPrincipalName": "leo@larkspur.test"
+        }
+      }
+    },
+    {
+      "note": "Token exchange",
+      "request": {
+        "method": "POST",
+        "path": "/common/oauth2/v2.0/token"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "access_token": "graph-access-token-123",
+          "refresh_token": "graph-refresh-token-123",
+          "expires_in": 3600,
+          "token_type": "Bearer"
+        }
+      }
+    },
+    {
+      "note": "List events full sync",
+      "request": {
+        "method": "GET",
+        "path": "/v1.0/me/events"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "value": [
+            {
+              "id": "ms-evt-1",
+              "subject": "Brightwell Logistics sync",
+              "isCancelled": false,
+              "start": { "dateTime": "2026-11-02T14:00:00.0000000", "timeZone": "UTC" },
+              "end": { "dateTime": "2026-11-02T14:45:00.0000000", "timeZone": "UTC" },
+              "organizer": { "emailAddress": { "address": "leo@larkspur.test", "name": "Leo Marsh" } },
+              "attendees": [
+                {
+                  "type": "required",
+                  "status": { "response": "accepted" },
+                  "emailAddress": { "address": "leo@larkspur.test", "name": "Leo Marsh" }
+                },
+                {
+                  "type": "required",
+                  "status": { "response": "accepted" },
+                  "emailAddress": { "address": "ben.okafor@brightwell.test", "name": "Ben Okafor" }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

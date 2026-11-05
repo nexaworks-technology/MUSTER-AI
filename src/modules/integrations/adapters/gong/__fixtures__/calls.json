@@ -1,0 +1,82 @@
+{
+  "provider": "gong",
+  "description": "Gong v2 REST API fixture authored from docs",
+  "interactions": [
+    {
+      "note": "Get current user / connection check",
+      "request": {
+        "method": "GET",
+        "path": "/v2/users/current"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "id": "gong-user-1",
+          "emailAddress": "leo@larkspur.test",
+          "firstName": "Leo",
+          "lastName": "Marsh"
+        }
+      }
+    },
+    {
+      "note": "List calls",
+      "request": {
+        "method": "GET",
+        "path": "/v2/calls"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "calls": [
+            {
+              "id": "gong-call-1",
+              "title": "Brightwell Quarterly Business Review",
+              "started": "2026-11-04T15:00:00Z",
+              "duration": 2400,
+              "parties": [
+                {
+                  "emailAddress": "leo@larkspur.test",
+                  "name": "Leo Marsh"
+                },
+                {
+                  "emailAddress": "ben.okafor@brightwell.test",
+                  "name": "Ben Okafor"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "note": "Get call transcripts",
+      "request": {
+        "method": "POST",
+        "path": "/v2/calls/transcript"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "callTranscripts": [
+            {
+              "callId": "gong-call-1",
+              "transcript": [
+                {
+                  "speakerId": "speaker-1",
+                  "sentences": [
+                    {
+                      "text": "Welcome everyone to our QBR."
+                    },
+                    {
+                      "text": "We have seen great results with our shipment SLAs."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

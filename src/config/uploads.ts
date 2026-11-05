@@ -4,7 +4,7 @@
  */
 export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 
-export type UploadPurpose = "CONTRACT_DOCUMENT" | "CSV_IMPORT";
+export type UploadPurpose = "CONTRACT_DOCUMENT" | "CSV_IMPORT" | "CALL_TRANSCRIPT";
 
 export interface AllowedType {
   ext: string;
@@ -27,9 +27,13 @@ export const UPLOAD_TYPES: Record<string, AllowedType> = {
   jpg: { ext: "jpg", label: "JPEG image", mime: "image/jpeg", kind: "binary" },
   txt: { ext: "txt", label: "Text (.txt)", mime: "text/plain", kind: "text" },
   csv: { ext: "csv", label: "CSV", mime: "text/csv", kind: "text" },
+  vtt: { ext: "vtt", label: "WebVTT (.vtt)", mime: "text/vtt", kind: "text" },
+  srt: { ext: "srt", label: "SubRip (.srt)", mime: "text/plain", kind: "text" },
+  json: { ext: "json", label: "JSON (.json)", mime: "application/json", kind: "text" },
 };
 
 export const ALLOWED_BY_PURPOSE: Record<UploadPurpose, readonly string[]> = {
   CONTRACT_DOCUMENT: ["pdf", "docx", "png", "jpg", "txt"],
   CSV_IMPORT: ["csv"],
+  CALL_TRANSCRIPT: ["vtt", "srt", "txt", "json"],
 };

@@ -15,6 +15,10 @@ export interface BuiltContext {
   accountId?: string;
   /** Deterministic numbers that overwrite forbidden numeric fields in proposed actions. */
   facts?: Record<string, number>;
+  /** Optional prompt override for multi-mode agents (e.g. meeting-qbr). */
+  prompt?: { name: string; version: string };
+  /** Optional model tier override for multi-mode agents. */
+  tier?: ModelTier;
 }
 
 /** What a side effect wrote, recorded on AgentRun.effects (Rule 5). */

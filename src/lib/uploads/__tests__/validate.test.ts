@@ -106,4 +106,61 @@ describe("upload validation (content-based)", () => {
       await validateUpload({ filename: "photo.JPEG", bytes: jpg, purpose: "CONTRACT_DOCUMENT" }),
     ).toMatchObject({ ok: true, ext: "jpg" });
   });
+
+  describe("CALL_TRANSCRIPT upload validation", () => {
+    it("accepts a valid WebVTT file", async () => {
+      const vtt = Buffer.from("WEBVTT\n\n00:00:01.000 --> 00:00:04.000\nHello world\n");
+      expect(
+        await validateUpload({ filename: "meeting.vtt", bytes: vtt, purpose: "CALL_TRANSCRIPT" }),
+      ).toMatchObject({ ok: true, ext: "vtt", mime: "text/vtt" });
+    });
+
+    it("rejects a .vtt file that does not start with WEBVTT", async () => {
+      const badVtt = Buffer.from("1\n00:00:01 --> 00:00:04\nNot vtt\n");
+      expect(
+        await validateUpload({ filename: "meeting.vtt", bytes: badVtt, purpose: "CALL_TRANSCRIPT" }),
+      ).toMatchObject({ ok: false, error: /must begin with 'WEBVTT'/ });
+    });
+
+    it("accepts a valid SubRip (.srt) file", async () => {
+      const srt = Buffer.from("1\n00:00:01,000 --> 00:00:04,000\nHello from SRT\n");
+      expect(
+        await validateUpload({ filename: "call.srt", bytes: srt, purpose: "CALL_TRANSCRIPT" }),
+      ).toMatchObject({ ok: true, ext: "srt" });
+    });
+
+    it("rejects a .srt file without timestamp arrows", async () => {
+      const badSrt = Buffer.from("Hello just plain text without timestamps\n");
+      expect(
+        await validateUpload({ filename: "call.srt", bytes: badSrt, purpose: "CALL_TRANSCRIPT" }),
+      ).toMatchObject({ ok: false, error: /timestamp arrows/ });
+    });
+
+    it("accepts valid JSON transcript", async () => {
+      const json = Buffer.from(JSON.stringify({ segments: [{ text: "Hello" }] }));
+      expect(
+        await validateUpload({ filename: "transcript.json", bytes: json, purpose: "CALL_TRANSCRIPT" }),
+      ).toMatchObject({ ok: true, ext: "json", mime: "application/json" });
+    });
+
+    it("rejects invalid JSON", async () => {
+      const badJson = Buffer.from("{ invalid json content");
+      expect(
+        await validateUpload({ filename: "transcript.json", bytes: badJson, purpose: "CALL_TRANSCRIPT" }),
+      ).toMatchObject({ ok: false, error: /not valid JSON/ });
+    });
+
+    it("accepts plain text transcript (.txt)", async () => {
+      const txt = Buffer.from("Speaker 1: Thanks for joining today.\nSpeaker 2: Happy to be here.");
+      expect(
+        await validateUpload({ filename: "notes.txt", bytes: txt, purpose: "CALL_TRANSCRIPT" }),
+      ).toMatchObject({ ok: true, ext: "txt", mime: "text/plain" });
+    });
+
+    it("rejects disallowed types (e.g. PDF or binary) for CALL_TRANSCRIPT", async () => {
+      expect(
+        await validateUpload({ filename: "contract.pdf", bytes: pdf, purpose: "CALL_TRANSCRIPT" }),
+      ).toMatchObject({ ok: false, error: /Accepted: WebVTT/ });
+    });
+  });
 });

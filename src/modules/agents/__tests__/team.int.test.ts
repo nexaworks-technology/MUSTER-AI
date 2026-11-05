@@ -90,6 +90,7 @@ describe("AI team", () => {
       "digital-csm",
       "expansion-finder",
       "health-analyst",
+      "meeting-qbr",
       "onboarding-manager",
       "outreach",
       "play-builder",

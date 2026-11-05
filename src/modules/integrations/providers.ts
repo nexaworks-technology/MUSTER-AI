@@ -14,6 +14,11 @@ export const PROVIDER_NAMES: Record<IntegrationProvider, string> = {
   FRESHDESK: "Freshdesk",
   GOOGLE_EMAIL: "Gmail",
   MICROSOFT_EMAIL: "Outlook",
+  GOOGLE_CALENDAR: "Google Calendar",
+  MICROSOFT_CALENDAR: "Microsoft Calendar",
+  FIREFLIES: "Fireflies.ai",
+  GONG: "Gong",
+  ZOOM: "Zoom",
 };
 
 export const SOURCE_NAMES: Partial<Record<RecordSource, string>> = {
@@ -28,6 +33,11 @@ export const SOURCE_NAMES: Partial<Record<RecordSource, string>> = {
   FRESHDESK: "Freshdesk",
   GMAIL: "Gmail",
   MICROSOFT_EMAIL: "Outlook",
+  GOOGLE_CALENDAR: "Google Calendar",
+  MICROSOFT_CALENDAR: "Microsoft Calendar",
+  FIREFLIES: "Fireflies.ai",
+  GONG: "Gong",
+  ZOOM: "Zoom",
   CSV: "a CSV import",
   MANUAL: "a person",
   SEED: "the demo data",

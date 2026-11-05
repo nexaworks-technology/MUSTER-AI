@@ -121,7 +121,9 @@ export async function getRevenueView(
         arrMinor: a.arrMinor,
         currency: a.arrCurrency,
       })),
-      new Map(tasks.map((t) => [t.ownerMembershipId, t._count._all])),
+      new Map(
+        tasks.flatMap((t) => (t.ownerMembershipId ? [[t.ownerMembershipId, t._count._all] as const] : [])),
+      ),
       ctx.baseCurrency,
     ),
     members: new Map(members.map((m) => [m.id, m.user.name ?? m.user.email])),

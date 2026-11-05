@@ -134,6 +134,12 @@ model Workspace {
   promises            Promise[]
   inboxItems          InboxItem[]
   unmatchedInbounds   UnmatchedInbound[]
+  meetings            Meeting[]
+  meetingAttendees    MeetingAttendee[]
+  successPlans        SuccessPlan[]
+  surveys             Survey[]
+  surveyResponses     SurveyResponse[]
+  portalAccesses      PortalAccess[]
 }
 
 // ─── Global identity (Auth.js) ───────────────────────────────────────────────
@@ -153,6 +159,8 @@ model User {
   authAccounts AuthAccount[]
   sessions     Session[]
   memberships  Membership[]
+  organizedMeetings Meeting[]         @relation("MeetingOrganizer")
+  meetingAttendees  MeetingAttendee[]
 }
 
 /// [G] Auth.js linked OAuth account. Named AuthAccount so `Account` stays the customer
@@ -382,6 +390,11 @@ enum RecordSource {
   FRESHDESK
   GMAIL
   MICROSOFT_EMAIL
+  GOOGLE_CALENDAR
+  MICROSOFT_CALENDAR
+  FIREFLIES
+  GONG
+  ZOOM
 }
 
 /// Who wrote a record. origin = AI requires agentRunId (Rule 5, DB CHECK).
@@ -484,6 +497,10 @@ model Account {
   documents          Document[]
   playRuns           PlayRun[]
   campaignRecipients CampaignRecipient[]
+  meetings           Meeting[]
+  successPlans       SuccessPlan[]
+  surveyResponses    SurveyResponse[]
+  portalAccesses     PortalAccess[]
 
   @@unique([workspaceId, id])
   @@index([workspaceId, renewalDate])
@@ -529,6 +546,9 @@ model Contact {
   outboundMessages   OutboundMessage[]
   stepsOwned         OnboardingStep[]
   campaignRecipients CampaignRecipient[]
+  meetingAttendees   MeetingAttendee[]
+  surveyResponses    SurveyResponse[]
+  portalAccesses     PortalAccess[]
 
   @@unique([workspaceId, id])
   @@index([workspaceId, accountId])
@@ -849,6 +869,7 @@ model Conversation {
   messages    Message[]
   tickets     Ticket[]
   transcripts CallTranscript[]
+  meetings    Meeting[]
 
   @@unique([workspaceId, id])
   @@index([workspaceId, accountId, lastMessageAt])
@@ -988,7 +1009,7 @@ model Task {
   signalId              String?
   title                 String
   detail                String?
-  ownerMembershipId     String
+  ownerMembershipId     String?
   createdByMembershipId String?
   dueAt                 DateTime?
   status                TaskStatus   @default(OPEN)
@@ -1004,7 +1025,7 @@ model Task {
   workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   account      Account?      @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
   signal       Signal?       @relation(fields: [workspaceId, signalId], references: [workspaceId, id], onDelete: Restrict)
-  owner        Membership    @relation("TaskOwner", fields: [workspaceId, ownerMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  owner        Membership?   @relation("TaskOwner", fields: [workspaceId, ownerMembershipId], references: [workspaceId, id], onDelete: Restrict)
   createdBy    Membership?   @relation("TaskCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: SetNull)
   agentRun     AgentRun?     @relation("TaskAgentRun", fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
   playStepRuns PlayStepRun[]
@@ -1104,6 +1125,7 @@ model Segment {
 enum FilePurpose {
   CONTRACT_DOCUMENT
   CSV_IMPORT
+  CALL_TRANSCRIPT
 }
 
 enum ScanStatus {
@@ -1760,6 +1782,7 @@ model AgentRun {
   goals            Goal[]            @relation("GoalAgentRun")
   promises         Promise[]         @relation("PromiseAgentRun")
   documents        Document[]        @relation("DocumentAgentRun")
+  meetingSummaries Meeting[]         @relation("MeetingSummaryAgentRun")
   playStepRuns     PlayStepRun[]
 
   @@unique([workspaceId, id])
@@ -2070,6 +2093,11 @@ enum IntegrationProvider {
   FRESHDESK
   GOOGLE_EMAIL
   MICROSOFT_EMAIL
+  GOOGLE_CALENDAR
+  MICROSOFT_CALENDAR
+  FIREFLIES
+  GONG
+  ZOOM
 }
 
 enum IntegrationStatus {
@@ -2380,10 +2408,12 @@ model Goal {
   extraction Extraction? @relation(fields: [workspaceId, extractionId], references: [workspaceId, id], onDelete: SetNull)
   agentRun   AgentRun?   @relation("GoalAgentRun", fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
   createdBy  Membership? @relation("GoalCreator", fields: [workspaceId, createdByMembershipId], references: [workspaceId, id], onDelete: Restrict)
+  successPlan SuccessPlan? @relation(fields: [workspaceId, successPlanId], references: [workspaceId, id], onDelete: SetNull)
 
   @@unique([workspaceId, id])
   @@unique([workspaceId, extractionId])
   @@index([workspaceId, accountId])
+  @@index([workspaceId, successPlanId])
 }
 
 // ─── M7: Renewals, expansion, documents ──────────────────────────────────────
@@ -2546,6 +2576,7 @@ enum DocumentKind {
   RENEWAL_BRIEF
   QBR
   SUCCESS_PLAN
+  PRE_CALL_BRIEF
 }
 
 /// [W] A generated document: `metrics` are locked numbers from code; `narrative` is text with
@@ -2567,7 +2598,8 @@ model Document {
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   account   Account   @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
   agentRun  AgentRun? @relation("DocumentAgentRun", fields: [workspaceId, agentRunId], references: [workspaceId, id], onDelete: NoAction)
-  renewals  Renewal[] @relation("RenewalBrief")
+  renewals      Renewal[] @relation("RenewalBrief")
+  meetingBriefs Meeting[] @relation("MeetingBrief")
 
   @@unique([workspaceId, id])
   @@index([workspaceId, accountId, kind])
@@ -2948,4 +2980,186 @@ model UnmatchedInbound {
   @@unique([workspaceId, id])
   @@unique([workspaceId, provider, externalId])
   @@index([workspaceId, status, receivedAt])
+}
+
+// ─── M10: Meetings, QBR, Success Plans & Portal (spec §5, §6B, §6K, §7) ──────
+
+enum MeetingStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum AttendeeResponseStatus {
+  NEEDS_ACTION
+  ACCEPTED
+  DECLINED
+  TENTATIVE
+}
+
+/// [W] A meeting from a calendar integration or manual entry (spec §6B, §5).
+model Meeting {
+  id                String        @id @default(cuid())
+  workspaceId       String
+  accountId         String?
+  externalId        String?
+  title             String
+  startsAt          DateTime
+  endsAt            DateTime
+  organizerUserId   String?
+  conversationId    String?
+  briefDocumentId   String?
+  summaryAgentRunId String?
+  source            RecordSource  @default(MANUAL)
+  status            MeetingStatus @default(SCHEDULED)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  workspace       Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account         Account?          @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  organizer       User?             @relation("MeetingOrganizer", fields: [organizerUserId], references: [id], onDelete: SetNull)
+  conversation    Conversation?     @relation(fields: [workspaceId, conversationId], references: [workspaceId, id], onDelete: SetNull)
+  briefDocument   Document?         @relation("MeetingBrief", fields: [workspaceId, briefDocumentId], references: [workspaceId, id], onDelete: SetNull)
+  summaryAgentRun AgentRun?         @relation("MeetingSummaryAgentRun", fields: [workspaceId, summaryAgentRunId], references: [workspaceId, id], onDelete: SetNull)
+  attendees       MeetingAttendee[]
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, accountId, startsAt])
+  @@index([workspaceId, startsAt])
+  @@index([workspaceId, source, externalId])
+}
+
+/// [W] An attendee of a meeting (spec §6B).
+model MeetingAttendee {
+  id             String                 @id @default(cuid())
+  workspaceId    String
+  meetingId      String
+  contactId      String?
+  userId         String?
+  email          String
+  name           String?
+  responseStatus AttendeeResponseStatus @default(NEEDS_ACTION)
+  createdAt      DateTime               @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  meeting   Meeting   @relation(fields: [workspaceId, meetingId], references: [workspaceId, id], onDelete: Cascade)
+  contact   Contact?  @relation(fields: [workspaceId, contactId], references: [workspaceId, id], onDelete: SetNull)
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, meetingId, email])
+  @@index([workspaceId, meetingId])
+  @@index([workspaceId, contactId])
+}
+
+enum SuccessPlanStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+/// [W] A customer success plan (spec §5, §6K). Shared with the customer portal when enabled.
+model SuccessPlan {
+  id               String            @id @default(cuid())
+  workspaceId      String
+  accountId        String
+  title            String
+  status           SuccessPlanStatus @default(ACTIVE)
+  sharedWithPortal Boolean           @default(false)
+  milestones       Json              @default("[]")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account   @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  goals     Goal[]
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, accountId])
+}
+
+enum SurveyType {
+  NPS
+  CSAT
+  CES
+}
+
+enum SurveyTrigger {
+  ONBOARDING_VALUE_REACHED
+  TICKET_CLOSED
+  RENEWAL_WINDOW_60
+  MANUAL
+}
+
+enum SurveyStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+/// [W] A customer survey definition (spec §5, §6J5).
+model Survey {
+  id          String        @id @default(cuid())
+  workspaceId String
+  type        SurveyType
+  trigger     SurveyTrigger
+  question    String
+  status      SurveyStatus  @default(ACTIVE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  workspace Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  responses SurveyResponse[]
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, type, status])
+}
+
+/// [W] A response to a customer survey (spec §5, §6J5). Feeds Sentiment and Relationship pillars.
+model SurveyResponse {
+  id          String   @id @default(cuid())
+  workspaceId String
+  surveyId    String
+  accountId   String
+  contactId   String?
+  score       Int
+  comment     String?
+  token       String?
+  respondedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  survey    Survey    @relation(fields: [workspaceId, surveyId], references: [workspaceId, id], onDelete: Cascade)
+  account   Account   @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  contact   Contact?  @relation(fields: [workspaceId, contactId], references: [workspaceId, id], onDelete: SetNull)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, token])
+  @@index([workspaceId, accountId, respondedAt])
+  @@index([workspaceId, surveyId])
+}
+
+/// [W] Magic-link access token for a customer contact to view their account portal (spec §5, §7).
+/// Token is stored hashed (SHA-256) and expires (default 14 days, Decision 5). Revocable by CSM.
+model PortalAccess {
+  id          String    @id @default(cuid())
+  workspaceId String
+  accountId   String
+  contactId   String
+  tokenHash   String
+  expiresAt   DateTime
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account   @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
+  contact   Contact   @relation(fields: [workspaceId, contactId], references: [workspaceId, id], onDelete: Cascade)
+
+  @@unique([workspaceId, id])
+  @@unique([workspaceId, tokenHash])
+  @@index([workspaceId, accountId])
+  @@index([workspaceId, contactId])
 }

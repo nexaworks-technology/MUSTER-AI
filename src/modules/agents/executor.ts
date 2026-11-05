@@ -106,13 +106,14 @@ export async function prepareRun(
 ) {
   const input = def.inputSchema.parse(rawInput);
   const built = await def.buildContext(scopedDb(ctx), input, ctx);
-  const prompt = await loadPrompt(def.prompt.name, def.prompt.version, promptsDir);
+  const promptMeta = built.prompt ?? def.prompt;
+  const prompt = await loadPrompt(promptMeta.name, promptMeta.version, promptsDir);
   return {
     input,
     built,
     prompt,
     request: {
-      tier: def.modelTier,
+      tier: built.tier ?? def.modelTier,
       workspaceId: ctx.workspaceId,
       promptRef: prompt.ref,
       system: renderPrompt(prompt.body, built.vars),

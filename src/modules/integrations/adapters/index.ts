@@ -12,6 +12,11 @@ import { zendeskAdapter } from "./zendesk";
 import { freshdeskAdapter } from "./freshdesk";
 import { googleEmailAdapter } from "./google-email";
 import { microsoftEmailAdapter } from "./microsoft-email";
+import { googleCalendarAdapter } from "./google-calendar";
+import { microsoftCalendarAdapter } from "./microsoft-calendar";
+import { firefliesAdapter } from "./fireflies";
+import { gongAdapter } from "./gong";
+import { zoomAdapter } from "./zoom";
 
 /**
  * Adapter registry. Each launch connector registers here once it has fixtures and contract tests
@@ -35,6 +40,11 @@ export const ADAPTERS: Partial<Record<IntegrationProvider, AnyAdapter>> = {
   FRESHDESK: freshdeskAdapter,
   GOOGLE_EMAIL: googleEmailAdapter,
   MICROSOFT_EMAIL: microsoftEmailAdapter,
+  GOOGLE_CALENDAR: googleCalendarAdapter,
+  MICROSOFT_CALENDAR: microsoftCalendarAdapter,
+  FIREFLIES: firefliesAdapter,
+  GONG: gongAdapter,
+  ZOOM: zoomAdapter,
 };
 
 export class AdapterMissingError extends Error {
