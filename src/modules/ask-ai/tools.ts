@@ -6,7 +6,9 @@ import { getAccount, listAccounts, type Actor } from "@/modules/accounts/service
 import { getBilling } from "@/modules/billing/service";
 import { searchExtractions } from "@/modules/conversations/service";
 import { DocumentError, readDocument } from "@/modules/documents/service";
+import { listPeople } from "@/modules/contacts/service";
 import { getAccountHealth } from "@/modules/health/service";
+import { listPlays } from "@/modules/plays/service";
 import { listPromises } from "@/modules/promises/service";
 import { listRenewals } from "@/modules/renewals/service";
 import { listAccountSignals, listSignals } from "@/modules/signals/service";
@@ -106,8 +108,24 @@ export const ASK_TOOLS: AskTool[] = [
       if (!health) return { records: [], notFound: NOT_IN_BOOK };
       const a = health.account;
       const s = health.snapshot;
+      const people = await listPeople(actor, input.accountId);
       return found(
         [
+          ...people.slice(0, 15).map((c) => ({
+            ref: `Contact:${c.id}`,
+            type: "Contact",
+            id: c.id,
+            label: c.name ?? c.email ?? "Contact",
+            href: `/accounts/${a.id}/people`,
+            fields: {
+              accountId: a.id,
+              name: c.name,
+              title: c.title,
+              email: c.email,
+              status: c.status,
+              roles: c.currentRoles.join(", ") || null,
+            },
+          })),
           accountRecord(a, {
             tier: a.tier,
             lifecycleStage: a.lifecycleStage,
@@ -392,6 +410,26 @@ export const ASK_TOOLS: AskTool[] = [
           },
         })),
         `There are no open renewals in your book in the next ${input.days} days.`,
+      );
+    },
+  }),
+  define({
+    name: "listPlays",
+    description:
+      "Published plays (playbooks) an account can be enrolled in: id, name, description.",
+    input: z.object({}),
+    async run(actor) {
+      const plays = await listPlays(actor, { status: "PUBLISHED" });
+      return found(
+        plays.map((p) => ({
+          ref: `Play:${p.id}`,
+          type: "Play",
+          id: p.id,
+          label: p.name,
+          href: `/plays/${p.id}`,
+          fields: { name: p.name, key: p.key, description: p.description, category: p.category },
+        })),
+        "There are no published plays.",
       );
     },
   }),

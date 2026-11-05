@@ -12,3 +12,11 @@ export {
   type ToolOutput,
 } from "./tools";
 export { proposeChanges, proposeInput, type ProposalResult, type ProposeInput } from "./proposals";
+export {
+  askQuestion,
+  getThread,
+  listThreads,
+  AskThreadNotFoundError,
+  MAX_STEPS,
+  type AskResult,
+} from "./loop";

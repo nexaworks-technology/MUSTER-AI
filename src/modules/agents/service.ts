@@ -133,3 +133,10 @@ export {
   figureSourceId,
   type LeaderReporterOutput,
 } from "./definitions/leader-reporter";
+export {
+  askAi,
+  askAiInput,
+  askAiOutput,
+  type AskAiInput,
+  type AskAiOutput,
+} from "./definitions/ask-ai";

@@ -14,7 +14,8 @@ import type { AskActor } from "./tools";
  */
 export const proposeInput = z.object({
   reason: z.string().trim().min(1).max(500),
-  items: z.array(changeItem).min(1).max(200),
+  // Lazy: approvals and ask-ai load each other through the agents module.
+  items: z.array(z.lazy(() => changeItem)).min(1).max(200),
   proof: z
     .array(
       z.object({

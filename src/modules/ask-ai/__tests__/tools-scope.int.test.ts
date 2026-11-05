@@ -115,6 +115,7 @@ describe("Ask AI tools run as the asking user", () => {
         "readDocument",
         "searchAccounts",
         "searchConversations",
+        "listPlays",
       ].sort(),
     );
     expect(names.some((n) => /sql|raw|write|update|delete|workspace/i.test(n))).toBe(false);

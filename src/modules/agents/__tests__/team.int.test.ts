@@ -86,6 +86,7 @@ describe("AI team", () => {
     const team = await listAgentTeam(admin);
     expect(team.map((a) => a.key).sort()).toEqual([
       "adoption-coach",
+      "ask-ai",
       "champion-guard",
       "digital-csm",
       "expansion-finder",
