@@ -1,5 +1,5 @@
 import type { AccountBundle } from "@/modules/health/service";
-import { RULES, RULE_BY_KEY, type RuleKey } from "./catalog";
+import { RULE_BY_KEY, type RuleKey } from "./catalog";
 import { evaluateRule, type Evidence, type Severity } from "./index";
 
 /**
@@ -18,39 +18,30 @@ const RESTATES_OTHER_FACTORS = new Set<RuleKey>([
 ]);
 
 /**
- * M9's rules (text, promise and people): not part of the as-of risk signals. The renewal-confidence
- * back-test (D-118, D-120) was pre-registered and measured on the M3–M8 rules; adding rules here
- * would silently change the factor model's recorded numbers, which is a silent wiring of a new
- * factor (M9 rule 6). Whether the new signals belong in the factor model is a fresh as-of back-test
- * under the same pre-registered rule, reported as its own decision, never a side effect.
+ * Pinned renewal back-test risk-rule allowlist (V1) (D-145, REVIEW-2026-11-05 S1).
+ *
+ * The renewal-confidence back-test (D-118, D-120) was pre-registered and calibrated on exactly
+ * these 12 rules. To prevent new rules added in M10+ from silently altering historical calibration,
+ * this set is pinned by construction to this explicit allowlist rather than dynamically filtered.
+ * Whether any new signal rule belongs in the factor model requires a fresh as-of back-test under
+ * D-118 and must be recorded as its own DECISIONS.md entry, never a silent list edit.
  */
-export const M9_RULES_OUTSIDE_THE_BACKTEST = new Set<RuleKey>([
-  "promise_late",
-  "promise_no_owner",
-  "competitor_mentioned",
-  "budget_concern",
-  "cancel_language",
-  "export_language",
-  "complaint_repeated",
-  "repeat_problem",
-  "angry_sentiment",
-  "renewal_concern",
-  "no_reply_important_followup",
-  "goal_stated",
-  "champion_silent",
-  "champion_role_change",
-  "new_decision_maker",
-  "email_engagement_stops",
-]);
+export const RENEWAL_BACKTEST_RULES_V1: readonly RuleKey[] = [
+  "usage_drop_vs_normal",
+  "key_feature_stopped",
+  "power_user_quiet",
+  "seats_unused",
+  "ticket_open_too_long",
+  "ticket_escalated",
+  "contact_bounced_or_left",
+  "onboarding_stall",
+  "onboarding_step_overdue_customer",
+  "onboarding_no_activity",
+  "onboarding_key_feature_unused",
+  "onboarding_ttv_late",
+] as const;
 
-export const RENEWAL_RISK_RULE_KEYS: readonly RuleKey[] = RULES.filter(
-  (r) =>
-    r.polarity === "RISK" &&
-    r.category !== "OUTSIDE" &&
-    !r.dormantReason &&
-    !RESTATES_OTHER_FACTORS.has(r.key) &&
-    !M9_RULES_OUTSIDE_THE_BACKTEST.has(r.key),
-).map((r) => r.key);
+export const RENEWAL_RISK_RULE_KEYS: readonly RuleKey[] = RENEWAL_BACKTEST_RULES_V1;
 
 export interface AsOfRiskSignal {
   key: RuleKey;

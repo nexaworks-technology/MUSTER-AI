@@ -15,6 +15,7 @@ export async function addExtraction(
     version?: string;
     itemIndex?: number;
     chunkIndex?: number;
+    createdAt?: Date;
   },
 ) {
   const version = o.version ?? "1.1.0";
@@ -59,6 +60,7 @@ export async function addExtraction(
       itemIndex: o.itemIndex ?? 0,
       chunkIndex: chunk,
       agentRunId: run.id,
+      ...(o.createdAt ? { createdAt: o.createdAt } : {}),
     },
   });
 }

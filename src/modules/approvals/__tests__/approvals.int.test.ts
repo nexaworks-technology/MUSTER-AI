@@ -5,6 +5,7 @@ import { rawDb } from "@/lib/db/raw";
 import { scopedDb, type ScopedDb } from "@/lib/db/scoped";
 import type { Actor } from "@/modules/accounts/service";
 import { createTestAdmin } from "@/test/fixtures";
+import { addExtraction } from "@/test/extraction-fixtures";
 import {
   ApprovalNotFoundError,
   ApprovalStateError,
@@ -81,7 +82,10 @@ beforeAll(async () => {
   unowned = (await acc("Pool account", null)).id;
 });
 
-async function emailDraft(accountId: string, o: { body?: string; trigger?: string[] } = {}) {
+async function emailDraft(
+  accountId: string,
+  o: { body?: string; trigger?: string[]; clock?: () => Date } = {},
+) {
   const contact = await db.contact.create({
     data: {
       workspaceId: admin.workspaceId,
@@ -90,21 +94,25 @@ async function emailDraft(accountId: string, o: { body?: string; trigger?: strin
       email: `Maya-${randomUUID().slice(0, 6)}@b.test`,
     },
   });
-  return requestApproval(admin, {
-    accountId,
-    kind: "SEND_EMAIL",
-    reason: "Usage dropped 49% against normal",
-    proof: [{ sourceType: "Signal", sourceId: "s1" }],
-    triggeringText: o.trigger ?? [],
-    proposedByMembershipId: leo.membershipId,
-    sourceKey: `test:${randomUUID()}`,
-    email: {
-      contactId: contact.id,
-      subject: "Checking in",
-      body: o.body ?? "Hi Maya, want a quick walkthrough?",
-      origin: "HUMAN",
+  return requestApproval(
+    admin,
+    {
+      accountId,
+      kind: "SEND_EMAIL",
+      reason: "Usage dropped 49% against normal",
+      proof: [{ sourceType: "Signal", sourceId: "s1" }],
+      triggeringText: o.trigger ?? [],
+      proposedByMembershipId: leo.membershipId,
+      sourceKey: `test:${randomUUID()}`,
+      email: {
+        contactId: contact.id,
+        subject: "Checking in",
+        body: o.body ?? "Hi Maya, want a quick walkthrough?",
+        origin: "HUMAN",
+      },
     },
-  });
+    o.clock ? { clock: o.clock } : {},
+  );
 }
 
 describe("requesting an approval", () => {
@@ -173,6 +181,89 @@ describe("requesting an approval", () => {
         sourceKey: "np",
       }),
     ).rejects.toThrow(/at least one source/);
+  });
+
+  it("an account whose only complaint extraction is 61+ days old no longer has its drafts capped at 'Always human' by history alone", async () => {
+    const testNow = new Date("2026-11-03T15:00:00Z");
+    const testClock = () => testNow;
+    const oldAccount = (
+      await db.account.create({
+        data: {
+          workspaceId: admin.workspaceId,
+          name: "Old Complaint Co",
+          tier: "HIGH_TOUCH",
+          ownerMembershipId: leo.membershipId,
+          timezone: "America/New_York",
+        },
+      })
+    ).id;
+    await addExtraction(db, {
+      workspaceId: admin.workspaceId,
+      accountId: oldAccount,
+      sourceType: "MESSAGE",
+      sourceId: `msg-${randomUUID()}`,
+      kind: "COMPLAINT",
+      quote: "Terrible service last quarter",
+      createdAt: new Date(testNow.getTime() - 65 * 86_400_000), // 65 days old (> 60 days)
+    });
+
+    const a = await emailDraft(oldAccount, { clock: testClock });
+    expect(a.isSensitive).toBe(false);
+    expect(a.sensitiveReasons).toEqual([]);
+  });
+
+  it("a complaint extraction 10 days old still caps drafts as sensitive", async () => {
+    const testNow = new Date("2026-11-03T15:00:00Z");
+    const testClock = () => testNow;
+    const recentAccount = (
+      await db.account.create({
+        data: {
+          workspaceId: admin.workspaceId,
+          name: "Recent Complaint Co",
+          tier: "HIGH_TOUCH",
+          ownerMembershipId: leo.membershipId,
+          timezone: "America/New_York",
+        },
+      })
+    ).id;
+    await addExtraction(db, {
+      workspaceId: admin.workspaceId,
+      accountId: recentAccount,
+      sourceType: "MESSAGE",
+      sourceId: `msg-${randomUUID()}`,
+      kind: "COMPLAINT",
+      quote: "Frustrated with current outage",
+      createdAt: new Date(testNow.getTime() - 10 * 86_400_000), // 10 days old (<= 60 days)
+    });
+
+    const a = await emailDraft(recentAccount, { clock: testClock });
+    expect(a.isSensitive).toBe(true);
+    expect(a.sensitiveReasons).toContain("complaint");
+    expect(a.requiredLevel).toBe("DRAFT_FOR_APPROVAL");
+  });
+
+  it("a message that is itself sensitive is still capped regardless of history", async () => {
+    const testNow = new Date("2026-11-03T15:00:00Z");
+    const testClock = () => testNow;
+    const cleanAccount = (
+      await db.account.create({
+        data: {
+          workspaceId: admin.workspaceId,
+          name: "Clean History Co",
+          tier: "HIGH_TOUCH",
+          ownerMembershipId: leo.membershipId,
+          timezone: "America/New_York",
+        },
+      })
+    ).id;
+
+    const a = await emailDraft(cleanAccount, {
+      trigger: ["Customer mentioned they want to cancel contract immediately"],
+      clock: testClock,
+    });
+    expect(a.isSensitive).toBe(true);
+    expect(a.sensitiveReasons).toContain("cancellation");
+    expect(a.requiredLevel).toBe("DRAFT_FOR_APPROVAL");
   });
 });
 

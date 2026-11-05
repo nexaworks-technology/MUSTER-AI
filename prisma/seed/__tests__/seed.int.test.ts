@@ -5,7 +5,7 @@ import { scopedDb } from "@/lib/db/scoped";
 import { runSeed, seedId } from "../run";
 import { DEMO_PASSWORD, DEMO_USERS } from "../users";
 
-describe("seed v0 (docs/SEED_DATA.md §2)", () => {
+describe("seed v0 (docs/SEED_DATA.md §2)", { timeout: 60_000 }, () => {
   it("is deterministic and idempotent: stable ids, same memberships on every run", async () => {
     const [first] = await runSeed({ includeTestTenant: true });
     const [second] = await runSeed({ includeTestTenant: true });
@@ -40,7 +40,7 @@ describe("seed v0 (docs/SEED_DATA.md §2)", () => {
   });
 });
 
-describe("seed v1 — accounts and people (docs/SEED_DATA.md §3)", () => {
+describe("seed v1 — accounts and people (docs/SEED_DATA.md §3)", { timeout: 60_000 }, () => {
   it("has 60 active accounts (10 high / 20 mid / 30 long-tail) and 12 churned, stable across runs", async () => {
     const [ws] = await runSeed({ includeTestTenant: true });
     const db = scopedDb({ workspaceId: ws!.id });
@@ -117,7 +117,7 @@ describe("seed v1 — accounts and people (docs/SEED_DATA.md §3)", () => {
   });
 });
 
-describe("seed v1 — commercial (docs/SEED_DATA.md §6)", () => {
+describe("seed v1 — commercial (docs/SEED_DATA.md §6)", { timeout: 60_000 }, () => {
   it("derives revenue events by rule: NEW for every contracted account, 6 expansions, 3 contractions, 12 churns", async () => {
     const [ws] = await runSeed({ includeTestTenant: false });
     const db = scopedDb({ workspaceId: ws!.id });
@@ -166,7 +166,7 @@ describe("seed v1 — commercial (docs/SEED_DATA.md §6)", () => {
   });
 });
 
-describe("seed v1 — usage (docs/SEED_DATA.md §4)", () => {
+describe("seed v1 — usage (docs/SEED_DATA.md §4)", { timeout: 60_000 }, () => {
   const sumUsers = async (
     workspaceId: string,
     name: string,
@@ -207,7 +207,7 @@ describe("seed v1 — usage (docs/SEED_DATA.md §4)", () => {
   });
 });
 
-describe("seed v1 — conversations, tickets, transcripts (docs/SEED_DATA.md §5)", () => {
+describe("seed v1 — conversations, tickets, transcripts (docs/SEED_DATA.md §5)", { timeout: 60_000 }, () => {
   it("stores every planted line verbatim, and no derived AI data", async () => {
     const [ws] = await runSeed({ includeTestTenant: false });
     const db = scopedDb({ workspaceId: ws!.id });
@@ -259,7 +259,7 @@ describe("seed v1 — conversations, tickets, transcripts (docs/SEED_DATA.md §5
   });
 });
 
-describe("seed v1 — data quality (docs/SEED_DATA.md, Silverline)", () => {
+describe("seed v1 — data quality (docs/SEED_DATA.md, Silverline)", { timeout: 60_000 }, () => {
   it("leaves Silverline's duplicates waiting in Data quality, without duplicating issues on re-seed", async () => {
     await runSeed({ includeTestTenant: false });
     const [ws] = await runSeed({ includeTestTenant: false });

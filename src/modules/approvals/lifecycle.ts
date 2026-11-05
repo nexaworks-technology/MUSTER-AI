@@ -88,7 +88,11 @@ export type RequestApprovalInput = z.input<typeof requestApprovalInput>;
  * Creates one approval (and, for an email, its draft and version 1). Idempotent by sourceKey: a
  * retried agent run or a double click returns the first approval. Slack (M5) calls this too.
  */
-export async function requestApproval(ctx: TenantContext, raw: RequestApprovalInput) {
+export async function requestApproval(
+  ctx: TenantContext,
+  raw: RequestApprovalInput,
+  opts: { clock?: Clock } = {},
+) {
   const input = requestApprovalInput.parse(raw);
   const db = scopedDb(ctx);
   const existing = await db.approval.findUnique({
@@ -99,10 +103,13 @@ export async function requestApproval(ctx: TenantContext, raw: RequestApprovalIn
     where: { id: input.accountId },
     select: { id: true, tier: true, ownerMembershipId: true },
   });
+  const now = (opts.clock ?? businessClock)();
+  const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
   const extractions = await db.extraction.findMany({
     where: {
       accountId: account.id,
       kind: { in: ["CANCEL_LANGUAGE", "EXPORT_LANGUAGE", "COMPLAINT", "INTENT"] },
+      createdAt: { gte: sixtyDaysAgo },
     },
     select: { kind: true, payload: true },
     take: 50,

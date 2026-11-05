@@ -29,6 +29,7 @@ import { scopedDb } from "@/lib/db/scoped";
 export { syncSignalRules } from "./rule-rows";
 export {
   riskSignalsAsOf,
+  RENEWAL_BACKTEST_RULES_V1,
   RENEWAL_RISK_RULE_KEYS,
   RESTATES_OTHER_FACTORS,
   type AsOfRiskSignal,

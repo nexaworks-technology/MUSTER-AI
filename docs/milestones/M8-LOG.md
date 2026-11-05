@@ -160,3 +160,9 @@ Scratch database was dropped cleanly post-verification.
   - `pnpm test:e2e`: **75 passed / 0 failed / 55 skipped (100% GREEN)**
   - Zero pre-M8 test regressions.
   - Net increase of +19 test files and +136 tests across unit and integration suites.
+
+---
+
+## Addendum (2026-11-05)
+
+- **Pre-existing test update logged post-hoc (REVIEW-2026-11-05 N1):** Commit `32b7d69` (M8 Session 2 S15, founder pre-approved in Session 2 brief) updated the setup wizard step-heading assertion in `e2e/m5-integrations.spec.ts` from `"Step 1 of 5: Connect"` to `"Step 1 of 6: Connect"` upon insertion of the Proposed Plays step; executed unlogged in the original M8-LOG table, documented here per review note N1.
