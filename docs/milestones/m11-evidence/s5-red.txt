@@ -1,0 +1,26 @@
+$ vitest run src/modules/outcomes/__tests__/accuracy.test.ts
+
+ RUN  v5.0.5 /Users/sahil/customer sucesss platform
+
+ ❯ |app| src/modules/outcomes/__tests__/accuracy.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |app| src/modules/outcomes/__tests__/accuracy.test.ts [ src/modules/outcomes/__tests__/accuracy.test.ts ]
+Error: Cannot find module '../accuracy' imported from /Users/sahil/customer sucesss platform/src/modules/outcomes/__tests__/accuracy.test.ts
+ ❯ src/modules/outcomes/__tests__/accuracy.test.ts:2:1
+      1| import { describe, expect, it } from "vitest";
+      2| import {
+       | ^
+      3|   alarmOf,
+      4|   buildAccuracy,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  21:30:04
+   Duration  722ms (setup 43%, worker 30%, transform 26%, environment 1%)
+
+[ELIFECYCLE] Test failed. See above for more details.

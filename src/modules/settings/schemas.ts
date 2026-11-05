@@ -114,11 +114,17 @@ export const workspaceSettingsData = z.object({
     })
     .prefault({}),
   /** M9: the fixed theme list that complaints and repeat problems group by (D5; audited when edited). */
-  extraction: z
-    .object({ themes: themeSettingSchema.default([...DEFAULT_THEMES]) })
-    .prefault({}),
+  extraction: z.object({ themes: themeSettingSchema.default([...DEFAULT_THEMES]) }).prefault({}),
   /** M7: the renewal radar's horizon and the confidence model's weights (audited when edited). */
   renewals: renewalSettings,
+  /** M11 (D-167): when a signal rule "cries wolf". Measurement only; changes no rule or model. */
+  accuracy: z
+    .object({
+      criesWolfRate: z.number().min(0).max(1).default(0.4),
+      criesWolfMinDetermined: z.number().int().min(1).default(5),
+      windowDays: z.number().int().min(1).max(730).default(90),
+    })
+    .prefault({}),
   approvals: z
     .object({
       /** The highest level any action may reach in this workspace (ARCHITECTURE §7.3). */
