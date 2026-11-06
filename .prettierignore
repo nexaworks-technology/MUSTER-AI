@@ -1,6 +1,7 @@
 pnpm-lock.yaml
 .next/
 .next-e2e/
+.next-e2e-aioff/
 node_modules/
 coverage/
 playwright-report/

@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { rawDb } from "../../src/lib/db/raw";
+import { E2E_SCRIPTS_QUEUE_PREFIX } from "./harness";
 
 /**
  * M4 e2e support. The app under test has no AI key, so agent runs happen here, before the
@@ -7,9 +8,34 @@ import { rawDb } from "../../src/lib/db/raw";
  * fixture answers composed from the records; no live model). The app then shows what those runs
  * stored, exactly as it would show live runs.
  */
+/**
+ * The environment every script a spec spawns runs with (M12 harness fix H2, D-186). It is set
+ * explicitly, never left to the process defaults: the `_e2e` database (refused otherwise), the e2e
+ * scripts' queue prefix (only the script's own in-process workers listen there), and recorded AI
+ * (callers choose the recordings directory). The rest of the environment (Redis, storage, secrets
+ * loaded from .env) passes through.
+ */
+export function e2eScriptEnv(callerEnv: Record<string, string> = {}): NodeJS.ProcessEnv {
+  const db = process.env.DATABASE_URL;
+  const owner = process.env.DATABASE_URL_MIGRATE;
+  for (const url of [db, owner])
+    if (!url || !new URL(url).pathname.endsWith("_e2e"))
+      throw new Error("e2e scripts run only against the _e2e database");
+  return {
+    ...process.env,
+    ...callerEnv,
+    NODE_ENV: "development",
+    DATABASE_URL: db,
+    DATABASE_URL_MIGRATE: owner,
+    QUEUE_PREFIX: E2E_SCRIPTS_QUEUE_PREFIX,
+    AI_PROVIDER: "recorded",
+    ANTHROPIC_API_KEY: "", // never a live model from e2e
+  };
+}
+
 export function runScript(file: string, args: string[], env: Record<string, string> = {}) {
   return execFileSync("pnpm", ["exec", "tsx", file, ...args], {
-    env: { ...process.env, ...env },
+    env: e2eScriptEnv(env),
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
   });

@@ -20,12 +20,13 @@ you must flag the disagreement in `docs/QUESTIONS.md` — never silently follow 
 - Migrate: `pnpm db:migrate` · Generate client: `pnpm db:generate` · Seed demo: `pnpm db:seed`
   (add `-- --with-test-tenant` for the second tenant, Ferngrove Software, used by isolation checks;
   `-- --empty-workspace` for Juniper Labs, a workspace still in setup)
-- Test (unit+integration): `pnpm test` (one file: `pnpm test <name>`) · E2E: `pnpm test:e2e`
-  (builds and runs the PRODUCTION app, `next build && next start` into `.next-e2e`, on port 3100, plus
-  the worker, against its own `_e2e` database that global setup recreates each run; needs a local
-  Postgres superuser for psql, `E2E_DB_ADMIN_URL` overrides it; queue prefix `nexaworks-e2e`; D-182).
-  Stop any `pnpm dev` / `pnpm dev:worker` in this folder first: the specs' Node-side scripts enqueue on the
-  default queue prefix, and a running dev worker can take their jobs (seen in the M12 design close)
+- Test (unit+integration): `pnpm test` (one file: `pnpm test <name>`) · E2E: `pnpm test:e2e [spec files, -g, --project]`
+  (`scripts/e2e.ts`: runs the main config, then `playwright.aioff.config.ts`, one after the other. Each builds
+  and serves the PRODUCTION app (`.next-e2e` on :3100 with recorded AI; `.next-e2e-aioff` on :3101 with no AI,
+  for the M4/M9 suites) plus a worker, against the `_e2e` database that each run's global setup recreates.
+  Needs a local Postgres superuser for psql (`E2E_DB_ADMIN_URL` overrides). No live model is ever reachable.
+  Spawned scripts get an explicit e2e env and the `nexaworks-e2e-scripts` queue prefix, so a running
+  `pnpm dev` worker cannot take their jobs. D-182, D-186)
 - Nightly health + signals run for one workspace, through the real queue (safe to re-run):
   `pnpm jobs:nightly --workspace <slug>` (add `--as-of YYYY-MM-DD` to date the run)
 - Watcher-basic extraction backfill (M4): `pnpm agents:extract --workspace <slug> [--account "<name>"]`

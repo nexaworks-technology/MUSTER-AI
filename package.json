@@ -18,7 +18,7 @@
     "format:check": "prettier --check .",
     "gate": "pnpm typecheck && pnpm lint && pnpm test && pnpm build",
     "test": "vitest run",
-    "test:e2e": "playwright test",
+    "test:e2e": "tsx scripts/e2e.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "services:native": "sh scripts/services-native.sh",

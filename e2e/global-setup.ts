@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { Redis } from "ioredis";
-import { E2E_QUEUE_PREFIX } from "../playwright.config";
+import { ACTIVE_PREFIX_ENV, E2E_SCRIPTS_QUEUE_PREFIX } from "./support/harness";
 import { applyE2eDatabaseEnv } from "../src/test/db-env";
 
 /**
@@ -35,23 +35,24 @@ export default async function globalSetup(): Promise<void> {
     stdio: "pipe",
     env: process.env,
   });
-  // Rate-limit windows outlive a run in Redis; each run starts with none (the database is new too).
+  // Redis outlives a run, the database does not. Each run starts with no rate-limit windows on
+  // its own prefix, and with nothing at all on the scripts' prefix: no long-running worker
+  // listens there, so leftover jobs would only collide with this run's (D-186).
+  const prefix = process.env[ACTIVE_PREFIX_ENV];
+  if (!prefix?.startsWith("nexaworks-e2e"))
+    throw new Error(`refusing to clear queue prefix ${prefix}`);
   const redis = new Redis(process.env.REDIS_URL ?? "redis://localhost:6379");
   try {
-    const keys: string[] = [];
-    let cursor = "0";
-    do {
-      const [next, batch] = await redis.scan(
-        cursor,
-        "MATCH",
-        `${E2E_QUEUE_PREFIX}:rl:*`,
-        "COUNT",
-        500,
-      );
-      cursor = next;
-      keys.push(...batch);
-    } while (cursor !== "0");
-    if (keys.length) await redis.del(...keys);
+    for (const pattern of [`${prefix}:rl:*`, `${E2E_SCRIPTS_QUEUE_PREFIX}:*`]) {
+      const keys: string[] = [];
+      let cursor = "0";
+      do {
+        const [next, batch] = await redis.scan(cursor, "MATCH", pattern, "COUNT", 500);
+        cursor = next;
+        keys.push(...batch);
+      } while (cursor !== "0");
+      if (keys.length) await redis.del(...keys);
+    }
   } finally {
     redis.disconnect();
   }

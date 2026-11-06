@@ -44,6 +44,7 @@ export default defineConfig([
   globalIgnores([
     ".next/**",
     ".next-e2e/**", // the e2e production build (D-182)
+    ".next-e2e-aioff/**", // the AI-off e2e build (D-186)
     "out/**",
     "build/**",
     "coverage/**",

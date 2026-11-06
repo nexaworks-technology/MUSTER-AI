@@ -1,4 +1,5 @@
-import { defineConfig, devices } from "@playwright/test";
+import { defineConfig, devices, type PlaywrightTestConfig } from "@playwright/test";
+import { ACTIVE_PREFIX_ENV, AI_OFF_SUITES } from "./e2e/support/harness";
 import { applyE2eDatabaseEnv } from "./src/test/db-env";
 
 /**
@@ -6,8 +7,11 @@ import { applyE2eDatabaseEnv } from "./src/test/db-env";
  * `next start`, with APP_ENV=e2e against its own `_e2e` database (recreated from zero in
  * global-setup, D4). Only that combination unlocks the test seams below in a production build
  * (fake clock, recorded AI, log email/Slack, fixture integrations); staging and production refuse
- * them. The strict production CSP is therefore the one the browser checks. Stop any other
- * `next dev`/`next start` on the e2e port first.
+ * them. The strict production CSP is therefore the one the browser checks.
+ *
+ * This is the MAIN run: the app server replays recorded AI answers. Suites written for an app with
+ * no AI provider run in `playwright.aioff.config.ts` instead (D-186); `pnpm test:e2e` runs both,
+ * one after the other. Stop any `pnpm dev` in this folder first.
  */
 applyE2eDatabaseEnv();
 const PORT = Number(process.env.E2E_PORT ?? 3100);
@@ -23,49 +27,44 @@ const E2E_INTEGRATIONS = { INTEGRATIONS_TRANSPORT: "fixture" };
 // Recorded model answers the app server replays (composed by the specs' prepare scripts).
 export const E2E_RECORDINGS = ".dev-recordings/e2e-app";
 
-export default defineConfig({
-  testDir: "./e2e",
-  globalSetup: "./e2e/global-setup.ts",
-  fullyParallel: false,
-  workers: 1,
-  retries: 0,
-  timeout: 60_000,
-  reporter: [["list"]],
-  use: {
-    baseURL: `http://localhost:${PORT}`,
-    trace: "retain-on-failure",
-  },
-  projects: [
+export interface HarnessOptions {
+  port: number;
+  /** Production build output directory for this run. */
+  distDir: string;
+  /** Queue prefix shared by this run's app server and worker. */
+  queuePrefix: string;
+  /** Recorded AI answers for the app server, or null for an app with no AI provider. */
+  aiRecordingsDir: string | null;
+}
+
+/** The production-build app server and the worker for one e2e run (shared with the AI-off run). */
+export function e2eWebServers(o: HarnessOptions): NonNullable<PlaywrightTestConfig["webServer"]> {
+  // Q-47 closed (D7): the main app server runs on recorded answers, so in-app AI paths are
+  // e2e-tested. The AI-off run has no provider key, so the app shows "AI is not configured" (D-186).
+  // e2e never reaches a live model: the developer's .env key is blanked for every e2e process
+  // (Next would otherwise load it from .env, and the runner already has it). D-186.
+  const ai: Record<string, string> = o.aiRecordingsDir
+    ? { AI_PROVIDER: "recorded", AI_RECORDINGS_DIR: o.aiRecordingsDir, ANTHROPIC_API_KEY: "" }
+    : { AI_PROVIDER: "anthropic", AI_RECORDINGS_DIR: "", ANTHROPIC_API_KEY: "" };
+  return [
     {
-      name: "desktop",
-      use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } },
-    },
-    {
-      name: "mobile",
-      use: { ...devices["Desktop Chrome"], viewport: { width: 375, height: 812 } },
-    },
-  ],
-  webServer: [
-    {
-      command: `pnpm exec next build && pnpm exec next start -p ${PORT}`,
-      url: `http://localhost:${PORT}/sign-in`,
+      command: `pnpm exec next build && pnpm exec next start -p ${o.port}`,
+      url: `http://localhost:${o.port}/sign-in`,
       reuseExistingServer: false,
       timeout: 600_000,
       env: {
         DATABASE_URL: process.env.DATABASE_URL!,
         DATABASE_URL_MIGRATE: process.env.DATABASE_URL_MIGRATE!,
-        APP_URL: `http://localhost:${PORT}`,
-        NODE_ENV: "production", // db-env sets "test" for this process; the server is a production build
+        APP_URL: `http://localhost:${o.port}`,
+        NODE_ENV: "production", // the Playwright runner sets "test"; the server is a production build
         APP_ENV: "e2e",
         // The whole suite signs in from ::1; the real limits are proven by endpoints-m12 (D-182).
         RATE_LIMIT_SCALE: "50",
-        NEXT_DIST_DIR: ".next-e2e",
+        NEXT_DIST_DIR: o.distDir,
         EMAIL_TRANSPORT: "log",
         SLACK_DELIVERY: "log",
-        // Q-47 closed (D7): the app server runs on recorded answers, so in-app AI paths are e2e-tested.
-        AI_PROVIDER: "recorded",
-        AI_RECORDINGS_DIR: E2E_RECORDINGS,
-        QUEUE_PREFIX: E2E_QUEUE_PREFIX,
+        ...ai,
+        QUEUE_PREFIX: o.queuePrefix,
         ...E2E_FAKE_CLOCK,
         ...E2E_INTEGRATIONS,
       },
@@ -80,12 +79,52 @@ export default defineConfig({
       env: {
         DATABASE_URL: process.env.DATABASE_URL!,
         DATABASE_URL_MIGRATE: process.env.DATABASE_URL_MIGRATE!,
-        QUEUE_PREFIX: E2E_QUEUE_PREFIX,
+        QUEUE_PREFIX: o.queuePrefix,
+        ANTHROPIC_API_KEY: "", // never a live model in e2e (D-186)
         // No real-clock nightly runs against the seeded workspace, which stays "as of" SEED_TODAY.
         NIGHTLY_SCHEDULES: "off",
         ...E2E_FAKE_CLOCK,
         ...E2E_INTEGRATIONS,
       },
     },
+  ];
+}
+
+/** Settings both runs share; each config adds its projects and servers. */
+export const sharedConfig: PlaywrightTestConfig = {
+  testDir: "./e2e",
+  globalSetup: "./e2e/global-setup.ts",
+  fullyParallel: false,
+  workers: 1,
+  retries: 0,
+  timeout: 60_000,
+  reporter: [["list"]],
+};
+
+process.env[ACTIVE_PREFIX_ENV] ??= E2E_QUEUE_PREFIX;
+
+export default defineConfig({
+  ...sharedConfig,
+  use: {
+    baseURL: `http://localhost:${PORT}`,
+    trace: "retain-on-failure",
+  },
+  projects: [
+    {
+      name: "desktop",
+      grepInvert: AI_OFF_SUITES,
+      use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } },
+    },
+    {
+      name: "mobile",
+      grepInvert: AI_OFF_SUITES,
+      use: { ...devices["Desktop Chrome"], viewport: { width: 375, height: 812 } },
+    },
   ],
+  webServer: e2eWebServers({
+    port: PORT,
+    distDir: ".next-e2e",
+    queuePrefix: E2E_QUEUE_PREFIX,
+    aiRecordingsDir: E2E_RECORDINGS,
+  }),
 });
