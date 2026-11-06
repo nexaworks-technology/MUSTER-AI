@@ -14,11 +14,11 @@ export async function DeleteSection({ actor }: { actor: WorkspaceContext }) {
       </h2>
       <p className="text-muted-foreground text-sm">
         Deleting removes every account, contact, conversation, file, report and audit record of this
-        workspace. You have {DELETION_GRACE_DAYS} days to change your mind; after that the data is
-        purged, and backups that still hold it expire with our 35-day backup retention — so
-        everything is gone within 30 days of the purge at the latest. Export first if you want a
-        copy. A minimal record that this workspace existed and was deleted (its name tag and the
-        dates) is kept.
+        workspace. You have {DELETION_GRACE_DAYS} days to change your mind; after that the
+        workspace&apos;s data is purged, so it is deleted within 30 days of your request. Copies
+        that still sit in our backups expire with the 35-day backup retention. Export first if you
+        want a copy. A minimal record that this workspace existed and was deleted (its name tag and
+        the dates) is kept.
       </p>
       {pending ? (
         <div className="space-y-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
