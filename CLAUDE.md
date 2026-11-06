@@ -23,7 +23,9 @@ you must flag the disagreement in `docs/QUESTIONS.md` — never silently follow 
 - Test (unit+integration): `pnpm test` (one file: `pnpm test <name>`) · E2E: `pnpm test:e2e`
   (builds and runs the PRODUCTION app, `next build && next start` into `.next-e2e`, on port 3100, plus
   the worker, against its own `_e2e` database that global setup recreates each run; needs a local
-  Postgres superuser for psql, `E2E_DB_ADMIN_URL` overrides it; queue prefix `nexaworks-e2e`; D-182)
+  Postgres superuser for psql, `E2E_DB_ADMIN_URL` overrides it; queue prefix `nexaworks-e2e`; D-182).
+  Stop any `pnpm dev` / `pnpm dev:worker` in this folder first: the specs' Node-side scripts enqueue on the
+  default queue prefix, and a running dev worker can take their jobs (seen in the M12 design close)
 - Nightly health + signals run for one workspace, through the real queue (safe to re-run):
   `pnpm jobs:nightly --workspace <slug>` (add `--as-of YYYY-MM-DD` to date the run)
 - Watcher-basic extraction backfill (M4): `pnpm agents:extract --workspace <slug> [--account "<name>"]`
