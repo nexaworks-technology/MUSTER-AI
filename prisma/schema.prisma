@@ -3256,3 +3256,20 @@ model AskMessage {
   @@unique([workspaceId, id])
   @@index([workspaceId, threadId, createdAt])
 }
+
+/// [G] M12 B2 (§6N7, Q-10): the non-tenant record that a workspace was deleted. Written when the
+/// deletion is requested (graceEndsAt = request + grace) and kept after the purge. The AuditLog
+/// append-only trigger permits DELETE only for a workspace whose tombstone's grace has ended.
+model WorkspaceTombstone {
+  id                String    @id @default(cuid())
+  workspaceId       String    @unique
+  workspaceSlug     String
+  requestedAt       DateTime
+  requestedByUserId String?
+  graceEndsAt       DateTime
+  cancelledAt       DateTime?
+  purgedAt          DateTime?
+  /// Rows removed per [W] model and objects removed, recorded by the purge.
+  purgeCounts       Json?
+  createdAt         DateTime  @default(now())
+}

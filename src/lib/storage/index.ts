@@ -1,4 +1,6 @@
 import {
+  DeleteObjectsCommand,
+  ListObjectsV2Command,
   CreateBucketCommand,
   GetObjectCommand,
   HeadBucketCommand,
@@ -67,6 +69,32 @@ export function createStorage(config: StorageConfig) {
       const Key = workspaceObjectKey(ctx, ...segments);
       const res = await client.send(new GetObjectCommand({ Bucket, Key }));
       return res.Body!.transformToByteArray();
+    },
+    /** Every object key under this workspace's prefix (M12 B2). */
+    async listKeys(ctx: TenantContext): Promise<string[]> {
+      const Prefix = `ws/${workspaceObjectKey(ctx, "x").split("/")[1]}/`;
+      const keys: string[] = [];
+      let ContinuationToken: string | undefined;
+      do {
+        const res = await client.send(
+          new ListObjectsV2Command({ Bucket, Prefix, ContinuationToken }),
+        );
+        for (const o of res.Contents ?? []) if (o.Key) keys.push(o.Key);
+        ContinuationToken = res.IsTruncated ? res.NextContinuationToken : undefined;
+      } while (ContinuationToken);
+      return keys;
+    },
+    /** Deletes every object under this workspace's prefix; returns how many (M12 B2 purge). */
+    async deleteWorkspacePrefix(ctx: TenantContext): Promise<number> {
+      let deleted = 0;
+      for (;;) {
+        const keys = (await this.listKeys(ctx)).slice(0, 1000);
+        if (keys.length === 0) return deleted;
+        await client.send(
+          new DeleteObjectsCommand({ Bucket, Delete: { Objects: keys.map((Key) => ({ Key })) } }),
+        );
+        deleted += keys.length;
+      }
     },
     /** Short-lived download link, always as an attachment (never rendered inline on our origin). */
     signedDownloadUrl(

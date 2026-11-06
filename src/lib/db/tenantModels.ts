@@ -86,6 +86,8 @@ export const TENANT_MODELS = [
 
 /** Models without tenant scope: identity tables, the tenant root and the outbox (D-22). */
 export const GLOBAL_MODELS = [
+  // M12 B2: survives the workspace it records (not tenant data).
+  "WorkspaceTombstone",
   "Workspace",
   "User",
   "AuthAccount",

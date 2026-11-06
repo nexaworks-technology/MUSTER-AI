@@ -1,0 +1,6 @@
+ Test Files  1 failed (1)
+      Tests  7 failed (7)
+   Start at  07:55:21
+   Duration  1.01s (tests 47%, import 36%, transform 16%, setup 1%, worker 1%)
+
+[ELIFECYCLE] Test failed. See above for more details.
