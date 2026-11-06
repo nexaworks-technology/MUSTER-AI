@@ -6,6 +6,7 @@ import { meetingQbr } from "../agents/definitions/meeting-qbr";
 import { computeQbrMetrics, validateNarrativeText, validatePeriodLabel } from "./metrics";
 import { writeOutboxEvent } from "@/lib/jobs/outbox";
 import { writeAudit } from "@/lib/audit";
+import { recordProductEvent } from "@/lib/pilot/capture";
 
 export interface QbrBlock {
   id: string;
@@ -207,6 +208,12 @@ export async function generateQbr(
     },
   });
 
+  await recordProductEvent(ctx, {
+    name: "qbr.generated",
+    subjectType: "Document",
+    subjectId: doc.id,
+  });
+
   return toQbrView(doc);
 }
 
@@ -257,6 +264,7 @@ export async function lockQbrDocument(
   documentId: string,
 ): Promise<QbrDocumentView> {
   const db = scopedDb(ctx);
+  let newlyLocked = false;
 
   const updated = await db.$tenantTransaction(async (tx) => {
     const doc = await tx.document.findUniqueOrThrow({
@@ -271,6 +279,7 @@ export async function lockQbrDocument(
       where: { id: documentId },
       data: { lockedAt: new Date() },
     });
+    newlyLocked = true;
 
     await writeOutboxEvent(tx, {
       workspaceId: ctx.workspaceId,
@@ -299,6 +308,14 @@ export async function lockQbrDocument(
 
     return locked;
   });
+
+  // Locking publishes the QBR to the customer portal: that is the "shared" end of prep time.
+  if (newlyLocked)
+    await recordProductEvent(ctx, {
+      name: "qbr.shared",
+      subjectType: "Document",
+      subjectId: updated.id,
+    });
 
   return toQbrView(updated);
 }

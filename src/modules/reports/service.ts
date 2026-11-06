@@ -264,3 +264,15 @@ export {
   type DigestResult,
   type LatestDigest,
 } from "./digest.service";
+
+// Pilot metrics (M12 B5): Admin and CS Leader only.
+export {
+  PILOT_WEEK_OPTIONS,
+  canViewPilotMetrics,
+  listPilotRecords,
+  loadPilotMetrics,
+  pickFigure,
+  pilotQuery,
+  type PilotQuery,
+} from "./pilot-report";
+export type { PilotFigure, PilotFigureKey } from "./pilot-metrics";

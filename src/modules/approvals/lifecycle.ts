@@ -13,6 +13,7 @@ import {
   type DispatchResult,
 } from "@/modules/outbound/service";
 import { markActed } from "@/modules/outcomes/service";
+import { recordProductEvent } from "@/lib/pilot/capture";
 import { getSettingsData } from "@/modules/settings/service";
 import { changeList, executeApprovedChanges, type ChangesOutcome } from "./changes";
 import { resolveLevel } from "./level-resolver";
@@ -402,6 +403,28 @@ async function sendIfEmail(
   }
 }
 
+/** Pilot instrumentation (M12 B5): a decision, and an approved signal-linked draft is an accepted flag. */
+async function captureDecision(
+  actor: Actor,
+  approval: Pick<Approval, "id" | "kind" | "signalId">,
+  decision: "approved" | "edited_approved" | "rejected",
+  via: string,
+): Promise<void> {
+  await recordProductEvent(actor, {
+    name: "approval.decided",
+    subjectType: "Approval",
+    subjectId: approval.id,
+    props: { decision, kind: approval.kind, via },
+  });
+  if (approval.signalId && decision !== "rejected")
+    await recordProductEvent(actor, {
+      name: "signal.flag_accepted",
+      subjectType: "Signal",
+      subjectId: approval.signalId,
+      props: { via: "approval" },
+    });
+}
+
 export async function approve(
   actor: Actor,
   raw: unknown,
@@ -455,6 +478,7 @@ export async function approve(
       { type: "Approval", id: approval.id },
       opts.clock,
     );
+  await captureDecision(actor, approval, "approved", via);
   return {
     approval,
     send: await sendIfEmail(actor, approval, opts.dispatch),
@@ -555,6 +579,7 @@ export async function editAndApprove(
       { type: "Approval", id: approval.id },
       opts.clock,
     );
+  await captureDecision(actor, approval, "edited_approved", via);
   return { approval, send: await sendIfEmail(actor, approval, opts.dispatch) };
 }
 
@@ -608,6 +633,7 @@ export async function reject(
     });
     return updated;
   });
+  await captureDecision(actor, approval, "rejected", via);
   return { approval };
 }
 

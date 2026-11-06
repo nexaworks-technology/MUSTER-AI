@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { formatDateTime } from "@/lib/format";
-import { listReports } from "@/modules/reports/service";
+import { canViewPilotMetrics, listReports } from "@/modules/reports/service";
 
 export const metadata: Metadata = { title: "Reports" };
 
@@ -92,6 +92,20 @@ export default async function ReportsPage() {
               How often each rule was right, and which ones cry wolf.
             </p>
           </li>
+          {canViewPilotMetrics(ctx) ? (
+            <li className="p-3">
+              <Link
+                href={"/reports/pilot-metrics" as Route}
+                className="font-medium underline-offset-2 hover:underline"
+              >
+                Pilot metrics
+              </Link>
+              <p className="text-muted-foreground text-sm">
+                How each CSM uses the product: Today and Approvals opens, flag acceptance and QBR
+                prep time, week by week.
+              </p>
+            </li>
+          ) : null}
         </ul>
       </section>
     </div>

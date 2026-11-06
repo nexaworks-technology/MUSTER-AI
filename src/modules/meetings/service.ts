@@ -5,6 +5,7 @@ import { meetingQbr } from "../agents/definitions/meeting-qbr";
 import { watcher } from "../agents/definitions/watcher";
 import { writeOutboxEvent } from "@/lib/jobs/outbox";
 import { listActiveWorkspaces } from "@/lib/db/workspace";
+import { recordProductEvent } from "@/lib/pilot/capture";
 
 export interface PrepareBriefInput {
   meetingId: string;
@@ -22,7 +23,7 @@ export interface SummarizeCallInput {
  * Idempotent per (meetingId, briefVersion): repeated runs produce 1 brief document.
  */
 export async function prepareBrief(
-  ctx: TenantContext,
+  ctx: TenantContext & { membershipId?: string },
   input: PrepareBriefInput,
   deps: ExecutorDeps = {},
 ): Promise<Document> {
@@ -40,7 +41,9 @@ export async function prepareBrief(
   }
 
   if (!meeting.accountId) {
-    throw new Error(`Cannot prepare brief for meeting ${meeting.id}: meeting is not matched to an account.`);
+    throw new Error(
+      `Cannot prepare brief for meeting ${meeting.id}: meeting is not matched to an account.`,
+    );
   }
 
   const outcome = await runAgent(
@@ -71,6 +74,14 @@ export async function prepareBrief(
   if (!updated.briefDocument) {
     throw new Error(`Brief document was not created for meeting ${meeting.id}`);
   }
+
+  // Only a person who asked for the brief counts toward prep time; the worker's sweep has no member.
+  await recordProductEvent(ctx, {
+    name: "brief.generated",
+    subjectType: "Document",
+    subjectId: updated.briefDocument.id,
+    props: { kind: "PRE_CALL_BRIEF" },
+  });
 
   return updated.briefDocument;
 }

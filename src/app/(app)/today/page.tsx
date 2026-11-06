@@ -1,6 +1,8 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
+import { after } from "next/server";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
+import { recordProductEvent } from "@/lib/pilot/capture";
 import { getToday, SECTIONS } from "@/modules/today/service";
 
 export const metadata: Metadata = { title: "Today" };
@@ -28,6 +30,7 @@ const hrefFor = (i: { itemType: string; refId: string; accountId: string | null 
  */
 export default async function TodayPage({ searchParams }: { searchParams: SearchParams }) {
   const ctx = (await resolveWorkspaceContext(await requireSession()))!;
+  after(() => recordProductEvent(ctx, { name: "today.opened" }));
   const sp = await searchParams;
   const cursors = Object.fromEntries(
     SECTIONS.map((s) => [

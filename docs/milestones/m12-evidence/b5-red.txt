@@ -1,0 +1,15 @@
+ ❯ src/modules/reports/__tests__/pilot-metrics.test.ts:2:1
+      1| import { describe, expect, it } from "vitest";
+      2| import {
+       | ^
+      3|   computePilotMetrics,
+      4|   isoWeekOf,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  08:05:07
+   Duration  733ms (setup 46%, worker 29%, transform 24%, environment 1%)
+

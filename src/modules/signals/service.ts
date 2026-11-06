@@ -20,6 +20,7 @@ import type { SignalListQuery } from "./schemas";
 import { parseParams, RULE_BY_KEY, RULES, type RuleKey } from "./rules/catalog";
 import { syncSignalRules } from "./rule-rows";
 import { scopedDb } from "@/lib/db/scoped";
+import { recordProductEvent } from "@/lib/pilot/capture";
 
 /**
  * Signals module public surface (ARCHITECTURE §5). Signals are records with a lifecycle; the
@@ -61,7 +62,7 @@ async function signalForAction(actor: Actor, signalId: string) {
 export async function acknowledgeSignal(actor: Actor, signalId: string) {
   const s = await signalForAction(actor, signalId);
   if (s.status !== "OPEN") return s;
-  return scopedDb(actor).$tenantTransaction(async (tx) => {
+  const acknowledged = await scopedDb(actor).$tenantTransaction(async (tx) => {
     const updated = await tx.signal.update({
       where: { id: s.id },
       data: {
@@ -84,6 +85,13 @@ export async function acknowledgeSignal(actor: Actor, signalId: string) {
     );
     return updated;
   });
+  await recordProductEvent(actor, {
+    name: "signal.flag_accepted",
+    subjectType: "Signal",
+    subjectId: s.id,
+    props: { via: "acknowledge", rule: s.ruleKey },
+  });
+  return acknowledged;
 }
 
 export const falseAlarmInput = z
@@ -100,7 +108,7 @@ export async function markFalseAlarm(actor: Actor, signalId: string, rawReason: 
   const s = await signalForAction(actor, signalId);
   const reason = falseAlarmInput.parse(rawReason);
   if (s.status !== "OPEN" && s.status !== "ACKNOWLEDGED") return s;
-  return scopedDb(actor).$tenantTransaction(async (tx) => {
+  const marked = await scopedDb(actor).$tenantTransaction(async (tx) => {
     const updated = await tx.signal.update({
       where: { id: s.id },
       data: {
@@ -128,6 +136,13 @@ export async function markFalseAlarm(actor: Actor, signalId: string, rawReason: 
     );
     return updated;
   });
+  await recordProductEvent(actor, {
+    name: "signal.false_alarm",
+    subjectType: "Signal",
+    subjectId: s.id,
+    props: { rule: s.ruleKey },
+  });
+  return marked;
 }
 
 // ─── Reads for the screens (book scope, M3 rule 11) ──────────────────────────

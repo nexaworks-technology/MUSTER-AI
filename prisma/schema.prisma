@@ -139,6 +139,7 @@ model Workspace {
   reportSnapshots     ReportSnapshot[]
   askThreads          AskThread[]
   askMessages         AskMessage[]
+  productEvents       ProductEvent[]
   successPlans        SuccessPlan[]
   surveys             Survey[]
   surveyResponses     SurveyResponse[]
@@ -254,6 +255,7 @@ model Membership {
   draftRevisions        DraftRevision[]        @relation("DraftEditor")
   reportsGenerated      ReportSnapshot[]       @relation("ReportGenerator")
   askThreads            AskThread[]            @relation("AskThreadMember")
+  productEvents         ProductEvent[]         @relation("ProductEventMember")
   outboundCreated       OutboundMessage[]      @relation("OutboundCreator")
   todayItems            TodayItem[]
   integrationsMade      Integration[]          @relation("IntegrationConnector")
@@ -3272,4 +3274,30 @@ model WorkspaceTombstone {
   /// Rows removed per [W] model and objects removed, recorded by the purge.
   purgeCounts       Json?
   createdAt         DateTime  @default(now())
+}
+
+// ─── M12 B5: pilot instrumentation (spec §11) ─────────────────────────────────
+
+/// [W] Internal, append-only pilot instrumentation (M12 B5). One row per thing a member
+/// did that the pilot judges (Today/Approvals opens, flag decisions, brief/QBR generated and
+/// shared). `props` holds ids and small enums only, never customer content. UPDATE/DELETE are
+/// refused by a trigger except when the workspace's deletion grace has ended (the B2 purge).
+model ProductEvent {
+  id           String   @id @default(cuid())
+  workspaceId  String
+  membershipId String
+  /// One of PRODUCT_EVENT_NAMES (src/modules/reports/pilot-events.ts); validated in code.
+  name         String
+  subjectType  String?
+  subjectId    String?
+  occurredAt   DateTime
+  props        Json     @default("{}")
+  createdAt    DateTime @default(now())
+
+  workspace  Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  membership Membership @relation("ProductEventMember", fields: [workspaceId, membershipId], references: [workspaceId, id], onDelete: Cascade)
+
+  @@unique([workspaceId, id])
+  @@index([workspaceId, name, occurredAt])
+  @@index([workspaceId, membershipId, occurredAt])
 }

@@ -1,4 +1,5 @@
 import { writeAudit } from "@/lib/audit";
+import { recordProductEvent } from "@/lib/pilot/capture";
 import { daysBetween, businessClock, calendarDateOf, todayIn, type Clock } from "@/lib/dates";
 import { scopedDb, type ScopedDb, type TenantContext } from "@/lib/db/scoped";
 import { formatCalendarDate } from "@/lib/format";
@@ -178,7 +179,7 @@ export async function attachBrief(
   narrative: Parameters<typeof createDocument>[1]["narrative"],
   by: { origin: "HUMAN" | "AI"; agentRunId?: string },
 ) {
-  return scopedDb(ctx).$tenantTransaction(async (tx) => {
+  const created = await scopedDb(ctx).$tenantTransaction(async (tx) => {
     const doc = await createDocument(
       ctx,
       {
@@ -207,6 +208,14 @@ export async function attachBrief(
     );
     return doc;
   });
+  // A brief a person built counts toward prep time; an agent-built one has no member to credit.
+  await recordProductEvent(ctx as TenantContext & { membershipId?: string }, {
+    name: "brief.generated",
+    subjectType: "Document",
+    subjectId: created.id,
+    props: { kind: "RENEWAL_BRIEF", origin: by.origin },
+  });
+  return created;
 }
 
 export interface BriefPage {
@@ -246,7 +255,11 @@ export async function getRenewalBrief(actor: Actor, renewalId: string): Promise<
       renewalDate: r.renewalDate,
       stage: r.stage,
       planSteps: Array.isArray(r.planSteps)
-        ? (r.planSteps as unknown as Array<{ title: string; detail?: string | null; dueDate?: string | null }>)
+        ? (r.planSteps as unknown as Array<{
+            title: string;
+            detail?: string | null;
+            dueDate?: string | null;
+          }>)
         : [],
     },
     document: r.briefDocumentId ? await readDocument(actor, r.briefDocumentId) : null,

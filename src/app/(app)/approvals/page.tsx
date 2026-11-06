@@ -1,9 +1,11 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
+import { after } from "next/server";
 import { BulkApprovals, type BulkRow } from "@/components/app/bulk-approvals";
 import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { LEVEL_WORDS, sensitiveLabel, waitingFor } from "@/modules/approvals/schemas";
+import { recordProductEvent } from "@/lib/pilot/capture";
 import { approvalListQuery, listApprovals } from "@/modules/approvals/service";
 
 export const metadata: Metadata = { title: "Approvals" };
@@ -13,6 +15,7 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 /** Approvals (spec §5, §6F2): every draft or action waiting for a human yes or no. */
 export default async function ApprovalsPage({ searchParams }: { searchParams: SearchParams }) {
   const ctx = (await resolveWorkspaceContext(await requireSession()))!;
+  after(() => recordProductEvent(ctx, { name: "approvals.opened" }));
   const raw = Object.fromEntries(
     Object.entries(await searchParams).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v]),
   );
@@ -63,7 +66,8 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Se
           {page.rows.map((a) => (
             <li key={a.id} className="p-3 text-sm" data-testid="decided-row">
               <Link href={`/approvals/${a.id}` as Route} className="font-medium hover:underline">
-                {a.account ? `${a.account.name}: ` : ""}{a.reason}
+                {a.account ? `${a.account.name}: ` : ""}
+                {a.reason}
               </Link>
               <span className="text-muted-foreground ml-2">
                 {a.status.toLowerCase().replaceAll("_", " ")}
