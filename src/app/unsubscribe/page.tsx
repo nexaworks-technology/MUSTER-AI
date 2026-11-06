@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { MailCheck, MailX } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { processUnsubscribe } from "@/modules/campaigns/service";
 
 export const metadata: Metadata = {
@@ -29,24 +31,33 @@ export default async function UnsubscribePage({ searchParams }: UnsubscribePageP
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center space-y-4">
-        <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
-          Email Preferences
-        </h1>
-        <div
-          className={`p-4 rounded-md text-sm ${
+    <main className="mx-auto flex min-h-screen max-w-lg items-center px-4 py-10 md:py-16">
+      <Card className="w-full items-center gap-4 px-6 py-8 text-center md:px-10 md:py-12">
+        <span
+          className={`flex size-12 items-center justify-center rounded-full ${
             isSuccess
-              ? "bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-200"
-              : "bg-red-50 text-red-800 dark:bg-red-950 dark:text-red-200"
+              ? "bg-success-soft text-success-soft-foreground"
+              : "bg-warning-soft text-warning-soft-foreground"
+          }`}
+          aria-hidden="true"
+        >
+          {isSuccess ? <MailCheck className="size-5" /> : <MailX className="size-5" />}
+        </span>
+        <h1 className="text-xl font-semibold tracking-tight">Email Preferences</h1>
+        <div
+          className={`w-full rounded-md px-4 py-3 text-sm leading-relaxed ${
+            isSuccess
+              ? "bg-success-soft text-success-soft-foreground"
+              : "bg-warning-soft text-warning-soft-foreground"
           }`}
         >
           {message}
         </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          If you believe this was done in error or need further assistance, please contact customer support.
+        <p className="text-muted-foreground text-xs leading-relaxed">
+          If you believe this was done in error or need further assistance, please contact customer
+          support.
         </p>
-      </div>
-    </div>
+      </Card>
+    </main>
   );
 }

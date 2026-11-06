@@ -19,15 +19,15 @@ export function NewUserAcceptForm({ token, email }: { token: string; email: stri
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="token" value={token} />
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label htmlFor="accept-email">Email</Label>
-        <Input id="accept-email" value={email} readOnly disabled />
+        <Input id="accept-email" value={email} readOnly disabled className="h-11 md:h-10" />
       </div>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label htmlFor="accept-name">Your name</Label>
-        <Input id="accept-name" name="name" autoComplete="name" required />
+        <Input id="accept-name" name="name" autoComplete="name" required className="h-11 md:h-10" />
       </div>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label htmlFor="accept-password">Choose a password</Label>
         <Input
           id="accept-password"
@@ -36,10 +36,11 @@ export function NewUserAcceptForm({ token, email }: { token: string; email: stri
           autoComplete="new-password"
           minLength={12}
           required
+          className="h-11 md:h-10"
         />
         <p className="text-muted-foreground text-xs">At least 12 characters.</p>
       </div>
-      <Button type="submit" className="w-full" disabled={pending}>
+      <Button type="submit" size="lg" className="h-11 w-full md:h-10" disabled={pending}>
         {pending ? "Joining…" : "Join workspace"}
       </Button>
       <FormMessage state={state} />
@@ -55,7 +56,7 @@ export function ExistingUserAcceptForm({ token }: { token: string }) {
   return (
     <form action={action} className="space-y-3">
       <input type="hidden" name="token" value={token} />
-      <Button type="submit" className="w-full" disabled={pending}>
+      <Button type="submit" size="lg" className="h-11 w-full md:h-10" disabled={pending}>
         Accept invitation
       </Button>
       <FormMessage state={state} />

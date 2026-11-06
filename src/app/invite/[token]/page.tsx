@@ -26,7 +26,10 @@ export default async function InvitationPage({ params }: { params: Promise<{ tok
     body = (
       <>
         <p>{ENDED[state.kind]}</p>
-        <Link href="/sign-in" className="text-sm underline">
+        <Link
+          href="/sign-in"
+          className="text-primary focus-visible:ring-ring rounded-sm text-sm font-medium underline underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+        >
           Go to sign in
         </Link>
       </>
@@ -39,7 +42,10 @@ export default async function InvitationPage({ params }: { params: Promise<{ tok
     body = (
       <p>
         You already have an account as {state.invitation.email}.{" "}
-        <Link href="/sign-in" className="underline">
+        <Link
+          href="/sign-in"
+          className="text-primary focus-visible:ring-ring rounded-sm font-medium underline underline-offset-4 outline-none focus-visible:ring-2"
+        >
           Sign in
         </Link>{" "}
         with that email, then open this link again to accept.
@@ -55,15 +61,15 @@ export default async function InvitationPage({ params }: { params: Promise<{ tok
       : PRODUCT_NAME;
 
   return (
-    <main className="bg-muted flex min-h-screen items-center justify-center px-4 py-10">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
+    <main className="mx-auto flex min-h-screen max-w-md items-center px-4 py-10 md:py-16">
+      <Card className="w-full gap-6 py-6 md:py-8">
+        <CardHeader className="px-6 md:px-8">
           <CardTitle>
-            <h1 className="text-lg font-semibold">{heading}</h1>
+            <h1 className="text-xl font-semibold tracking-tight">{heading}</h1>
           </CardTitle>
           <CardDescription>{description}</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4 text-sm">{body}</CardContent>
+        <CardContent className="space-y-4 px-6 text-sm leading-relaxed md:px-8">{body}</CardContent>
       </Card>
     </main>
   );

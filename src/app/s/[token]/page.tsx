@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { CircleCheck, LinkIcon } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { noteAuthFailure, openTokenPage, TOO_MANY } from "@/lib/http/action-guard";
 import { LIMITS } from "@/lib/http/guard";
 import { getSurveyForToken } from "@/modules/surveys/service";
@@ -14,24 +16,47 @@ export default async function SurveyPage({ params }: { params: Promise<{ token: 
   const gate = await openTokenPage("survey", LIMITS.surveyPerIp);
   const view = gate.refused ? null : await getSurveyForToken(token);
   if (!gate.refused && !view) await noteAuthFailure(gate.ip);
+  const form = !gate.refused && view && !view.answered ? view : null;
   return (
-    <main className="mx-auto max-w-xl p-8">
-      <div className="rounded-md border p-6" data-testid="survey-page">
-        <h1 className="text-xl font-semibold">Your feedback</h1>
+    <main className="mx-auto flex min-h-screen max-w-2xl items-center px-4 py-10 md:py-16">
+      <Card className="w-full gap-0 px-5 py-6 md:px-8 md:py-10" data-testid="survey-page">
+        {form ? (
+          <h1 className="text-xl font-semibold tracking-tight md:text-2xl">Your feedback</h1>
+        ) : (
+          <div className="flex flex-col items-center gap-3 text-center">
+            <span
+              className={
+                !gate.refused && view
+                  ? "bg-success-soft text-success-soft-foreground flex size-12 items-center justify-center rounded-full"
+                  : "bg-muted text-muted-foreground flex size-12 items-center justify-center rounded-full"
+              }
+              aria-hidden="true"
+            >
+              {!gate.refused && view ? (
+                <CircleCheck className="size-5" />
+              ) : (
+                <LinkIcon className="size-5" />
+              )}
+            </span>
+            <h1 className="text-xl font-semibold tracking-tight">Your feedback</h1>
+          </div>
+        )}
         {gate.refused ? (
-          <p className="text-muted-foreground mt-2 text-sm">{TOO_MANY}</p>
+          <p className="text-muted-foreground mt-2 text-center text-sm leading-relaxed">
+            {TOO_MANY}
+          </p>
         ) : !view ? (
-          <p className="text-muted-foreground mt-2 text-sm">
+          <p className="text-muted-foreground mt-2 text-center text-sm leading-relaxed">
             This survey link is invalid or has expired.
           </p>
         ) : view.answered ? (
-          <p className="text-muted-foreground mt-2 text-sm">
+          <p className="text-muted-foreground mt-2 text-center text-sm leading-relaxed">
             This survey has already been answered. Thank you.
           </p>
         ) : (
           <SurveyForm token={token} question={view.question} range={RANGE[view.type] ?? [0, 10]} />
         )}
-      </div>
+      </Card>
     </main>
   );
 }
