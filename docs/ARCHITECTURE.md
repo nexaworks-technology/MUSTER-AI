@@ -617,6 +617,8 @@ Permissions are checked server-side by `requirePermission(ctx, perm)`. Book scop
 | Health model edit/activate | ✓ | propose; activate ✗ | ✗ | ✗ |
 | Integrations connect / write-back toggle | ✓ | ✗ | ✗ | ✗ |
 | Users, roles, data controls, export/delete | ✓ | ✗ | ✗ | ✗ |
+| Workspace settings (`workspace:manageSettings`) | ✓ | ✗ | ✗ | ✗ |
+| CSV data import (`data:import`, D-46) | ✓ | ✓ | ✗ | ✗ |
 | Campaign send | ✓ | ✓ | draft only | ✗ |
 | Reports (non-financial) | ✓ | ✓ | own book | ✓ |
 | Audit log view/export | ✓ | view | ✗ | ✗ |

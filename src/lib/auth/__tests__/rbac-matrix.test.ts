@@ -14,18 +14,15 @@ import {
  *
  *   none = ✗   all = whole workspace   book = the member's own book scope (bookScope)
  *
- * Rows the doc does not name are listed in UNSPECIFIED_BY_DOC and asserted separately so that a
- * new permission can never be added without a decision here.
+ * Every permission must have a §7.2 row here (M12 added data:import and workspace:manageSettings,
+ * whose grants the doc had lagged behind), so a new permission can never be added without one.
  */
 type Cell = "none" | "all" | "book";
 const ROLES: Role[] = ["ADMIN", "CS_LEADER", "CSM", "VIEWER"];
 const SCOPES: BookScope[] = ["OWN", "TEAM", "ALL"];
 
 // Column order: Admin, CS Leader, CSM, Viewer.
-const DOC: Record<
-  Exclude<Permission, "revenue:view" | "data:import" | "workspace:manageSettings">,
-  [Cell, Cell, Cell, Cell]
-> = {
+const DOC: Record<Exclude<Permission, "revenue:view">, [Cell, Cell, Cell, Cell]> = {
   // "View accounts / Account 360": all | all | own book (configurable TEAM/ALL) | all (read-only)
   "accounts:view": ["all", "all", "book", "all"],
   // "Edit accounts, contacts, notes, tasks": ✓ | ✓ | own book | ✗
@@ -56,17 +53,10 @@ const DOC: Record<
   // "Audit log view/export": ✓ | view | ✗ | ✗
   "audit:view": ["all", "all", "none", "none"],
   "audit:export": ["all", "none", "none", "none"],
-};
-
-/** Permissions the §7.2 table has no row for; the expectation is the code's documented intent. */
-const UNSPECIFIED_BY_DOC: Record<
-  "data:import" | "workspace:manageSettings",
-  [Cell, Cell, Cell, Cell]
-> = {
-  // DECISIONS D-46 (CSV import: data owners, Admin and CS Leader); not a §7.2 row.
-  "data:import": ["all", "all", "none", "none"],
-  // §7.2 groups "Users, roles, data controls" as Admin-only; workspace settings follow it.
+  // "Workspace settings (workspace:manageSettings)": ✓ | ✗ | ✗ | ✗ (row added in M12)
   "workspace:manageSettings": ["all", "none", "none", "none"],
+  // "CSV data import (data:import, D-46)": ✓ | ✓ | ✗ | ✗ (row added in M12)
+  "data:import": ["all", "all", "none", "none"],
 };
 
 function member(role: Role, bookScope: BookScope, canViewRevenue = false) {
@@ -95,21 +85,9 @@ describe("RBAC matrix (ARCHITECTURE §7.2)", () => {
     }
   }
 
-  for (const [permission, cells] of Object.entries(UNSPECIFIED_BY_DOC) as [
-    Permission,
-    [Cell, Cell, Cell, Cell],
-  ][]) {
-    for (const [i, role] of ROLES.entries()) {
-      it(`(not a §7.2 row) ${role} · ${permission} = ${cells[i]}`, () => {
-        expectCell(role, permission, cells[i]!);
-      });
-    }
-  }
-
   it("covers every permission in PERMISSIONS exactly once, and nothing else", () => {
     const covered = [
       ...Object.keys(DOC),
-      ...Object.keys(UNSPECIFIED_BY_DOC),
       "revenue:view",
     ].sort();
     expect(covered).toEqual([...PERMISSIONS].sort());
