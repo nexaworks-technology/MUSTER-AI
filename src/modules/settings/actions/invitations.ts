@@ -7,12 +7,23 @@ import { requireSession, setActiveWorkspace } from "@/lib/auth/session";
 import { acceptAsNewUserInput } from "../schemas";
 import { acceptInvitationAsExistingUser, acceptInvitationAsNewUser } from "../service";
 import { formObject, toFormError, type FormState } from "./shared";
+import { actionIp, refuseAction } from "@/lib/http/action-guard";
+import { LIMITS } from "@/lib/http/guard";
+
+/** M12 A9: invitation links are tokens; accepting is limited per IP. */
+async function inviteRefusal(): Promise<FormState | null> {
+  const ip = await actionIp();
+  const refused = await refuseAction(ip, [[`invite:ip:${ip}`, LIMITS.invitationPerIp]]);
+  return refused ? { error: refused } : null;
+}
 
 /** New person: create the account from the invite, then sign them straight in. */
 export async function acceptInviteAsNewUserAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const refusal = await inviteRefusal();
+  if (refusal) return refusal;
   let email: string;
   let password: string;
   try {
@@ -37,6 +48,8 @@ export async function acceptInviteAsExistingUserAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const refusal = await inviteRefusal();
+  if (refusal) return refusal;
   const session = await requireSession();
   try {
     const { membership } = await acceptInvitationAsExistingUser(

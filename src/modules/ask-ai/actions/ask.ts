@@ -1,5 +1,6 @@
 "use server";
 
+import { LIMITS, limitOrRefuse } from "@/lib/http/guard";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -32,6 +33,9 @@ async function actor() {
 export async function askAction(_prev: AskActionState, fd: FormData): Promise<AskActionState> {
   const a = await actor();
   if (!a) return { error: "You're not a member of this workspace." };
+  // M12 A9: each question can make several model calls; limited per member.
+  if (await limitOrRefuse(`ask:${a.membershipId}`, LIMITS.askPerMember))
+    return { error: "You've asked a lot in the last few minutes. Wait a little and try again." };
   const parsed = questionForm.safeParse({
     question: fd.get("question"),
     threadId: fd.get("threadId") || undefined,

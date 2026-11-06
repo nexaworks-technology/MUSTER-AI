@@ -1,0 +1,8 @@
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  02:32:34
+   Duration  795ms (setup 47%, worker 29%, transform 23%, environment 1%)
+
+[ELIFECYCLE] Test failed. See above for more details.

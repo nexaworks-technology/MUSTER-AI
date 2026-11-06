@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { openUpload } from "@/lib/http/guard";
 import { MAX_UPLOAD_BYTES } from "@/config/uploads";
 import { ForbiddenError } from "@/lib/auth/permissions";
 import { getWorkspaceContext } from "@/lib/auth/session";
@@ -20,16 +21,13 @@ const json = (body: unknown, status: number) =>
 
 export async function POST(req: Request) {
   const ctx = await getWorkspaceContext();
+  // M12 A9: 401s counted per IP, a per-member limit, and a streaming cap on the body.
+  const open = await openUpload(req, ctx, MAX_UPLOAD_BYTES + 64 * 1024, () =>
+    json({ error: "Sign in to upload files." }, 401),
+  );
+  if (open.refused) return open.refused;
   if (!ctx) return json({ error: "Sign in to upload files." }, 401);
-  const declared = Number(req.headers.get("content-length") ?? 0);
-  if (declared > MAX_UPLOAD_BYTES + 64 * 1024)
-    return json({ error: "Files can be up to 25 MB." }, 413);
-  let form: FormData;
-  try {
-    form = await req.formData();
-  } catch {
-    return json({ error: "The upload could not be read. Try again." }, 400);
-  }
+  const form = open.form;
   const file = form.get("file");
   const parsed = fields.safeParse({
     purpose: form.get("purpose"),

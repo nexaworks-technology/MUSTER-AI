@@ -1,3 +1,4 @@
+import { LIMITS, limitOrRefuse, openPublicRequest } from "@/lib/http/guard";
 import { logger } from "@/lib/logger";
 import { providerParam, receiveWebhook } from "@/modules/integrations/service";
 
@@ -5,7 +6,7 @@ import { providerParam, receiveWebhook } from "@/modules/integrations/service";
  * POST /api/integrations/[provider]/webhook/[integrationId] — provider webhooks (M5 rule 4).
  * No session: the integration id in the URL names exactly one integration, and the payload is
  * applied only after its signature verifies with that integration's own secret. Bodies over
- * 1 MB are refused unread.
+ * 1 MB are refused while streaming (M12 A9); repeated 401s block the caller's IP.
  */
 const MAX_BODY = 1_000_000;
 
@@ -14,12 +15,14 @@ export async function POST(
   { params }: { params: Promise<{ provider: string; integrationId: string }> },
 ) {
   const { provider, integrationId } = await params;
+  // M12 A9: blocked IPs refused, body read under a streaming cap, 401s counted per IP.
+  const open = await openPublicRequest(req, MAX_BODY);
+  if (open.refused) return open.refused;
   const parsed = providerParam.safeParse(provider);
-  if (!parsed.success) return new Response("unverified", { status: 401 });
-  if (Number(req.headers.get("content-length") ?? 0) > MAX_BODY)
-    return new Response("too large", { status: 413 });
-  const rawBody = await req.text();
-  if (rawBody.length > MAX_BODY) return new Response("too large", { status: 413 });
+  if (!parsed.success) return open.done(new Response("unverified", { status: 401 }));
+  const limited = await limitOrRefuse(`webhook:${integrationId}`, LIMITS.webhookPerIntegration);
+  if (limited) return limited;
+  const rawBody = open.body;
   const headers: Record<string, string> = {};
   req.headers.forEach((v, k) => (headers[k.toLowerCase()] = v));
   try {
@@ -28,7 +31,7 @@ export async function POST(
       rawBody,
       url: req.url,
     });
-    return new Response(res.body, { status: res.status });
+    return open.done(new Response(res.body, { status: res.status }));
   } catch (error) {
     logger.error(
       { provider, integrationId, err: error instanceof Error ? error.name : "unknown" },

@@ -1,12 +1,22 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { processEmailWebhook, verifyWebhookSignature, type EmailWebhookEvent } from "@/modules/campaigns/service";
+import { openPublicRequest } from "@/lib/http/guard";
+import {
+  processEmailWebhook,
+  verifyWebhookSignature,
+  type EmailWebhookEvent,
+} from "@/modules/campaigns/service";
+
+/** M12 A9: provider delivery webhooks are small; 256 KB, read under a streaming cap. */
+const MAX_BODY = 256_000;
 
 export async function POST(req: NextRequest) {
+  const open = await openPublicRequest(req, MAX_BODY);
+  if (open.refused) return open.refused;
   const svixId = req.headers.get("svix-id");
   const svixTimestamp = req.headers.get("svix-timestamp");
   const svixSignature = req.headers.get("svix-signature");
 
-  const rawBody = await req.text();
+  const rawBody = open.body;
 
   const isValid = verifyWebhookSignature(
     {
@@ -18,7 +28,7 @@ export async function POST(req: NextRequest) {
   );
 
   if (!isValid) {
-    return NextResponse.json({ error: "Invalid webhook signature" }, { status: 401 });
+    return open.done(NextResponse.json({ error: "Invalid webhook signature" }, { status: 401 }));
   }
 
   let event: EmailWebhookEvent;

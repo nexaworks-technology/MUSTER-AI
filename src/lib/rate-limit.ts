@@ -45,6 +45,22 @@ export async function hitRateLimit(
   };
 }
 
+/** Reads the current window's count without counting (M12 A9: the 401 IP block). */
+export async function peekRateLimit(
+  key: string,
+  { windowSeconds }: RateLimit,
+  now: Date = new Date(),
+  r: Pick<Redis, "get"> = redis(),
+): Promise<{ used: number; retryAfterSeconds: number }> {
+  const nowSeconds = now.getTime() / 1000;
+  const bucket = Math.floor(nowSeconds / windowSeconds);
+  const used = Number((await r.get(`${queuePrefix()}:rl:${key}:${bucket}`)) ?? 0);
+  return {
+    used,
+    retryAfterSeconds: Math.max(1, Math.ceil((bucket + 1) * windowSeconds - nowSeconds)),
+  };
+}
+
 export async function closeRateLimit(): Promise<void> {
   await client?.quit().catch(() => undefined);
   client = undefined;
