@@ -26,7 +26,9 @@ import type { Actor } from "@/modules/accounts/service";
 export const DELETION_GRACE_DAYS = 7;
 const DAY = 86_400_000;
 
+/** A refusal the person can act on (wrong confirmation); shown as-is on the form. */
 export class DeletionError extends Error {
+  readonly userFacing = true;
   constructor(message: string) {
     super(message);
     this.name = "DeletionError";

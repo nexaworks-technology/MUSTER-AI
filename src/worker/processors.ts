@@ -38,7 +38,7 @@ import {
 } from "@/modules/outcomes/service";
 import { runWeeklyDigest } from "@/modules/reports/service";
 import { escalateOverdueTasks } from "@/modules/tasks/service";
-import { runExportJob } from "@/modules/settings/service";
+import { purgeDueWorkspaces, runExportJob } from "@/modules/settings/service";
 import { rebuildWorkspaceToday } from "@/modules/today/service";
 import { createPipelineProcessors } from "@/modules/signals/service";
 import {
@@ -206,6 +206,10 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
     async "maintenance.exportWorkspace"(job) {
       return runExportJob(job.data);
     },
+    /** M12 B2: purge every workspace whose deletion grace has ended (D-179); idempotent. */
+    async "maintenance.purgeWorkspaces"() {
+      return purgeDueWorkspaces();
+    },
     async "nightly.schedules"() {
       return { workspaces: await syncNightlySchedules() };
     },
@@ -275,6 +279,12 @@ export const SCHEDULES = [
   { queue: "maintenance", id: "outbox-dispatch", job: "outbox.dispatch", everyMs: 5_000 },
   // New workspaces get their nightly run within the hour (and at worker start, see index.ts).
   { queue: "maintenance", id: "nightly-schedules", job: "nightly.schedules", everyMs: 3_600_000 },
+  {
+    queue: "maintenance",
+    id: "workspace-purge",
+    job: "maintenance.purgeWorkspaces",
+    everyMs: 3_600_000,
+  },
   // M4: narratives for snapshots no event covers (first snapshot, top-reason change).
   { queue: "agents", id: "health-analyst-sweep", job: "health-analyst.sweep", everyMs: 900_000 },
   // M9: the Promise Keeper for late promises of ours.
