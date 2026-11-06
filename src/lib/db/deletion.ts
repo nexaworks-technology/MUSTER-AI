@@ -53,6 +53,20 @@ export function dueTombstones(now: Date): Promise<WorkspaceTombstone[]> {
   });
 }
 
+/**
+ * DEMO / E2E ONLY (M12 demo step 7; scripts/demo-purge-now.ts refuses outside test seams): ends the
+ * grace period of an existing, uncancelled deletion request now, as if the days had passed. Only a
+ * request the Admin already made can be fast-forwarded; it never creates one. Returns false when
+ * there is none.
+ */
+export async function endGraceNowForDemo(workspaceId: string, now: Date): Promise<boolean> {
+  const r = await rawDb.workspaceTombstone.updateMany({
+    where: { workspaceId, cancelledAt: null, purgedAt: null },
+    data: { graceEndsAt: new Date(+now - 60_000) },
+  });
+  return r.count === 1;
+}
+
 /** Rows per [W] model for one workspace (non-zero only). */
 export async function countWorkspaceRows(workspaceId: string): Promise<Record<string, number>> {
   const counts: Record<string, number> = {};

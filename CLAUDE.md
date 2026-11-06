@@ -48,6 +48,9 @@ you must flag the disagreement in `docs/QUESTIONS.md` — never silently follow 
   — composes answers from the asker's tool records and runs them through the real loop; proposals land in Approvals
 - Live save chain on a demo clock (M11, dev only): `pnpm exec tsx --env-file=.env scripts/demo-m11-save-chain.ts --workspace <slug> [--account "<name>"]`
   — real rules flag, approval + send, renewal sync, frozen checkpoints for that one account (default Harborwood); refused in production
+- Purge now after a requested deletion (M12 demo step 7, dev/e2e only; refused where test seams are not allowed):
+  `pnpm exec tsx --env-file=.env scripts/demo-purge-now.ts --workspace <slug>` — ends the grace of the Admin's existing
+  request and runs the hourly purge; never requests a deletion itself
 - Fresh workspace in setup (M5 `/setup` demo): `pnpm db:seed -- --empty-workspace` (Juniper Labs, admin@juniper.test)
 - Connectors on recorded fixtures (tests, e2e, demo; refused in production): `INTEGRATIONS_TRANSPORT=fixture`
 - Typecheck: `pnpm typecheck` · Lint: `pnpm lint` · Format check: `pnpm format:check`
