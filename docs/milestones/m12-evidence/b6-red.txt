@@ -1,0 +1,30 @@
+     23|   });
+     24|   it("accepts CLAMD_HOST, or CLAMD_SOCKET", () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  |app| src/lib/config/__tests__/env-scanner.test.ts > production malware-scanner boot check (M12 #15, Q-18) > accepts CLAMD_HOST, or CLAMD_SOCKET
+AssertionError: expected undefined to be 3310 // Object.is equality
+
+- Expected:
+3310
+
++ Received:
+undefined
+
+ ❯ src/lib/config/__tests__/env-scanner.test.ts:25:68
+     23|   });
+     24|   it("accepts CLAMD_HOST, or CLAMD_SOCKET", () => {
+     25|     expect(parseEnv({ ...prod, CLAMD_HOST: "clamav" }).CLAMD_PORT).toB…
+       |                                                                    ^
+     26|     expect(parseEnv({ ...prod, CLAMD_SOCKET: "/run/clamd.sock" }).CLAM…
+     27|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  3 failed | 1 passed (4)
+      Tests  2 failed | 18 passed (20)
+   Start at  07:59:59
+   Duration  628ms (import 39%, transform 34%, tests 12%, setup 9%, worker 6%)
+

@@ -1,0 +1,32 @@
+== version
+ClamAV 1.5.4
+== freshclam signature counts
+daily.cvd updated (version: 28174, sigs: 355841, f-level: 90, builder: svc.clamav-publisher)
+main.cvd updated (version: 63, sigs: 3287027, f-level: 90, builder: tomjudge)
+bytecode.cvd updated (version: 339, sigs: 80, f-level: 90, builder: nrandolp)
+== real clamd (127.0.0.1:3310, StreamMaxLength 1M)
+
+ RUN  v5.0.5 /Users/sahil/customer sucesss platform
+
+ ✓ |app| src/lib/uploads/__tests__/clamd.int.test.ts > real clamd > answers PING with PONG 2ms
+ ✓ |app| src/lib/uploads/__tests__/clamd.int.test.ts > real clamd > a clean buffer is CLEAN 5ms
+ ✓ |app| src/lib/uploads/__tests__/clamd.int.test.ts > real clamd > the EICAR test string is REJECTED 1ms
+ ✓ |app| src/lib/uploads/__tests__/clamd.int.test.ts > real clamd > a payload over StreamMaxLength is an error, never CLEAN 4ms
+ ✓ |app| src/lib/uploads/__tests__/clamd.int.test.ts > real clamd > an unreachable clamd is ScannerUnavailableError 1ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  08:01:38
+   Duration  681ms (tests 58%, import 12%, transform 12%, setup 11%, worker 7%)
+
+== clamd stopped -> ScannerUnavailableError
+clamd stopped
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 4 skipped (5)
+   Start at  08:01:39
+   Duration  538ms (tests 24%, import 22%, setup 21%, transform 19%, worker 13%)
+
+== after stop: real (now-stopped) 127.0.0.1:3310, scan() outcome
+ScannerUnavailableError: clamd connection failed: connect ECONNREFUSED 127.0.0.1:3310
+ping: false

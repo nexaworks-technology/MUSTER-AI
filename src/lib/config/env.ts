@@ -100,6 +100,12 @@ export const envSchema = z
     /** Used only by the dev `pnpm demo:webhook` script; real integrations keep their own (D3). */
     STRIPE_WEBHOOK_SECRET: optionalString,
 
+    /** ClamAV daemon for upload scanning (Q-18). Production needs CLAMD_HOST or CLAMD_SOCKET. */
+    CLAMD_HOST: optionalString,
+    CLAMD_PORT: z.coerce.number().int().min(1).max(65535).default(3310),
+    CLAMD_SOCKET: optionalString,
+    CLAMD_TIMEOUT_MS: z.coerce.number().int().min(100).max(600_000).default(30_000),
+
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
   })
   .superRefine((env, ctx) => {
@@ -115,6 +121,14 @@ export const envSchema = z
         code: "custom",
         path: ["AI_PROVIDER"],
         message: "the recorded AI provider is test-only and refused in production (D-19)",
+      });
+    }
+    if (env.NODE_ENV === "production" && !env.CLAMD_HOST && !env.CLAMD_SOCKET) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["CLAMD_HOST"],
+        message:
+          "production needs a malware scanner (ClamAV clamd): set CLAMD_HOST (and CLAMD_PORT) or CLAMD_SOCKET (Q-18)",
       });
     }
     if (env.EMAIL_TRANSPORT === "resend" && (!env.RESEND_API_KEY || !env.EMAIL_FROM)) {

@@ -4,6 +4,7 @@ import { can, ForbiddenError, requirePermission } from "@/lib/auth/permissions";
 import type { UploadPurpose } from "@/config/uploads";
 import { scopedDb } from "@/lib/db/scoped";
 import { getStorage, type Storage } from "@/lib/storage";
+import { ScannerUnavailableError } from "@/lib/uploads/clamd";
 import { getScanner, type MalwareScanner } from "@/lib/uploads/scanner";
 import { validateUpload } from "@/lib/uploads/validate";
 import { getAccount, requireEditableAccount, type Actor } from "@/modules/accounts/service";
@@ -78,6 +79,20 @@ async function authorize(
   else if (!(await getAccount(actor, accountId))) throw new FileNotFoundError();
 }
 
+/** A missing or unavailable scanner leaves the file PENDING; only a real verdict sets CLEAN. */
+async function scanOrPending(
+  scanner: MalwareScanner | null,
+  bytes: Uint8Array,
+): Promise<"CLEAN" | "REJECTED" | "PENDING"> {
+  if (!scanner) return "PENDING";
+  try {
+    return await scanner.scan(bytes);
+  } catch (e) {
+    if (e instanceof ScannerUnavailableError) return "PENDING";
+    throw e;
+  }
+}
+
 export async function storeUpload(
   actor: Actor,
   input: {
@@ -106,7 +121,7 @@ export async function storeUpload(
     if (!contract) throw new FileNotFoundError();
   }
   const scanner = deps.scanner === undefined ? getScanner() : deps.scanner;
-  const scanStatus = scanner ? await scanner.scan(input.bytes) : "PENDING";
+  const scanStatus = await scanOrPending(scanner, input.bytes);
   if (scanStatus === "REJECTED")
     throw new UploadRejectedError("This file failed the security scan and was not uploaded.");
 
