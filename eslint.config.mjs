@@ -43,6 +43,7 @@ export default defineConfig([
   ...nextTs,
   globalIgnores([
     ".next/**",
+    ".next-e2e/**", // the e2e production build (D-182)
     "out/**",
     "build/**",
     "coverage/**",

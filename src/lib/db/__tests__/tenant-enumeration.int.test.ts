@@ -196,11 +196,19 @@ async function hashB(): Promise<string> {
     (m) =>
       `SELECT '${m}' AS t, md5(coalesce(string_agg(x::text, '|' ORDER BY x::text), '')) AS h FROM "${m}" x WHERE x."workspaceId" = $1`,
   ).join(" UNION ALL ");
-  const rows = await rawDb.$transaction(async (tx) => {
-    await tx.$executeRaw`SELECT set_config('app.workspace_id', ${B.workspaceId}, true)`;
-    return tx.$queryRawUnsafe<Array<{ t: string; h: string }>>(parts, B.workspaceId);
-  });
-  return rows.map((r) => `${r.t}:${r.h}`).join(",");
+  // UNION ALL has no guaranteed row order (Parallel Append under load), so sort by table; and
+  // ~80 aggregates can exceed the 5s interactive-transaction default on a busy database.
+  const rows = await rawDb.$transaction(
+    async (tx) => {
+      await tx.$executeRaw`SELECT set_config('app.workspace_id', ${B.workspaceId}, true)`;
+      return tx.$queryRawUnsafe<Array<{ t: string; h: string }>>(parts, B.workspaceId);
+    },
+    { timeout: 30_000 },
+  );
+  return rows
+    .map((r) => `${r.t}:${r.h}`)
+    .sort()
+    .join(",");
 }
 
 const leaks = (value: unknown): string[] => {
