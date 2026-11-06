@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { processUnsubscribe } from "@/modules/campaigns/service";
 
 export const metadata: Metadata = {
-  title: "Unsubscribe | NexaWorks",
+  title: "Unsubscribe",
 };
 
 interface UnsubscribePageProps {

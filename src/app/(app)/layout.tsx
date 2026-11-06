@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { NavLink } from "@/components/app/nav-link";
 import { NativeSelect } from "@/components/app/native-select";
 import { PRODUCT_NAME } from "@/config/product";
 import { visibleNav } from "@/config/features";
@@ -54,14 +55,14 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           <ul className="flex gap-1 md:flex-col">
             {nav.map((item) => (
               <li key={item.label}>
-                <Link
+                <NavLink
                   // A UrlObject: with this many typed routes, passing the whole `Route` union to
                   // `href` crashes the TypeScript compiler (internal assertion), so the nav links by path.
                   href={{ pathname: item.href }}
                   className="text-foreground hover:bg-hover focus-visible:ring-ring block rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:outline-none"
                 >
                   {item.label}
-                </Link>
+                </NavLink>
               </li>
             ))}
           </ul>

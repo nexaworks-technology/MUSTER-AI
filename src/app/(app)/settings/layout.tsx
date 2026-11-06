@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { NavLink } from "@/components/app/nav-link";
 import type { ReactNode } from "react";
 import { allowedSettingsTabs, requireSettingsAccess } from "./access";
 
@@ -13,12 +13,13 @@ export default async function SettingsLayout({ children }: { children: ReactNode
           <ul className="flex gap-1 text-sm">
             {allowedSettingsTabs(ctx).map((t) => (
               <li key={t.href}>
-                <Link
+                <NavLink
+                  variant="tab"
                   href={t.href}
                   className="focus-visible:ring-ring text-foreground hover:border-border inline-block rounded-t-md border-b-2 border-transparent px-3 py-2.5 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-inset"
                 >
                   {t.label}
-                </Link>
+                </NavLink>
               </li>
             ))}
           </ul>

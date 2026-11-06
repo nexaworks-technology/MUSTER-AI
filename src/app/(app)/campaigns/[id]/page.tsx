@@ -19,6 +19,7 @@ const RECIPIENT_VARIANTS: Record<string, "success" | "warning" | "danger"> = {
   SENT: "success",
   HELD: "warning",
   FAILED: "danger",
+  BOUNCED: "danger",
 };
 
 interface CampaignDetailPageProps {
