@@ -1,0 +1,5 @@
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  |app| src/modules/campaigns/__tests__/webhook-schema.test.ts > email webhook payload > accepts a provider delivery event with tags as an array or a map
+TypeError: parseEmailWebhookEvent is not a function
+ FAIL  |app| src/modules/campaigns/__tests__/webhook-schema.test.ts > email webhook payload > refuses bodies that are not delivery events
+TypeError: parseEmailWebhookEvent is not a function

@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { writeAudit } from "@/lib/audit";
 import { findOutboundMessageByProviderId } from "@/lib/db/inbound";
+import { z } from "zod";
 import { scopedDb } from "@/lib/db/scoped";
 
 export interface WebhookHeaders {
@@ -18,7 +19,8 @@ export function verifyWebhookSignature(
   rawBody: string,
   secretOverride?: string,
 ): boolean {
-  const secret = secretOverride || process.env.RESEND_WEBHOOK_SECRET || process.env.EMAIL_WEBHOOK_SECRET;
+  const secret =
+    secretOverride || process.env.RESEND_WEBHOOK_SECRET || process.env.EMAIL_WEBHOOK_SECRET;
   if (!secret) return false;
 
   const { id, timestamp, signature } = headers;
@@ -64,19 +66,37 @@ export function verifyWebhookSignature(
   return false;
 }
 
-export interface EmailWebhookEvent {
-  type: string;
-  created_at?: string;
-  data: {
-    email_id?: string;
-    id?: string;
-    to?: string[] | string;
-    recipient?: string;
-    bounce_type?: string;
-    workspace_id?: string;
-    tags?: Record<string, string> | Array<{ name: string; value: string }>;
-    [key: string]: unknown;
-  };
+/**
+ * A provider delivery event (Resend/Svix shape). Signed bodies are still external input: they are
+ * Zod-parsed before use (M12 B9, found in A9). Unknown fields in `data` pass through untouched.
+ */
+const emailWebhookEventSchema = z.object({
+  type: z.string().min(1).max(100),
+  created_at: z.string().max(64).optional(),
+  data: z
+    .object({
+      email_id: z.string().max(200).optional(),
+      id: z.string().max(200).optional(),
+      to: z.union([z.array(z.string().max(320)), z.string().max(320)]).optional(),
+      recipient: z.string().max(320).optional(),
+      bounce_type: z.string().max(100).optional(),
+      workspace_id: z.string().max(100).optional(),
+      tags: z
+        .union([
+          z.record(z.string(), z.string()),
+          z.array(z.object({ name: z.string(), value: z.string() })),
+        ])
+        .optional(),
+    })
+    .passthrough(),
+});
+
+export type EmailWebhookEvent = z.infer<typeof emailWebhookEventSchema>;
+
+/** The parsed event, or null when the body is not a delivery event. */
+export function parseEmailWebhookEvent(raw: unknown): EmailWebhookEvent | null {
+  const r = emailWebhookEventSchema.safeParse(raw);
+  return r.success ? r.data : null;
 }
 
 export interface ProcessWebhookOptions {
