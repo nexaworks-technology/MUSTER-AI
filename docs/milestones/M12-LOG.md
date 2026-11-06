@@ -47,3 +47,71 @@ Source: every `docs/milestones/M1-LOG.md` through `M11-LOG.md`, cross-read with 
 | 37 | Resolved before M12, listed for completeness: signals list category filter for CALLS_EMAIL / PROMISES (Q-76) | M9 Session A | RESOLVED (CALLS_EMAIL label present in `signals/schemas.ts`); verify PROMISES during A6 if touched | resolved |
 
 **Row count: 37** (5 already resolved, 32 open).
+
+---
+
+## Session A — Security & correctness (2026-11-06)
+
+Founder go: D1–D8 at the recommended defaults (D5: Fly.io, needed at Session C; D9 name/pricing never invented); `git-filter-repo` approved as a machine tool. All commit hashes below are on the **final** rewritten history.
+
+### What was built
+
+| Slice | Model | Commit | What | Evidence |
+|---|---|---|---|---|
+| Scanner (A2 pre) | Opus | `d81e930` | `scripts/check-secrets-history.ts`: every blob reachable from every ref plus every commit/tag message, the same patterns as `check-secrets.ts`, plus known leaked literals from a local, never-committed file; prints ids, never values. New rule `secret-fallback-default`. The URL rule no longer flags `${…}` template passwords. | RED `m12-evidence/a2-red.txt`; 22 scanner tests |
+| A2 History scrub | **Opus** | `dc792cf` | `git filter-repo` 2.47.0 on a fresh clone in two ordered passes. Replaced: the two rotated Q-78 DB passwords, the survey fallback string (incl. M11-LOG), and two fake fixture literals shaped like tokens. The M9 scanner test keeps a detectable fake value. D-172. | before: 18 findings (`a2-history-scan-before.txt`); after: **0** (`a2-history-scan-after.txt`); raw sweep of 5,461 objects 0; fsck clean |
+| A1 Deferral sweep | Sonnet | `80ecb6e` | 37 deferral rows, every one placed (A/B/C/Phase 2/pilot). Errata appended to M10-LOG (Brightwell 64.87/WATCH/40 per Q-86; survey intake PASS was service-level only) and M11-LOG (survey literal scrubbed). | M12-LOG §Deferral sweep |
+| A3 Migrations | **Opus** | `fe55681` | The folder (37) is the source of truth. `migrate deploy` from an empty scratch database applies all 37; dev and test hold exactly the 37 with matching checksums; `schema.prisma` now declares what the M8 migrations created, so `migrate diff` is empty. No applied migration edited; the M8/M10 after-apply edits are stated plainly in D-173. | `m12-evidence/a3-migrations-from-zero.txt` |
+| A4 Q-81 UTC | Sonnet | `724f74a` | `contact_status_changed_at`, `ticket_escalated_at` and (found in the audit) `ticket_priority_history` stamp `now() AT TIME ZONE 'UTC'`. New migration; none edited. | RED (5.5 h / 8 h offsets) `a4-red.txt`; tests under Asia/Kolkata + America/Los_Angeles |
+| A5 Q-54 | **Opus** | `ab56b6c` | Root fix in `scopedDb`: any same-workspace scoped operation while a tenant transaction is open re-issues on that transaction's client (it used another pooled connection with no workspace set, so RLS silently hid rows); another workspace is still refused. D-174. | RED 4/5 `a5-red.txt`; audit `a5-nested-audit.txt` (0 lexical sites); targeted regression 118 files / 1,338 tests |
+| A7 RBAC | Sonnet | `cb76e02` | §7.2 written independently and asserted against `can()` for every role × permission (book cells across OWN/TEAM/ALL). Revenue redaction proven across accounts, billing, renewals, revenue view, report snapshots, ledger and Ask AI tools. **No mismatch, no gap.** | 100 tests; `a7-red.txt` |
+| A6 Tenant enumeration | **Opus** | `72dca07` | Discovered at runtime: **90** Server Actions, **16** route-handler entries (2 Auth.js methods exempt with reason), **12** Ask AI tools. Each called with a real workspace-A session and workspace-B ids in 4 input shapes; B's rows must stay byte-identical (hash over all [W] tables) and no B id or text may be returned. All green; Q-50 resolved. | `tenant-enumeration.int.test.ts` |
+| A8 Headers/CSP/cookies | Sonnet | `8b6eb70` | `src/proxy.ts`: per-request nonce CSP (strict-dynamic, `frame-ancestors 'none'`), HSTS (production), nosniff, Referrer-Policy, X-Frame-Options DENY, Permissions-Policy; Auth.js cookies HttpOnly/SameSite=Lax/Secure with `__Secure-`/`__Host-` prefixes in production. **Found in the browser:** Next's dev server injects nonce-less `<style>` (66 violations), so development alone allows inline styles. Production nonce-only is **to be proven in B7's production-build e2e**. D-175. | 16 tests; `a8-red.txt`; dev browser check |
+| A9 Rate limits & body caps | **Opus** | `7d43b56` | Repeated-401 IP block (20 per 10 min → 429). Limits on sign-in (IP, email), invitation accept, webhooks, portal, survey, Ask AI and uploads. Every body read through a streaming cap that stops a chunked oversize request regardless of Content-Length (the email webhook had **no** cap). D-176. | RED `a9-red.txt`; 13 tests proving refusals through the real routes and actions |
+| A10 Portal/survey attack pass | **Opus** | `e5d8e19` | **M10 bug fixed:** public `/s/[token]` page and action (survey intake was service-level only; the emailed link pointed at a hard-coded host that never existed). Token v2: domain-separated key, constant-time check, Zod payload, 30-day expiry, one answer per token. Grep audit of every signing site found **one more hard-coded fallback**, the M8 unsubscribe key, which was removed; new scanner rule `secret-constant-literal` (shipped code only). Portal penetration suite re-run green. D-177. | RED `a10-red.txt`; 9 survey attack tests; scanner tests |
+| A11 Logs, CI, audit | Sonnet | `d112e0c` | Deep log redaction (tokens, credentials, cookies, email bodies, AI content, key-shaped strings, Error causes). `.github/workflows/ci.yml` runs gate + history scan + advisory audit (unverified until a remote exists). `pnpm audit`: 1 high (deepmerge-ts via Prisma config tooling, transitive), 1 moderate dev-only (minimatch via typescript-eslint); **nothing upgraded**. | `a11-red.txt`; `a11-audit.txt` |
+| A12 Bundle isolation + SECURITY.md | Sonnet | `483e739`, `e2f1e42` | Every agent's prepared bundle holds only its workspace's records, and forged B ids never reach a bundle or prompt (14 agents + Ask AI retrieval; a new agent must add a fixture). `docs/SECURITY.md` makes no certificate claims. Q-19 records Anthropic's public commercial terms read 2026-11-06 (commercial-terms page; privacy-center retention article). The founder's own account terms are **not** verified. | 3 isolation tests |
+| Second scrub pass | Opus | `f882f4d` | Founder-approved: the M8 unsubscribe fallback literal removed from all history (D-178). Hash map regenerated: original → after A2 → final for the 220 pre-M12 commits, and before → final for the 13 M12 commits made between passes. | history scan with all 4 known values: 233 commits, 2,658 blobs, **0 findings**; raw sweep 0; fsck clean (`a10-history-scan-after-second-pass.txt`) |
+
+**History rewrite facts:**
+- **Backups (untouched):** the original is at `/Users/sahil/customer-sucesss-platform-backup-pre-scrub-2026-11-06.git`; the after-A2 state is at `/Users/sahil/customer-sucesss-platform-backup-after-a2-2026-11-06.git`.
+- **Not in the repo:** the replacement expressions and the known values live only in the session scratchpad.
+- **Nothing pushed or shared;** the repo has no remote.
+- **Old hashes:** M1–M11 logs keep citing the original hashes; use `docs/HISTORY_REWRITE_MAP.md`.
+
+### Pre-M12 test changes
+
+None. The M9 scanner test's fixture value was changed **only through the history rewrite** (D-172: the leaked password became a fake, still-detectable value). It was not edited as a file, and it passes at every commit.
+
+### The one mid-milestone full `pnpm test`
+
+| Run | Files | Tests | Result |
+|---|---|---|---|
+| M11 close baseline | 284 | 2,651 | green |
+| **M12 Session A mid-run** (on the final history) | 297 | 2,815 | **1 failed**, 296 files / 2,814 tests passed (302 s) |
+
+**The failure, read on its own:** `src/modules/agents/__tests__/adoption-coach.int.test.ts` › "a number the model invents is UNCITED" fails deterministically (3 of 3 isolated reruns).
+- **Cause:** the test builds usage history relative to the **real current date**. On 2026-11-06 the bundle legitimately contains `"lastUsed": "Nov 4, 2026"`, `"date": "Nov 5, 2026"` and `"featuresInPlan": 5` (shown by a temporary untracked debug copy, since deleted). So the "invented" numbers 4 and 5 really are in cited records, and the numbers rule correctly accepts them.
+- **Not caused by M12:** the same test fails on M11's final code (`2496ac5`, run in a temporary worktree).
+- **Status: STOPPED, not fixed.** The fix is a pre-M12 test edit (invented numbers that cannot appear in any date), which needs your approval under the standing rules. No fix batch was spent.
+
+### Findings and decisions for the founder
+
+1. **Approve the adoption-coach test fix** (choose non-colliding invented numbers). It is date-sensitive and fails on some calendar days; it isn't an M12 regression.
+2. **Dependency advisories (A11):** deepmerge-ts (high, transitive via Prisma's config tooling) and minimatch (moderate, dev-only). Recommendation: a pnpm `overrides` entry for deepmerge-ts ≥ 8.0.0 if Prisma does not ship a fix first, and accept minimatch as dev-only until a typescript-eslint bump. Nothing upgraded without your approval.
+3. **ARCHITECTURE §7.2** has no rows for `data:import` (Admin, CS Leader; D-46) and `workspace:manageSettings` (Admin). The code matches its decisions; the doc should name them (B9).
+4. **Q-19:** only the public Anthropic terms are recorded. Your own account terms (ZDR, DPA, retention settings) need you (Session C / pilot).
+5. **The CSP in production** is nonce-only on paper and in unit tests, but not yet in a real browser. B7's production-build e2e must include a no-CSP-violations check.
+6. **M9-LOG's "Q-81" for push subscriptions** was a mislabel; push stays C3 (recorded in the Q-81 resolution row).
+
+### State summary for Session B
+
+- **HEAD** `f882f4d` on the final rewritten history; tree clean; no remote.
+- **Next slices:** B1–B9 as planned (export, delete/purge, 2,000-account performance, observability, pilot metrics, malware scanner, D3/D4 production-build e2e + isolation + CSP browser check + Q-47 closure, setup e2e + m12-hardening spec, docs).
+- **Economics:** the one mid-milestone full run is **used**; no fix batch spent. The close is still one full e2e (production build) then one full gate.
+- **Carried into B and C:**
+  - founder decisions 1 and 2;
+  - B7 must prove the production CSP;
+  - the email webhook parses JSON without Zod (found in A9, out of scope there; B-session fix candidate);
+  - the 2,000-account run is on this machine and labelled local.
+- **Dev tools added:** `scripts/check-secrets-history.ts` (CI + manual, `--known` locally only); `git-filter-repo` 2.47.0 at `~/.local/share/git-filter-repo-2.47.0`.
