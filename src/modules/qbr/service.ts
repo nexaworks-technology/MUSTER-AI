@@ -4,6 +4,7 @@ import type { Prisma, Document } from "@prisma/client";
 import { runAgent, type ExecutorDeps } from "../agents/executor";
 import { meetingQbr } from "../agents/definitions/meeting-qbr";
 import { computeQbrMetrics, validateNarrativeText, validatePeriodLabel } from "./metrics";
+export type { ComputedQbrMetrics } from "./metrics";
 import { writeOutboxEvent } from "@/lib/jobs/outbox";
 import { writeAudit } from "@/lib/audit";
 import { recordProductEvent } from "@/lib/pilot/capture";
@@ -215,6 +216,15 @@ export async function generateQbr(
   });
 
   return toQbrView(doc);
+}
+
+/** A QBR document of this workspace, or null (wrong id, another workspace, or not a QBR). */
+export async function getQbrDocument(
+  ctx: TenantContext,
+  documentId: string,
+): Promise<QbrDocumentView | null> {
+  const doc = await scopedDb(ctx).document.findFirst({ where: { id: documentId, kind: "QBR" } });
+  return doc ? toQbrView(doc) : null;
 }
 
 /**

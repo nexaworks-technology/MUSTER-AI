@@ -39,4 +39,10 @@ export const RESERVED_ACCOUNTS: readonly Reservation[] = [
     namedIn: ["e2e/m11-ask-ledger.spec.ts"],
     why: "Ask AI move request enrols it in the Renewal Risk play",
   },
+  {
+    account: "Lumen Freightworks",
+    spec: "e2e/m10-meetings-qbr-portal.spec.ts",
+    namedIn: ["e2e/m10-meetings-qbr-portal.spec.ts"],
+    why: "generates a QBR document through /meetings/qbr/new (M12 C0a)",
+  },
 ];
