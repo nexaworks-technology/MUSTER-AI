@@ -155,6 +155,13 @@ test.describe("M12 demo: setup to day 1, data controls, viewer, pilot metrics", 
   }) => {
     await signIn(page, "admin@larkspur.test");
     await page.goto("/settings/data");
+    // Q-19: the AI provider's data terms, stated only as far as verified (docs/SECURITY.md).
+    await expect(page.getByRole("region", { name: "AI processing" })).toContainText(
+      "may not train models on customer content",
+    );
+    await expect(page.getByRole("region", { name: "AI processing" })).toContainText(
+      "not yet confirmed",
+    );
     await page.getByTestId("export-all-data").click();
     await reloadUntil(page, "/settings/data", (p) =>
       p.getByRole("link", { name: "Download ZIP" }).first(),

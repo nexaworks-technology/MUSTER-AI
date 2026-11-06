@@ -526,7 +526,7 @@ const BaseAgentOutput = z.object({
 - **Prompts.** `prompts/<name>.md` with frontmatter `name`, `version`, `agent`, `tier`, `changelog`. The loader fails at startup if any registered agent's
   prompt is missing or its version mismatches. Prompts tell the model to return `insufficientData` instead of guessing.
 
-### 6.2 The 13 agents + Ask AI
+### 6.2 The agents (the spec's 13 + Ask AI + `play-builder`: 15 registered, Q-83)
 
 | # | Agent (key) | Trigger | Reads | Produces | Default approval | Tier | Milestone |
 |---|---|---|---|---|---|---|---|
@@ -544,6 +544,9 @@ const BaseAgentOutput = z.object({
 | 12 | Digital CSM (`digital-csm`) | long-tail play steps | as play step | runs safe steps, hands off on risk/anger/pricing/legal/opportunity | auto only where enabled + guards | standard | M8 (limited form per §8) |
 | 13 | Leader Reporter (`leader-reporter`) | weekly | ReportSnapshot computed data | weekly digest narrative | internal | standard | M11 |
 | 14 | Ask AI (`ask-ai`) | user question | tool calls over scoped data | cited answer; proposed actions → confirmation | confirm every change | deep | M11 |
+| 15 | Play Builder (`play-builder`) | input is a user's plain-English request (`userPrompt`); no caller found in `src` outside the registry (not verified) | active signal rules and segments of the workspace, plus the request text | a DRAFT play and version with a safety check result; never publishes (D-138) | notify only; the draft goes through the play safety gate and normal publish rights | standard | M8 |
+
+15 registered agents; the D-30 cap of 14 vs `play-builder` is open as Q-83 (founder).
 
 ### 6.3 Execution, retry and idempotency
 
