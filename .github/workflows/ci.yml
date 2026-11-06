@@ -1,0 +1,72 @@
+# CI for NexaWorks (M12 A11).
+# UNVERIFIED: no git remote exists yet and nothing has been pushed, so this workflow has never run.
+# Verify it on the first push (Session C / pilot) and fix whatever differs from local `pnpm gate`.
+# Secrets are referenced by NAME only (repository secrets); no value lives in this file.
+# Required repository secrets: POSTGRES_PASSWORD, OWNER_DB_PASSWORD, APP_DB_PASSWORD, AUTH_SECRET,
+# FIELD_ENCRYPTION_KEY, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY (use throwaway CI-only values).
+# Services mirror docker-compose.yml: postgres 16, redis 7. The role/grant bootstrap that
+# docker/postgres/init.sh performs on first start is run explicitly in the "Bootstrap roles" step.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-retries 10
+    env:
+      NODE_ENV: test
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      OWNER_DB_PASSWORD: ${{ secrets.OWNER_DB_PASSWORD }}
+      APP_DB_PASSWORD: ${{ secrets.APP_DB_PASSWORD }}
+      AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+      FIELD_ENCRYPTION_KEY: ${{ secrets.FIELD_ENCRYPTION_KEY }}
+      S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+      S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+      REDIS_URL: redis://localhost:6379
+      AI_PROVIDER: recorded
+      INTEGRATIONS_TRANSPORT: fixture
+      EMAIL_TRANSPORT: log
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the history secret scan needs every commit
+      - uses: pnpm/action-setup@v4 # version from package.json "packageManager"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Bootstrap roles
+        # Same SQL docker/postgres/init.sh runs on first start of the compose volume.
+        run: |
+          psql -v ON_ERROR_STOP=1 -h localhost -U postgres -d postgres \
+            -v owner_password="$OWNER_DB_PASSWORD" -v app_password="$APP_DB_PASSWORD" \
+            -f docker/postgres/roles.sql
+        env:
+          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      - run: pnpm gate
+      - name: Secret scan over the whole git history (no --known: known values never live in CI)
+        run: pnpm exec tsx scripts/check-secrets-history.ts
+      - name: Dependency audit (production), advisory until the founder decides on GHSA-ggr8-5vv4-36mx (see docs/milestones/m12-evidence/a11-audit.txt)
+        continue-on-error: true
+        run: pnpm audit --prod

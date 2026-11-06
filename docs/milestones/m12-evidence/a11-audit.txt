@@ -1,0 +1,75 @@
+pnpm audit --prod (2026-11-06)
+┌─────────────────────┬──────────────────────────────────────────────────────────────────────────┐
+│ high                │ DeepmergeTS has stack exhaustion when merging recursive object graphs    │
+├─────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+│ Package             │ deepmerge-ts                                                             │
+├─────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+│ Vulnerable versions │ <8.0.0                                                                   │
+├─────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+│ Patched versions    │ >=8.0.0                                                                  │
+├─────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+│ Paths               │ .>@prisma/client>prisma>@prisma/config>deepmerge-ts                      │
+│                     │                                                                          │
+│                     │ .>@auth/prisma-adapter>@prisma/client>prisma>@prisma/config>deepmerge-ts │
+├─────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+│ More info           │ https://github.com/advisories/GHSA-ggr8-5vv4-36mx                        │
+└─────────────────────┴──────────────────────────────────────────────────────────────────────────┘
+1 vulnerabilities found
+Severity: 1 high
+exit=1
+
+pnpm audit (all)
+┌─────────────────────┬──────────────────────────────────────────────────────────────────────────┐
+│ high                │ DeepmergeTS has stack exhaustion when merging recursive object graphs    │
+├─────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+│ Package             │ deepmerge-ts                                                             │
+├─────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+│ Vulnerable versions │ <8.0.0                                                                   │
+├─────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+│ Patched versions    │ >=8.0.0                                                                  │
+├─────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+│ Paths               │ .>@auth/prisma-adapter>@prisma/client>prisma>@prisma/config>deepmerge-ts │
+│                     │                                                                          │
+│                     │ .>@prisma/client>prisma>@prisma/config>deepmerge-ts                      │
+│                     │                                                                          │
+│                     │ .>prisma>@prisma/config>deepmerge-ts                                     │
+├─────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+│ More info           │ https://github.com/advisories/GHSA-ggr8-5vv4-36mx                        │
+└─────────────────────┴──────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────┬────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ moderate            │ minimatch has potential denial of service via globparts amplification                                                                                      │
+├─────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Package             │ minimatch                                                                                                                                                  │
+├─────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Vulnerable versions │ >=7.0.0 <11.0.1                                                                                                                                            │
+├─────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Patched versions    │ >=11.0.1                                                                                                                                                   │
+├─────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Paths               │ .>typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/parser>@typescript-eslint/typescript-estree>minimatch                              │
+│                     │                                                                                                                                                            │
+│                     │ .>typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/utils>@typescript-eslint/typescript-estree>minimatch                               │
+│                     │                                                                                                                                                            │
+│                     │ .>typescript-eslint>@typescript-eslint/eslint-plugin>@typescript-eslint/type-utils>@typescript-eslint/utils>@typescript-eslint/typescript-estree>minimatch │
+│                     │                                                                                                                                                            │
+│                     │ ... Found 18 paths, run `pnpm why minimatch` for more information                                                                                          │
+├─────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ More info           │ https://github.com/advisories/GHSA-g3hv-75wg-m249                                                                                                          │
+└─────────────────────┴────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+2 vulnerabilities found
+Severity: 1 moderate | 1 high
+exit=1
+
+== Findings and recommended action (2026-11-06) - NO upgrades made in this slice ==
+1. HIGH  deepmerge-ts <8.0.0 (patched >=8.0.0), GHSA-ggr8-5vv4-36mx, stack exhaustion on recursive object graphs.
+   Path (prod and dev): prisma > @prisma/config > deepmerge-ts, reached via @prisma/client 6.19.3 / prisma 6.19.3
+   (and @auth/prisma-adapter > @prisma/client). Transitive; not a direct dependency, so an exact-pinned patch
+   upgrade of a direct dependency does not fix it by itself. Exposure: deepmerge-ts is used by Prisma's config
+   loader (prisma CLI/config merging of our own config), not on untrusted request data. Recommended: low
+   practical risk; track the next Prisma release that bumps deepmerge-ts, or (founder decision) a pnpm
+   `overrides` entry to >=8 after checking Prisma compatibility. Do not use in the request path.
+2. MODERATE  minimatch (patched >=11.0.1), GHSA-g3hv-75wg-m249, DoS via globparts amplification. DEV ONLY.
+   Path: typescript-eslint > @typescript-eslint/eslint-plugin > parser > typescript-estree > minimatch.
+   Exposure: lint tooling on our own source; not shipped. Recommended: bump typescript-eslint to a release whose
+   typescript-estree depends on a patched minimatch (founder-approved exact pin), or accept as dev-only.
+Production result: 1 high (item 1) via Prisma tooling. pnpm audit --prod exits 1 on it, so the CI step
+"pnpm audit --prod" will fail until item 1 is resolved or accepted by the founder.
