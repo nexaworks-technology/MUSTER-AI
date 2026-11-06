@@ -135,3 +135,18 @@ describe("auth cookies", () => {
     }
   });
 });
+
+describe("transport hardening (M12 B7, D-182)", () => {
+  it("the localhost e2e production build keeps the strict CSP but drops HSTS and upgrade-insecure", () => {
+    const h = buildSecurityHeaders({ nonce: "n", production: true, transportHardening: false });
+    expect(h["Strict-Transport-Security"]).toBeUndefined();
+    expect(h["Content-Security-Policy"]).not.toContain("upgrade-insecure-requests");
+    expect(h["Content-Security-Policy"]).toContain("style-src 'self' 'nonce-n'");
+    expect(h["Content-Security-Policy"]).not.toContain("unsafe-eval");
+  });
+  it("a real production deployment gets both by default", () => {
+    const h = buildSecurityHeaders({ nonce: "n", production: true });
+    expect(h["Strict-Transport-Security"]).toContain("max-age=");
+    expect(h["Content-Security-Policy"]).toContain("upgrade-insecure-requests");
+  });
+});

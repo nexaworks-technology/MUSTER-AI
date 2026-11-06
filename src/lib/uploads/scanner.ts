@@ -5,6 +5,7 @@
  * and cannot be downloaded or processed. A scanner that throws ScannerUnavailableError also
  * leaves the file PENDING (files/service.ts); an error is never a clean verdict.
  */
+import { testSeamsAllowed } from "@/lib/config/deployment";
 import { createClamdScanner } from "./clamd";
 
 export interface MalwareScanner {
@@ -27,5 +28,7 @@ export function getScanner(
     const timeoutMs = source.CLAMD_TIMEOUT_MS ? Number(source.CLAMD_TIMEOUT_MS) : undefined;
     return createClamdScanner({ host, port, socket, timeoutMs });
   }
-  return nodeEnv === "production" ? null : devNoop;
+  return nodeEnv === "production" && !testSeamsAllowed({ ...source, NODE_ENV: nodeEnv })
+    ? null
+    : devNoop;
 }

@@ -1,5 +1,6 @@
 import { Redis } from "ioredis";
 import { env } from "@/lib/config/env";
+import { testSeamsAllowed } from "@/lib/config/deployment";
 import { queuePrefix } from "@/lib/jobs/queues";
 
 /**
@@ -17,6 +18,21 @@ export interface RateLimitResult {
   limit: number;
   remaining: number;
   retryAfterSeconds: number;
+}
+
+/**
+ * The limit as enforced: scaled by RATE_LIMIT_SCALE only where test seams are allowed (the e2e
+ * build, D-182); everywhere else the configured limit, whatever the variable says.
+ */
+export function scaledLimit(
+  l: RateLimit,
+  opts: { RATE_LIMIT_SCALE?: number; seams: boolean } = {
+    RATE_LIMIT_SCALE: env().RATE_LIMIT_SCALE,
+    seams: testSeamsAllowed(),
+  },
+): RateLimit {
+  const k = opts.seams ? (opts.RATE_LIMIT_SCALE ?? 1) : 1;
+  return { ...l, limit: l.limit * k };
 }
 
 let client: Redis | undefined;

@@ -17,14 +17,20 @@
  */
 export interface HeaderOptions {
   nonce: string;
+  /** A production build: strict CSP (nonce-only styles, no eval). */
   production: boolean;
+  /**
+   * HSTS + upgrade-insecure-requests (M12 B7, D-182). Defaults to `production`; off for the
+   * localhost e2e run of the production build, which is served over http.
+   */
+  transportHardening?: boolean;
 }
 
 export function generateNonce(): string {
   return btoa(crypto.randomUUID());
 }
 
-export function buildCsp({ nonce, production }: HeaderOptions): string {
+export function buildCsp({ nonce, production, transportHardening }: HeaderOptions): string {
   const directives = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${production ? "" : " 'unsafe-eval'"}`,
@@ -41,7 +47,7 @@ export function buildCsp({ nonce, production }: HeaderOptions): string {
     "form-action 'self'",
     "frame-ancestors 'none'",
   ];
-  if (production) directives.push("upgrade-insecure-requests");
+  if (transportHardening ?? production) directives.push("upgrade-insecure-requests");
   return directives.join("; ");
 }
 
@@ -53,7 +59,7 @@ export function buildSecurityHeaders(options: HeaderOptions): Record<string, str
     "X-Frame-Options": "DENY",
     "Permissions-Policy": "camera=(), geolocation=(), microphone=(self)",
   };
-  if (options.production) {
+  if (options.transportHardening ?? options.production) {
     headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains";
   }
   return headers;

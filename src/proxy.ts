@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { transportHardeningOn } from "@/lib/config/deployment";
 import { buildSecurityHeaders, generateNonce } from "@/lib/security/headers";
 
 /**
@@ -9,6 +10,7 @@ export function proxy(request: NextRequest): NextResponse {
   const headers = buildSecurityHeaders({
     nonce: generateNonce(),
     production: process.env.NODE_ENV === "production",
+    transportHardening: transportHardeningOn(),
   });
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("Content-Security-Policy", headers["Content-Security-Policy"]!);

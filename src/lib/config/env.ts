@@ -1,3 +1,4 @@
+import { testSeamsAllowed } from "./deployment";
 import { z } from "zod";
 
 /**
@@ -19,6 +20,8 @@ const encryptionKey = z
 export const envSchema = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+    /** What the deployment is for (M12 B7, D-182); unset = production behaviour for a production build. */
+    APP_ENV: z.enum(["production", "staging", "e2e", "development", "test"]).optional(),
     APP_URL: z.url().default("http://localhost:3000"),
 
     DATABASE_URL: z.url(),
@@ -97,6 +100,11 @@ export const envSchema = z
      * e2e, demo); "live" posts with the workspace's bot token. "log" is refused in production.
      */
     SLACK_DELIVERY: z.enum(["log", "live"]).default("log"),
+    /**
+     * M12 B7 (D-182): e2e only. Multiplies every request rate limit, because the whole e2e suite signs
+     * in from one address. Refused wherever test seams are not allowed (production, staging).
+     */
+    RATE_LIMIT_SCALE: z.coerce.number().int().min(1).max(1000).optional(),
     /** Used only by the dev `pnpm demo:webhook` script; real integrations keep their own (D3). */
     STRIPE_WEBHOOK_SECRET: optionalString,
 
@@ -109,6 +117,20 @@ export const envSchema = z
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
   })
   .superRefine((env, ctx) => {
+    // M12 B7: one rule for every test seam (D-182) — production builds refuse them all except the
+    // end-to-end build on an *_e2e database.
+    const seams = testSeamsAllowed({
+      NODE_ENV: env.NODE_ENV,
+      APP_ENV: env.APP_ENV,
+      DATABASE_URL: env.DATABASE_URL,
+    });
+    if (!seams && env.ALLOW_FAKE_CLOCK === "true") {
+      ctx.addIssue({
+        code: "custom",
+        path: ["ALLOW_FAKE_CLOCK"],
+        message: "the fake business clock is test-only and refused in production",
+      });
+    }
     if (Boolean(env.AUTH_GOOGLE_ID) !== Boolean(env.AUTH_GOOGLE_SECRET)) {
       ctx.addIssue({
         code: "custom",
@@ -116,14 +138,14 @@ export const envSchema = z
         message: "AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET must be set together",
       });
     }
-    if (env.AI_PROVIDER === "recorded" && env.NODE_ENV === "production") {
+    if (env.AI_PROVIDER === "recorded" && !seams) {
       ctx.addIssue({
         code: "custom",
         path: ["AI_PROVIDER"],
         message: "the recorded AI provider is test-only and refused in production (D-19)",
       });
     }
-    if (env.NODE_ENV === "production" && !env.CLAMD_HOST && !env.CLAMD_SOCKET) {
+    if (!seams && !env.CLAMD_HOST && !env.CLAMD_SOCKET) {
       ctx.addIssue({
         code: "custom",
         path: ["CLAMD_HOST"],
@@ -138,21 +160,28 @@ export const envSchema = z
         message: "EMAIL_TRANSPORT=resend needs RESEND_API_KEY and EMAIL_FROM",
       });
     }
-    if (env.NODE_ENV === "production" && env.INTEGRATIONS_TRANSPORT === "fixture") {
+    if (!seams && env.INTEGRATIONS_TRANSPORT === "fixture") {
       ctx.addIssue({
         code: "custom",
         path: ["INTEGRATIONS_TRANSPORT"],
         message: "the fixture integrations transport is test-only and refused in production",
       });
     }
-    if (env.NODE_ENV === "production" && env.SLACK_DELIVERY === "log") {
+    if (!seams && env.SLACK_DELIVERY === "log") {
       ctx.addIssue({
         code: "custom",
         path: ["SLACK_DELIVERY"],
         message: "the log-only Slack delivery is for development and test only",
       });
     }
-    if (env.NODE_ENV === "production" && env.EMAIL_TRANSPORT === "log") {
+    if (!seams && env.RATE_LIMIT_SCALE !== undefined && env.RATE_LIMIT_SCALE !== 1) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["RATE_LIMIT_SCALE"],
+        message: "scaled rate limits are for the end-to-end build only",
+      });
+    }
+    if (!seams && env.EMAIL_TRANSPORT === "log") {
       ctx.addIssue({
         code: "custom",
         path: ["EMAIL_TRANSPORT"],

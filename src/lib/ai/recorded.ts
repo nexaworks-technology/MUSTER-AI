@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { testSeamsAllowed } from "@/lib/config/deployment";
 import { AiNotConfiguredError, type AiProvider, type StructuredRequest } from "./types";
 
 /**
@@ -18,7 +19,7 @@ export function recordingKey(
 }
 
 export function createRecordedProvider(dir: string, nodeEnv = process.env.NODE_ENV): AiProvider {
-  if (nodeEnv === "production")
+  if (nodeEnv === "production" && !testSeamsAllowed({ ...process.env, NODE_ENV: nodeEnv }))
     throw new Error("The recorded AI provider is refused in production (D-19)");
   return {
     name: "recorded",

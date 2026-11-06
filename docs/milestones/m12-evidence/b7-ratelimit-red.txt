@@ -1,0 +1,4 @@
+     × scales every limit only where test seams are allowed; 1 otherwise 69ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  |app| src/lib/config/__tests__/deployment-guards.test.ts > RATE_LIMIT_SCALE (e2e only) > scales every limit only where test seams are allowed; 1 otherwise
+      Tests  1 failed | 10 passed (11)

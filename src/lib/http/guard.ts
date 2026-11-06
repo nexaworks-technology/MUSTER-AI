@@ -1,4 +1,4 @@
-import { hitRateLimit, peekRateLimit, type RateLimit } from "@/lib/rate-limit";
+import { hitRateLimit, peekRateLimit, scaledLimit, type RateLimit } from "@/lib/rate-limit";
 
 /**
  * Abuse controls for public and token endpoints (M12 A9, D-176). Fixed Redis windows.
@@ -29,7 +29,7 @@ const refusal = (retryAfter: number) =>
 /** A 429 when this IP is blocked for repeated authentication failures, else null. */
 export async function guardAuthFailures(ip: string): Promise<Response | null> {
   const r = await peekRateLimit(`authfail:${ip}`, AUTH_FAILURE_BLOCK);
-  return r.used >= AUTH_FAILURE_BLOCK.limit ? refusal(r.retryAfterSeconds) : null;
+  return r.used >= scaledLimit(AUTH_FAILURE_BLOCK).limit ? refusal(r.retryAfterSeconds) : null;
 }
 
 /** Records one authentication failure (a 401) for this IP. */
@@ -39,7 +39,7 @@ export async function noteAuthFailure(ip: string): Promise<void> {
 
 /** Counts one request; a 429 once the key is over its limit, else null. */
 export async function limitOrRefuse(key: string, limit: RateLimit): Promise<Response | null> {
-  const r = await hitRateLimit(key, limit);
+  const r = await hitRateLimit(key, scaledLimit(limit));
   return r.allowed ? null : refusal(r.retryAfterSeconds);
 }
 

@@ -31,3 +31,4 @@ blob-report/
 .dev-recordings/
 .dev-mail-customer/
 .dev-slack/
+.next-e2e/

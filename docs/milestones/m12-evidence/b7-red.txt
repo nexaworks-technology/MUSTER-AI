@@ -1,0 +1,5 @@
+      Tests  no tests
+   Start at  08:04:33
+   Duration  673ms (setup 46%, worker 27%, transform 26%, environment 1%)
+
+[ELIFECYCLE] Test failed. See above for more details.

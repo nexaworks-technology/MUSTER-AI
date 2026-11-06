@@ -41,3 +41,30 @@ export function applyTestDatabaseEnv(): void {
     process.env.S3_BUCKET = `${process.env.S3_BUCKET}-test`;
   Object.assign(process.env, { NODE_ENV: "test" });
 }
+
+/**
+ * M12 B7 (D4, D-182): e2e has its OWN database, `<name>_e2e`, recreated from zero by Playwright's
+ * global setup on every run, so e2e can never freeze or mutate state the vitest suites (on `_test`)
+ * or a later e2e run depend on. Refuses to point anywhere else.
+ */
+export function toE2eDatabaseUrl(url: string): string {
+  const u = new URL(url);
+  const name = u.pathname.replace(/^\//, "");
+  const e2eName = name.endsWith("_e2e") ? name : `${name.replace(/_(dev|test)$/, "")}_e2e`;
+  u.pathname = `/${e2eName}`;
+  return u.toString();
+}
+
+export function applyE2eDatabaseEnv(): void {
+  if (existsSync(".env")) process.loadEnvFile(".env");
+  const app = process.env.DATABASE_URL;
+  const owner = process.env.DATABASE_URL_MIGRATE;
+  if (!app || !owner)
+    throw new Error("e2e needs DATABASE_URL and DATABASE_URL_MIGRATE (see .env.example)");
+  process.env.DATABASE_URL = withPoolLimit(toE2eDatabaseUrl(app));
+  process.env.DATABASE_URL_MIGRATE = toE2eDatabaseUrl(owner);
+  for (const v of [process.env.DATABASE_URL, process.env.DATABASE_URL_MIGRATE]) {
+    if (!new URL(v).pathname.endsWith("_e2e"))
+      throw new Error("Refusing to run e2e against a non-_e2e database");
+  }
+}

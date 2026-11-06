@@ -1,3 +1,4 @@
+import { testSeamsAllowed } from "@/lib/config/deployment";
 /**
  * Calendar maths in the workspace's time zone (D-50, M3 rule 7).
  *
@@ -26,11 +27,7 @@ export function businessNow(
   source: Record<string, string | undefined> = process.env,
   real: Clock = realClock,
 ): Date {
-  if (
-    source.NODE_ENV === "production" ||
-    source.ALLOW_FAKE_CLOCK !== "true" ||
-    !source.APP_FAKE_NOW
-  )
+  if (!testSeamsAllowed(source) || source.ALLOW_FAKE_CLOCK !== "true" || !source.APP_FAKE_NOW)
     return real();
   const fake = source.APP_FAKE_NOW;
   const at = new Date(fake);
