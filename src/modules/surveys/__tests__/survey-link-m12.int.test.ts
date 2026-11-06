@@ -21,7 +21,8 @@ import {
  * SURVEY_LINK_DAYS; a tampered, expired, malformed or foreign token is refused; one answer per
  * token; the public page reads the survey through the token only.
  */
-let currentIp = "198.51.100.10";
+// A fresh documentation-range IP per run: rate-limit windows in Redis outlive a run.
+let currentIp = `198.51.100.${1 + Math.floor(Math.random() * 250)}`;
 vi.mock("next/headers", () => ({
   headers: async () => new Headers({ "x-forwarded-for": currentIp }),
   cookies: async () => ({ get: () => undefined, getAll: () => [], has: () => false }),
@@ -62,7 +63,10 @@ describe("survey link (M10 bug fixed in M12)", () => {
 
   it("a tampered signature of the same length is refused", () => {
     const [data, sig] = token.split(".");
-    const flipped = `${sig!.slice(0, -1)}${sig!.endsWith("A") ? "B" : "A"}`;
+    // A middle character: base64url's last character carries 2 padding bits that decoding
+    // ignores, so changing only it can leave the signature bytes intact (flaked ~1 run in 16).
+    const i = Math.floor(sig!.length / 2);
+    const flipped = `${sig!.slice(0, i)}${sig![i] === "A" ? "B" : "A"}${sig!.slice(i + 1)}`;
     expect(() => verifySurveyToken(`${data}.${flipped}`)).toThrow(/invalid/i);
   });
 
