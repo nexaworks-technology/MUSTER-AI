@@ -28,6 +28,7 @@ export {
 } from "./executor";
 export { evaluateOutput, type Evaluation } from "./evaluate";
 export { registerAgent, getAgent, listAgents, checkAgentPrompts } from "./registry";
+export { retrieve as retrieveAskAiContext, askerFor } from "./definitions/ask-ai";
 export { recordText, normalizeWhitespace } from "./validate";
 export * from "./schemas";
 
