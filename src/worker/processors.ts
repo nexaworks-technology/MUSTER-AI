@@ -38,6 +38,7 @@ import {
 } from "@/modules/outcomes/service";
 import { runWeeklyDigest } from "@/modules/reports/service";
 import { escalateOverdueTasks } from "@/modules/tasks/service";
+import { runExportJob } from "@/modules/settings/service";
 import { rebuildWorkspaceToday } from "@/modules/today/service";
 import { createPipelineProcessors } from "@/modules/signals/service";
 import {
@@ -201,6 +202,10 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
     },
   },
   maintenance: {
+    /** M12 B1: one Admin-requested workspace export (D-179); the result carries no download link. */
+    async "maintenance.exportWorkspace"(job) {
+      return runExportJob(job.data);
+    },
     async "nightly.schedules"() {
       return { workspaces: await syncNightlySchedules() };
     },

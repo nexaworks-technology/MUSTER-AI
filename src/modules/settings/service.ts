@@ -515,3 +515,16 @@ export {
   purgeDueWorkspaces,
   requestDeletion,
 } from "./data-controls/purge";
+
+// M12 B1: workspace data export. Other modules, the worker and the app reach it through here.
+export {
+  EXPORT_JOB,
+  EXPORT_LINK_TTL_SECONDS,
+  getExportLink,
+  listExports,
+  requestExport,
+  runExportJob,
+  type ExportJobPayload,
+  type ExportRow,
+  type ExportStatus,
+} from "./data-controls/export";

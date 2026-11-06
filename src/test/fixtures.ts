@@ -33,3 +33,10 @@ export async function createTestAdmin(label: string) {
   };
   return { workspace, user, membership, actor };
 }
+
+/** A bare user (global table), for tests that need extra memberships. */
+export async function createTestUser(label: string) {
+  return rawDb.user.create({
+    data: { email: `${label.toLowerCase()}-${randomUUID()}@example.test`, name: label },
+  });
+}
