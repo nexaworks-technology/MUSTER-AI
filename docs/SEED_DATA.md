@@ -205,3 +205,10 @@ proving row ids.
 | M10 | Meetings (today 14:00), transcripts, NPS/CSAT, Marlow & Finch QBR data, Ben Okafor portal contact |
 | M11 | ≥ 90 days of OutcomeRecords produced by running the pipeline over seed history (time-travel script `pnpm seed:replay` runs nightly jobs for the last 90 days of SEED_TODAY) |
 | M12 | Synthetic generator `pnpm seed:synthetic --accounts 2000` (perf only, separate workspace) |
+
+## 12. Scale workspace (M12 B3, performance only)
+`pnpm db:seed:scale` (`prisma/seed/scale.ts`) builds a separate workspace, `scale-test` by default, with 2,000
+synthetic accounts and their contacts, contracts, billing, 180 days of usage, conversations, tickets, tasks, inbox
+items, approvals and promises. It is deterministic (seeded per account), refuses the demo, test and fresh workspaces,
+skips a workspace that already has accounts unless `--reset`, and is never part of `pnpm db:seed`. The M12 query-budget
+tests use the same generator at 12 accounts (`src/test/budget-world.ts`). Timings: `docs/milestones/m12-evidence/b3-perf.txt`.

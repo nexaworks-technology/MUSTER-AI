@@ -51,6 +51,10 @@ you must flag the disagreement in `docs/QUESTIONS.md` — never silently follow 
 - Purge now after a requested deletion (M12 demo step 7, dev/e2e only; refused where test seams are not allowed):
   `pnpm exec tsx --env-file=.env scripts/demo-purge-now.ts --workspace <slug>` — ends the grace of the Admin's existing
   request and runs the hourly purge; never requests a deletion itself
+- Scale workspace (M12 B3, perf only): `pnpm db:seed:scale [--accounts 2000] [--workspace scale-test] [--reset]`
+  — its own deterministic workspace (refuses the demo/test/fresh ones); then
+  `pnpm exec tsx --env-file=.env scripts/perf-scale.ts --workspace scale-test [--as-of YYYY-MM-DD]` (nightly per phase) and
+  `NODE_ENV=test pnpm exec tsx --env-file=.env scripts/perf-pages.ts --workspace scale-test` (page 1/2/last timings + statements)
 - Fresh workspace in setup (M5 `/setup` demo): `pnpm db:seed -- --empty-workspace` (Juniper Labs, admin@juniper.test)
 - Connectors on recorded fixtures (tests, e2e, demo; refused in production): `INTEGRATIONS_TRANSPORT=fixture`
 - Typecheck: `pnpm typecheck` · Lint: `pnpm lint` · Format check: `pnpm format:check`

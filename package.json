@@ -24,6 +24,7 @@
     "services:native": "sh scripts/services-native.sh",
     "dev:worker": "tsx watch --env-file=.env src/worker/index.ts",
     "db:seed": "tsx --env-file=.env prisma/seed.ts",
+    "db:seed:scale": "tsx --env-file=.env prisma/seed-scale.ts",
     "jobs:nightly": "tsx --env-file=.env scripts/jobs-nightly.ts",
     "outcomes:backfill": "tsx --env-file=.env scripts/outcomes-backfill.ts",
     "eval": "tsx --env-file=.env scripts/eval.ts",
