@@ -1,5 +1,6 @@
 import type { Route } from "next";
 import Link from "next/link";
+import { EmptyState } from "@/components/app/empty-state";
 import { formatCalendarDate } from "@/lib/format";
 import type { SentimentView } from "@/modules/sentiment/service";
 
@@ -28,22 +29,22 @@ export function SentimentPanel({
 }) {
   const { mix, themes } = view;
   return (
-    <div className="space-y-6">
-      <section aria-labelledby="mix-h" className="space-y-2">
-        <h2 id="mix-h" className="text-lg font-medium">
+    <div className="space-y-section">
+      <section aria-labelledby="mix-h" className="space-y-3">
+        <h2 id="mix-h" className="text-base font-semibold">
           Tone of customer messages, last {view.days} days
         </h2>
         {mix.total === 0 ? (
-          <p className="text-muted-foreground text-sm" data-testid="mix-empty">
+          <EmptyState data-testid="mix-empty">
             No tone has been read yet. It appears once the Watcher has read customer messages, each
             label with its quote.
-          </p>
+          </EmptyState>
         ) : (
           <>
             <ul className="flex flex-wrap gap-3 text-sm" data-testid="mix">
               {LABELS.map(([k, label]) => (
-                <li key={k} className="rounded-md border px-3 py-2">
-                  <span className="block text-xl font-semibold">{mix.byLabel[k]}</span>
+                <li key={k} className="surface px-4 py-3">
+                  <span className="block text-xl font-semibold tabular-nums">{mix.byLabel[k]}</span>
                   {label}
                 </li>
               ))}
@@ -59,25 +60,25 @@ export function SentimentPanel({
           </>
         )}
       </section>
-      <section aria-labelledby="themes-h" className="space-y-2">
-        <h2 id="themes-h" className="text-lg font-medium">
+      <section aria-labelledby="themes-h" className="space-y-3">
+        <h2 id="themes-h" className="text-base font-semibold">
           Themes
         </h2>
         {themes.length === 0 ? (
-          <p className="text-muted-foreground text-sm" data-testid="themes-empty">
+          <EmptyState data-testid="themes-empty">
             No themes yet. A theme appears when customers raise the same kind of problem, with the
             quotes that show it.
-          </p>
+          </EmptyState>
         ) : (
-          <ul
-            className="divide-border border-border divide-y rounded-md border"
-            data-testid="themes"
-          >
+          <ul className="surface divide-border divide-y overflow-hidden" data-testid="themes">
             {themes.map((t) => (
-              <li key={t.theme} className="space-y-1 p-3 text-sm" data-testid="theme">
+              <li key={t.theme} className="space-y-1 p-4 text-sm" data-testid="theme">
                 <p className="font-medium">
                   {themeHref && selectedTheme !== t.theme ? (
-                    <Link href={themeHref(t.theme) as Route} className="underline">
+                    <Link
+                      href={themeHref(t.theme) as Route}
+                      className="text-primary underline underline-offset-2"
+                    >
                       {t.label}
                     </Link>
                   ) : (
@@ -96,7 +97,10 @@ export function SentimentPanel({
                         — {q.account.name},{" "}
                         {formatCalendarDate(new Date(`${q.date}T00:00:00Z`))}{" "}
                       </span>
-                      <Link href={q.href as Route} className="text-xs underline">
+                      <Link
+                        href={q.href as Route}
+                        className="text-primary text-xs underline underline-offset-2"
+                      >
                         open the source
                       </Link>
                     </li>

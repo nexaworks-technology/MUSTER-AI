@@ -29,7 +29,7 @@ export function InlineField({
   );
   const form = useRef<HTMLFormElement>(null);
   const control =
-    "h-8 rounded-md border border-input bg-background px-1.5 text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50";
+    "border-input bg-card text-foreground focus-visible:border-ring focus-visible:ring-ring/30 h-8 rounded-md border px-1.5 text-sm shadow-xs outline-none focus-visible:ring-3 disabled:opacity-50";
   return (
     <form ref={form} action={action} className="flex items-center gap-1">
       <input type="hidden" name="accountId" value={accountId} />

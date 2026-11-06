@@ -22,9 +22,13 @@ export default async function AskThreadPage({ params }: { params: Promise<{ thre
   const settings = await getSettingsData(ctx.workspaceId);
   return (
     <>
-      <h1 className="text-2xl font-semibold">{view.thread.title}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">{view.thread.title}</h1>
       {!isAiConfigured() ? (
-        <p role="status" className="rounded-md border p-3 text-sm" data-testid="not-configured">
+        <p
+          role="status"
+          className="border-warning/30 bg-warning-soft text-warning-soft-foreground rounded-lg border px-4 py-3 text-sm"
+          data-testid="not-configured"
+        >
           Ask AI is not set up (no AI provider configured), so questions here are saved but not
           answered.
         </p>
@@ -43,33 +47,43 @@ export default async function AskThreadPage({ params }: { params: Promise<{ thre
         {view.messages.map((m) => (
           <li key={m.id} className="space-y-2" data-role={m.role}>
             {m.role === "USER" ? (
-              <p className="bg-muted rounded-md p-3 text-sm whitespace-pre-wrap">{m.content}</p>
+              <p className="bg-secondary text-secondary-foreground rounded-lg px-4 py-3 text-sm whitespace-pre-wrap">
+                {m.content}
+              </p>
             ) : m.run?.status === "SUCCEEDED" ? (
               <>
-                <AiText
-                  run={m.run}
-                  items={[
-                    {
-                      text: m.content,
-                      sources: m.citations.map((c) => ({
-                        label: c.label,
-                        href: c.href,
-                        missing: false,
-                      })),
-                    },
-                  ]}
-                />
+                <div className="surface p-4">
+                  <AiText
+                    run={m.run}
+                    items={[
+                      {
+                        text: m.content,
+                        sources: m.citations.map((c) => ({
+                          label: c.label,
+                          href: c.href,
+                          missing: false,
+                        })),
+                      },
+                    ]}
+                  />
+                </div>
                 {m.cards.map((c) => (
                   <ApprovalCard key={c.id} card={c} />
                 ))}
               </>
             ) : (
-              <p className="text-sm" data-testid="no-answer">
+              <p
+                className="bg-card border-border rounded-lg border px-4 py-3 text-sm"
+                data-testid="no-answer"
+              >
                 I could not answer that with sources I can show you.
                 {m.run ? (
                   <>
                     {" "}
-                    <Link href={`/agent-runs/${m.run.id}` as Route} className="underline">
+                    <Link
+                      href={`/agent-runs/${m.run.id}` as Route}
+                      className="text-primary underline underline-offset-2"
+                    >
                       What it read
                     </Link>
                   </>
@@ -79,12 +93,14 @@ export default async function AskThreadPage({ params }: { params: Promise<{ thre
           </li>
         ))}
       </ol>
-      <AskBox
-        threadId={view.thread.id}
-        voiceEnabled={settings.ask.voiceDictation}
-        disclosure={VOICE_DICTATION_DISCLOSURE}
-        accept={ASK_ACCEPT}
-      />
+      <div className="surface p-4">
+        <AskBox
+          threadId={view.thread.id}
+          voiceEnabled={settings.ask.voiceDictation}
+          disclosure={VOICE_DICTATION_DISCLOSURE}
+          accept={ASK_ACCEPT}
+        />
+      </div>
     </>
   );
 }

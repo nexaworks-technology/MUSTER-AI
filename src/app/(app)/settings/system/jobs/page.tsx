@@ -13,13 +13,13 @@ export default async function SystemJobsPage() {
   const { queues } = await jobsOverview(ctx);
   const tz = ctx.workspace.timezone;
   return (
-    <div className="space-y-6">
+    <div className="space-y-section">
       <p className="text-muted-foreground max-w-3xl text-sm">
         Background work for this workspace, plus system-wide sweeps shown as name, state and times
         only. Counts cover the latest {SCAN_LIMIT} jobs in each state. Job contents are never shown.
       </p>
       {queues.map((q) => (
-        <section key={q.name} aria-labelledby={`q-${q.name}`} className="space-y-2">
+        <section key={q.name} aria-labelledby={`q-${q.name}`} className="surface space-y-3 p-5">
           <h2 id={`q-${q.name}`} className="text-base font-semibold">
             {q.name}
           </h2>
@@ -48,7 +48,7 @@ export default async function SystemJobsPage() {
             <table className="w-full text-left text-sm">
               <thead className="text-muted-foreground text-xs">
                 <tr>
-                  <th className="py-1">Job</th>
+                  <th>Job</th>
                   <th>Id</th>
                   <th>Failure</th>
                   <th>Attempts</th>
@@ -58,8 +58,8 @@ export default async function SystemJobsPage() {
               </thead>
               <tbody>
                 {q.recentFailed.map((j) => (
-                  <tr key={j.id} className="border-border border-t align-top">
-                    <td className="py-1">{j.name}</td>
+                  <tr key={j.id} className="border-border align-top">
+                    <td>{j.name}</td>
                     <td className="font-mono text-xs">{j.id}</td>
                     <td>{j.failedReason ?? "System-wide job: details are not shown"}</td>
                     <td className="tabular-nums">{j.attempts}</td>

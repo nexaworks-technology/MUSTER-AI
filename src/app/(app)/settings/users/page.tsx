@@ -13,7 +13,7 @@ export default async function UsersPage() {
   const ctx = await requireSettingsAccess("workspace:manageUsers");
   const [members, invitations] = await Promise.all([listMembers(ctx), listPendingInvitations(ctx)]);
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-section max-w-3xl">
       <Card>
         <CardHeader>
           <CardTitle>
@@ -25,11 +25,11 @@ export default async function UsersPage() {
         </CardContent>
       </Card>
 
-      <section aria-labelledby="members-heading" className="space-y-2">
+      <section aria-labelledby="members-heading" className="space-y-3">
         <h2 id="members-heading" className="text-base font-semibold">
           Members ({members.filter((m) => m.status === "ACTIVE").length} active)
         </h2>
-        <ul>
+        <ul className="surface px-4">
           {members.map((m) => (
             <MemberRow
               key={m.id}
@@ -48,18 +48,18 @@ export default async function UsersPage() {
         </ul>
       </section>
 
-      <section aria-labelledby="invites-heading" className="space-y-2">
+      <section aria-labelledby="invites-heading" className="space-y-3">
         <h2 id="invites-heading" className="text-base font-semibold">
           Pending invitations
         </h2>
         {invitations.length === 0 ? (
           <p className="text-muted-foreground text-sm">No pending invitations.</p>
         ) : (
-          <ul>
+          <ul className="surface px-4">
             {invitations.map((inv) => (
               <li
                 key={inv.id}
-                className="border-border flex flex-wrap items-center justify-between gap-2 border-b py-2 text-sm"
+                className="border-border flex flex-wrap items-center justify-between gap-2 border-b py-2 text-sm last:border-b-0"
               >
                 <span>
                   {inv.email} · {ROLE_LABELS[inv.role]} · expires{" "}

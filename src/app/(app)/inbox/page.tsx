@@ -1,6 +1,8 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { ExtractionLabels } from "@/components/app/extraction-labels";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { formatDateTime } from "@/lib/format";
@@ -45,15 +47,15 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
     <Link
       href={href as Route}
       aria-current={active ? "page" : undefined}
-      className={`rounded-md px-3 py-1 text-sm ${active ? "bg-muted font-medium" : "hover:underline"}`}
+      className={`rounded-md px-3 py-1 text-sm ${active ? "bg-accent text-accent-foreground font-medium" : "text-foreground hover:bg-hover"}`}
     >
       {label}
     </Link>
   );
   return (
-    <div className="space-y-4">
+    <div className="space-y-section">
       <div>
-        <h1 className="text-2xl font-semibold">Inbox</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Inbox</h1>
         <p className="text-muted-foreground text-sm">
           Emails and tickets from your customers. Intent and tone are read from the words, with the
           quote shown. Nothing is sent from here without an approval.
@@ -67,7 +69,11 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
           : null}
       </nav>
       {draftNote ? (
-        <p role="status" className="text-sm" data-testid="draft-note">
+        <p
+          role="status"
+          className="bg-muted text-foreground rounded-md px-3 py-2 text-sm"
+          data-testid="draft-note"
+        >
           {draftNote}
         </p>
       ) : null}
@@ -78,14 +84,14 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
             : "No inbound emails or tickets in the last 30 days."}
         </p>
       ) : (
-        <ul
-          className="divide-border border-border divide-y rounded-md border"
-          data-testid="inbox-list"
-        >
+        <ul className="surface divide-border divide-y" data-testid="inbox-list">
           {items.map((i) => (
             <li key={i.id} className="space-y-1 p-3 text-sm" data-testid="inbox-item">
               <div className="flex flex-wrap items-baseline gap-x-2">
-                <Link href={`/accounts/${i.account.id}` as Route} className="font-medium underline">
+                <Link
+                  href={`/accounts/${i.account.id}` as Route}
+                  className="text-primary font-medium underline underline-offset-2"
+                >
                   {i.account.name}
                 </Link>
                 <span className="text-muted-foreground text-xs uppercase">
@@ -111,16 +117,11 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
               </p>
               <p className="text-muted-foreground">{i.snippet}</p>
               <div className="flex flex-wrap gap-2 text-xs">
-                {i.intent ? (
-                  <span className="bg-muted rounded px-1.5 py-0.5">Intent: {i.intent}</span>
-                ) : null}
+                {i.intent ? <Badge>Intent: {i.intent}</Badge> : null}
                 {i.sensitive.isSensitive ? (
-                  <span
-                    className="rounded bg-red-100 px-1.5 py-0.5 text-red-900 dark:bg-red-950 dark:text-red-100"
-                    data-testid="sensitive"
-                  >
+                  <Badge variant="danger" className="whitespace-normal" data-testid="sensitive">
                     Sensitive ({i.sensitive.reasons.join(", ")}) · Always goes to a human
-                  </span>
+                  </Badge>
                 ) : null}
               </div>
               <ExtractionLabels
@@ -146,19 +147,19 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
               />
               <div className="flex items-center gap-3 pt-1 text-xs">
                 {i.hasDraft ? (
-                  <Link href={"/approvals" as Route} className="underline" data-testid="draft-link">
+                  <Link
+                    href={"/approvals" as Route}
+                    className="text-primary underline underline-offset-2"
+                    data-testid="draft-link"
+                  >
                     Reply drafted · see it in Approvals
                   </Link>
                 ) : canDraft && i.status !== "CLOSED" ? (
                   <form action={draftReplyAction}>
                     <input type="hidden" name="inboxItemId" value={i.id} />
-                    <button
-                      type="submit"
-                      className="rounded-md border px-2 py-1"
-                      data-testid="draft-reply"
-                    >
+                    <Button type="submit" variant="outline" size="sm" data-testid="draft-reply">
                       Draft a reply
-                    </button>
+                    </Button>
                   </form>
                 ) : null}
                 {i.sensitive.isSensitive ? (
@@ -174,7 +175,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
                       {n > 0 ? ", " : ""}
                       <Link
                         href={`/accounts/${i.account.id}/tickets` as Route}
-                        className="underline"
+                        className="text-primary underline underline-offset-2"
                       >
                         {t.subject}
                       </Link>
@@ -190,7 +191,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
         <nav aria-label="Pages" className="text-sm">
           <Link
             href={{ pathname: "/inbox", query: { status, cursor: nextCursor } }}
-            className="underline"
+            className="text-primary underline underline-offset-2"
           >
             Older
           </Link>

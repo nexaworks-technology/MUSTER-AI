@@ -17,21 +17,24 @@ export default async function SentimentPage({ searchParams }: { searchParams: Se
     ...(theme && /^[a-z][a-z0-9_]{0,40}$/.test(theme) ? { theme } : {}),
   });
   return (
-    <div className="space-y-4">
-      <div>
-        <Link href={"/health" as Route} className="text-muted-foreground text-sm underline">
+    <div className="space-y-section">
+      <div className="space-y-1">
+        <Link href={"/health" as Route} className="text-muted-foreground text-sm hover:underline">
           ← Health
         </Link>
-        <h1 className="text-2xl font-semibold">Sentiment &amp; themes</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Sentiment &amp; themes</h1>
         <p className="text-muted-foreground text-sm">
           What customers say, counted by code from labels the Watcher read. Every label and theme
           shows the exact words behind it and a link to where they were said.
         </p>
       </div>
       {theme ? (
-        <p className="text-sm">
+        <p className="bg-accent text-accent-foreground rounded-md px-3 py-2 text-sm">
           Showing every quote for one theme.{" "}
-          <Link href={"/health/sentiment" as Route} className="underline">
+          <Link
+            href={"/health/sentiment" as Route}
+            className="font-medium underline underline-offset-2"
+          >
             Back to all themes
           </Link>
         </p>

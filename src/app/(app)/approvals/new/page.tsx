@@ -31,24 +31,27 @@ export default async function DraftCheckInPage({ searchParams }: { searchParams:
       ? `/accounts/${target.account.id}/signals#signal-${sourceId}`
       : `/accounts/${target.account.id}/tickets#ticket-${sourceId}`;
   return (
-    <div className="max-w-2xl space-y-4">
-      <div>
+    <div className="space-y-section max-w-2xl">
+      <div className="space-y-1">
         <Link href={backHref as Route} className="text-muted-foreground text-sm hover:underline">
           ← {target.account.name}
         </Link>
-        <h1 className="mt-1 text-2xl font-semibold">Draft check-in</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Draft check-in</h1>
         <p className="text-muted-foreground text-sm">
           About: <span className="text-foreground">{target.label}</span>. Nothing is sent until
           someone approves it in Approvals.
         </p>
       </div>
       {target.messages.length ? (
-        <section aria-labelledby="customer-words" className="space-y-1">
+        <section aria-labelledby="customer-words" className="space-y-2">
           <h2 id="customer-words" className="text-sm font-semibold">
             What the customer wrote
           </h2>
           {target.messages.map((m) => (
-            <blockquote key={m.id} className="border-l-2 pl-3 text-sm whitespace-pre-wrap">
+            <blockquote
+              key={m.id}
+              className="border-border bg-card rounded-md border border-l-4 p-3 text-sm whitespace-pre-wrap"
+            >
               {m.bodyText}
             </blockquote>
           ))}

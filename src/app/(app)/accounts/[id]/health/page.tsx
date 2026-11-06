@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AiText } from "@/components/app/ai-text";
+import { EmptyState } from "@/components/app/empty-state";
 import { LineChart } from "@/components/app/line-chart";
 import { PulseControls } from "@/components/app/pulse-controls";
 import { RecomputeButton } from "@/components/app/recompute-button";
@@ -55,7 +56,7 @@ function ReasonItem({ r, main, linked }: { r: Reason; main: boolean; linked: boo
   return (
     <li
       id={`reason-${r.id}`}
-      className={`scroll-mt-20 space-y-1 p-3 ${linked ? "bg-muted" : ""}`}
+      className={`scroll-mt-20 space-y-1 p-4 ${linked ? "bg-muted" : ""}`}
       data-testid="health-reason"
       data-kind={r.kind}
       aria-current={linked ? "true" : undefined}
@@ -70,7 +71,7 @@ function ReasonItem({ r, main, linked }: { r: Reason; main: boolean; linked: boo
           {r.sources.map((s, i) => (
             <li key={i}>
               {s.href ? (
-                <a href={s.href} className="underline">
+                <a href={s.href} className="text-primary underline underline-offset-2">
                   {s.label}
                 </a>
               ) : (
@@ -104,16 +105,16 @@ export default async function HealthPage({
   const tz = ctx.workspace.timezone;
 
   return (
-    <div className="space-y-6">
-      <section aria-labelledby="health-score" className="space-y-3">
+    <div className="space-y-section">
+      <section aria-labelledby="health-score" className="surface space-y-4 p-5">
         <h2 id="health-score" className="text-base font-semibold">
           Health
         </h2>
         {!s ? (
-          <p className="text-muted-foreground text-sm" data-testid="no-health">
+          <EmptyState data-testid="no-health">
             Health has not been calculated for this account yet. It is calculated every night and
             whenever someone presses Recompute.
-          </p>
+          </EmptyState>
         ) : (
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-4xl font-semibold tabular-nums" data-testid="health-overall">
@@ -138,12 +139,8 @@ export default async function HealthPage({
         ) : null}
       </section>
 
-      <section
-        id="pulse"
-        aria-labelledby="pulse-heading"
-        className="border-border space-y-2 rounded-md border p-3"
-      >
-        <h2 id="pulse-heading" className="text-sm font-semibold">
+      <section id="pulse" aria-labelledby="pulse-heading" className="surface space-y-3 p-5">
+        <h2 id="pulse-heading" className="text-base font-semibold">
           CSM Pulse
         </h2>
         {pulse ? (
@@ -154,7 +151,7 @@ export default async function HealthPage({
             {pulse.valid ? "" : " (older than 30 days, no longer counted)"}
           </p>
         ) : (
-          <p className="text-muted-foreground text-sm">No Pulse yet.</p>
+          <EmptyState>No Pulse yet.</EmptyState>
         )}
         {s?.pulseDisagreement && pulse ? (
           <p className="text-sm" data-testid="disagreement-detail">
@@ -168,7 +165,7 @@ export default async function HealthPage({
 
       <section
         aria-labelledby="narrative-heading"
-        className="space-y-2"
+        className="surface space-y-3 p-5"
         data-testid="health-narrative"
       >
         <h2 id="narrative-heading" className="text-base font-semibold">
@@ -185,9 +182,9 @@ export default async function HealthPage({
             emptyText={`Nothing here needs action. ${narrative.reasoningSummary ?? ""}`.trim()}
           />
         ) : (
-          <p className="text-muted-foreground text-sm">
+          <EmptyState>
             No narrative yet. One is written when the band or the main reason changes.
-          </p>
+          </EmptyState>
         )}
         {narrative.missing.length ? (
           <p className="text-muted-foreground text-xs">
@@ -204,14 +201,14 @@ export default async function HealthPage({
       </section>
 
       {s ? (
-        <section aria-labelledby="pillars" className="space-y-2">
+        <section aria-labelledby="pillars" className="space-y-3">
           <h2 id="pillars" className="text-base font-semibold">
             The six parts
           </h2>
           <p className="text-muted-foreground text-sm">
             Open a part to see every reason behind it and the records it read.
           </p>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             {PILLARS.map(([key, label]) => {
               const value = s.pillars[key] ?? null;
               const weight = s.effectiveWeights[key];
@@ -220,10 +217,10 @@ export default async function HealthPage({
                 <details
                   key={key}
                   open={reasons.some((r) => r.id === linked) || undefined}
-                  className="border-border rounded-md border open:col-span-full"
+                  className="surface open:col-span-full"
                   data-testid={`pillar-${key}`}
                 >
-                  <summary className="flex cursor-pointer items-center justify-between gap-2 p-3">
+                  <summary className="flex cursor-pointer items-center justify-between gap-2 p-4">
                     <span className="font-medium">{label}</span>
                     <span className="text-sm tabular-nums">
                       {value === null ? (
@@ -257,7 +254,7 @@ export default async function HealthPage({
       ) : null}
 
       {history.length > 1 ? (
-        <section aria-labelledby="health-history" className="space-y-2">
+        <section aria-labelledby="health-history" className="surface space-y-3 p-5">
           <h2 id="health-history" className="text-base font-semibold">
             Health history (model v{model.version})
           </h2>
@@ -271,25 +268,21 @@ export default async function HealthPage({
             <summary className="text-muted-foreground cursor-pointer">Show the numbers</summary>
             <table className="mt-2 w-full max-w-sm text-sm">
               <caption className="sr-only">Health score by day</caption>
-              <thead className="text-muted-foreground text-left text-xs">
+              <thead>
                 <tr>
-                  <th scope="col" className="py-1">
-                    Date
-                  </th>
-                  <th scope="col" className="py-1 text-right">
+                  <th scope="col">Date</th>
+                  <th scope="col" className="text-right">
                     Score
                   </th>
-                  <th scope="col" className="py-1">
-                    Level
-                  </th>
+                  <th scope="col">Level</th>
                 </tr>
               </thead>
               <tbody>
                 {history.map((h) => (
-                  <tr key={h.asOf} className="border-border border-t">
-                    <td className="py-1">{day(h.asOf)}</td>
-                    <td className="py-1 text-right tabular-nums">{h.overall ?? "—"}</td>
-                    <td className="py-1">{RISK_WORDS[h.riskLevel]}</td>
+                  <tr key={h.asOf}>
+                    <td>{day(h.asOf)}</td>
+                    <td className="text-right">{h.overall ?? "—"}</td>
+                    <td>{RISK_WORDS[h.riskLevel]}</td>
                   </tr>
                 ))}
               </tbody>

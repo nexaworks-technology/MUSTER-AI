@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { Route } from "next";
 import Link from "next/link";
 import { AiText } from "@/components/app/ai-text";
+import { EmptyState } from "@/components/app/empty-state";
 import { formatCalendarDate } from "@/lib/format";
 import { adoptionFinding } from "@/modules/agents/service";
 import { getAdoption, type Adoption } from "@/modules/usage/service";
@@ -25,7 +26,7 @@ function SourceLinks({ accountId, sources }: { accountId: string; sources: Sourc
         ...ranges.map((s, i) => (
           <Link
             key={`r${i}`}
-            className="underline"
+            className="text-primary underline underline-offset-2"
             href={`/accounts/${accountId}/usage?from=${s.from}&to=${s.to}` as Route}
           >
             {s.sourceType === "FeatureUsageDaily"
@@ -39,7 +40,7 @@ function SourceLinks({ accountId, sources }: { accountId: string; sources: Sourc
         ...days.map((s, i) => (
           <Link
             key={`d${i}`}
-            className="underline"
+            className="text-primary underline underline-offset-2"
             href={`/accounts/${accountId}/usage?from=${s.date}&to=${s.date}` as Route}
           >
             daily use on {day(s.date!)}
@@ -63,17 +64,21 @@ export default async function AdoptionPage({ params }: { params: Promise<{ id: s
   ]);
   const nothing = !a.seats && !a.features && !a.powerUsers && !a.trend;
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-section max-w-3xl">
       <h2 className="text-base font-semibold">Adoption</h2>
       {nothing ? (
-        <p className="text-sm" data-testid="no-adoption">
+        <EmptyState data-testid="no-adoption">
           Nothing to show yet: no product usage has been recorded for this account.
-        </p>
+        </EmptyState>
       ) : null}
 
       {coach.run ? (
-        <section aria-labelledby="adopt-coach" className="space-y-1" data-testid="adoption-coach">
-          <h3 id="adopt-coach" className="font-medium">
+        <section
+          aria-labelledby="adopt-coach"
+          className="surface space-y-2 p-5"
+          data-testid="adoption-coach"
+        >
+          <h3 id="adopt-coach" className="text-sm font-semibold">
             What the Adoption Coach found
           </h3>
           <AiText
@@ -93,8 +98,8 @@ export default async function AdoptionPage({ params }: { params: Promise<{ id: s
       ) : null}
 
       {a.features ? (
-        <section aria-labelledby="adopt-features" className="space-y-1">
-          <h3 id="adopt-features" className="font-medium">
+        <section aria-labelledby="adopt-features" className="surface space-y-2 p-5">
+          <h3 id="adopt-features" className="text-sm font-semibold">
             Features
           </h3>
           <p data-testid="adoption-features">{a.features.text}.</p>
@@ -115,8 +120,8 @@ export default async function AdoptionPage({ params }: { params: Promise<{ id: s
       ) : null}
 
       {a.seats || a.credits ? (
-        <section aria-labelledby="adopt-seats" className="space-y-1">
-          <h3 id="adopt-seats" className="font-medium">
+        <section aria-labelledby="adopt-seats" className="surface space-y-2 p-5">
+          <h3 id="adopt-seats" className="text-sm font-semibold">
             Seats{a.credits ? " and credits" : ""}
           </h3>
           {a.seats ? (
@@ -138,8 +143,8 @@ export default async function AdoptionPage({ params }: { params: Promise<{ id: s
       ) : null}
 
       {a.trend ? (
-        <section aria-labelledby="adopt-trend" className="space-y-1">
-          <h3 id="adopt-trend" className="font-medium">
+        <section aria-labelledby="adopt-trend" className="surface space-y-2 p-5">
+          <h3 id="adopt-trend" className="text-sm font-semibold">
             Use over time
           </h3>
           <p>{a.trend.text}.</p>
@@ -149,8 +154,8 @@ export default async function AdoptionPage({ params }: { params: Promise<{ id: s
       ) : null}
 
       {a.powerUsers ? (
-        <section aria-labelledby="adopt-power" className="space-y-1">
-          <h3 id="adopt-power" className="font-medium">
+        <section aria-labelledby="adopt-power" className="surface space-y-2 p-5">
+          <h3 id="adopt-power" className="text-sm font-semibold">
             Power users
           </h3>
           <p>{a.powerUsers.text}.</p>

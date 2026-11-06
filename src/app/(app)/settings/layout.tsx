@@ -6,14 +6,17 @@ import { allowedSettingsTabs, requireSettingsAccess } from "./access";
 export default async function SettingsLayout({ children }: { children: ReactNode }) {
   const ctx = await requireSettingsAccess();
   return (
-    <div className="space-y-6">
+    <div className="space-y-section">
       <div className="space-y-3">
-        <h1 className="text-2xl font-semibold">Settings</h1>
-        <nav aria-label="Settings">
-          <ul className="border-border flex gap-4 border-b text-sm">
+        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+        <nav aria-label="Settings" className="border-border overflow-x-auto border-b">
+          <ul className="flex gap-1 text-sm">
             {allowedSettingsTabs(ctx).map((t) => (
               <li key={t.href}>
-                <Link href={t.href} className="inline-block py-2 hover:underline">
+                <Link
+                  href={t.href}
+                  className="focus-visible:ring-ring text-foreground hover:border-border inline-block rounded-t-md border-b-2 border-transparent px-3 py-2.5 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-inset"
+                >
                   {t.label}
                 </Link>
               </li>

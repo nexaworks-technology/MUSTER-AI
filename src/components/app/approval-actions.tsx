@@ -3,6 +3,7 @@
 import { useActionState, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   approveAction,
   editApproveAction,
@@ -77,7 +78,7 @@ export function ApprovalActions({
       {draft && open ? (
         <form
           action={editRun}
-          className="space-y-2 rounded-md border p-3"
+          className="bg-card border-border space-y-3 rounded-lg border p-4"
           aria-label="Edit the draft"
         >
           <input type="hidden" name="approvalId" value={approvalId} />
@@ -98,7 +99,7 @@ export function ApprovalActions({
             <label htmlFor={ids.body} className="text-sm font-medium">
               Message
             </label>
-            <textarea
+            <Textarea
               id={ids.body}
               name="body"
               value={body}
@@ -106,7 +107,6 @@ export function ApprovalActions({
               required
               rows={10}
               maxLength={10_000}
-              className="border-input bg-background focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
             />
           </div>
           <p className="text-muted-foreground text-xs">

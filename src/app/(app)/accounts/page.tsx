@@ -60,11 +60,13 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
   });
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Accounts</h1>
+    <div className="space-y-section">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Accounts</h1>
+      </div>
       <form
         method="get"
-        className="flex flex-wrap items-end gap-2"
+        className="surface flex flex-wrap items-end gap-3 p-4"
         role="search"
         aria-label="Filter accounts"
       >
@@ -171,13 +173,16 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
         <Button type="submit" variant="outline">
           Apply
         </Button>
-        <Link href="/accounts" className="py-2 text-sm underline">
+        <Link href="/accounts" className="text-primary py-2 text-sm hover:underline">
           Clear
         </Link>
       </form>
 
       {page.segmentMissing ? (
-        <p role="alert" className="text-destructive text-sm">
+        <p
+          role="alert"
+          className="bg-danger-soft text-danger-soft-foreground rounded-md px-3 py-2 text-sm"
+        >
           That segment doesn&apos;t exist in this workspace, so it was ignored.
         </p>
       ) : null}
@@ -187,7 +192,10 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
         />
       ) : null}
       {!parsed.success ? (
-        <p role="alert" className="text-destructive text-sm">
+        <p
+          role="alert"
+          className="bg-danger-soft text-danger-soft-foreground rounded-md px-3 py-2 text-sm"
+        >
           Some filters were not valid and were ignored.
         </p>
       ) : null}
@@ -200,48 +208,48 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
 
       {page.rows.length > 0 ? (
         <div
-          className="border-border overflow-x-auto rounded-md border"
+          className="surface overflow-x-auto"
           role="region"
           aria-label="Accounts table"
           tabIndex={0}
         >
-          <table className="w-full min-w-[56rem] text-sm">
+          <table className="w-full min-w-224 text-sm">
             <caption className="sr-only">Accounts</caption>
-            <thead className="bg-muted text-muted-foreground text-left text-xs">
+            <thead>
               <tr>
-                <th scope="col" className="px-3 py-2 font-medium">
+                <th scope="col" className="px-2">
                   Name
                 </th>
-                <th scope="col" className="px-3 py-2 font-medium">
+                <th scope="col" className="px-2">
                   Health
                 </th>
-                <th scope="col" className="px-3 py-2 font-medium">
+                <th scope="col" className="px-2">
                   CSM Pulse
                 </th>
-                <th scope="col" className="px-3 py-2 font-medium">
+                <th scope="col" className="px-2">
                   Tier
                 </th>
-                <th scope="col" className="px-3 py-2 font-medium">
+                <th scope="col" className="px-2">
                   Stage
                 </th>
-                <th scope="col" className="px-3 py-2 font-medium">
+                <th scope="col" className="px-2">
                   Owner
                 </th>
-                <th scope="col" className="px-3 py-2 text-right font-medium">
+                <th scope="col" className="px-2 text-right">
                   ARR
                 </th>
-                <th scope="col" className="px-3 py-2 font-medium">
+                <th scope="col" className="px-2">
                   Renewal date
                 </th>
-                <th scope="col" className="px-3 py-2 font-medium">
+                <th scope="col" className="px-2">
                   Last touch
                 </th>
               </tr>
             </thead>
             <tbody>
               {page.rows.map((a) => (
-                <tr key={a.id} className="border-border border-t">
-                  <td className="px-3 py-2">
+                <tr key={a.id}>
+                  <td className="px-2">
                     <Link href={`/accounts/${a.id}`} className="font-medium hover:underline">
                       {a.name}
                     </Link>
@@ -249,7 +257,7 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
                       <div className="text-muted-foreground text-xs">{a.domain}</div>
                     ) : null}
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-2">
                     {(() => {
                       const h = health.get(a.id);
                       if (!h?.riskLevel)
@@ -268,7 +276,7 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
                       );
                     })()}
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-2">
                     {(() => {
                       const h = health.get(a.id);
                       return (
@@ -286,7 +294,7 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
                       );
                     })()}
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-2">
                     {a.canEdit ? (
                       <InlineField
                         accountId={a.id}
@@ -302,7 +310,7 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
                       TIER_LABELS[a.tier]
                     )}
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-2">
                     {a.canEdit ? (
                       <InlineField
                         accountId={a.id}
@@ -315,7 +323,7 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
                       STAGE_LABELS[a.lifecycleStage]
                     )}
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-2">
                     {a.canEdit && page.canChangeOwner ? (
                       <InlineField
                         accountId={a.id}
@@ -331,14 +339,14 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
                       (a.ownerName ?? <span className="text-muted-foreground">No owner</span>)
                     )}
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums">
+                  <td className="px-2 text-right">
                     {page.arrVisible ? (
                       formatArr(a.arr)
                     ) : (
                       <span className="text-muted-foreground">{RESTRICTED}</span>
                     )}
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-2">
                     {a.canEdit && a.hasContract ? (
                       <InlineField
                         accountId={a.id}
@@ -355,7 +363,7 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
                       </span>
                     )}
                   </td>
-                  <td className="px-3 py-2">{formatDate(a.lastTouchAt, tz)}</td>
+                  <td className="px-2">{formatDate(a.lastTouchAt, tz)}</td>
                 </tr>
               ))}
             </tbody>
@@ -363,14 +371,14 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
         </div>
       ) : null}
 
-      <nav aria-label="Pages" className="flex gap-3 text-sm">
+      <nav aria-label="Pages" className="text-primary flex gap-4 text-sm font-medium">
         {page.prevCursor !== null ? (
-          <Link href={pageHref(page.prevCursor)} className="underline">
+          <Link href={pageHref(page.prevCursor)} className="hover:underline">
             Previous
           </Link>
         ) : null}
         {page.nextCursor !== null ? (
-          <Link href={pageHref(page.nextCursor)} className="underline">
+          <Link href={pageHref(page.nextCursor)} className="hover:underline">
             Next
           </Link>
         ) : null}

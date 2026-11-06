@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { NativeSelect } from "@/components/app/native-select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 /** Step 1: choose the template and upload the CSV. Nothing is imported until confirmed. */
@@ -37,13 +38,13 @@ export function ImportUpload({ templates }: { templates: Array<{ kind: string; t
       </div>
       <div className="space-y-1">
         <Label htmlFor="import-file">CSV file (UTF-8, up to 25 MB)</Label>
-        <input
+        <Input
           id="import-file"
           name="file"
           type="file"
           accept=".csv,text/csv"
           required
-          className="block text-sm"
+          className="h-auto w-auto py-1.5"
         />
       </div>
       <Button type="submit" disabled={state.busy}>

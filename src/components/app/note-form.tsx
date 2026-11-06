@@ -6,6 +6,7 @@ import { NativeSelect } from "@/components/app/native-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { createNoteAction } from "@/modules/notes/actions/notes";
 
 export function NoteForm({
@@ -47,14 +48,13 @@ export function NoteForm({
           </div>
           <div className="space-y-1">
             <Label htmlFor="note-body">Note</Label>
-            <textarea
+            <Textarea
               id="note-body"
               name="body"
               required
               rows={5}
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              className="border-input bg-background focus-visible:ring-ring/50 w-full rounded-md border p-2 text-sm shadow-xs outline-none focus-visible:ring-[3px]"
               aria-describedby="note-help"
             />
             <p id="note-help" className="text-muted-foreground text-xs">

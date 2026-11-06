@@ -1,7 +1,9 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { ComponentProps } from "react";
 import { DuplicatePlayButton } from "@/components/app/play-actions";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
@@ -9,11 +11,13 @@ import { listPlays } from "@/modules/plays/service";
 
 export const metadata: Metadata = { title: "Plays" };
 
-const STATUS_BADGES: Record<string, string> = {
-  DRAFT: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200",
-  PUBLISHED: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200",
-  PAUSED: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200",
-  KILLED: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+type BadgeVariant = NonNullable<ComponentProps<typeof Badge>["variant"]>;
+
+const STATUS_BADGES: Record<string, BadgeVariant> = {
+  DRAFT: "warning",
+  PUBLISHED: "success",
+  PAUSED: "accent",
+  KILLED: "neutral",
 };
 
 export default async function PlaysPage() {
@@ -24,19 +28,19 @@ export default async function PlaysPage() {
   const canDraft = Boolean(can(ctx, "plays:createDraft"));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-section">
       {/* Subnav Tabs */}
-      <div className="border-b border-border">
+      <div className="border-border border-b">
         <div className="flex gap-4">
           <Link
             href={"/plays" as Route}
-            className="pb-3 text-sm font-medium text-foreground border-b-2 border-primary"
+            className="text-foreground border-primary border-b-2 pb-3 text-sm font-medium"
           >
             Plays
           </Link>
           <Link
             href={"/campaigns" as Route}
-            className="pb-3 text-sm font-medium text-muted-foreground hover:text-foreground border-b-2 border-transparent"
+            className="text-muted-foreground hover:text-foreground border-b-2 border-transparent pb-3 text-sm font-medium"
           >
             Campaigns
           </Link>
@@ -45,7 +49,7 @@ export default async function PlaysPage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Plays</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Plays</h1>
           <p className="text-muted-foreground text-sm">
             Automated workflows triggered by customer signals, milestones, and lifecycle events.
           </p>
@@ -57,14 +61,8 @@ export default async function PlaysPage() {
           <Card key={play.id} className="flex flex-col justify-between">
             <CardHeader className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <span
-                  className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                    STATUS_BADGES[play.status] ?? "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {play.status}
-                </span>
-                <span className="text-xs text-muted-foreground">v{play.version}</span>
+                <Badge variant={STATUS_BADGES[play.status] ?? "neutral"}>{play.status}</Badge>
+                <span className="text-muted-foreground text-xs">v{play.version}</span>
               </div>
               <CardTitle className="text-base font-medium">
                 <Link
@@ -80,15 +78,17 @@ export default async function PlaysPage() {
                 </CardDescription>
               )}
             </CardHeader>
-            <CardContent className="pt-0 space-y-4">
-              <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-3">
+            <CardContent className="space-y-4 pt-0">
+              <div className="text-muted-foreground flex items-center justify-between border-t pt-3 text-xs">
                 <span>{play.category ?? "General"}</span>
-                <span>{play.totalRuns} run{play.totalRuns === 1 ? "" : "s"}</span>
+                <span>
+                  {play.totalRuns} run{play.totalRuns === 1 ? "" : "s"}
+                </span>
               </div>
               <div className="flex items-center justify-between pt-1">
                 <Link
                   href={`/plays/${play.id}` as Route}
-                  className="text-xs text-primary font-medium hover:underline"
+                  className="text-primary text-xs font-medium hover:underline"
                 >
                   Inspect play →
                 </Link>

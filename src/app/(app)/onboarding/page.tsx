@@ -1,6 +1,8 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { NativeSelect } from "@/components/app/native-select";
+import { Button } from "@/components/ui/button";
 import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { listMembers } from "@/modules/settings/service";
@@ -50,36 +52,30 @@ export default async function OnboardingPage({ searchParams }: { searchParams: S
   };
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Onboarding</h1>
-      <p className="text-muted-foreground text-sm">
-        Every new customer on a plan: where each one is stuck and what would unblock it. Stalled
-        accounts come first.
-      </p>
-      <form method="get" className="flex flex-wrap items-end gap-3 text-sm">
+    <div className="space-y-section">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Onboarding</h1>
+        <p className="text-muted-foreground text-sm">
+          Every new customer on a plan: where each one is stuck and what would unblock it. Stalled
+          accounts come first.
+        </p>
+      </div>
+      <form method="get" className="surface flex flex-wrap items-end gap-3 p-4 text-sm">
         <label className="flex flex-col gap-1">
           Tier
-          <select
-            name="tier"
-            defaultValue={tier ?? ""}
-            className="border-input rounded-md border px-2 py-1"
-          >
+          <NativeSelect name="tier" defaultValue={tier ?? ""}>
             <option value="">All tiers</option>
             {Object.entries(TIERS).map(([v, l]) => (
               <option key={v} value={v}>
                 {l}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </label>
         {members.length ? (
           <label className="flex flex-col gap-1">
             Owner
-            <select
-              name="owner"
-              defaultValue={owner ?? ""}
-              className="border-input rounded-md border px-2 py-1"
-            >
+            <NativeSelect name="owner" defaultValue={owner ?? ""}>
               <option value="">Everyone</option>
               {members
                 .filter((m) => m.status === "ACTIVE")
@@ -88,12 +84,12 @@ export default async function OnboardingPage({ searchParams }: { searchParams: S
                     {m.user.name ?? m.user.email}
                   </option>
                 ))}
-            </select>
+            </NativeSelect>
           </label>
         ) : null}
-        <button type="submit" className="border-input rounded-md border px-3 py-1">
+        <Button type="submit" variant="outline">
           Filter
-        </button>
+        </Button>
       </form>
 
       {list.rows.length === 0 ? (
@@ -101,39 +97,29 @@ export default async function OnboardingPage({ searchParams }: { searchParams: S
           No accounts are onboarding{tier || owner ? " with these filters" : " in your book"}.
         </p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="surface overflow-x-auto">
           <table className="w-full text-left text-sm">
             <caption className="sr-only">Accounts onboarding</caption>
             <thead>
-              <tr className="border-border border-b">
-                <th scope="col" className="py-2 pr-3">
-                  Account
-                </th>
-                <th scope="col" className="py-2 pr-3">
-                  Status
-                </th>
-                <th scope="col" className="py-2 pr-3">
-                  Likely blocker
-                </th>
-                <th scope="col" className="py-2 pr-3">
-                  Time to value
-                </th>
-                <th scope="col" className="py-2 pr-3">
-                  Owner
-                </th>
+              <tr>
+                <th scope="col">Account</th>
+                <th scope="col">Status</th>
+                <th scope="col">Likely blocker</th>
+                <th scope="col">Time to value</th>
+                <th scope="col">Owner</th>
               </tr>
             </thead>
             <tbody>
               {list.rows.map((r) => (
                 <tr
                   key={r.planId}
-                  className="border-border border-b"
+
                   data-testid={`onboarding-row-${r.account.name}`}
                 >
-                  <td className="py-2 pr-3">
+                  <td>
                     <Link
                       href={`/accounts/${r.account.id}/onboarding` as Route}
-                      className="underline"
+                      className="text-primary underline underline-offset-2"
                     >
                       {r.account.name}
                     </Link>
@@ -141,10 +127,10 @@ export default async function OnboardingPage({ searchParams }: { searchParams: S
                       {TIERS[r.account.tier as keyof typeof TIERS]} · day {r.day}
                     </span>
                   </td>
-                  <td className="py-2 pr-3">{r.status === "STALLED" ? "Stalled" : "On track"}</td>
-                  <td className="py-2 pr-3">{r.blocker ?? "—"}</td>
-                  <td className="py-2 pr-3">{ttvText(r)}</td>
-                  <td className="py-2 pr-3">{r.owner ?? "No owner"}</td>
+                  <td>{r.status === "STALLED" ? "Stalled" : "On track"}</td>
+                  <td>{r.blocker ?? "—"}</td>
+                  <td>{ttvText(r)}</td>
+                  <td>{r.owner ?? "No owner"}</td>
                 </tr>
               ))}
             </tbody>
@@ -153,11 +139,19 @@ export default async function OnboardingPage({ searchParams }: { searchParams: S
       )}
       {list.pages > 1 ? (
         <nav aria-label="Pages" className="flex gap-3 text-sm">
-          {list.page > 1 ? <Link href={href(list.page - 1)}>Previous</Link> : null}
+          {list.page > 1 ? (
+            <Link href={href(list.page - 1)} className="text-primary underline underline-offset-2">
+              Previous
+            </Link>
+          ) : null}
           <span>
             Page {list.page} of {list.pages}
           </span>
-          {list.page < list.pages ? <Link href={href(list.page + 1)}>Next</Link> : null}
+          {list.page < list.pages ? (
+            <Link href={href(list.page + 1)} className="text-primary underline underline-offset-2">
+              Next
+            </Link>
+          ) : null}
         </nav>
       ) : null}
     </div>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { EmptyState } from "@/components/app/empty-state";
 import { NoteForm } from "@/components/app/note-form";
 import { formatDateTime } from "@/lib/format";
 import { listNotes, listNoteTemplates } from "@/modules/notes/service";
@@ -14,19 +15,21 @@ export default async function NotesPage({ params }: { params: Promise<{ id: stri
     listNoteTemplates(ctx),
   ]);
   return (
-    <div className="space-y-4">
+    <div className="space-y-section">
       {account.canEdit ? (
-        <NoteForm
-          accountId={account.id}
-          templates={templates.map((t) => ({ id: t.id, name: t.name, body: t.body }))}
-        />
+        <div className="surface p-5">
+          <NoteForm
+            accountId={account.id}
+            templates={templates.map((t) => ({ id: t.id, name: t.name, body: t.body }))}
+          />
+        </div>
       ) : null}
       {notes.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No notes on this account yet.</p>
+        <EmptyState>No notes on this account yet.</EmptyState>
       ) : (
-        <ul className="divide-border border-border divide-y rounded-md border text-sm">
+        <ul className="surface divide-border divide-y overflow-hidden text-sm">
           {notes.map((n) => (
-            <li key={n.id} className="space-y-1 p-3" data-testid="note">
+            <li key={n.id} className="space-y-1.5 p-4" data-testid="note">
               <div className="text-muted-foreground text-xs">
                 {n.author?.user.name ?? n.author?.user.email ?? "Former member"} ·{" "}
                 {formatDateTime(n.createdAt, ctx.workspace.timezone)}
@@ -38,7 +41,7 @@ export default async function NotesPage({ params }: { params: Promise<{ id: stri
                   {n.tags.map((t) => (
                     <li
                       key={t}
-                      className="border-border text-muted-foreground rounded border px-1.5 py-0.5 text-xs"
+                      className="bg-secondary text-secondary-foreground rounded-full px-2.5 py-0.5 text-xs font-medium"
                     >
                       {t}
                     </li>

@@ -1,6 +1,9 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
+import { NativeSelect } from "@/components/app/native-select";
 import { PromiseTable } from "@/components/app/promise-table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { createPromiseAction } from "@/modules/promises/actions/promises";
@@ -34,15 +37,15 @@ export default async function PromisesPage({ searchParams }: { searchParams: Sea
     <Link
       href={href as Route}
       aria-current={active ? "page" : undefined}
-      className={`rounded-md px-3 py-1 text-sm ${active ? "bg-muted font-medium" : "hover:underline"}`}
+      className={`rounded-md px-3 py-1 text-sm ${active ? "bg-accent text-accent-foreground font-medium" : "text-foreground hover:bg-hover"}`}
     >
       {label}
     </Link>
   );
   return (
-    <div className="space-y-4">
+    <div className="space-y-section">
       <div>
-        <h1 className="text-2xl font-semibold">Promises</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Promises</h1>
         <p className="text-muted-foreground text-sm">
           Promises read from calls, emails and notes, each with the exact words, plus any added by
           hand. Late ones first, then ones with no owner.
@@ -53,12 +56,18 @@ export default async function PromisesPage({ searchParams }: { searchParams: Sea
         {tab("/promises?status=ALL", "All", status === "ALL")}
       </nav>
       {error ? (
-        <p role="alert" className="text-sm text-red-700 dark:text-red-300">
+        <p
+          role="alert"
+          className="bg-danger-soft text-danger-soft-foreground rounded-md px-3 py-2 text-sm"
+        >
           {error}
         </p>
       ) : null}
       {done ? (
-        <p role="status" className="text-sm text-emerald-700 dark:text-emerald-300">
+        <p
+          role="status"
+          className="bg-success-soft text-success-soft-foreground rounded-md px-3 py-2 text-sm"
+        >
           {done}
         </p>
       ) : null}
@@ -73,25 +82,20 @@ export default async function PromisesPage({ searchParams }: { searchParams: Sea
         <nav aria-label="Pages" className="text-sm">
           <Link
             href={{ pathname: "/promises", query: { status, cursor: nextCursor } }}
-            className="underline"
+            className="text-primary underline underline-offset-2"
           >
             Next
           </Link>
         </nav>
       ) : null}
       {canEdit ? (
-        <details className="rounded-md border p-3 text-sm">
+        <details className="surface p-4 text-sm">
           <summary className="cursor-pointer font-medium">Add a promise by hand</summary>
           <form action={createPromiseAction} className="mt-3 grid max-w-xl gap-3">
             <input type="hidden" name="returnTo" value="/promises" />
             <label>
               Account
-              <select
-                name="accountId"
-                required
-                defaultValue=""
-                className="border-input bg-background mt-1 block w-full rounded-md border px-2 py-1"
-              >
+              <NativeSelect name="accountId" required defaultValue="" className="mt-1 block w-full">
                 <option value="" disabled>
                   Choose…
                 </option>
@@ -100,57 +104,37 @@ export default async function PromisesPage({ searchParams }: { searchParams: Sea
                     {a.name}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
             <label>
               What was promised
-              <input
-                name="what"
-                required
-                maxLength={300}
-                className="border-input bg-background mt-1 block w-full rounded-md border px-2 py-1"
-              />
+              <Input name="what" required maxLength={300} className="mt-1 block" />
             </label>
             <label>
               Who promised
-              <select
-                name="party"
-                defaultValue="US"
-                className="border-input bg-background mt-1 block w-full rounded-md border px-2 py-1"
-              >
+              <NativeSelect name="party" defaultValue="US" className="mt-1 block w-full">
                 <option value="US">We did</option>
                 <option value="CUSTOMER">The customer did</option>
-              </select>
+              </NativeSelect>
             </label>
             <label>
               Due date (leave empty if none was given)
-              <input
-                name="dueDate"
-                type="date"
-                className="border-input bg-background mt-1 block rounded-md border px-2 py-1"
-              />
+              <Input name="dueDate" type="date" className="mt-1 block w-auto" />
             </label>
             <label>
               Owner
-              <select
-                name="ownerMembershipId"
-                defaultValue=""
-                className="border-input bg-background mt-1 block w-full rounded-md border px-2 py-1"
-              >
+              <NativeSelect name="ownerMembershipId" defaultValue="" className="mt-1 block w-full">
                 <option value="">No owner</option>
                 {owners.map((o) => (
                   <option key={o.id} value={o.id}>
                     {o.name}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
-            <button
-              type="submit"
-              className="bg-primary text-primary-foreground w-fit rounded-md px-3 py-1"
-            >
+            <Button type="submit" className="w-fit">
               Add promise
-            </button>
+            </Button>
           </form>
         </details>
       ) : null}

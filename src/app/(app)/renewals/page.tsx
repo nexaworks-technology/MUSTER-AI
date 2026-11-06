@@ -1,7 +1,9 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { NativeSelect } from "@/components/app/native-select";
 import { CategoryControl, CategoryState, Reasons, BAND_WORDS } from "@/components/renewals/reasons";
+import { Button } from "@/components/ui/button";
 import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { formatCalendarDate } from "@/lib/format";
@@ -34,11 +36,11 @@ function ForecastSection({ f }: { f: Forecast }) {
       <tbody>
         {items.map((r) => (
           <tr key={r.label}>
-            <th scope="row" className="py-1 pr-4 font-normal">
+            <th scope="row" className="font-normal">
               {r.label}
             </th>
-            <td className="py-1 pr-4">{money(r.v.arrMinor, f.baseCurrency)}</td>
-            <td className="text-muted-foreground py-1 text-xs">
+            <td>{money(r.v.arrMinor, f.baseCurrency)}</td>
+            <td className="text-muted-foreground text-xs">
               {r.v.renewalIds.length} renewal{r.v.renewalIds.length === 1 ? "" : "s"}
             </td>
           </tr>
@@ -47,7 +49,7 @@ function ForecastSection({ f }: { f: Forecast }) {
     </table>
   );
   return (
-    <section aria-labelledby="forecast-h" className="space-y-2" data-testid="forecast">
+    <section aria-labelledby="forecast-h" className="surface space-y-3 p-5" data-testid="forecast">
       <h2 id="forecast-h" className="text-lg font-semibold">
         Forecast for this window ({f.baseCurrency})
       </h2>
@@ -110,60 +112,53 @@ export default async function RenewalsPage({ searchParams }: { searchParams: Sea
   };
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Renewals</h1>
-      <p className="text-muted-foreground text-sm">
-        Open renewals renewing within {list.days} days, lowest confidence first. Confidence is
-        worked out from records by fixed rules; open a row to see each reason and its sources.
-      </p>
+    <div className="space-y-section">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Renewals</h1>
+        <p className="text-muted-foreground text-sm">
+          Open renewals renewing within {list.days} days, lowest confidence first. Confidence is
+          worked out from records by fixed rules; open a row to see each reason and its sources.
+        </p>
+      </div>
       {ok ? (
-        <p role="status" className="text-sm">
+        <p role="status" className="bg-muted text-foreground rounded-md px-3 py-2 text-sm">
           {ok}
         </p>
       ) : null}
       {error ? (
-        <p role="alert" className="text-sm">
+        <p
+          role="alert"
+          className="bg-danger-soft text-danger-soft-foreground rounded-md px-3 py-2 text-sm"
+        >
           {error}
         </p>
       ) : null}
-      <form method="get" className="flex flex-wrap items-end gap-3 text-sm">
+      <form method="get" className="surface flex flex-wrap items-end gap-3 p-4 text-sm">
         <label className="flex flex-col gap-1">
           Renewing within
-          <select
-            name="days"
-            defaultValue={String(list.days)}
-            className="border-input rounded-md border px-2 py-1"
-          >
+          <NativeSelect name="days" defaultValue={String(list.days)}>
             {WINDOWS.map((d) => (
               <option key={d} value={d}>
                 {d} days
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </label>
         <label className="flex flex-col gap-1">
           Confidence
-          <select
-            name="band"
-            defaultValue={band ?? ""}
-            className="border-input rounded-md border px-2 py-1"
-          >
+          <NativeSelect name="band" defaultValue={band ?? ""}>
             <option value="">All</option>
             {Object.entries(BAND_WORDS).map(([v, l]) => (
               <option key={v} value={v}>
                 {l}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </label>
         {members.length ? (
           <label className="flex flex-col gap-1">
             Owner
-            <select
-              name="owner"
-              defaultValue={owner ?? ""}
-              className="border-input rounded-md border px-2 py-1"
-            >
+            <NativeSelect name="owner" defaultValue={owner ?? ""}>
               <option value="">Everyone</option>
               {members
                 .filter((m) => m.status === "ACTIVE")
@@ -172,12 +167,12 @@ export default async function RenewalsPage({ searchParams }: { searchParams: Sea
                     {m.user.name ?? m.user.email}
                   </option>
                 ))}
-            </select>
+            </NativeSelect>
           </label>
         ) : null}
-        <button type="submit" className="border-input rounded-md border px-3 py-1">
+        <Button type="submit" variant="outline">
           Filter
-        </button>
+        </Button>
       </form>
 
       {list.forecast ? <ForecastSection f={list.forecast} /> : null}
@@ -187,37 +182,26 @@ export default async function RenewalsPage({ searchParams }: { searchParams: Sea
           No open renewals in this window{band || owner ? " with these filters" : ""}.
         </p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="surface overflow-x-auto">
           <table className="w-full text-left text-sm">
             <caption className="sr-only">Open renewals, lowest confidence first</caption>
             <thead>
-              <tr className="border-border border-b">
-                <th scope="col" className="py-2 pr-3">
-                  Account
-                </th>
-                <th scope="col" className="py-2 pr-3">
-                  Renews
-                </th>
-                <th scope="col" className="py-2 pr-3">
-                  Confidence
-                </th>
-                <th scope="col" className="py-2 pr-3">
-                  ARR
-                </th>
-                <th scope="col" className="py-2 pr-3">
-                  Forecast category
-                </th>
+              <tr>
+                <th scope="col">Account</th>
+                <th scope="col">Renews</th>
+                <th scope="col">Confidence</th>
+                <th scope="col">ARR</th>
+                <th scope="col">Forecast category</th>
               </tr>
             </thead>
             <tbody>
               {list.rows.map((r) => (
-                <tr
-                  key={r.id}
-                  className="border-border border-b align-top"
-                  data-testid={`renewal-row-${r.account.name}`}
-                >
-                  <td className="py-2 pr-3">
-                    <Link href={`/accounts/${r.account.id}/renewal` as Route} className="underline">
+                <tr key={r.id} className="align-top" data-testid={`renewal-row-${r.account.name}`}>
+                  <td>
+                    <Link
+                      href={`/accounts/${r.account.id}/renewal` as Route}
+                      className="text-primary underline underline-offset-2"
+                    >
                       {r.account.name}
                     </Link>
                     <Link
@@ -230,7 +214,7 @@ export default async function RenewalsPage({ searchParams }: { searchParams: Sea
                       {r.account.owner ?? "No owner"}
                     </span>
                   </td>
-                  <td className="py-2 pr-3">
+                  <td>
                     {formatCalendarDate(r.renewalDate)}
                     <span className="text-muted-foreground block text-xs">
                       in {r.daysToRenewal} days
@@ -239,10 +223,10 @@ export default async function RenewalsPage({ searchParams }: { searchParams: Sea
                         : ", no notice period on file"}
                     </span>
                   </td>
-                  <td className="py-2 pr-3">
+                  <td>
                     <span data-testid="confidence">{r.confidence}%</span> {BAND_WORDS[r.band]}
                     <details className="mt-1">
-                      <summary className="cursor-pointer text-xs underline">
+                      <summary className="text-primary cursor-pointer text-xs underline underline-offset-2">
                         Why {r.confidence}%
                       </summary>
                       <div className="mt-2">
@@ -250,18 +234,20 @@ export default async function RenewalsPage({ searchParams }: { searchParams: Sea
                       </div>
                     </details>
                   </td>
-                  <td className="py-2 pr-3">
+                  <td>
                     {!r.moneyVisible
                       ? "Restricted"
                       : r.arrMinor != null && r.currency
                         ? money(r.arrMinor, r.currency)
                         : "No contract value on file"}
                   </td>
-                  <td className="py-2 pr-3">
+                  <td>
                     <CategoryState row={r} />
                     {r.canCategorise ? (
                       <details className="mt-1">
-                        <summary className="cursor-pointer text-xs underline">Change</summary>
+                        <summary className="text-primary cursor-pointer text-xs underline underline-offset-2">
+                          Change
+                        </summary>
                         <div className="mt-2">
                           <CategoryControl row={r} returnTo="/renewals" />
                         </div>
@@ -276,11 +262,19 @@ export default async function RenewalsPage({ searchParams }: { searchParams: Sea
       )}
       {list.pages > 1 ? (
         <nav aria-label="Pages" className="flex gap-3 text-sm">
-          {list.page > 1 ? <Link href={href(list.page - 1)}>Previous</Link> : null}
+          {list.page > 1 ? (
+            <Link href={href(list.page - 1)} className="text-primary underline underline-offset-2">
+              Previous
+            </Link>
+          ) : null}
           <span>
             Page {list.page} of {list.pages}
           </span>
-          {list.page < list.pages ? <Link href={href(list.page + 1)}>Next</Link> : null}
+          {list.page < list.pages ? (
+            <Link href={href(list.page + 1)} className="text-primary underline underline-offset-2">
+              Next
+            </Link>
+          ) : null}
         </nav>
       ) : null}
     </div>

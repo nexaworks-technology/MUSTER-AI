@@ -1,17 +1,21 @@
 import type { Route } from "next";
 import Link from "next/link";
+import { NativeSelect } from "@/components/app/native-select";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { formatCalendarDate } from "@/lib/format";
 import { markPromiseKeptAction, setPromiseOwnerAction } from "@/modules/promises/actions/promises";
 import type { PromiseRow } from "@/modules/promises/service";
 
-const STATUS: Record<PromiseRow["status"], { label: string; cls: string }> = {
-  LATE: { label: "Late", cls: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-100" },
-  BROKEN: { label: "Broken", cls: "bg-red-100 text-red-900 dark:bg-red-950 dark:text-red-100" },
-  OPEN: { label: "Open", cls: "bg-muted text-foreground" },
-  KEPT: {
-    label: "Kept",
-    cls: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100",
-  },
+const STATUS: Record<
+  PromiseRow["status"],
+  { label: string; variant: "warning" | "danger" | "neutral" | "success" }
+> = {
+  LATE: { label: "Late", variant: "warning" },
+  BROKEN: { label: "Broken", variant: "danger" },
+  OPEN: { label: "Open", variant: "neutral" },
+  KEPT: { label: "Kept", variant: "success" },
 };
 const PARTY = {
   US: "We promised",
@@ -41,29 +45,26 @@ export function PromiseTable({
   showAccount?: boolean;
 }) {
   return (
-    <ul
-      className="divide-border border-border divide-y rounded-md border"
-      data-testid="promise-list"
-    >
+    <ul className="surface divide-border divide-y overflow-hidden" data-testid="promise-list">
       {rows.map((p) => {
         const href = p.source ? sourceHref(p.account.id, p.source) : null;
         return (
           <li
             key={p.id}
             id={`promise-${p.id}`}
-            className="space-y-1 p-3 text-sm"
+            className="space-y-1 p-4 text-sm"
             data-testid="promise-row"
           >
             <div className="flex flex-wrap items-baseline gap-x-2">
-              <span
-                className={`rounded px-1.5 py-0.5 text-xs font-medium ${STATUS[p.status].cls}`}
-                data-testid="promise-status"
-              >
+              <Badge variant={STATUS[p.status].variant} data-testid="promise-status">
                 {STATUS[p.status].label}
-              </span>
+              </Badge>
               <span className="font-medium">{p.what}</span>
               {showAccount ? (
-                <Link href={`/accounts/${p.account.id}/promises` as Route} className="underline">
+                <Link
+                  href={`/accounts/${p.account.id}/promises` as Route}
+                  className="text-primary underline underline-offset-2"
+                >
                   {p.account.name}
                 </Link>
               ) : null}
@@ -85,7 +86,7 @@ export function PromiseTable({
               <p className="text-xs">
                 Said: <q>{p.quote}</q>{" "}
                 {href ? (
-                  <Link href={href} className="underline">
+                  <Link href={href} className="text-primary underline underline-offset-2">
                     open the{" "}
                     {p.source!.type === "CALL_TRANSCRIPT"
                       ? "call"
@@ -105,10 +106,10 @@ export function PromiseTable({
                   <input type="hidden" name="returnTo" value={returnTo} />
                   <label>
                     <span className="block">Owner</span>
-                    <select
+                    <NativeSelect
                       name="ownerMembershipId"
                       defaultValue={p.owner?.id ?? ""}
-                      className="border-input bg-background mt-1 rounded-md border px-2 py-1 text-sm"
+                      className="mt-1 h-8"
                     >
                       <option value="">No owner</option>
                       {owners.map((o) => (
@@ -116,27 +117,22 @@ export function PromiseTable({
                           {o.name}
                         </option>
                       ))}
-                    </select>
+                    </NativeSelect>
                   </label>
-                  <button type="submit" className="rounded-md border px-2 py-1">
+                  <Button type="submit" variant="outline" size="sm">
                     Save owner
-                  </button>
+                  </Button>
                 </form>
                 <form action={markPromiseKeptAction} className="flex items-end gap-2 text-xs">
                   <input type="hidden" name="promiseId" value={p.id} />
                   <input type="hidden" name="returnTo" value={returnTo} />
                   <label>
                     <span className="block">How it was kept (saved as a note)</span>
-                    <input
-                      name="text"
-                      required
-                      maxLength={500}
-                      className="border-input bg-background mt-1 w-64 rounded-md border px-2 py-1 text-sm"
-                    />
+                    <Input name="text" required maxLength={500} className="mt-1 h-8 w-64" />
                   </label>
-                  <button type="submit" className="rounded-md border px-2 py-1">
+                  <Button type="submit" variant="outline" size="sm">
                     Mark kept
-                  </button>
+                  </Button>
                 </form>
               </div>
             ) : null}

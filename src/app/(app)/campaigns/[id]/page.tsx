@@ -1,14 +1,25 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
-import { runCampaignBatchAction, scheduleCampaignAction } from "@/modules/campaigns/actions/campaigns";
+import {
+  runCampaignBatchAction,
+  scheduleCampaignAction,
+} from "@/modules/campaigns/actions/campaigns";
 import { getCampaign } from "@/modules/campaigns/service";
 
 export const metadata: Metadata = { title: "Campaign Details" };
+
+const RECIPIENT_VARIANTS: Record<string, "success" | "warning" | "danger"> = {
+  SENT: "success",
+  HELD: "warning",
+  FAILED: "danger",
+};
 
 interface CampaignDetailPageProps {
   params: Promise<{ id: string }>;
@@ -32,19 +43,19 @@ export default async function CampaignDetailPage({ params }: CampaignDetailPageP
   const canManage = Boolean(can(ctx, "plays:createDraft"));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-section">
       <div>
         <div className="mb-2">
           <Link
             href={"/campaigns" as Route}
-            className="text-xs text-muted-foreground hover:underline"
+            className="text-muted-foreground text-xs hover:underline"
           >
             ← Back to Campaigns
           </Link>
         </div>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold">{campaign.name}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">{campaign.name}</h1>
             <p className="text-muted-foreground text-sm">
               Target Segment: <strong>{campaign.segment.name}</strong> • Created by{" "}
               {campaign.createdBy?.user.name ?? "System"}
@@ -78,25 +89,27 @@ export default async function CampaignDetailPage({ params }: CampaignDetailPageP
         <Card>
           <CardHeader className="py-3">
             <CardDescription className="text-xs">Queued</CardDescription>
-            <CardTitle className="text-xl font-bold text-amber-800 dark:text-amber-300">{campaign.stats.queued}</CardTitle>
+            <CardTitle className="text-foreground text-xl font-bold">
+              {campaign.stats.queued}
+            </CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="py-3">
             <CardDescription className="text-xs">Sent</CardDescription>
-            <CardTitle className="text-xl font-bold text-emerald-600">{campaign.stats.sent}</CardTitle>
+            <CardTitle className="text-success text-xl font-bold">{campaign.stats.sent}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="py-3">
             <CardDescription className="text-xs">Held by Guards</CardDescription>
-            <CardTitle className="text-xl font-bold text-orange-600">{campaign.stats.held}</CardTitle>
+            <CardTitle className="text-warning text-xl font-bold">{campaign.stats.held}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="py-3">
             <CardDescription className="text-xs">Failed / Bounced</CardDescription>
-            <CardTitle className="text-xl font-bold text-rose-600">{campaign.stats.failed}</CardTitle>
+            <CardTitle className="text-danger text-xl font-bold">{campaign.stats.failed}</CardTitle>
           </CardHeader>
         </Card>
       </div>
@@ -110,15 +123,15 @@ export default async function CampaignDetailPage({ params }: CampaignDetailPageP
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-md bg-muted/30">
+          <div className="bg-muted border-border flex flex-col justify-between gap-4 rounded-md border p-4 sm:flex-row sm:items-center">
             <div>
               <div className="text-sm font-medium">
                 Approval Status:{" "}
-                <span className="font-semibold text-primary">
+                <span className="text-primary font-semibold">
                   {campaign.approval?.status ?? "NONE"}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-muted-foreground mt-0.5 text-xs">
                 {campaign.approval?.decidedBy
                   ? `Decided by ${campaign.approval.decidedBy.user.name}`
                   : "Requires decision in Approvals queue by Admin or CS Leader."}
@@ -132,9 +145,9 @@ export default async function CampaignDetailPage({ params }: CampaignDetailPageP
           </div>
 
           {isApproved && campaign.status === "DRAFT" && canManage && (
-            <div className="p-4 border rounded-md space-y-3">
+            <div className="border-border space-y-3 rounded-md border p-4">
               <div className="text-sm font-medium">Schedule Campaign</div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 Set the delivery start date and time. Recipient send timestamps will be spaced at{" "}
                 {campaign.pacePerHour} emails/hour.
               </p>
@@ -146,12 +159,12 @@ export default async function CampaignDetailPage({ params }: CampaignDetailPageP
                 }}
                 className="flex items-center gap-3"
               >
-                <input
+                <Input
                   type="datetime-local"
                   name="scheduledAt"
                   required
                   defaultValue={new Date().toISOString().slice(0, 16)}
-                  className="rounded-md border border-input bg-background px-3 py-1.5 text-sm"
+                  className="w-auto"
                 />
                 <Button type="submit" size="sm">
                   Schedule Delivery
@@ -172,12 +185,12 @@ export default async function CampaignDetailPage({ params }: CampaignDetailPageP
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <div>
-            <span className="font-medium text-xs text-muted-foreground">Subject:</span>
-            <div className="font-medium mt-0.5">{campaign.subject}</div>
+            <span className="text-muted-foreground text-xs font-medium">Subject:</span>
+            <div className="mt-0.5 font-medium">{campaign.subject}</div>
           </div>
           <div>
-            <span className="font-medium text-xs text-muted-foreground">Body:</span>
-            <div className="mt-1 whitespace-pre-wrap rounded-md bg-muted/40 p-4 font-mono text-xs">
+            <span className="text-muted-foreground text-xs font-medium">Body:</span>
+            <div className="bg-muted mt-1 rounded-md p-4 font-mono text-xs whitespace-pre-wrap">
               {campaign.body}
             </div>
           </div>
@@ -193,46 +206,34 @@ export default async function CampaignDetailPage({ params }: CampaignDetailPageP
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead className="border-b text-muted-foreground">
+          <div className="surface overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="text-muted-foreground">
                 <tr>
-                  <th className="py-2 pr-4 font-medium">Contact</th>
-                  <th className="py-2 pr-4 font-medium">Account</th>
-                  <th className="py-2 pr-4 font-medium">Status</th>
-                  <th className="py-2 pr-4 font-medium">Scheduled For</th>
-                  <th className="py-2 font-medium">Notes / Held Reason</th>
+                  <th className="font-medium">Contact</th>
+                  <th className="font-medium">Account</th>
+                  <th className="font-medium">Status</th>
+                  <th className="font-medium">Scheduled For</th>
+                  <th className="font-medium">Notes / Held Reason</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody>
                 {campaign.recipients.map((r) => (
                   <tr key={r.id}>
-                    <td className="py-2.5 pr-4 font-medium">
+                    <td className="font-medium">
                       {r.contact.name}
-                      <span className="block text-[11px] text-muted-foreground font-normal">
+                      <span className="text-muted-foreground block text-xs font-normal">
                         {r.contact.email}
                       </span>
                     </td>
-                    <td className="py-2.5 pr-4">{r.account.name}</td>
-                    <td className="py-2.5 pr-4">
-                      <span
-                        className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                          r.status === "SENT"
-                            ? "bg-emerald-100 text-emerald-800"
-                            : r.status === "HELD"
-                              ? "bg-orange-100 text-orange-800"
-                              : r.status === "FAILED"
-                                ? "bg-rose-100 text-rose-800"
-                                : "bg-amber-100 text-amber-800"
-                        }`}
-                      >
-                        {r.status}
-                      </span>
+                    <td>{r.account.name}</td>
+                    <td>
+                      <Badge variant={RECIPIENT_VARIANTS[r.status] ?? "warning"}>{r.status}</Badge>
                     </td>
-                    <td className="py-2.5 pr-4 text-muted-foreground">
+                    <td className="text-muted-foreground">
                       {r.scheduledFor ? new Date(r.scheduledFor).toLocaleString() : "Immediate"}
                     </td>
-                    <td className="py-2.5 text-muted-foreground truncate max-w-xs">
+                    <td className="text-muted-foreground max-w-xs truncate">
                       {r.heldReason ?? "—"}
                     </td>
                   </tr>

@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Data" };
 export default async function DataSettingsPage() {
   const ctx = await requireSettingsAccess("data:exportDelete");
   return (
-    <div className="max-w-3xl space-y-8">
+    <div className="space-y-section max-w-3xl">
       <ExportSection actor={ctx} />
       <AiTermsSection />
       <DeleteSection actor={ctx} />

@@ -2,6 +2,8 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { formatMoney } from "@/lib/money";
@@ -38,11 +40,11 @@ function Waterfall({ w }: { w: CurrencyWaterfall }) {
       <tbody>
         {lines.map(([label, amount, n]) => (
           <tr key={label}>
-            <th scope="row" className="py-1 pr-6 font-normal">
+            <th scope="row" className="font-normal">
               {label}
             </th>
-            <td className="py-1 pr-4 tabular-nums">{m(amount, w.currency)}</td>
-            <td className="text-muted-foreground py-1 text-xs">
+            <td className="tabular-nums">{m(amount, w.currency)}</td>
+            <td className="text-muted-foreground text-xs">
               {n ? `${n} event${n === 1 ? "" : "s"}` : ""}
             </td>
           </tr>
@@ -50,7 +52,7 @@ function Waterfall({ w }: { w: CurrencyWaterfall }) {
       </tbody>
       <tfoot>
         <tr>
-          <td colSpan={3} className="text-muted-foreground pt-1 text-xs">
+          <td colSpan={3} className="text-muted-foreground text-xs">
             {w.reconciled
               ? "Opening plus movements equals closing, checked against the sum of every event."
               : "Does not reconcile: see the events listed under each movement."}
@@ -84,39 +86,31 @@ export default async function RevenuePage({ searchParams }: { searchParams: Sear
   const noMoney = (n: number) =>
     `${n} renewal${n === 1 ? "" : "s"} with no contract value on file, not counted`;
   return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-semibold">Revenue</h1>
-      <p className="text-muted-foreground text-sm">
-        Every figure comes from revenue events, contracts and subscriptions on record; each can be
-        traced to its records. Currencies are never converted.
-      </p>
+    <div className="space-y-section">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Revenue</h1>
+        <p className="text-muted-foreground text-sm">
+          Every figure comes from revenue events, contracts and subscriptions on record; each can be
+          traced to its records. Currencies are never converted.
+        </p>
+      </div>
 
-      <section aria-labelledby="wf-h" className="space-y-3">
+      <section aria-labelledby="wf-h" className="surface space-y-3 p-5">
         <h2 id="wf-h" className="text-lg font-semibold">
           ARR waterfall, {v.waterfall.from} to {v.waterfall.to}
         </h2>
         <form method="get" className="flex flex-wrap items-end gap-3 text-sm">
           <label className="flex flex-col gap-1">
             From
-            <input
-              type="date"
-              name="from"
-              defaultValue={v.waterfall.from}
-              className="border-input rounded-md border px-2 py-1"
-            />
+            <Input type="date" name="from" defaultValue={v.waterfall.from} className="w-auto" />
           </label>
           <label className="flex flex-col gap-1">
             To
-            <input
-              type="date"
-              name="to"
-              defaultValue={v.waterfall.to}
-              className="border-input rounded-md border px-2 py-1"
-            />
+            <Input type="date" name="to" defaultValue={v.waterfall.to} className="w-auto" />
           </label>
-          <button type="submit" className="border-input rounded-md border px-3 py-1">
+          <Button type="submit" variant="outline">
             Show
-          </button>
+          </Button>
         </form>
         <div className="flex flex-wrap gap-8">
           <Waterfall w={v.waterfall.base} />
@@ -126,7 +120,7 @@ export default async function RevenuePage({ searchParams }: { searchParams: Sear
         </div>
       </section>
 
-      <section aria-labelledby="risk-h" className="space-y-2">
+      <section aria-labelledby="risk-h" className="surface space-y-3 p-5">
         <h2 id="risk-h" className="text-lg font-semibold">
           Money at risk ({v.baseCurrency})
         </h2>
@@ -143,7 +137,10 @@ export default async function RevenuePage({ searchParams }: { searchParams: Sear
             <ul className="text-sm">
               {r.items.map((i) => (
                 <li key={i.renewalId}>
-                  <Link href={`/accounts/${i.accountId}/renewal` as Route} className="underline">
+                  <Link
+                    href={`/accounts/${i.accountId}/renewal` as Route}
+                    className="text-primary underline underline-offset-2"
+                  >
                     {name(i.accountId)}
                   </Link>
                   :{" "}
@@ -165,7 +162,7 @@ export default async function RevenuePage({ searchParams }: { searchParams: Sear
         ))}
       </section>
 
-      <section aria-labelledby="bill-h" className="space-y-2">
+      <section aria-labelledby="bill-h" className="surface space-y-3 p-5">
         <h2 id="bill-h" className="text-lg font-semibold">
           Expected billing, next {v.billing.months} months
         </h2>
@@ -181,11 +178,11 @@ export default async function RevenuePage({ searchParams }: { searchParams: Sear
             <tbody>
               {v.billing.rows.map((r) => (
                 <tr key={`${r.month}${r.currency}`}>
-                  <th scope="row" className="py-1 pr-6 font-normal">
+                  <th scope="row" className="font-normal">
                     {monthLabel(r.month)}
                   </th>
-                  <td className="py-1 pr-4 tabular-nums">{m(r.amountMinor, r.currency)}</td>
-                  <td className="text-muted-foreground py-1 text-xs">
+                  <td className="tabular-nums">{m(r.amountMinor, r.currency)}</td>
+                  <td className="text-muted-foreground text-xs">
                     {r.subscriptionIds.length} subscription
                     {r.subscriptionIds.length === 1 ? "" : "s"}
                   </td>
@@ -202,7 +199,7 @@ export default async function RevenuePage({ searchParams }: { searchParams: Sear
         ) : null}
       </section>
 
-      <section aria-labelledby="cov-h" className="space-y-2">
+      <section aria-labelledby="cov-h" className="surface space-y-3 p-5">
         <h2 id="cov-h" className="text-lg font-semibold">
           Coverage
         </h2>
@@ -213,7 +210,10 @@ export default async function RevenuePage({ searchParams }: { searchParams: Sear
         <ul className="text-sm">
           {v.coverage.untouched.map((a) => (
             <li key={a.id}>
-              <Link href={`/accounts/${a.id}` as Route} className="underline">
+              <Link
+                href={`/accounts/${a.id}` as Route}
+                className="text-primary underline underline-offset-2"
+              >
                 {a.name}
               </Link>
               : no contact for {a.daysSince} days
@@ -228,39 +228,31 @@ export default async function RevenuePage({ searchParams }: { searchParams: Sear
         ) : null}
       </section>
 
-      <section aria-labelledby="load-h" className="space-y-2">
+      <section aria-labelledby="load-h" className="space-y-3">
         <h2 id="load-h" className="text-lg font-semibold">
           Team load
         </h2>
-        <div className="overflow-x-auto">
+        <div className="surface overflow-x-auto">
           <table className="w-full text-left text-sm">
             <caption className="sr-only">Accounts, ARR and open tasks per owner</caption>
             <thead>
-              <tr className="border-border border-b">
-                <th scope="col" className="py-2 pr-3">
-                  Owner
-                </th>
-                <th scope="col" className="py-2 pr-3">
-                  Accounts
-                </th>
-                <th scope="col" className="py-2 pr-3">
-                  ARR ({v.baseCurrency})
-                </th>
-                <th scope="col" className="py-2 pr-3">
-                  Open tasks
-                </th>
+              <tr>
+                <th scope="col">Owner</th>
+                <th scope="col">Accounts</th>
+                <th scope="col">ARR ({v.baseCurrency})</th>
+                <th scope="col">Open tasks</th>
               </tr>
             </thead>
             <tbody>
               {v.load.map((r) => (
-                <tr key={r.ownerMembershipId ?? "none"} className="border-border border-b">
-                  <td className="py-2 pr-3">
+                <tr key={r.ownerMembershipId ?? "none"}>
+                  <td>
                     {r.ownerMembershipId
                       ? (v.members.get(r.ownerMembershipId) ?? "Former member")
                       : "No owner"}
                   </td>
-                  <td className="py-2 pr-3">{r.accounts}</td>
-                  <td className="py-2 pr-3">
+                  <td>{r.accounts}</td>
+                  <td>
                     {m(r.arrMinor, v.baseCurrency)}
                     {r.accountsWithoutArr ? (
                       <span className="text-muted-foreground block text-xs">
@@ -273,7 +265,7 @@ export default async function RevenuePage({ searchParams }: { searchParams: Sear
                       </span>
                     ))}
                   </td>
-                  <td className="py-2 pr-3">{r.openTasks}</td>
+                  <td>{r.openTasks}</td>
                 </tr>
               ))}
             </tbody>

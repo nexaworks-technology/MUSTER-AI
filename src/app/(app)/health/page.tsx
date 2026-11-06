@@ -1,6 +1,7 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { NativeSelect } from "@/components/app/native-select";
+import { EmptyState } from "@/components/app/empty-state";
 import { RecomputeButton } from "@/components/app/recompute-button";
 import { DisagreementMark, RISK_WORDS, RiskBadge } from "@/components/app/risk-badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { accountListQuery, TIER_LABELS, TIERS } from "@/modules/accounts/schemas
 import { listAccounts, listOwners } from "@/modules/accounts/service";
 import { healthForAccounts, healthOverview, type Band, type Mover } from "@/modules/health/service";
 import { listSegments } from "@/modules/segments/service";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Health" };
 
@@ -20,13 +22,13 @@ const PULSE_WORDS = { FINE: "Actually fine", WORRIED: "Worried" } as const;
 const day = (d: string) => formatCalendarDate(new Date(`${d}T00:00:00Z`));
 
 function MoverList({ movers, empty }: { movers: Mover[]; empty: string }) {
-  if (movers.length === 0) return <p className="text-muted-foreground text-sm">{empty}</p>;
+  if (movers.length === 0) return <EmptyState>{empty}</EmptyState>;
   return (
-    <ul className="divide-border border-border divide-y rounded-md border text-sm">
+    <ul className="surface divide-border divide-y overflow-hidden text-sm">
       {movers.map((m) => (
-        <li key={m.accountId} className="space-y-1 p-3">
+        <li key={m.accountId} className="space-y-1 p-4">
           <div className="flex flex-wrap items-center gap-2">
-            <Link href={`/accounts/${m.accountId}/health`} className="font-medium underline">
+            <Link href={`/accounts/${m.accountId}/health`} className="font-medium hover:underline">
               {m.name}
             </Link>
             <span className="tabular-nums">
@@ -71,10 +73,10 @@ export default async function HealthPage({ searchParams }: { searchParams: Searc
     `/health?${new URLSearchParams({ ...raw, ...q })}` as Route;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-section">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">Health</h1>
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">Health</h1>
           <p className="text-muted-foreground text-sm">
             {overview.asOf ? `As of ${day(overview.asOf)}` : "Not calculated yet"} · Health model v
             {overview.model.version}
@@ -84,10 +86,18 @@ export default async function HealthPage({ searchParams }: { searchParams: Searc
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3 text-sm">
-          <Link href={"/health/sentiment" as Route} className="underline" data-testid="sentiment-link">
+          <Link
+            href={"/health/sentiment" as Route}
+            className="text-primary font-medium hover:underline"
+            data-testid="sentiment-link"
+          >
             Sentiment &amp; themes
-          </Link>{" · "}
-          <Link href={"/health/signals" as Route} className="underline">
+          </Link>
+          {" · "}
+          <Link
+            href={"/health/signals" as Route}
+            className="text-primary font-medium hover:underline"
+          >
             Signals
           </Link>
           {can(ctx, "healthModel:propose") ? (
@@ -96,17 +106,20 @@ export default async function HealthPage({ searchParams }: { searchParams: Searc
         </div>
       </div>
 
-      <section aria-labelledby="bands" className="space-y-2">
+      <section aria-labelledby="bands" className="space-y-3">
         <h2 id="bands" className="sr-only">
           Accounts by health
         </h2>
-        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {BAND_ORDER.map((b) => (
             <li key={b}>
               <Link
                 href={href({ health: b, cursor: "" })}
                 aria-current={band === b ? "page" : undefined}
-                className="border-border hover:bg-muted aria-[current=page]:border-foreground block space-y-1 rounded-md border p-3"
+                className={cn(
+                  "bg-card hover:bg-muted block space-y-1.5 rounded-lg border p-4 shadow-xs transition-colors",
+                  band === b ? "border-primary ring-primary ring-1" : "border-border",
+                )}
                 data-testid={`band-${b}`}
               >
                 <RiskBadge level={b} />
@@ -130,8 +143,8 @@ export default async function HealthPage({ searchParams }: { searchParams: Searc
         ) : null}
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <section aria-labelledby="today" className="space-y-2">
+      <div className="gap-section grid lg:grid-cols-2">
+        <section aria-labelledby="today" className="space-y-3">
           <h2 id="today" className="text-base font-semibold">
             Moved today
           </h2>
@@ -140,7 +153,7 @@ export default async function HealthPage({ searchParams }: { searchParams: Searc
             empty="Nothing changed band or moved 10 points since yesterday."
           />
         </section>
-        <section aria-labelledby="week" className="space-y-2">
+        <section aria-labelledby="week" className="space-y-3">
           <h2 id="week" className="text-base font-semibold">
             Moved this week
           </h2>
@@ -151,23 +164,24 @@ export default async function HealthPage({ searchParams }: { searchParams: Searc
         </section>
       </div>
 
-      <section aria-labelledby="disagree" className="space-y-2">
+      <section aria-labelledby="disagree" className="space-y-3">
         <h2 id="disagree" className="text-base font-semibold">
           Score and CSM disagree ({overview.disagreements.length})
         </h2>
         {overview.disagreements.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            No disagreements: every CSM Pulse matches the numbers.
-          </p>
+          <EmptyState>No disagreements: every CSM Pulse matches the numbers.</EmptyState>
         ) : (
           <ul
-            className="divide-border border-border divide-y rounded-md border text-sm"
+            className="surface divide-border divide-y overflow-hidden text-sm"
             data-testid="disagreements"
           >
             {overview.disagreements.map((d) => (
-              <li key={d.accountId} className="space-y-1 p-3">
+              <li key={d.accountId} className="space-y-1 p-4">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Link href={`/accounts/${d.accountId}/health`} className="font-medium underline">
+                  <Link
+                    href={`/accounts/${d.accountId}/health`}
+                    className="font-medium hover:underline"
+                  >
                     {d.name}
                   </Link>
                   <DisagreementMark />
@@ -187,13 +201,13 @@ export default async function HealthPage({ searchParams }: { searchParams: Searc
         )}
       </section>
 
-      <section aria-labelledby="list" className="space-y-2">
+      <section aria-labelledby="list" className="space-y-3">
         <h2 id="list" className="text-base font-semibold">
           {RISK_WORDS[band]} accounts
         </h2>
         <form
           method="get"
-          className="flex flex-wrap items-end gap-2"
+          className="surface flex flex-wrap items-end gap-3 p-4"
           role="search"
           aria-label="Filter accounts by health"
         >
@@ -245,19 +259,17 @@ export default async function HealthPage({ searchParams }: { searchParams: Searc
           </Button>
         </form>
         {page.rows.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            No {RISK_WORDS[band].toLowerCase()} accounts in your book.
-          </p>
+          <EmptyState>No {RISK_WORDS[band].toLowerCase()} accounts in your book.</EmptyState>
         ) : (
           <ul
-            className="divide-border border-border divide-y rounded-md border text-sm"
+            className="surface divide-border divide-y overflow-hidden text-sm"
             data-testid="band-accounts"
           >
             {page.rows.map((a) => {
               const h = health.get(a.id);
               return (
-                <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 p-3">
-                  <Link href={`/accounts/${a.id}/health`} className="font-medium underline">
+                <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 p-4">
+                  <Link href={`/accounts/${a.id}/health`} className="font-medium hover:underline">
                     {a.name}
                   </Link>
                   <span className="flex flex-wrap items-center gap-2">
@@ -276,14 +288,14 @@ export default async function HealthPage({ searchParams }: { searchParams: Searc
             })}
           </ul>
         )}
-        <nav aria-label="Pages" className="flex gap-3 text-sm">
+        <nav aria-label="Pages" className="text-primary flex gap-4 text-sm font-medium">
           {page.prevCursor !== null ? (
-            <Link href={href({ cursor: page.prevCursor })} className="underline">
+            <Link href={href({ cursor: page.prevCursor })} className="hover:underline">
               Previous
             </Link>
           ) : null}
           {page.nextCursor !== null ? (
-            <Link href={href({ cursor: page.nextCursor })} className="underline">
+            <Link href={href({ cursor: page.nextCursor })} className="hover:underline">
               Next
             </Link>
           ) : null}

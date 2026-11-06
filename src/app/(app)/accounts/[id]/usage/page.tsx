@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { EmptyState } from "@/components/app/empty-state";
 import { LineChart } from "@/components/app/line-chart";
 import { formatCalendarDate } from "@/lib/format";
 import { getUsage } from "@/modules/usage/service";
@@ -32,7 +33,7 @@ export default async function UsagePage({
 
   if (!usage.hasData) {
     return (
-      <div className="space-y-2" data-testid="no-usage">
+      <div className="surface space-y-2 p-5" data-testid="no-usage">
         <h2 className="text-base font-semibold">No usage data yet</h2>
         <p className="text-muted-foreground text-sm">
           No product usage has been recorded for this account. Usage appears here once it is
@@ -57,13 +58,17 @@ export default async function UsagePage({
   const keyUnused = usage.features.filter((f) => f.inPlan && f.isKey && f.daysUsed28d === 0);
 
   return (
-    <div className="space-y-6">
-      <section aria-labelledby="usage-chart" className="space-y-2">
+    <div className="space-y-section">
+      <section aria-labelledby="usage-chart" className="surface space-y-3 p-5">
         <h2 id="usage-chart" className="text-base font-semibold">
           {metricLabel}, last {points.length} weeks
         </h2>
         {window ? (
-          <p className="text-sm" data-testid="usage-window" role="note">
+          <p
+            className="bg-accent text-accent-foreground rounded-md px-3 py-2 text-sm"
+            data-testid="usage-window"
+            role="note"
+          >
             Shaded: the window a health reason points to (
             {formatCalendarDate(new Date(`${window.from}T00:00:00Z`))} –{" "}
             {formatCalendarDate(new Date(`${window.to}T00:00:00Z`))}).
@@ -78,18 +83,16 @@ export default async function UsagePage({
         {points.length > 0 ? (
           <LineChart points={points} valueLabel={metricLabel} />
         ) : (
-          <p className="text-muted-foreground text-sm">No activity in the last 13 weeks.</p>
+          <EmptyState>No activity in the last 13 weeks.</EmptyState>
         )}
         <details className="text-sm">
           <summary className="text-muted-foreground cursor-pointer">Show the numbers</summary>
           <table className="mt-2 w-full max-w-sm text-sm">
             <caption className="sr-only">{metricLabel} by week</caption>
-            <thead className="text-muted-foreground text-left text-xs">
+            <thead>
               <tr>
-                <th scope="col" className="py-1">
-                  Week of
-                </th>
-                <th scope="col" className="py-1 text-right">
+                <th scope="col">Week of</th>
+                <th scope="col" className="text-right">
                   {metricLabel}
                 </th>
               </tr>
@@ -98,10 +101,12 @@ export default async function UsagePage({
               {usage.weekly.map((w, i) => (
                 <tr
                   key={i}
-                  className={`border-border border-t ${window && inWindow(w.weekStart, window) ? "bg-muted font-medium" : ""}`}
+                  className={
+                    window && inWindow(w.weekStart, window) ? "bg-muted font-medium" : undefined
+                  }
                 >
-                  <td className="py-1">{formatCalendarDate(w.weekStart)}</td>
-                  <td className="py-1 text-right tabular-nums">{w.activeUsers}</td>
+                  <td>{formatCalendarDate(w.weekStart)}</td>
+                  <td className="text-right">{w.activeUsers}</td>
                 </tr>
               ))}
             </tbody>
@@ -113,7 +118,7 @@ export default async function UsagePage({
         </p>
       </section>
 
-      <section aria-labelledby="seats" className="space-y-1 text-sm">
+      <section aria-labelledby="seats" className="surface space-y-2 p-5 text-sm">
         <h2 id="seats" className="text-base font-semibold">
           Seats
         </h2>
@@ -133,7 +138,7 @@ export default async function UsagePage({
         </p>
       </section>
 
-      <section aria-labelledby="features" className="space-y-2">
+      <section aria-labelledby="features" className="space-y-3">
         <h2 id="features" className="text-base font-semibold">
           Features in their plan ({usage.period ? span : "last 28 days"})
         </h2>
@@ -144,9 +149,9 @@ export default async function UsagePage({
             {keyUnused.map((f) => f.label).join(", ")}.
           </p>
         ) : null}
-        <ul className="divide-border border-border divide-y rounded-md border text-sm">
+        <ul className="surface divide-border divide-y overflow-hidden text-sm">
           {usage.features.map((f) => (
-            <li key={f.key} className="flex justify-between gap-2 p-2">
+            <li key={f.key} className="flex justify-between gap-2 p-4">
               <span>
                 {f.label}
                 {f.isKey ? <span className="text-muted-foreground"> · key feature</span> : null}
@@ -165,16 +170,16 @@ export default async function UsagePage({
         </ul>
       </section>
 
-      <section aria-labelledby="top-users" className="space-y-2">
+      <section aria-labelledby="top-users" className="space-y-3">
         <h2 id="top-users" className="text-base font-semibold">
           Most active people ({usage.period ? span : "last 28 days"})
         </h2>
         {usage.topUsers.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No person-level activity {span}.</p>
+          <EmptyState>No person-level activity {span}.</EmptyState>
         ) : (
-          <ol className="divide-border border-border divide-y rounded-md border text-sm">
+          <ol className="surface divide-border divide-y overflow-hidden text-sm">
             {usage.topUsers.map((u) => (
-              <li key={u.externalUserId} className="flex justify-between gap-2 p-2">
+              <li key={u.externalUserId} className="flex justify-between gap-2 p-4">
                 <span>
                   {u.name ?? (
                     <span className="text-muted-foreground">

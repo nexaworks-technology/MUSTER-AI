@@ -212,6 +212,18 @@
  * Global table styling for the existing <table> markup. Utilities in markup (text-right, px-*,
  * py-*) still win because they sit in a later cascade layer than this one.
  */
+/*
+ * The raised card surface used by every panel, list and table wrapper (M12 design pass): one
+ * utility instead of the same five classes repeated ~145 times. Compose padding and layout
+ * classes on top (e.g. `surface space-y-3 p-5`).
+ */
+@utility surface {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+}
+
 @layer components {
   table {
     font-variant-numeric: tabular-nums;

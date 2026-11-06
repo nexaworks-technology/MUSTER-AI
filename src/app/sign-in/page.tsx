@@ -15,11 +15,12 @@ export default async function SignInPage() {
   const google = isGoogleConfigured();
 
   return (
-    <main className="bg-muted flex min-h-screen items-center justify-center px-4 py-10">
-      <Card className="w-full max-w-sm">
+    <main className="bg-background flex min-h-screen items-center justify-center px-4 py-10">
+      <Card className="w-full max-w-sm shadow-md">
         <CardHeader>
-          <CardTitle>
-            <h1 className="text-lg font-semibold">{PRODUCT_NAME}</h1>
+          <CardTitle className="flex items-center gap-2">
+            <span aria-hidden="true" className="bg-primary size-2.5 shrink-0 rounded-full" />
+            <h1 className="text-xl font-semibold tracking-tight">{PRODUCT_NAME}</h1>
           </CardTitle>
           <CardDescription>Sign in to your workspace.</CardDescription>
         </CardHeader>

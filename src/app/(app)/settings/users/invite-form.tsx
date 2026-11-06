@@ -13,7 +13,7 @@ import { BOOK_SCOPE_LABELS, ROLE_LABELS } from "@/modules/settings/schemas";
 export function InviteForm() {
   const [state, action, pending] = useActionState<FormState, FormData>(inviteMemberAction, {});
   return (
-    <form action={action} className="grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-end">
+    <form action={action} className="grid gap-3 sm:grid-cols-3 sm:items-end">
       <div className="space-y-1">
         <Label htmlFor="invite-email">Email</Label>
         <Input id="invite-email" name="email" type="email" required autoComplete="off" />
@@ -39,7 +39,7 @@ export function InviteForm() {
         </NativeSelect>
       </div>
       <label className="flex items-center gap-2 text-sm sm:col-span-3">
-        <input type="checkbox" name="canViewRevenue" className="size-4" />
+        <input type="checkbox" name="canViewRevenue" className="accent-primary size-4" />
         Revenue access (ARR, contract values, forecasts)
       </label>
       <div className="flex items-center gap-3 sm:col-span-3">

@@ -1,5 +1,6 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
+import { EmptyState } from "@/components/app/empty-state";
 import { can } from "@/lib/auth/permissions";
 import { listAccountOutcomes } from "@/modules/outcomes/service";
 import { loadAccount } from "../data";
@@ -16,7 +17,7 @@ export default async function AccountOutcomesPage({ params }: { params: Promise<
         <h2 id="outcomes" className="text-base font-semibold">
           Outcomes
         </h2>
-        <p className="text-sm">Your role does not include outcome reports.</p>
+        <EmptyState>Your role does not include outcome reports.</EmptyState>
       </section>
     );
   const rows = await listAccountOutcomes(ctx, account.id);
@@ -26,52 +27,41 @@ export default async function AccountOutcomesPage({ params }: { params: Promise<
         Outcomes
       </h2>
       {rows.length === 0 ? (
-        <p className="text-muted-foreground text-sm">
+        <EmptyState>
           No risk or opportunity has been flagged on this account yet, so there is nothing to judge.
-        </p>
+        </EmptyState>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="surface overflow-x-auto">
           <table className="w-full text-left text-sm" data-testid="account-outcomes">
             <caption className="sr-only">Outcome records for this account</caption>
             <thead>
-              <tr className="text-muted-foreground border-b text-xs">
-                <th scope="col" className="py-1 pr-4 font-normal">
-                  Flagged
-                </th>
-                <th scope="col" className="py-1 pr-4 font-normal">
-                  Flag
-                </th>
-                <th scope="col" className="py-1 pr-4 font-normal">
-                  Team
-                </th>
-                <th scope="col" className="py-1 pr-4 font-normal">
-                  Day 7
-                </th>
-                <th scope="col" className="py-1 pr-4 font-normal">
-                  Day 30
-                </th>
-                <th scope="col" className="py-1 pr-4 font-normal">
-                  Day 90
-                </th>
-                <th scope="col" className="py-1 font-normal">
-                  Proof
-                </th>
+              <tr>
+                <th scope="col">Flagged</th>
+                <th scope="col">Flag</th>
+                <th scope="col">Team</th>
+                <th scope="col">Day 7</th>
+                <th scope="col">Day 30</th>
+                <th scope="col">Day 90</th>
+                <th scope="col">Proof</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.id} className="border-b last:border-0">
-                  <td className="py-1 pr-4">{r.flaggedAt.toISOString().slice(0, 10)}</td>
-                  <td className="py-1 pr-4">
+                <tr key={r.id}>
+                  <td>{r.flaggedAt.toISOString().slice(0, 10)}</td>
+                  <td>
                     {r.flagType === "RISK" ? "Risk" : "Opportunity"}
                     {r.title ? `: ${r.title}` : ""}
                   </td>
-                  <td className="py-1 pr-4">{r.actionTaken === "ACTED" ? "Acted" : "No action"}</td>
-                  <td className="py-1 pr-4">{r.d7 ?? "Waiting"}</td>
-                  <td className="py-1 pr-4">{r.d30 ?? "Waiting"}</td>
-                  <td className="py-1 pr-4">{r.d90 ?? "Waiting"}</td>
-                  <td className="py-1">
-                    <Link href={`/reports/outcomes/${r.id}` as Route} className="underline">
+                  <td>{r.actionTaken === "ACTED" ? "Acted" : "No action"}</td>
+                  <td>{r.d7 ?? "Waiting"}</td>
+                  <td>{r.d30 ?? "Waiting"}</td>
+                  <td>{r.d90 ?? "Waiting"}</td>
+                  <td>
+                    <Link
+                      href={`/reports/outcomes/${r.id}` as Route}
+                      className="text-primary underline underline-offset-2"
+                    >
                       Save record
                     </Link>
                   </td>

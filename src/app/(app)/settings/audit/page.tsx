@@ -1,6 +1,8 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
+import { NativeSelect } from "@/components/app/native-select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { can } from "@/lib/auth/permissions";
 import { formatDateTime } from "@/lib/format";
 import { auditQuery, listAudit } from "@/modules/audit/service";
@@ -24,64 +26,55 @@ export default async function AuditPage({ searchParams }: { searchParams: Search
   ) as Record<string, string>;
   const qs = (extra: Record<string, string>) =>
     new URLSearchParams({ ...filters, ...extra }).toString();
-  const field = "border-input bg-background h-9 rounded-md border px-2 text-sm";
   return (
-    <div className="space-y-4">
+    <div className="space-y-section">
       <p className="text-muted-foreground text-sm">
         Every decision made by a person or by AI in this workspace, newest first. Nothing here can
         be edited or deleted.
       </p>
       <form
         method="get"
-        className="flex flex-wrap items-end gap-2"
+        className="surface flex flex-wrap items-end gap-3 p-4"
         role="search"
         aria-label="Filter the audit log"
       >
         <label className="space-y-1 text-xs">
           <span className="block">Who</span>
-          <select name="actorType" defaultValue={page.query.actorType ?? ""} className={field}>
+          <NativeSelect name="actorType" defaultValue={page.query.actorType ?? ""}>
             <option value="">Anyone</option>
             <option value="USER">People</option>
             <option value="AGENT">AI agents</option>
             <option value="SYSTEM">System</option>
-          </select>
+          </NativeSelect>
         </label>
         <label className="space-y-1 text-xs">
           <span className="block">Person or agent</span>
-          <input name="actor" defaultValue={page.query.actor ?? ""} className={field} />
+          <Input name="actor" defaultValue={page.query.actor ?? ""} className="w-auto" />
         </label>
         <label className="space-y-1 text-xs">
           <span className="block">Action starts with (comma-separated)</span>
-          <input
+          <Input
             name="action"
             defaultValue={page.query.action ?? ""}
             placeholder="agent.run,approval.,outbound."
-            className={`${field} w-64`}
+            className="w-64"
           />
         </label>
         <label className="space-y-1 text-xs">
           <span className="block">Target type</span>
-          <input
-            name="targetType"
-            defaultValue={page.query.targetType ?? ""}
-            className={`${field} w-36`}
-          />
+          <Input name="targetType" defaultValue={page.query.targetType ?? ""} className="w-36" />
         </label>
         <label className="space-y-1 text-xs">
           <span className="block">Target or run id</span>
-          <input
-            name="targetId"
-            defaultValue={page.query.targetId ?? ""}
-            className={`${field} w-48`}
-          />
+          <Input name="targetId" defaultValue={page.query.targetId ?? ""} className="w-48" />
         </label>
         <label className="space-y-1 text-xs">
           <span className="block">From</span>
-          <input type="date" name="from" defaultValue={page.query.from ?? ""} className={field} />
+          <Input type="date" name="from" defaultValue={page.query.from ?? ""} className="w-auto" />
         </label>
         <label className="space-y-1 text-xs">
           <span className="block">To</span>
-          <input type="date" name="to" defaultValue={page.query.to ?? ""} className={field} />
+          <Input type="date" name="to" defaultValue={page.query.to ?? ""} className="w-auto" />
         </label>
         <Button type="submit" variant="outline">
           Filter
@@ -93,12 +86,15 @@ export default async function AuditPage({ searchParams }: { searchParams: Search
           <>
             <a
               href={`/api/audit/export?${qs({ format: "csv" })}`}
-              className="underline"
+              className="text-primary underline underline-offset-2"
               data-testid="export-csv"
             >
               Export CSV
             </a>
-            <a href={`/api/audit/export?${qs({ format: "json" })}`} className="underline">
+            <a
+              href={`/api/audit/export?${qs({ format: "json" })}`}
+              className="text-primary underline underline-offset-2"
+            >
               Export JSON
             </a>
             <span className="text-muted-foreground text-xs">Exports are recorded here too.</span>
@@ -108,9 +104,9 @@ export default async function AuditPage({ searchParams }: { searchParams: Search
         )}
       </div>
       {page.rows.length === 0 ? (
-        <p className="text-muted-foreground rounded-md border p-6 text-sm">No entries match.</p>
+        <p className="surface text-muted-foreground p-6 text-sm">No entries match.</p>
       ) : (
-        <ol className="divide-y rounded-md border text-sm" data-testid="audit-rows">
+        <ol className="surface divide-border divide-y text-sm" data-testid="audit-rows">
           {page.rows.map((r) => (
             <li
               key={r.id}
@@ -127,7 +123,10 @@ export default async function AuditPage({ searchParams }: { searchParams: Search
                 {r.agentRunId ? (
                   <>
                     {" · "}
-                    <Link href={`/agent-runs/${r.agentRunId}` as Route} className="underline">
+                    <Link
+                      href={`/agent-runs/${r.agentRunId}` as Route}
+                      className="text-primary underline underline-offset-2"
+                    >
                       agent run
                     </Link>
                   </>
@@ -144,7 +143,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Search
               href={
                 `/settings/audit?${qs({ cursor: String(Math.max(0, page.query.cursor - 50)) })}` as Route
               }
-              className="hover:underline"
+              className="text-primary hover:underline"
             >
               Newer
             </Link>
@@ -152,7 +151,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Search
           {page.next !== null ? (
             <Link
               href={`/settings/audit?${qs({ cursor: String(page.next) })}` as Route}
-              className="hover:underline"
+              className="text-primary hover:underline"
             >
               Older
             </Link>

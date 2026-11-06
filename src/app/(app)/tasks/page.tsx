@@ -18,20 +18,20 @@ export default async function MyTasksPage({
   const show = (await searchParams).show === "done" ? "DONE" : "OPEN";
   const [tasks, owners] = await Promise.all([listMyTasks(ctx, show), listOwners(ctx)]);
   return (
-    <div className="max-w-3xl space-y-4">
-      <h1 className="text-2xl font-semibold">My tasks</h1>
-      <nav aria-label="Task filter" className="flex gap-3 text-sm">
+    <div className="space-y-section max-w-3xl">
+      <h1 className="text-2xl font-semibold tracking-tight">My tasks</h1>
+      <nav aria-label="Task filter" className="flex gap-2 text-sm">
         <Link
           href="/tasks"
           aria-current={show === "OPEN" ? "page" : undefined}
-          className={show === "OPEN" ? "font-medium" : "underline"}
+          className={`rounded-md px-3 py-1 ${show === "OPEN" ? "bg-accent text-accent-foreground font-medium" : "text-foreground hover:bg-hover"}`}
         >
           Open
         </Link>
         <Link
           href={{ pathname: "/tasks", query: { show: "done" } }}
           aria-current={show === "DONE" ? "page" : undefined}
-          className={show === "DONE" ? "font-medium" : "underline"}
+          className={`rounded-md px-3 py-1 ${show === "DONE" ? "bg-accent text-accent-foreground font-medium" : "text-foreground hover:bg-hover"}`}
         >
           Done
         </Link>

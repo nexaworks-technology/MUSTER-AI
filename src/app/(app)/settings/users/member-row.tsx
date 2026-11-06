@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { FormMessage } from "@/components/app/form-message";
 import { NativeSelect } from "@/components/app/native-select";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { deactivateMemberAction, updateMemberAction } from "@/modules/settings/actions/members";
 import type { FormState } from "@/modules/settings/actions/shared";
@@ -27,7 +28,10 @@ export function MemberRow({ member }: { member: MemberRowData }) {
   );
   const id = member.membershipId;
   return (
-    <li className="border-border space-y-2 border-b py-3" data-testid={`member-${member.email}`}>
+    <li
+      className="border-border space-y-2 border-b py-3 last:border-b-0"
+      data-testid={`member-${member.email}`}
+    >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <span className="font-medium">{member.name}</span>
@@ -35,12 +39,8 @@ export function MemberRow({ member }: { member: MemberRowData }) {
           <div className="text-muted-foreground text-sm">{member.email}</div>
         </div>
         <div className="text-muted-foreground flex gap-2 text-xs">
-          {member.canViewRevenue ? (
-            <span className="rounded border px-1.5 py-0.5" data-testid="revenue-badge">
-              Revenue access
-            </span>
-          ) : null}
-          {member.active ? null : <span className="rounded border px-1.5 py-0.5">Deactivated</span>}
+          {member.canViewRevenue ? <Badge data-testid="revenue-badge">Revenue access</Badge> : null}
+          {member.active ? null : <Badge variant="warning">Deactivated</Badge>}
         </div>
       </div>
       {member.active ? (
@@ -72,7 +72,7 @@ export function MemberRow({ member }: { member: MemberRowData }) {
                 type="checkbox"
                 name="canViewRevenue"
                 defaultChecked={member.canViewRevenue}
-                className="size-4"
+                className="accent-primary size-4"
               />
               Revenue access
             </label>

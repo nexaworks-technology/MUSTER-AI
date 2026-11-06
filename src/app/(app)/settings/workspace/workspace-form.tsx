@@ -19,12 +19,13 @@ export function VoiceDictationForm(props: { enabled: boolean; disclosure: string
     {},
   );
   return (
-    <form action={action} className="grid max-w-md gap-3 border-t pt-4">
+    <form action={action} className="grid max-w-md gap-3">
       <h2 className="text-base font-semibold">Ask AI dictation</h2>
       <label className="flex items-center gap-2 text-sm">
         <input
           type="checkbox"
           name="voiceDictation"
+          className="accent-primary size-4"
           defaultChecked={props.enabled}
           data-testid="voice-dictation-toggle"
         />

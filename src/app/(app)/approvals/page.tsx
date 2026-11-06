@@ -2,6 +2,7 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { after } from "next/server";
 import { BulkApprovals, type BulkRow } from "@/components/app/bulk-approvals";
+import { EmptyState } from "@/components/app/empty-state";
 import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { LEVEL_WORDS, sensitiveLabel, waitingFor } from "@/modules/approvals/schemas";
@@ -37,16 +38,16 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Se
     <Link
       href={`/approvals?status=${status}` as Route}
       aria-current={query.status === status ? "page" : undefined}
-      className={`rounded-md px-3 py-1 text-sm ${query.status === status ? "bg-muted font-medium" : "hover:underline"}`}
+      className={`rounded-md px-3 py-1.5 text-sm transition-colors ${query.status === status ? "bg-accent text-accent-foreground font-medium" : "text-muted-foreground hover:bg-hover hover:text-foreground"}`}
     >
       {label}
     </Link>
   );
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold">Approvals</h1>
+    <div className="space-y-section">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Approvals</h1>
         <p className="text-muted-foreground text-sm">
           Nothing reaches a customer until a person approves it here.
         </p>
@@ -58,13 +59,11 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Se
       {query.status === "PENDING" ? (
         <BulkApprovals rows={rows} canDecide={canDecide} />
       ) : rows.length === 0 ? (
-        <p className="text-muted-foreground rounded-md border p-6 text-sm">
-          No decided approvals yet.
-        </p>
+        <EmptyState className="py-6">No decided approvals yet.</EmptyState>
       ) : (
-        <ul className="divide-y rounded-md border">
+        <ul className="surface divide-border divide-y overflow-hidden">
           {page.rows.map((a) => (
-            <li key={a.id} className="p-3 text-sm" data-testid="decided-row">
+            <li key={a.id} className="p-4 text-sm" data-testid="decided-row">
               <Link href={`/approvals/${a.id}` as Route} className="font-medium hover:underline">
                 {a.account ? `${a.account.name}: ` : ""}
                 {a.reason}
@@ -77,7 +76,7 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Se
         </ul>
       )}
       {page.next !== null || page.cursor > 0 ? (
-        <nav aria-label="Pages" className="flex gap-3 text-sm">
+        <nav aria-label="Pages" className="text-primary flex gap-4 text-sm font-medium">
           {page.cursor > 0 ? (
             <Link
               href={

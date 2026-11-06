@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { EmptyState } from "@/components/app/empty-state";
+import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
 import { CONTACT_STATUS_LABELS, ROLE_LABELS } from "@/modules/contacts/schemas";
 import { can } from "@/lib/auth/permissions";
@@ -33,12 +35,10 @@ export default async function PeoplePage({
   }[intro ?? ""];
   const canDraft = Boolean(can(ctx, "approvals:decide"));
   if (people.length === 0) {
-    return (
-      <p className="text-muted-foreground text-sm">No contacts recorded for this account yet.</p>
-    );
+    return <EmptyState>No contacts recorded for this account yet.</EmptyState>;
   }
   return (
-    <div className="space-y-4">
+    <div className="space-y-section">
       {introNote ? (
         <p role="status" className="text-sm" data-testid="intro-note">
           {introNote}
@@ -47,7 +47,7 @@ export default async function PeoplePage({
       {guard ? (
         <section
           aria-labelledby="champion-guard"
-          className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-800 dark:bg-amber-950"
+          className="border-warning/30 bg-warning-soft text-warning-soft-foreground rounded-lg border p-4 text-sm"
           data-testid="champion-guard"
         >
           <h2 id="champion-guard" className="font-medium">
@@ -55,20 +55,20 @@ export default async function PeoplePage({
           </h2>
           <p>{guard.reason}</p>
           {guard.candidates.length === 0 ? (
-            <p className="text-muted-foreground mt-2">
+            <p className="mt-2">
               No one else on file has an email we can use. Add a contact to get a suggestion.
             </p>
           ) : (
             <>
-              <p className="text-muted-foreground mt-2">
+              <p className="mt-2">
                 Next-best people to reach, in order, and why (from the records):
               </p>
               <ol className="mt-1 list-decimal space-y-2 pl-5">
                 {guard.candidates.slice(0, 3).map((c) => (
                   <li key={c.contactId} data-testid="guard-candidate">
                     <span className="font-medium">{c.name}</span>
-                    {c.title ? <span className="text-muted-foreground"> · {c.title}</span> : null}
-                    <ul className="text-muted-foreground list-disc pl-5">
+                    {c.title ? <span> · {c.title}</span> : null}
+                    <ul className="list-disc pl-5">
                       {c.reasons.map((r, n) => (
                         <li key={n}>{r.text}</li>
                       ))}
@@ -77,13 +77,9 @@ export default async function PeoplePage({
                       <form action={draftIntroAction} className="mt-1">
                         <input type="hidden" name="accountId" value={account.id} />
                         <input type="hidden" name="candidateContactId" value={c.contactId} />
-                        <button
-                          type="submit"
-                          className="bg-background rounded-md border px-2 py-1 text-xs"
-                          data-testid="draft-intro"
-                        >
+                        <Button type="submit" variant="outline" size="xs" data-testid="draft-intro">
                           Draft an introduction
-                        </button>
+                        </Button>
                       </form>
                     ) : null}
                   </li>
@@ -93,12 +89,12 @@ export default async function PeoplePage({
           )}
         </section>
       ) : null}
-      <ul className="divide-border border-border divide-y rounded-md border">
+      <ul className="surface divide-border divide-y overflow-hidden">
         {people.map((p) => (
           <li
             key={p.id}
             id={`contact-${p.id}`}
-            className="target:bg-muted flex scroll-mt-4 flex-wrap items-start justify-between gap-3 p-3 text-sm"
+            className="target:bg-muted flex scroll-mt-4 flex-wrap items-start justify-between gap-3 p-4 text-sm"
             data-testid={`person-${p.name}`}
           >
             <div className="space-y-0.5">
@@ -123,7 +119,7 @@ export default async function PeoplePage({
                 Status:{" "}
                 <span
                   data-testid="contact-status"
-                  className={p.status === "ACTIVE" ? undefined : "text-[var(--risk-at-risk)]"}
+                  className={p.status === "ACTIVE" ? undefined : "text-risk-at-risk font-medium"}
                 >
                   {CONTACT_STATUS_LABELS[p.status]}
                 </span>

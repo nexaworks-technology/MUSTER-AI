@@ -7,8 +7,8 @@ export default async function HomePage() {
   const ctx = await resolveWorkspaceContext(await requireSession());
   if (!ctx) return null;
   return (
-    <div className="max-w-2xl space-y-6">
-      <h1 className="text-2xl font-semibold">{ctx.workspace.name}</h1>
+    <div className="space-y-section max-w-2xl">
+      <h1 className="text-2xl font-semibold tracking-tight">{ctx.workspace.name}</h1>
       <Card>
         <CardHeader>
           <CardTitle>
@@ -16,15 +16,23 @@ export default async function HomePage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <dl className="grid grid-cols-[9rem_1fr] gap-y-2 text-sm">
-            <dt className="text-muted-foreground">Signed in as</dt>
-            <dd>{ctx.user.name ? `${ctx.user.name} (${ctx.user.email})` : ctx.user.email}</dd>
-            <dt className="text-muted-foreground">Role</dt>
-            <dd data-testid="role">{ROLE_LABELS[ctx.role]}</dd>
-            <dt className="text-muted-foreground">Accounts you see</dt>
-            <dd>{BOOK_SCOPE_LABELS[ctx.bookScope]}</dd>
-            <dt className="text-muted-foreground">Revenue access</dt>
-            <dd>{ctx.canViewRevenue ? "Yes" : "No"}</dd>
+          <dl className="divide-border divide-y text-sm">
+            <div className="flex gap-4 py-2 first:pt-0 last:pb-0">
+              <dt className="text-muted-foreground w-36 shrink-0">Signed in as</dt>
+              <dd>{ctx.user.name ? `${ctx.user.name} (${ctx.user.email})` : ctx.user.email}</dd>
+            </div>
+            <div className="flex gap-4 py-2 first:pt-0 last:pb-0">
+              <dt className="text-muted-foreground w-36 shrink-0">Role</dt>
+              <dd data-testid="role">{ROLE_LABELS[ctx.role]}</dd>
+            </div>
+            <div className="flex gap-4 py-2 first:pt-0 last:pb-0">
+              <dt className="text-muted-foreground w-36 shrink-0">Accounts you see</dt>
+              <dd>{BOOK_SCOPE_LABELS[ctx.bookScope]}</dd>
+            </div>
+            <div className="flex gap-4 py-2 first:pt-0 last:pb-0">
+              <dt className="text-muted-foreground w-36 shrink-0">Revenue access</dt>
+              <dd>{ctx.canViewRevenue ? "Yes" : "No"}</dd>
+            </div>
           </dl>
         </CardContent>
       </Card>
@@ -35,11 +43,15 @@ export default async function HomePage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <dl className="grid grid-cols-[9rem_1fr] gap-y-2 text-sm">
-            <dt className="text-muted-foreground">Time zone</dt>
-            <dd>{ctx.workspace.timezone}</dd>
-            <dt className="text-muted-foreground">Base currency</dt>
-            <dd>{ctx.workspace.baseCurrency}</dd>
+          <dl className="divide-border divide-y text-sm">
+            <div className="flex gap-4 py-2 first:pt-0 last:pb-0">
+              <dt className="text-muted-foreground w-36 shrink-0">Time zone</dt>
+              <dd>{ctx.workspace.timezone}</dd>
+            </div>
+            <div className="flex gap-4 py-2 first:pt-0 last:pb-0">
+              <dt className="text-muted-foreground w-36 shrink-0">Base currency</dt>
+              <dd>{ctx.workspace.baseCurrency}</dd>
+            </div>
           </dl>
         </CardContent>
       </Card>

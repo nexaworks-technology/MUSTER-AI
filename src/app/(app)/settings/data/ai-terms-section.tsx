@@ -5,7 +5,7 @@
  */
 export function AiTermsSection() {
   return (
-    <section aria-labelledby="ai-terms" className="space-y-2">
+    <section aria-labelledby="ai-terms" className="surface space-y-3 p-5">
       <h2 id="ai-terms" className="text-base font-semibold">
         AI processing
       </h2>

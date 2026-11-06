@@ -1,6 +1,7 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { NativeSelect } from "@/components/app/native-select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,17 +21,17 @@ export default async function NewCampaignPage() {
   const segments = await listSegments(ctx);
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="space-y-section mx-auto max-w-2xl">
       <div>
         <div className="mb-2">
           <Link
             href={"/campaigns" as Route}
-            className="text-xs text-muted-foreground hover:underline"
+            className="text-muted-foreground text-xs hover:underline"
           >
             ← Back to Campaigns
           </Link>
         </div>
-        <h1 className="text-2xl font-semibold">New Email Campaign</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">New Email Campaign</h1>
         <p className="text-muted-foreground text-sm">
           Compose an outbound campaign to send to a defined customer segment.
         </p>
@@ -52,7 +53,9 @@ export default async function NewCampaignPage() {
             className="space-y-4"
           >
             <div className="space-y-1">
-              <Label htmlFor="name" className="text-xs">Campaign Name</Label>
+              <Label htmlFor="name" className="text-xs">
+                Campaign Name
+              </Label>
               <Input
                 id="name"
                 name="name"
@@ -62,37 +65,39 @@ export default async function NewCampaignPage() {
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="segmentId" className="text-xs">Target Segment</Label>
-              <select
-                id="segmentId"
-                name="segmentId"
-                required
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              >
+              <Label htmlFor="segmentId" className="text-xs">
+                Target Segment
+              </Label>
+              <NativeSelect id="segmentId" name="segmentId" required className="w-full">
                 <option value="">Select a segment...</option>
                 {segments.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="subject" className="text-xs">Subject Line</Label>
+              <Label htmlFor="subject" className="text-xs">
+                Subject Line
+              </Label>
               <Input
                 id="subject"
                 name="subject"
                 required
                 placeholder="e.g. Important update regarding {{account.name}}"
               />
-              <p className="text-[11px] text-muted-foreground">
-                Placeholders: <code>{"{{account.name}}"}</code>, <code>{"{{contact.first_name}}"}</code>, <code>{"{{contact.name}}"}</code>
+              <p className="text-muted-foreground text-xs">
+                Placeholders: <code>{"{{account.name}}"}</code>,{" "}
+                <code>{"{{contact.first_name}}"}</code>, <code>{"{{contact.name}}"}</code>
               </p>
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="body" className="text-xs">Email Message Body</Label>
+              <Label htmlFor="body" className="text-xs">
+                Email Message Body
+              </Label>
               <Textarea
                 id="body"
                 name="body"
@@ -100,13 +105,15 @@ export default async function NewCampaignPage() {
                 rows={8}
                 placeholder="Hi {{contact.first_name}},&#10;&#10;We are writing to share an update..."
               />
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 An unsubscribe link will be automatically appended to each outbound email.
               </p>
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="pacePerHour" className="text-xs">Delivery Pace (emails per hour)</Label>
+              <Label htmlFor="pacePerHour" className="text-xs">
+                Delivery Pace (emails per hour)
+              </Label>
               <Input
                 id="pacePerHour"
                 name="pacePerHour"
@@ -115,12 +122,13 @@ export default async function NewCampaignPage() {
                 min={1}
                 max={5000}
               />
-              <p className="text-[11px] text-muted-foreground">
-                Default: 100 emails/hr. Pacing spaces out delivery evenly to protect domain reputation.
+              <p className="text-muted-foreground text-xs">
+                Default: 100 emails/hr. Pacing spaces out delivery evenly to protect domain
+                reputation.
               </p>
             </div>
 
-            <div className="pt-2 flex justify-end gap-2">
+            <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" asChild>
                 <Link href={"/campaigns" as Route}>Cancel</Link>
               </Button>

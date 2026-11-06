@@ -38,8 +38,8 @@ export default async function DataQualityPage({ searchParams }: { searchParams: 
   const scanned = one(params.scanned);
 
   return (
-    <div className="max-w-4xl space-y-6">
-      <section aria-labelledby="dq" className="space-y-3">
+    <div className="space-y-section max-w-4xl">
+      <section aria-labelledby="dq" className="surface space-y-3 p-5">
         <h2 id="dq" className="text-base font-semibold">
           Data quality
         </h2>
@@ -55,7 +55,10 @@ export default async function DataQualityPage({ searchParams }: { searchParams: 
             </Button>
           </form>
           {fixable.length > 0 && !preview ? (
-            <Link href="/settings/data-quality?preview=all" className="text-sm underline">
+            <Link
+              href="/settings/data-quality?preview=all"
+              className="text-primary text-sm underline underline-offset-2"
+            >
               Preview all {fixable.length} safe fixes
             </Link>
           ) : null}
@@ -74,7 +77,7 @@ export default async function DataQualityPage({ searchParams }: { searchParams: 
       </section>
 
       {preview ? (
-        <section aria-labelledby="review" className="border-border space-y-3 rounded-md border p-4">
+        <section aria-labelledby="review" className="surface space-y-3 p-4">
           <h2 id="review" className="text-base font-semibold">
             Review {preview.items.length} {preview.items.length === 1 ? "fix" : "fixes"}
           </h2>
@@ -126,14 +129,17 @@ export default async function DataQualityPage({ searchParams }: { searchParams: 
                 </Button>
               </form>
             ) : null}
-            <Link href="/settings/data-quality" className="text-sm underline">
+            <Link
+              href="/settings/data-quality"
+              className="text-primary text-sm underline underline-offset-2"
+            >
               Cancel
             </Link>
           </div>
         </section>
       ) : null}
 
-      <section aria-labelledby="open" className="space-y-2">
+      <section aria-labelledby="open" className="space-y-3">
         <h2 id="open" className="text-base font-semibold">
           Open issues ({issues.length})
         </h2>
@@ -143,7 +149,7 @@ export default async function DataQualityPage({ searchParams }: { searchParams: 
           </p>
         ) : (
           <form action="/settings/data-quality" method="get" className="space-y-3">
-            <ul className="divide-border border-border divide-y rounded-md border text-sm">
+            <ul className="surface divide-border divide-y text-sm">
               {issues.map((i) => (
                 <li key={i.id} className="flex flex-wrap items-start gap-3 p-3">
                   {i.fix.type !== "NONE" ? (
@@ -152,7 +158,7 @@ export default async function DataQualityPage({ searchParams }: { searchParams: 
                       name="preview"
                       value={i.id}
                       id={`issue-${i.id}`}
-                      className="mt-1 size-4"
+                      className="accent-primary mt-1 size-4"
                     />
                   ) : (
                     <span className="size-4" aria-hidden />
@@ -163,7 +169,10 @@ export default async function DataQualityPage({ searchParams }: { searchParams: 
                       {i.account ? (
                         <>
                           {" · "}
-                          <Link href={`/accounts/${i.account.id}`} className="underline">
+                          <Link
+                            href={`/accounts/${i.account.id}`}
+                            className="text-primary underline underline-offset-2"
+                          >
                             {i.account.name}
                           </Link>
                         </>

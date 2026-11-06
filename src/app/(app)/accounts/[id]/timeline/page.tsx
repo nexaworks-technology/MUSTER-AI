@@ -1,5 +1,6 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
+import { EmptyState } from "@/components/app/empty-state";
 import { formatDateTime } from "@/lib/format";
 import { getTimeline } from "@/modules/timeline/service";
 import { loadAccount } from "../data";
@@ -31,11 +32,9 @@ export default async function TimelinePage({
   const { ctx, account } = await loadAccount(id);
   const { items, nextCursor } = await getTimeline(ctx, account.id, cursor ?? null);
   if (items.length === 0 && !cursor)
-    return (
-      <p className="text-muted-foreground text-sm">Nothing has happened on this account yet.</p>
-    );
+    return <EmptyState>Nothing has happened on this account yet.</EmptyState>;
   return (
-    <div className="space-y-3">
+    <div className="space-y-section">
       <ol className="border-border space-y-0 border-l-2" aria-label="Timeline, newest first">
         {items.map((i) => (
           <li
@@ -45,7 +44,7 @@ export default async function TimelinePage({
             data-kind={i.kind}
           >
             <span
-              className="border-background bg-muted-foreground absolute top-3.5 -left-[1.4rem] size-2.5 rounded-full border-2"
+              className="border-background bg-muted-foreground absolute top-3.5 -left-6 size-3 rounded-full border-2"
               aria-hidden="true"
             />
             <div className="text-muted-foreground text-xs">
@@ -67,7 +66,7 @@ export default async function TimelinePage({
       {nextCursor ? (
         <Link
           href={{ pathname: `/accounts/${account.id}/timeline`, query: { cursor: nextCursor } }}
-          className="text-sm underline"
+          className="text-primary text-sm font-medium hover:underline"
         >
           Older events
         </Link>

@@ -25,16 +25,16 @@ export function PublishPlayControl({
   if (!canPublish) return null;
 
   return (
-    <div className="flex flex-col gap-2 rounded-lg border p-4 bg-muted/20">
+    <div className="bg-muted border-border flex flex-col gap-2 rounded-lg border p-4">
       <div className="flex items-center gap-2">
         <input
           type="checkbox"
           id={`retro-${playId}`}
           checked={retroactive}
           onChange={(e) => setRetroactive(e.target.checked)}
-          className="size-4 rounded border-gray-300"
+          className="border-input accent-primary size-4 rounded"
         />
-        <label htmlFor={`retro-${playId}`} className="text-sm cursor-pointer">
+        <label htmlFor={`retro-${playId}`} className="cursor-pointer text-sm">
           Also start for matching accounts ({matchingAccountsCount ?? 0} currently match)
         </label>
       </div>
@@ -53,13 +53,7 @@ export function PublishPlayControl({
   );
 }
 
-export function PausePlayButton({
-  playId,
-  canPublish,
-}: {
-  playId: string;
-  canPublish: boolean;
-}) {
+export function PausePlayButton({ playId, canPublish }: { playId: string; canPublish: boolean }) {
   if (!canPublish) return null;
 
   return (
@@ -76,13 +70,7 @@ export function PausePlayButton({
   );
 }
 
-export function KillPlayButton({
-  playId,
-  canPublish,
-}: {
-  playId: string;
-  canPublish: boolean;
-}) {
+export function KillPlayButton({ playId, canPublish }: { playId: string; canPublish: boolean }) {
   if (!canPublish) return null;
 
   return (
@@ -96,7 +84,11 @@ export function KillPlayButton({
             size="sm"
             disabled={pending}
             onClick={(e) => {
-              if (!confirm("Are you sure you want to kill this play? All active runs will exit immediately.")) {
+              if (
+                !confirm(
+                  "Are you sure you want to kill this play? All active runs will exit immediately.",
+                )
+              ) {
                 e.preventDefault();
               }
             }}
@@ -109,13 +101,7 @@ export function KillPlayButton({
   );
 }
 
-export function DuplicatePlayButton({
-  playId,
-  canDraft,
-}: {
-  playId: string;
-  canDraft: boolean;
-}) {
+export function DuplicatePlayButton({ playId, canDraft }: { playId: string; canDraft: boolean }) {
   if (!canDraft) return null;
 
   return (

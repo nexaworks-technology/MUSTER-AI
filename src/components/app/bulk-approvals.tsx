@@ -3,7 +3,9 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { useActionState, useId, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/app/empty-state";
 import { Input } from "@/components/ui/input";
 import { bulkAction, type ApprovalActionState } from "@/modules/approvals/actions/approvals";
 
@@ -34,27 +36,27 @@ export function BulkApprovals({ rows, canDecide }: { rows: BulkRow[]; canDecide:
 
   if (rows.length === 0)
     return (
-      <p
-        className="text-muted-foreground rounded-md border p-6 text-sm"
-        data-testid="approvals-empty"
-      >
+      <EmptyState className="py-6" data-testid="approvals-empty">
         Nothing is waiting for approval.
-      </p>
+      </EmptyState>
     );
 
   return (
     <div className="space-y-3">
-      <ul className="divide-y rounded-md border" aria-label="Waiting for approval">
+      <ul
+        className="surface divide-border divide-y overflow-hidden"
+        aria-label="Waiting for approval"
+      >
         {rows.map((r) => (
           <li
             key={r.id}
-            className="flex flex-wrap items-start gap-3 p-3"
+            className="flex flex-wrap items-start gap-3 p-4"
             data-testid="approval-row"
           >
             {canDecide ? (
               <input
                 type="checkbox"
-                className="mt-1 size-4"
+                className="border-input accent-primary mt-1 size-4"
                 aria-label={`Select: ${r.accountName}, ${r.reason}`}
                 checked={selected.includes(r.id)}
                 onChange={() => toggle(r.id)}
@@ -69,12 +71,12 @@ export function BulkApprovals({ rows, canDecide }: { rows: BulkRow[]; canDecide:
               {r.subject ? (
                 <p className="text-muted-foreground text-sm">Email: “{r.subject}”</p>
               ) : null}
-              <p className="text-muted-foreground flex flex-wrap gap-x-3 text-xs">
+              <p className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                 <span>{r.levelLabel}</span>
                 {r.sensitive ? (
-                  <span className="text-destructive font-medium" data-testid="sensitive-badge">
+                  <Badge variant="danger" data-testid="sensitive-badge">
                     {r.sensitive} · Always human
-                  </span>
+                  </Badge>
                 ) : null}
                 <span>{r.assignee ? `Assigned to ${r.assignee}` : "Unassigned"}</span>
                 <span>Waiting {r.waiting}</span>
@@ -108,7 +110,7 @@ export function BulkApprovals({ rows, canDecide }: { rows: BulkRow[]; canDecide:
       {confirming ? (
         <form
           action={run}
-          className="space-y-2 rounded-md border p-3"
+          className="bg-card border-border space-y-3 rounded-lg border p-4"
           aria-label="Confirm bulk decision"
         >
           <input type="hidden" name="decision" value={confirming} />

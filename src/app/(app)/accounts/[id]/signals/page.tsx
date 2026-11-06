@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { EmptyState } from "@/components/app/empty-state";
 import { SignalList } from "@/components/app/signal-list";
 import { OutsideSignalForm } from "@/components/app/outside-signal-form";
 import { can } from "@/lib/auth/permissions";
@@ -22,10 +23,10 @@ export default async function AccountSignalsPage({ params }: { params: Promise<{
         Signals
       </h2>
       {data.signals.length === 0 ? (
-        <p className="text-muted-foreground text-sm">
+        <EmptyState>
           No signals for this account. Signals are checked every night and when payments, tickets or
           a CSM Pulse change.
-        </p>
+        </EmptyState>
       ) : (
         <SignalList
           signals={data.signals}
@@ -35,7 +36,7 @@ export default async function AccountSignalsPage({ params }: { params: Promise<{
         />
       )}
       {account.canEdit ? (
-        <details className="border-border rounded-md border p-3">
+        <details className="surface p-4">
           <summary className="cursor-pointer text-sm font-medium">Add an outside signal</summary>
           <div className="mt-2">
             <OutsideSignalForm accounts={[{ id: account.id, name: account.name }]} />

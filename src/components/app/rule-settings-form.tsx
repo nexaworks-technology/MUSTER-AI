@@ -72,7 +72,7 @@ export function RuleSettingsForm({
           name="enabled"
           defaultChecked={enabled}
           disabled={dormantReason !== null}
-          className="size-4"
+          className="accent-primary size-4"
         />
         {dormantReason ? `Off — ${dormantReason}` : `${label} is on`}
       </label>
@@ -111,7 +111,7 @@ export function RuleSettingsForm({
                       name="p.roles"
                       value={r}
                       defaultChecked={roles.includes(r)}
-                      className="size-4"
+                      className="accent-primary size-4"
                     />
                     {r.replace("_", " ").toLowerCase()}
                   </label>

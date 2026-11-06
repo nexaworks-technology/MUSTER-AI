@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { NativeSelect } from "@/components/app/native-select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { archiveTemplateAction, saveTemplateAction } from "@/modules/onboarding/actions/onboarding";
 import { listTemplates, type Condition } from "@/modules/onboarding/service";
 import { requireSettingsAccess } from "../access";
@@ -59,11 +61,11 @@ function TemplateForm({ t }: { t: Template | null }) {
         </div>
         <div className="space-y-1">
           <Label htmlFor={`${p}-tier`}>For tier</Label>
-          <select
+          <NativeSelect
             id={`${p}-tier`}
             name="forTier"
             defaultValue={t?.forTier ?? ""}
-            className="border-input h-9 w-full rounded-md border px-2"
+            className="w-full"
           >
             <option value="">Any tier</option>
             {Object.entries(TIERS).map(([v, l]) => (
@@ -71,7 +73,7 @@ function TemplateForm({ t }: { t: Template | null }) {
                 {l}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
         <div className="space-y-1">
           <Label htmlFor={`${p}-plan`}>For plan (optional)</Label>
@@ -80,12 +82,12 @@ function TemplateForm({ t }: { t: Template | null }) {
       </div>
       <div className="space-y-1">
         <Label htmlFor={`${p}-steps`}>Steps, one per line: Title | us or customer | day</Label>
-        <textarea
+        <Textarea
           id={`${p}-steps`}
           name="steps"
           rows={6}
           defaultValue={stepsText(t)}
-          className="border-input w-full rounded-md border p-2 font-mono text-sm"
+          className="font-mono"
           required
         />
       </div>
@@ -99,45 +101,41 @@ function TemplateForm({ t }: { t: Template | null }) {
             <div key={i} className="flex flex-wrap items-end gap-2">
               <label className="flex flex-col text-xs">
                 Metric
-                <select
-                  name={`metric${i}`}
-                  defaultValue={c?.metric ?? ""}
-                  className="border-input h-9 rounded-md border px-2 text-sm"
-                >
+                <NativeSelect name={`metric${i}`} defaultValue={c?.metric ?? ""}>
                   <option value="">(none)</option>
                   {METRICS.map(([v, l]) => (
                     <option key={v} value={v}>
                       {l}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </label>
               <label className="flex flex-col text-xs">
                 N
-                <input
+                <Input
                   name={`value${i}`}
                   type="number"
                   min={0}
                   defaultValue={numberOf(c)}
-                  className="border-input h-9 w-20 rounded-md border px-2 text-sm"
+                  className="w-20"
                 />
               </label>
               <label className="flex flex-col text-xs">
                 Weekdays in a row
-                <input
+                <Input
                   name={`days${i}`}
                   type="number"
                   min={1}
                   defaultValue={c && "days" in c ? c.days : 1}
-                  className="border-input h-9 w-20 rounded-md border px-2 text-sm"
+                  className="w-20"
                 />
               </label>
               <label className="flex flex-col text-xs">
                 Feature key
-                <input
+                <Input
                   name={`feature${i}`}
                   defaultValue={c?.metric === "featureUsed" ? c.featureKey : ""}
-                  className="border-input h-9 w-40 rounded-md border px-2 text-sm"
+                  className="w-40"
                 />
               </label>
             </div>
@@ -159,8 +157,8 @@ export default async function OnboardingTemplatesPage({
   const q = await searchParams;
   const templates = await listTemplates(ctx);
   return (
-    <div className="max-w-4xl space-y-6">
-      <section aria-labelledby="tpl" className="space-y-2">
+    <div className="space-y-section max-w-4xl">
+      <section aria-labelledby="tpl" className="space-y-3">
         <h2 id="tpl" className="text-base font-semibold">
           Onboarding templates
         </h2>
@@ -182,7 +180,7 @@ export default async function OnboardingTemplatesPage({
       </section>
       <ul className="space-y-4">
         {templates.map((t) => (
-          <li key={t.id} className="border-border space-y-2 rounded-md border p-4">
+          <li key={t.id} className="surface space-y-2 p-4">
             <h3 className="font-semibold">{t.name}</h3>
             <p className="text-sm">
               {t.forTier ? TIERS[t.forTier] : "Any tier"}
@@ -208,7 +206,7 @@ export default async function OnboardingTemplatesPage({
           </li>
         ))}
       </ul>
-      <details className="border-border rounded-md border p-4">
+      <details className="surface p-4">
         <summary className="cursor-pointer text-sm font-medium">Add a template</summary>
         <div className="mt-3">
           <TemplateForm t={null} />

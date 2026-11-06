@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { NativeSelect } from "@/components/app/native-select";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { formatDateTime } from "@/lib/format";
 import {
   linkSlackMembersAction,
@@ -103,8 +105,8 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
               : null;
 
   return (
-    <div className="max-w-4xl space-y-6">
-      <section aria-labelledby="integrations" className="space-y-2">
+    <div className="space-y-section max-w-4xl">
+      <section aria-labelledby="integrations" className="space-y-3">
         <h2 id="integrations" className="text-base font-semibold">
           Integrations
         </h2>
@@ -138,7 +140,7 @@ function ProviderSection({ card, tz }: { card: ProviderCard; tz: string }) {
   const connected = i && i.status !== "DISCONNECTED";
   const headingId = `int-${card.provider}`;
   return (
-    <section aria-labelledby={headingId} className="border-border space-y-3 rounded-md border p-4">
+    <section aria-labelledby={headingId} className="surface space-y-3 p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 id={headingId} className="font-semibold">
           {card.name}{" "}
@@ -214,7 +216,7 @@ function ProviderSection({ card, tz }: { card: ProviderCard; tz: string }) {
             className="mt-2 flex flex-wrap items-center gap-3"
           >
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" name="confirm" value="yes" className="size-4" />
+              <input type="checkbox" name="confirm" value="yes" className="accent-primary size-4" />
               Delete the saved credentials. Records already synced stay.
             </label>
             <Button type="submit" variant="destructive" size="sm">
@@ -390,7 +392,7 @@ function ConnectForm({ card }: { card: ProviderCard }) {
         </p>
         <a
           href={`/api/integrations/${card.provider.toLowerCase()}/connect`}
-          className="bg-primary text-primary-foreground inline-flex h-9 items-center rounded-md px-4 text-sm"
+          className={buttonVariants()}
         >
           Connect {card.name}
         </a>
@@ -424,15 +426,10 @@ function ConnectForm({ card }: { card: ProviderCard }) {
       {usage ? (
         <div className="space-y-1">
           <Label htmlFor={`${p}-region`}>Data region</Label>
-          <select
-            id={`${p}-region`}
-            name="region"
-            defaultValue="US"
-            className="border-input h-9 rounded-md border bg-transparent px-2 text-sm"
-          >
+          <NativeSelect id={`${p}-region`} name="region" defaultValue="US">
             <option value="US">US</option>
             <option value="EU">EU</option>
-          </select>
+          </NativeSelect>
         </div>
       ) : null}
       {usage ? (
@@ -458,11 +455,10 @@ function ConnectForm({ card }: { card: ProviderCard }) {
           <Label htmlFor={`${p}-features`}>
             Features: one per line, as feature_key=Amplitude event name (optional)
           </Label>
-          <textarea
+          <Textarea
             id={`${p}-features`}
             name="features"
             rows={3}
-            className="border-input w-full rounded-md border bg-transparent px-3 py-2 text-sm"
             placeholder="dashboards=Dashboard Viewed"
           />
         </div>
@@ -515,7 +511,7 @@ function WriteBack({ card }: { card: ProviderCard }) {
             type="checkbox"
             name="enabled"
             defaultChecked={i.writeBackEnabled}
-            className="size-4"
+            className="accent-primary size-4"
           />
           Allow write-back
         </label>
@@ -528,7 +524,7 @@ function WriteBack({ card }: { card: ProviderCard }) {
                 name="fields"
                 value={f.key}
                 defaultChecked={i.writeBackFields.includes(f.key)}
-                className="size-4"
+                className="accent-primary size-4"
               />
               {f.label}
             </label>

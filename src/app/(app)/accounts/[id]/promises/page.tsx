@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { EmptyState } from "@/components/app/empty-state";
 import { PromiseTable } from "@/components/app/promise-table";
 import { can } from "@/lib/auth/permissions";
 import { listOwnerChoices, listPromises } from "@/modules/promises/service";
@@ -26,19 +27,25 @@ export default async function AccountPromisesPage({
   const error = first(sp.error);
   const done = first(sp.done);
   return (
-    <div className="space-y-3">
+    <div className="space-y-section">
       {error ? (
-        <p role="alert" className="text-sm text-red-700 dark:text-red-300">
+        <p
+          role="alert"
+          className="bg-danger-soft text-danger-soft-foreground rounded-md px-3 py-2 text-sm"
+        >
           {error}
         </p>
       ) : null}
       {done ? (
-        <p role="status" className="text-sm text-emerald-700 dark:text-emerald-300">
+        <p
+          role="status"
+          className="bg-success-soft text-success-soft-foreground rounded-md px-3 py-2 text-sm"
+        >
           Saved.
         </p>
       ) : null}
       {rows.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No promises on file for this account.</p>
+        <EmptyState>No promises on file for this account.</EmptyState>
       ) : (
         <PromiseTable
           rows={rows}

@@ -1,6 +1,9 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { formatCalendarDate } from "@/lib/format";
@@ -60,27 +63,35 @@ export default async function RenewalBriefPage({
   const doc = page.document;
   const canEdit = doc?.canEdit ?? can(ctx, "accounts:edit") !== null;
   return (
-    <div className="space-y-5">
+    <div className="space-y-section">
       <p className="text-sm">
-        <Link href="/renewals" className="underline">
+        <Link href="/renewals" className="text-primary underline underline-offset-2">
           Renewals
         </Link>{" "}
         /{" "}
-        <Link href={`/accounts/${page.renewal.accountId}/renewal` as Route} className="underline">
+        <Link
+          href={`/accounts/${page.renewal.accountId}/renewal` as Route}
+          className="text-primary underline underline-offset-2"
+        >
           {page.renewal.accountName}
         </Link>
       </p>
-      <h1 className="text-2xl font-semibold">Renewal brief: {page.renewal.accountName}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">
+        Renewal brief: {page.renewal.accountName}
+      </h1>
       <p className="text-muted-foreground text-sm">
         Renewal on {formatCalendarDate(page.renewal.renewalDate)}.
       </p>
       {one(q.ok) ? (
-        <p role="status" className="text-sm">
+        <p role="status" className="bg-muted text-foreground rounded-md px-3 py-2 text-sm">
           {one(q.ok)}
         </p>
       ) : null}
       {one(q.error) ? (
-        <p role="alert" className="text-sm">
+        <p
+          role="alert"
+          className="bg-danger-soft text-danger-soft-foreground rounded-md px-3 py-2 text-sm"
+        >
           {one(q.error)}
         </p>
       ) : null}
@@ -94,7 +105,11 @@ export default async function RenewalBriefPage({
         </section>
       ) : (
         <>
-          <section aria-labelledby="metrics-h" className="space-y-2" data-testid="brief-metrics">
+          <section
+            aria-labelledby="metrics-h"
+            className="surface space-y-3 p-5"
+            data-testid="brief-metrics"
+          >
             <h2 id="metrics-h" className="text-lg font-semibold">
               Locked figures
             </h2>
@@ -106,26 +121,20 @@ export default async function RenewalBriefPage({
             <table className="w-full text-left text-sm">
               <caption className="sr-only">Locked metrics and their sources</caption>
               <thead>
-                <tr className="border-border border-b">
-                  <th scope="col" className="py-1 pr-3">
-                    Figure
-                  </th>
-                  <th scope="col" className="py-1 pr-3">
-                    Value
-                  </th>
-                  <th scope="col" className="py-1 pr-3">
-                    From
-                  </th>
+                <tr>
+                  <th scope="col">Figure</th>
+                  <th scope="col">Value</th>
+                  <th scope="col">From</th>
                 </tr>
               </thead>
               <tbody>
                 {doc.metrics.map((m) => (
-                  <tr key={m.key} className="border-border border-b align-top" data-metric={m.key}>
-                    <th scope="row" className="py-1 pr-3 font-normal">
+                  <tr key={m.key} className="border-border align-top" data-metric={m.key}>
+                    <th scope="row" className="font-normal">
                       {m.label}
                     </th>
-                    <td className="py-1 pr-3">{m.text}</td>
-                    <td className="py-1 pr-3 text-xs">
+                    <td>{m.text}</td>
+                    <td className="text-xs">
                       {m.sources.length === 0 ? (
                         <span className="text-muted-foreground">No records</span>
                       ) : (
@@ -133,7 +142,11 @@ export default async function RenewalBriefPage({
                           const href = sourceHref(doc.accountId, s);
                           const label = `${s.sourceType}${s.sourceId ? ` ${s.sourceId.slice(0, 8)}` : ""}`;
                           return href ? (
-                            <Link key={i} href={href} className="mr-2 underline">
+                            <Link
+                              key={i}
+                              href={href}
+                              className="text-primary mr-2 underline underline-offset-2"
+                            >
                               {label}
                             </Link>
                           ) : (
@@ -150,7 +163,11 @@ export default async function RenewalBriefPage({
             </table>
           </section>
 
-          <section aria-labelledby="narr-h" className="space-y-2" data-testid="brief-narrative">
+          <section
+            aria-labelledby="narr-h"
+            className="surface space-y-3 p-5"
+            data-testid="brief-narrative"
+          >
             <h2 id="narr-h" className="text-lg font-semibold">
               Plan and talk track
             </h2>
@@ -179,7 +196,10 @@ export default async function RenewalBriefPage({
             {doc.origin === "AI" && doc.agentRunId ? (
               <p className="text-muted-foreground text-xs">
                 Written by the Renewal Manager from the records above;{" "}
-                <Link href={`/agent-runs/${doc.agentRunId}` as Route} className="underline">
+                <Link
+                  href={`/agent-runs/${doc.agentRunId}` as Route}
+                  className="text-primary underline underline-offset-2"
+                >
                   see the run
                 </Link>
                 . Any outreach it drafted is in Approvals; nothing was sent.
@@ -191,23 +211,24 @@ export default async function RenewalBriefPage({
           {page.renewal.planSteps.length > 0 && (
             <section
               aria-labelledby="adopted-plan-h"
-              className="space-y-3 border-t pt-4"
+              className="surface space-y-3 p-5"
               data-testid="adopted-plan-section"
             >
               <div className="flex items-center justify-between">
                 <h2 id="adopted-plan-h" className="text-lg font-semibold">
                   Adopted renewal plan
                 </h2>
-                <span className="text-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200 px-2 py-0.5 rounded font-medium">
-                  {page.renewal.planSteps.length} step{page.renewal.planSteps.length === 1 ? "" : "s"} adopted
-                </span>
+                <Badge variant="success">
+                  {page.renewal.planSteps.length} step
+                  {page.renewal.planSteps.length === 1 ? "" : "s"} adopted
+                </Badge>
               </div>
-              <ol className="list-decimal list-inside space-y-2 text-sm">
+              <ol className="list-inside list-decimal space-y-2 text-sm">
                 {page.renewal.planSteps.map((s, idx) => (
                   <li key={idx} className="font-medium">
                     <span>{s.title}</span>
                     {s.detail && (
-                      <p className="text-xs text-muted-foreground pl-5 font-normal">{s.detail}</p>
+                      <p className="text-muted-foreground pl-5 text-xs font-normal">{s.detail}</p>
                     )}
                   </li>
                 ))}
@@ -219,7 +240,7 @@ export default async function RenewalBriefPage({
           {canEdit && (
             <section
               aria-labelledby="adopt-plan-h"
-              className="space-y-4 border rounded-lg p-4 bg-muted/20"
+              className="surface space-y-4 p-5"
               data-testid="adopt-plan-section"
             >
               <div>
@@ -228,8 +249,9 @@ export default async function RenewalBriefPage({
                     ? "Edit & re-adopt plan steps"
                     : "Adopt proposed plan steps"}
                 </h2>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Steps are editable before human adoption. Adopting writes into Renewal.planSteps. Figures must obey locked placeholder rules.
+                <p className="text-muted-foreground mt-1 text-xs">
+                  Steps are editable before human adoption. Adopting writes into Renewal.planSteps.
+                  Figures must obey locked placeholder rules.
                 </p>
               </div>
               <form action={adoptPlanAction.bind(null, id)} className="space-y-3">
@@ -254,22 +276,24 @@ export default async function RenewalBriefPage({
                     return (
                       <div className="space-y-2 text-xs">
                         <div className="space-y-1">
-                          <label className="font-mono text-muted-foreground">Step 1 Title</label>
-                          <input
+                          <label className="text-muted-foreground font-mono">Step 1 Title</label>
+                          <Input
                             type="text"
                             name="step_title_0"
                             placeholder="e.g. Schedule executive renewal review"
                             required
-                            className="border rounded px-2 py-1 w-full font-medium bg-background"
+                            className="font-medium"
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="font-mono text-muted-foreground">Step 1 Detail (optional)</label>
-                          <input
+                          <label className="text-muted-foreground font-mono">
+                            Step 1 Detail (optional)
+                          </label>
+                          <Input
                             type="text"
                             name="step_detail_0"
                             placeholder="e.g. Review {{metric.renewal.arr}} and metrics"
-                            className="border rounded px-2 py-1 w-full text-muted-foreground bg-background"
+                            className="text-muted-foreground"
                           />
                         </div>
                       </div>
@@ -281,26 +305,26 @@ export default async function RenewalBriefPage({
                       {stepsToEdit.map((step, idx) => (
                         <div key={idx} className="space-y-1.5 border-b pb-3 text-xs">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-muted-foreground min-w-[50px]">
+                            <span className="text-muted-foreground min-w-12 font-mono">
                               Step {idx + 1}
                             </span>
-                            <input
+                            <Input
                               type="text"
                               name={`step_title_${idx}`}
                               defaultValue={step.title}
                               placeholder="Step Title"
                               required
-                              className="border rounded px-2 py-1 flex-1 font-medium bg-background"
+                              className="flex-1 font-medium"
                               aria-label={`Step ${idx + 1} Title`}
                             />
                           </div>
-                          <div className="pl-[58px]">
-                            <input
+                          <div className="pl-14">
+                            <Input
                               type="text"
                               name={`step_detail_${idx}`}
                               defaultValue={step.detail ?? ""}
                               placeholder="Detail (optional)"
-                              className="border rounded px-2 py-1 w-full text-muted-foreground bg-background"
+                              className="text-muted-foreground"
                               aria-label={`Step ${idx + 1} Detail`}
                             />
                           </div>
@@ -309,12 +333,7 @@ export default async function RenewalBriefPage({
                     </>
                   );
                 })()}
-                <button
-                  type="submit"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-3 py-1.5 text-xs font-medium"
-                >
-                  Adopt plan into renewal
-                </button>
+                <Button type="submit">Adopt plan into renewal</Button>
               </form>
             </section>
           )}
@@ -324,14 +343,14 @@ export default async function RenewalBriefPage({
       {canEdit ? (
         <div className="flex flex-wrap gap-3">
           <form action={buildBriefAction.bind(null, id)}>
-            <button type="submit" className="border-input rounded-md border px-3 py-1 text-sm">
+            <Button type="submit" variant="outline" size="sm">
               {doc ? "Rebuild the figures from the records" : "Build the brief"}
-            </button>
+            </Button>
           </form>
           <form action={askRenewalManagerAction.bind(null, id)}>
-            <button type="submit" className="border-input rounded-md border px-3 py-1 text-sm">
+            <Button type="submit" variant="outline" size="sm">
               Ask the Renewal Manager to draft the plan
-            </button>
+            </Button>
           </form>
         </div>
       ) : null}

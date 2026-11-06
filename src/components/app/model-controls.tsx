@@ -162,7 +162,7 @@ export function ModelEditForm({
       {state.preview ? (
         <div
           role="status"
-          className="border-border space-y-1 rounded-md border p-3 text-sm"
+          className="border-border bg-muted space-y-1 rounded-md border p-3 text-sm"
           data-testid="model-preview"
         >
           <p className="font-medium">{state.preview.sentence}</p>

@@ -21,12 +21,12 @@ export default async function DigestPage() {
   if (!ctx || !grant || grant.scope !== "ALL") notFound();
   const digest = await getLatestDigest(ctx);
   return (
-    <div className="max-w-3xl space-y-4">
+    <div className="space-y-section max-w-3xl">
       <div>
         <Link href="/reports" className="text-muted-foreground text-sm underline">
           Reports
         </Link>
-        <h1 className="text-2xl font-semibold">Weekly digest</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Weekly digest</h1>
       </div>
       {digest ? (
         <section className="space-y-3" data-testid="weekly-digest">
@@ -46,7 +46,10 @@ export default async function DigestPage() {
           {digest.latestAttempt ? (
             <p className="text-muted-foreground text-sm" data-testid="digest-latest-failed">
               A newer digest could not be written; the reports are ready on the{" "}
-              <Link href={"/reports" as Route} className="underline">
+              <Link
+                href={"/reports" as Route}
+                className="text-primary underline underline-offset-2"
+              >
                 Reports
               </Link>{" "}
               page.
@@ -58,7 +61,7 @@ export default async function DigestPage() {
           No weekly digest has been written yet. One is written each Monday morning from the
           week&apos;s reports; if it cannot be written you are told, and the reports are still ready
           on the{" "}
-          <Link href={"/reports" as Route} className="underline">
+          <Link href={"/reports" as Route} className="text-primary underline underline-offset-2">
             Reports
           </Link>{" "}
           page.

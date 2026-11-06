@@ -21,8 +21,8 @@ export default async function DataHealthPage({ searchParams }: { searchParams: S
   const tz = ctx.workspace.timezone;
   const nothing = jobs.length + syncs.length + webhooks.length === 0;
   return (
-    <div className="max-w-4xl space-y-6">
-      <section aria-labelledby="dh" className="space-y-2">
+    <div className="space-y-section max-w-4xl">
+      <section aria-labelledby="dh" className="space-y-3">
         <h2 id="dh" className="text-base font-semibold">
           Data health
         </h2>
@@ -44,11 +44,11 @@ export default async function DataHealthPage({ searchParams }: { searchParams: S
       </section>
 
       {jobs.length ? (
-        <section aria-labelledby="dh-jobs" className="space-y-2">
+        <section aria-labelledby="dh-jobs" className="space-y-3">
           <h3 id="dh-jobs" className="font-semibold">
             Background work that stopped
           </h3>
-          <ul className="divide-border border-border divide-y rounded-md border text-sm">
+          <ul className="surface divide-border divide-y text-sm">
             {jobs.map((j) => (
               <li
                 key={`${j.queue}:${j.jobId}`}
@@ -71,11 +71,11 @@ export default async function DataHealthPage({ searchParams }: { searchParams: S
       ) : null}
 
       {syncs.length ? (
-        <section aria-labelledby="dh-syncs" className="space-y-2">
+        <section aria-labelledby="dh-syncs" className="space-y-3">
           <h3 id="dh-syncs" className="font-semibold">
             Syncs that failed
           </h3>
-          <ul className="divide-border border-border divide-y rounded-md border text-sm">
+          <ul className="surface divide-border divide-y text-sm">
             {syncs.map((s) => (
               <li key={s.id} className="p-3">
                 {s.provider}, {formatDateTime(s.startedAt, tz)}: {s.errorPlain}
@@ -86,11 +86,11 @@ export default async function DataHealthPage({ searchParams }: { searchParams: S
       ) : null}
 
       {webhooks.length ? (
-        <section aria-labelledby="dh-hooks" className="space-y-2">
+        <section aria-labelledby="dh-hooks" className="space-y-3">
           <h3 id="dh-hooks" className="font-semibold">
             Events that could not be processed
           </h3>
-          <ul className="divide-border border-border divide-y rounded-md border text-sm">
+          <ul className="surface divide-border divide-y text-sm">
             {webhooks.map((h) => (
               <li key={h.id} className="p-3">
                 {h.provider} {h.eventType}, received {formatDateTime(h.receivedAt, tz)}:{" "}

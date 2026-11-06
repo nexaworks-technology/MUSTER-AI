@@ -42,7 +42,10 @@ export function UsageKeyPanel({
         </Alert>
       ) : null}
       {state.error ? (
-        <p role="alert" className="text-destructive text-sm">
+        <p
+          role="alert"
+          className="bg-danger-soft text-danger-soft-foreground rounded-md px-3 py-2 text-sm"
+        >
           {state.error}
         </p>
       ) : null}

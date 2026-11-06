@@ -18,7 +18,7 @@ export interface LinePoint {
 const W = 640;
 const H = 220;
 const PAD = { top: 16, right: 16, bottom: 28, left: 40 };
-const SERIES = "#2a78d6"; // reference palette slot 1 (validated against the light surface)
+const SERIES = "var(--primary)"; // the single accent token (AA against the card and page surfaces)
 
 function niceMax(max: number): { top: number; step: number } {
   if (max <= 0) return { top: 4, step: 1 };

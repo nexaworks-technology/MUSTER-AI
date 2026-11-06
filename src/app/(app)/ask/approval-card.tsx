@@ -12,7 +12,7 @@ export function ApprovalCard({ card }: { card: AskApprovalCard }) {
   if (!card.visible)
     return (
       <p
-        className="text-muted-foreground rounded-md border p-3 text-sm"
+        className="text-muted-foreground border-border bg-card rounded-lg border px-4 py-3 text-sm"
         data-testid="approval-card"
       >
         This proposal is not in your book, so I cannot show it to you.
@@ -21,7 +21,7 @@ export function ApprovalCard({ card }: { card: AskApprovalCard }) {
   const status = (card.status ?? "").toLowerCase().replaceAll("_", " ");
   return (
     <section
-      className="space-y-2 rounded-md border p-3 text-sm"
+      className="surface space-y-2 p-4 text-sm"
       data-testid="approval-card"
       data-approval={card.id}
       aria-label="Proposed change"
@@ -34,7 +34,10 @@ export function ApprovalCard({ card }: { card: AskApprovalCard }) {
         {card.accountName ? ` · ${card.accountName}` : ""} ·{" "}
         <span data-testid="card-status">{status}</span>
         {card.decidedBy ? ` by ${card.decidedBy}` : ""} ·{" "}
-        <Link href={`/approvals/${card.id}` as Route} className="underline">
+        <Link
+          href={`/approvals/${card.id}` as Route}
+          className="text-primary underline underline-offset-2"
+        >
           Open in Approvals
         </Link>
       </p>
@@ -46,7 +49,7 @@ export function ApprovalCard({ card }: { card: AskApprovalCard }) {
         </ol>
       ) : null}
       {card.email ? (
-        <div className="rounded-md border p-2" data-testid="card-email">
+        <div className="bg-muted border-border rounded-md border p-3" data-testid="card-email">
           <p>
             <span className="text-muted-foreground">To:</span> {card.email.to}
           </p>

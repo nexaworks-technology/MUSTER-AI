@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatArr, formatCalendarDate, formatDate, RESTRICTED } from "@/lib/format";
 import { STAGE_LABELS, TIER_LABELS } from "@/modules/accounts/schemas";
 import { CONTACT_STATUS_LABELS, ROLE_LABELS } from "@/modules/contacts/schemas";
 import { listPeople } from "@/modules/contacts/service";
 import { getMissingDataQuestion, listOwners } from "@/modules/accounts/service";
+import { EmptyState } from "@/components/app/empty-state";
 import { MissingDataCard } from "@/components/app/missing-data-card";
 import { loadAccount } from "./data";
 
@@ -59,7 +61,7 @@ export default async function AccountOverviewPage({ params }: { params: Promise<
         : [];
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="gap-section grid lg:grid-cols-2">
       {missing ? (
         <div className="lg:col-span-2">
           <MissingDataCard
@@ -78,11 +80,11 @@ export default async function AccountOverviewPage({ params }: { params: Promise<
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <dl className="grid grid-cols-[9rem_1fr] gap-y-2 text-sm">
+          <dl className="divide-border divide-y text-sm">
             {facts.map(([k, v]) => (
-              <div key={k} className="contents">
-                <dt className="text-muted-foreground">{k}</dt>
-                <dd>{v}</dd>
+              <div key={k} className="flex gap-4 py-2 first:pt-0 last:pb-0">
+                <dt className="text-muted-foreground w-36 shrink-0">{k}</dt>
+                <dd className="min-w-0">{v}</dd>
               </div>
             ))}
           </dl>
@@ -96,7 +98,7 @@ export default async function AccountOverviewPage({ params }: { params: Promise<
         </CardHeader>
         <CardContent>
           {keyPeople.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No champion or decision maker recorded.</p>
+            <EmptyState>No champion or decision maker recorded.</EmptyState>
           ) : (
             <ul className="space-y-2 text-sm">
               {keyPeople.map((p) => (
@@ -107,9 +109,9 @@ export default async function AccountOverviewPage({ params }: { params: Promise<
                     {p.title ? ` · ${p.title}` : ""}
                   </span>
                   {p.status !== "ACTIVE" ? (
-                    <span className="ml-2 rounded border border-[var(--risk-at-risk)] px-1.5 py-0.5 text-xs text-[var(--risk-at-risk)]">
+                    <Badge variant="danger" className="ml-2">
                       {CONTACT_STATUS_LABELS[p.status]}
-                    </span>
+                    </Badge>
                   ) : null}
                 </li>
               ))}

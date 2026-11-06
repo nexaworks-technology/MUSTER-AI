@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { EmptyState } from "@/components/app/empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatArr, formatCalendarDate, formatDate, RESTRICTED } from "@/lib/format";
 import { formatMoney } from "@/lib/money";
@@ -46,7 +47,7 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
 
   if (billing.contracts.length === 0) {
     return (
-      <div className="space-y-2" data-testid="no-contract">
+      <div className="surface space-y-2 p-5" data-testid="no-contract">
         <h2 className="text-base font-semibold">No contract on file</h2>
         <p className="text-muted-foreground text-sm">
           There is no contract recorded for this account, so there is no contract value, renewal
@@ -57,7 +58,7 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-section">
       <Card>
         <CardHeader>
           <CardTitle>
@@ -66,49 +67,58 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
         </CardHeader>
         <CardContent>
           {!current ? (
-            <p className="text-muted-foreground text-sm">
-              No contract is in force today. Past contracts are listed below.
-            </p>
+            <EmptyState>No contract is in force today. Past contracts are listed below.</EmptyState>
           ) : (
-            <dl
-              className="grid grid-cols-[10rem_1fr] gap-y-2 text-sm"
-              data-testid="current-contract"
-            >
-              <dt className="text-muted-foreground">Annual value</dt>
-              <dd>{money(current.valueMinor, current.currency)}</dd>
-              <dt className="text-muted-foreground">Seats bought</dt>
-              <dd>{current.seatsPurchased ?? "Not on file"}</dd>
-              <dt className="text-muted-foreground">Start</dt>
-              <dd>{formatCalendarDate(current.startDate)}</dd>
-              <dt className="text-muted-foreground">Renewal date</dt>
-              <dd>
-                {current.renewalDate
-                  ? formatCalendarDate(current.renewalDate)
-                  : "No renewal date on file"}
-              </dd>
-              <dt className="text-muted-foreground">Notice period</dt>
-              <dd>
-                {current.noticePeriodDays !== null
-                  ? `${current.noticePeriodDays} days`
-                  : "Not on file"}
-              </dd>
-              <dt className="text-muted-foreground">Auto-renews</dt>
-              <dd>
-                {current.autoRenew === null ? "Not on file" : current.autoRenew ? "Yes" : "No"}
-              </dd>
-              <dt className="text-muted-foreground">Terms</dt>
-              <dd>
-                {billing.moneyVisible ? (
-                  (current.terms ?? "Not on file")
-                ) : (
-                  <span className="text-muted-foreground">{RESTRICTED}</span>
-                )}
-              </dd>
+            <dl className="divide-border divide-y text-sm" data-testid="current-contract">
+              <div className="flex gap-4 py-2 first:pt-0 last:pb-0">
+                <dt className="text-muted-foreground w-40 shrink-0">Annual value</dt>
+                <dd className="min-w-0">{money(current.valueMinor, current.currency)}</dd>
+              </div>
+              <div className="flex gap-4 py-2 first:pt-0 last:pb-0">
+                <dt className="text-muted-foreground w-40 shrink-0">Seats bought</dt>
+                <dd className="min-w-0">{current.seatsPurchased ?? "Not on file"}</dd>
+              </div>
+              <div className="flex gap-4 py-2 first:pt-0 last:pb-0">
+                <dt className="text-muted-foreground w-40 shrink-0">Start</dt>
+                <dd className="min-w-0">{formatCalendarDate(current.startDate)}</dd>
+              </div>
+              <div className="flex gap-4 py-2 first:pt-0 last:pb-0">
+                <dt className="text-muted-foreground w-40 shrink-0">Renewal date</dt>
+                <dd className="min-w-0">
+                  {current.renewalDate
+                    ? formatCalendarDate(current.renewalDate)
+                    : "No renewal date on file"}
+                </dd>
+              </div>
+              <div className="flex gap-4 py-2 first:pt-0 last:pb-0">
+                <dt className="text-muted-foreground w-40 shrink-0">Notice period</dt>
+                <dd className="min-w-0">
+                  {current.noticePeriodDays !== null
+                    ? `${current.noticePeriodDays} days`
+                    : "Not on file"}
+                </dd>
+              </div>
+              <div className="flex gap-4 py-2 first:pt-0 last:pb-0">
+                <dt className="text-muted-foreground w-40 shrink-0">Auto-renews</dt>
+                <dd className="min-w-0">
+                  {current.autoRenew === null ? "Not on file" : current.autoRenew ? "Yes" : "No"}
+                </dd>
+              </div>
+              <div className="flex gap-4 py-2 first:pt-0 last:pb-0">
+                <dt className="text-muted-foreground w-40 shrink-0">Terms</dt>
+                <dd className="min-w-0">
+                  {billing.moneyVisible ? (
+                    (current.terms ?? "Not on file")
+                  ) : (
+                    <span className="text-muted-foreground">{RESTRICTED}</span>
+                  )}
+                </dd>
+              </div>
               {billing.moneyVisible && current.pricingNotes ? (
-                <>
-                  <dt className="text-muted-foreground">Pricing notes</dt>
-                  <dd>{current.pricingNotes}</dd>
-                </>
+                <div className="flex gap-4 py-2 first:pt-0 last:pb-0">
+                  <dt className="text-muted-foreground w-40 shrink-0">Pricing notes</dt>
+                  <dd className="min-w-0">{current.pricingNotes}</dd>
+                </div>
               ) : null}
             </dl>
           )}
@@ -128,18 +138,18 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
         </CardContent>
       </Card>
       {billing.moneyVisible ? (
-        <section aria-labelledby="documents" className="space-y-2">
+        <section aria-labelledby="documents" className="space-y-3">
           <h2 id="documents" className="text-base font-semibold">
             Contract documents
           </h2>
           {documents.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No signed contract document on file.</p>
+            <EmptyState>No signed contract document on file.</EmptyState>
           ) : (
-            <ul className="divide-border border-border divide-y rounded-md border text-sm">
+            <ul className="surface divide-border divide-y overflow-hidden text-sm">
               {documents.map((d) => (
                 <li
                   key={d.id}
-                  className="flex flex-wrap justify-between gap-2 p-3"
+                  className="flex flex-wrap justify-between gap-2 p-4"
                   data-testid="contract-document"
                 >
                   <span>
@@ -149,7 +159,7 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
                   {d.scanStatus === "CLEAN" ? (
                     <a
                       href={`/api/files/${d.id}/download`}
-                      className="underline"
+                      className="text-primary underline underline-offset-2"
                       aria-label={`Download ${d.filename}`}
                     >
                       Download
@@ -171,16 +181,16 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
         </section>
       ) : null}
 
-      <section aria-labelledby="history" className="space-y-2">
+      <section aria-labelledby="history" className="space-y-3">
         <h2 id="history" className="text-base font-semibold">
           Contract history
         </h2>
-        <ul className="divide-border border-border divide-y rounded-md border text-sm">
+        <ul className="surface divide-border divide-y overflow-hidden text-sm">
           {billing.contracts.map((c) => (
             <li
               key={c.id}
               id={`contract-${c.id}`}
-              className="target:bg-muted flex scroll-mt-4 flex-wrap justify-between gap-2 p-3"
+              className="target:bg-muted flex scroll-mt-4 flex-wrap justify-between gap-2 p-4"
             >
               <span>
                 {formatCalendarDate(c.startDate)} –{" "}
@@ -193,21 +203,19 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
         </ul>
       </section>
 
-      <section aria-labelledby="revenue" className="space-y-2">
+      <section aria-labelledby="revenue" className="space-y-3">
         <h2 id="revenue" className="text-base font-semibold">
           ARR movements
         </h2>
         {billing.revenueEvents.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            No ARR movements derived from the contracts on file.
-          </p>
+          <EmptyState>No ARR movements derived from the contracts on file.</EmptyState>
         ) : (
-          <ul className="divide-border border-border divide-y rounded-md border text-sm">
+          <ul className="surface divide-border divide-y overflow-hidden text-sm">
             {billing.revenueEvents.map((e) => (
               <li
                 key={e.id}
                 id={`revenue-${e.id}`}
-                className="target:bg-muted flex scroll-mt-4 justify-between gap-2 p-3"
+                className="target:bg-muted flex scroll-mt-4 justify-between gap-2 p-4"
               >
                 <span>
                   {EVENT_LABELS[e.type]} · {formatCalendarDate(e.effectiveDate)}
@@ -219,55 +227,38 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
         )}
       </section>
 
-      <section aria-labelledby="invoices" className="space-y-2">
+      <section aria-labelledby="invoices" className="space-y-3">
         <h2 id="invoices" className="text-base font-semibold">
           Invoices
         </h2>
         {billing.invoices.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No invoices on file.</p>
+          <EmptyState>No invoices on file.</EmptyState>
         ) : (
-          <div
-            className="border-border overflow-x-auto rounded-md border"
-            role="region"
-            aria-label="Invoices"
-            tabIndex={0}
-          >
-            <table className="w-full min-w-[36rem] text-sm">
+          <div className="surface overflow-x-auto" role="region" aria-label="Invoices" tabIndex={0}>
+            <table className="w-full min-w-144 text-sm">
               <caption className="sr-only">Invoices, newest first</caption>
-              <thead className="bg-muted text-muted-foreground text-left text-xs">
+              <thead>
                 <tr>
-                  <th scope="col" className="px-3 py-2 font-medium">
-                    Invoice
-                  </th>
-                  <th scope="col" className="px-3 py-2 font-medium">
-                    Issued
-                  </th>
-                  <th scope="col" className="px-3 py-2 font-medium">
-                    Due
-                  </th>
-                  <th scope="col" className="px-3 py-2 font-medium">
-                    Status
-                  </th>
-                  <th scope="col" className="px-3 py-2 text-right font-medium">
+                  <th scope="col">Invoice</th>
+                  <th scope="col">Issued</th>
+                  <th scope="col">Due</th>
+                  <th scope="col">Status</th>
+                  <th scope="col" className="text-right">
                     Amount
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {billing.invoices.map((i) => (
-                  <tr
-                    key={i.id}
-                    id={`invoice-${i.id}`}
-                    className="border-border target:bg-muted scroll-mt-4 border-t"
-                  >
-                    <td className="px-3 py-2">{i.number}</td>
-                    <td className="px-3 py-2">{formatCalendarDate(i.issuedAt)}</td>
-                    <td className="px-3 py-2">{formatCalendarDate(i.dueAt)}</td>
+                  <tr key={i.id} id={`invoice-${i.id}`} className="target:bg-muted scroll-mt-4">
+                    <td>{i.number}</td>
+                    <td>{formatCalendarDate(i.issuedAt)}</td>
+                    <td>{formatCalendarDate(i.dueAt)}</td>
                     <td
                       className={
                         i.status === "FAILED" || i.status === "UNCOLLECTIBLE"
-                          ? "px-3 py-2 text-[var(--risk-at-risk)]"
-                          : "px-3 py-2"
+                          ? "text-risk-at-risk font-medium"
+                          : undefined
                       }
                     >
                       {INVOICE_STATUS[i.status]}
@@ -275,9 +266,7 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
                         ? ` (${i.failureCount} failed attempt${i.failureCount > 1 ? "s" : ""})`
                         : ""}
                     </td>
-                    <td className="px-3 py-2 text-right tabular-nums">
-                      {money(i.amountMinor, i.currency)}
-                    </td>
+                    <td className="text-right">{money(i.amountMinor, i.currency)}</td>
                   </tr>
                 ))}
               </tbody>

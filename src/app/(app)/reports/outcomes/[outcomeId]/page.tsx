@@ -19,7 +19,7 @@ function Item({ i }: { i: LinkedItem }) {
   return (
     <li>
       {i.href ? (
-        <Link href={i.href as Route} className="underline">
+        <Link href={i.href as Route} className="text-primary underline underline-offset-2">
           {i.label}
         </Link>
       ) : (
@@ -45,7 +45,7 @@ export default async function SaveRecordPage({
   const r = await loadSaveRecord(ctx, outcomeId);
   if (!r) notFound();
   return (
-    <div className="space-y-6">
+    <div className="space-y-section">
       <div>
         <Link
           href={"/reports/outcomes" as Route}
@@ -53,7 +53,7 @@ export default async function SaveRecordPage({
         >
           ← Did it work?
         </Link>
-        <h1 className="mt-1 text-2xl font-semibold">Save record: {r.accountName}</h1>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Save record: {r.accountName}</h1>
         <p className="text-muted-foreground text-sm">
           {r.flagType === "RISK" ? "Risk" : "Opportunity"} flagged {fmt(r.flaggedAt)} ·{" "}
           {r.actionTaken === "ACTED"
@@ -65,13 +65,16 @@ export default async function SaveRecordPage({
         </p>
       </div>
 
-      <section aria-labelledby="flag-h" className="space-y-1">
+      <section aria-labelledby="flag-h" className="surface space-y-2 p-5">
         <h2 id="flag-h" className="text-lg font-semibold">
           The flag
         </h2>
         {r.signal ? (
           <p className="text-sm">
-            <Link href={r.signal.href as Route} className="underline">
+            <Link
+              href={r.signal.href as Route}
+              className="text-primary underline underline-offset-2"
+            >
               {r.signal.title}
             </Link>{" "}
             (rule {r.signal.ruleKey})
@@ -82,13 +85,16 @@ export default async function SaveRecordPage({
           </p>
         )}
         <p className="text-sm">
-          <Link href={`/accounts/${r.accountId}` as Route} className="underline">
+          <Link
+            href={`/accounts/${r.accountId}` as Route}
+            className="text-primary underline underline-offset-2"
+          >
             {r.accountName}
           </Link>
         </p>
       </section>
 
-      <section aria-labelledby="actions-h" className="space-y-1">
+      <section aria-labelledby="actions-h" className="surface space-y-2 p-5">
         <h2 id="actions-h" className="text-lg font-semibold">
           What was done
         </h2>
@@ -103,7 +109,7 @@ export default async function SaveRecordPage({
         )}
       </section>
 
-      <section aria-labelledby="cp-h" className="space-y-3">
+      <section aria-labelledby="cp-h" className="surface space-y-2 p-5">
         <h2 id="cp-h" className="text-lg font-semibold">
           What the checkpoints found
         </h2>
@@ -131,7 +137,7 @@ export default async function SaveRecordPage({
         )}
       </section>
 
-      <section aria-labelledby="value-h" className="space-y-1">
+      <section aria-labelledby="value-h" className="surface space-y-2 p-5">
         <h2 id="value-h" className="text-lg font-semibold">
           Value
         </h2>

@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { FormMessage } from "@/components/app/form-message";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   cancelDeletionAction,
   requestDeletionAction,
@@ -15,11 +16,11 @@ export function DeleteWorkspaceForm({ workspaceName }: { workspaceName: string }
     <form action={action} className="space-y-2">
       <label className="block text-sm">
         Type <strong>{workspaceName}</strong> to confirm
-        <input
+        <Input
           name="confirmName"
           autoComplete="off"
           required
-          className="mt-1 block w-full max-w-sm rounded-md border px-2 py-1"
+          className="mt-1 block max-w-sm"
           data-testid="confirm-workspace-name"
         />
       </label>

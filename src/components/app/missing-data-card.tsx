@@ -31,7 +31,7 @@ export function MissingDataCard({
   return (
     <form
       action={action}
-      className="border-border bg-muted flex flex-wrap items-end gap-2 rounded-md border p-3"
+      className="border-border bg-muted flex flex-wrap items-end gap-3 rounded-lg border p-4"
       aria-label="Missing information"
       data-testid="missing-data"
     >
@@ -42,7 +42,7 @@ export function MissingDataCard({
           {question}
         </label>
         {field === "RENEWAL_DATE" ? (
-          <Input id="missing-answer" name="value" type="date" className="bg-background w-44" />
+          <Input id="missing-answer" name="value" type="date" className="w-44" />
         ) : (
           <NativeSelect id="missing-answer" name="value" defaultValue="">
             <option value="">Choose…</option>

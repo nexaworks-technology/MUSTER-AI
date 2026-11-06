@@ -21,8 +21,8 @@ export default async function ImportPage() {
   const imports = await listImports(ctx);
   const templates = Object.values(TEMPLATES);
   return (
-    <div className="max-w-3xl space-y-6">
-      <section aria-labelledby="start" className="space-y-3">
+    <div className="space-y-section max-w-3xl">
+      <section aria-labelledby="start" className="surface space-y-3 p-5">
         <h2 id="start" className="text-base font-semibold">
           Import from CSV
         </h2>
@@ -32,35 +32,42 @@ export default async function ImportPage() {
         </p>
         <ImportUpload templates={templates.map((t) => ({ kind: t.kind, title: t.title }))} />
       </section>
-      <section aria-labelledby="templates" className="space-y-2">
+      <section aria-labelledby="templates" className="space-y-3">
         <h2 id="templates" className="text-base font-semibold">
           Templates
         </h2>
-        <ul className="divide-border border-border divide-y rounded-md border text-sm">
+        <ul className="surface divide-border divide-y text-sm">
           {templates.map((t) => (
             <li key={t.kind} className="flex flex-wrap justify-between gap-2 p-2">
               <span>
                 <span className="font-medium">{t.title}</span>{" "}
                 <span className="text-muted-foreground">· {t.description}</span>
               </span>
-              <a href={`/api/imports/templates/${t.slug}`} className="shrink-0 underline" download>
+              <a
+                href={`/api/imports/templates/${t.slug}`}
+                className="text-primary shrink-0 underline underline-offset-2"
+                download
+              >
                 Download {t.title.toLowerCase()} template
               </a>
             </li>
           ))}
         </ul>
       </section>
-      <section aria-labelledby="recent" className="space-y-2">
+      <section aria-labelledby="recent" className="space-y-3">
         <h2 id="recent" className="text-base font-semibold">
           Recent imports
         </h2>
         {imports.length === 0 ? (
           <p className="text-muted-foreground text-sm">No imports yet.</p>
         ) : (
-          <ul className="divide-border border-border divide-y rounded-md border text-sm">
+          <ul className="surface divide-border divide-y text-sm">
             {imports.map((j) => (
               <li key={j.id} className="flex flex-wrap justify-between gap-2 p-2">
-                <Link href={`/settings/import/${j.id}`} className="underline">
+                <Link
+                  href={`/settings/import/${j.id}`}
+                  className="text-primary underline underline-offset-2"
+                >
                   {j.file.filename}
                 </Link>
                 <span className="text-muted-foreground">

@@ -16,7 +16,7 @@ export default async function ImportJobPage({ params }: { params: Promise<{ id: 
   const running = job.status === "QUEUED" || job.status === "RUNNING";
   const done = job.status === "COMPLETED" || job.status === "FAILED";
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-section max-w-3xl">
       <RefreshWhileRunning running={running} />
       <div>
         <Link href="/settings/import" className="text-muted-foreground text-sm hover:underline">
@@ -30,7 +30,7 @@ export default async function ImportJobPage({ params }: { params: Promise<{ id: 
         </p>
       </div>
 
-      <section aria-labelledby="mapping" className="space-y-2">
+      <section aria-labelledby="mapping" className="surface space-y-3 p-5">
         <h3 id="mapping" className="font-semibold">
           1. Match columns
         </h3>
@@ -48,7 +48,11 @@ export default async function ImportJobPage({ params }: { params: Promise<{ id: 
       </section>
 
       {preview ? (
-        <section aria-labelledby="preview" className="space-y-2" data-testid="import-preview">
+        <section
+          aria-labelledby="preview"
+          className="surface space-y-3 p-5"
+          data-testid="import-preview"
+        >
           <h3 id="preview" className="font-semibold">
             2. Preview
           </h3>
@@ -58,7 +62,7 @@ export default async function ImportJobPage({ params }: { params: Promise<{ id: 
           </p>
           {job.report && job.report.errors.length > 0 ? (
             <ul
-              className="border-border max-h-64 space-y-1 overflow-y-auto rounded-md border p-2 text-sm"
+              className="border-border bg-muted max-h-64 space-y-1 overflow-y-auto rounded-md border p-2 text-sm"
               tabIndex={0}
               aria-label="Rows with problems"
             >
@@ -77,28 +81,35 @@ export default async function ImportJobPage({ params }: { params: Promise<{ id: 
       ) : null}
 
       {running ? (
-        <p role="status" className="text-sm">
+        <p role="status" className="bg-muted text-foreground rounded-md px-3 py-2 text-sm">
           Importing… {job.created + job.updated + job.unchanged} rows done so far.
         </p>
       ) : null}
 
       {done ? (
-        <section aria-labelledby="result" className="space-y-2" data-testid="import-result">
+        <section
+          aria-labelledby="result"
+          className="surface space-y-3 p-5"
+          data-testid="import-result"
+        >
           <h3 id="result" className="font-semibold">
             3. Result
           </h3>
           {job.status === "FAILED" ? (
-            <p role="alert" className="text-destructive text-sm">
+            <p
+              role="alert"
+              className="bg-danger-soft text-danger-soft-foreground rounded-md px-3 py-2 text-sm"
+            >
               {job.errorPlain}
             </p>
           ) : null}
-          <p className="text-sm" role="status">
+          <p className="bg-muted text-foreground rounded-md px-3 py-2 text-sm" role="status">
             {job.created} created, {job.updated} updated, {job.unchanged} unchanged, {job.failed}{" "}
             failed.
           </p>
           {job.report && job.report.errors.length > 0 ? (
             <ul
-              className="border-border max-h-64 space-y-1 overflow-y-auto rounded-md border p-2 text-sm"
+              className="border-border bg-muted max-h-64 space-y-1 overflow-y-auto rounded-md border p-2 text-sm"
               tabIndex={0}
               aria-label="Rows that were not imported"
             >

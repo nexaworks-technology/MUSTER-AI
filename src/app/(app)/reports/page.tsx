@@ -18,8 +18,8 @@ export default async function ReportsPage() {
   const reports = await listReports(ctx);
   const scope = can(ctx, "reports:view")!.scope;
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Reports</h1>
+    <div className="space-y-section">
+      <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
       <p className="text-muted-foreground text-sm">
         Every report is stored when it is generated, with the date, and every figure links to the
         records it was computed from.
@@ -32,7 +32,7 @@ export default async function ReportsPage() {
         <h2 id="premade-h" className="text-lg font-semibold">
           Pre-made reports
         </h2>
-        <ul className="divide-border divide-y rounded-md border">
+        <ul className="surface divide-border divide-y">
           {reports.map((r) => (
             <li key={r.key} className="flex flex-wrap items-baseline justify-between gap-2 p-3">
               <div>
@@ -56,7 +56,10 @@ export default async function ReportsPage() {
 
       {scope === "ALL" ? (
         <p className="text-sm">
-          <Link href={"/reports/digest" as Route} className="underline">
+          <Link
+            href={"/reports/digest" as Route}
+            className="text-primary underline underline-offset-2"
+          >
             Weekly digest
           </Link>{" "}
           <span className="text-muted-foreground">
@@ -69,7 +72,7 @@ export default async function ReportsPage() {
         <h2 id="proof-h" className="text-lg font-semibold">
           Did it work?
         </h2>
-        <ul className="divide-border divide-y rounded-md border">
+        <ul className="surface divide-border divide-y">
           <li className="p-3">
             <Link
               href={"/reports/outcomes" as Route}

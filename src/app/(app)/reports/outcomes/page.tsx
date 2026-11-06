@@ -1,6 +1,7 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import {
@@ -110,12 +111,12 @@ export default async function OutcomesReportPage({ searchParams }: { searchParam
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-section">
       <div>
         <Link href={"/reports" as Route} className="text-muted-foreground text-sm hover:underline">
           ← Reports
         </Link>
-        <h1 className="mt-1 text-2xl font-semibold">Did it work?</h1>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Did it work?</h1>
         <p className="text-muted-foreground text-sm">
           Risks are judged at their frozen 90-day checkpoint, from records only. A figure here is
           attributed to the flag, not proven to be caused by it.
@@ -131,15 +132,18 @@ export default async function OutcomesReportPage({ searchParams }: { searchParam
             aria-current={d === periodDays ? "page" : undefined}
             className={
               d === periodDays
-                ? "bg-muted rounded-md border px-2 py-1 font-medium"
-                : "rounded-md border px-2 py-1 hover:underline"
+                ? "border-primary bg-accent text-accent-foreground rounded-md border px-2 py-1 font-medium"
+                : "border-input bg-card text-foreground hover:bg-hover rounded-md border px-2 py-1"
             }
           >
             {d} days
           </Link>
         ))}
         {filtered ? (
-          <Link href={href({ period: keep.period })} className="ml-2 underline">
+          <Link
+            href={href({ period: keep.period })}
+            className="text-primary ml-2 underline underline-offset-2"
+          >
             Clear filters
           </Link>
         ) : null}
@@ -151,11 +155,7 @@ export default async function OutcomesReportPage({ searchParams }: { searchParam
         </h2>
         <p className="text-lg">
           {head.text}
-          {!head.empty ? (
-            <span className="bg-muted ml-2 rounded px-2 py-0.5 align-middle text-xs">
-              {head.label}
-            </span>
-          ) : null}
+          {!head.empty ? <Badge className="ml-2 align-middle">{head.label}</Badge> : null}
         </p>
         {!head.empty ? (
           <p className="text-muted-foreground text-sm">
@@ -187,7 +187,10 @@ export default async function OutcomesReportPage({ searchParams }: { searchParam
               ] as Array<[string, number, RecordFilter]>
             ).map(([label, n, s]) => (
               <li key={s}>
-                <Link href={href({ ...keep, show: s })} className="tabular-nums underline">
+                <Link
+                  href={href({ ...keep, show: s })}
+                  className="text-primary tabular-nums underline underline-offset-2"
+                >
                   {n}
                 </Link>{" "}
                 {label}
@@ -203,7 +206,10 @@ export default async function OutcomesReportPage({ searchParams }: { searchParam
           </p>
           <p className="text-sm">
             Opportunities at their 90-day checkpoint: {t.opportunityFlagged};{" "}
-            <Link href={href({ ...keep, show: "expanded" })} className="underline">
+            <Link
+              href={href({ ...keep, show: "expanded" })}
+              className="text-primary underline underline-offset-2"
+            >
               {t.expandedCount}
             </Link>{" "}
             acted on and expanded, worth{" "}
@@ -221,33 +227,33 @@ export default async function OutcomesReportPage({ searchParams }: { searchParam
           {tb.groups.length === 0 ? (
             <p className="text-sm">Nothing to show for this period.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="surface overflow-x-auto">
               <table className="w-full text-left text-sm" data-testid={`table-${tb.id}`}>
                 <caption className="sr-only">{tb.title}</caption>
                 <thead>
-                  <tr className="text-muted-foreground border-b text-xs">
-                    <th scope="col" className="py-1 pr-4 font-normal">
+                  <tr className="text-muted-foreground text-xs">
+                    <th scope="col" className="font-normal">
                       {tb.title.replace("By ", "")}
                     </th>
-                    <th scope="col" className="py-1 pr-4 font-normal">
+                    <th scope="col" className="font-normal">
                       Reached day 90
                     </th>
-                    <th scope="col" className="py-1 pr-4 font-normal">
+                    <th scope="col" className="font-normal">
                       Acted
                     </th>
-                    <th scope="col" className="py-1 pr-4 font-normal">
+                    <th scope="col" className="font-normal">
                       Recovered or renewed
                     </th>
-                    <th scope="col" className="py-1 pr-4 font-normal">
+                    <th scope="col" className="font-normal">
                       Saved
                     </th>
-                    <th scope="col" className="py-1 pr-4 font-normal">
+                    <th scope="col" className="font-normal">
                       Saved ARR
                     </th>
-                    <th scope="col" className="py-1 pr-4 font-normal">
+                    <th scope="col" className="font-normal">
                       Churned
                     </th>
-                    <th scope="col" className="py-1 font-normal">
+                    <th scope="col" className="font-normal">
                       Waiting
                     </th>
                   </tr>
@@ -256,37 +262,52 @@ export default async function OutcomesReportPage({ searchParams }: { searchParam
                   {tb.groups.map((g) => {
                     const to = (s: RecordFilter) => href({ ...keep, [tb.param]: g.key, show: s });
                     return (
-                      <tr key={g.key} className="border-b last:border-0">
-                        <th scope="row" className="py-1 pr-4 font-normal">
+                      <tr key={g.key} className="last:border-0">
+                        <th scope="row" className="font-normal">
                           {tb.label(g.key)}
                         </th>
-                        <td className="py-1 pr-4 tabular-nums">
-                          <Link href={to("all")} className="underline">
+                        <td className="tabular-nums">
+                          <Link
+                            href={to("all")}
+                            className="text-primary underline underline-offset-2"
+                          >
                             {g.counts.flagged}
                           </Link>
                         </td>
-                        <td className="py-1 pr-4 tabular-nums">
-                          <Link href={to("acted")} className="underline">
+                        <td className="tabular-nums">
+                          <Link
+                            href={to("acted")}
+                            className="text-primary underline underline-offset-2"
+                          >
                             {g.counts.acted}
                           </Link>
                         </td>
-                        <td className="py-1 pr-4 tabular-nums">
-                          <Link href={to("recovered")} className="underline">
+                        <td className="tabular-nums">
+                          <Link
+                            href={to("recovered")}
+                            className="text-primary underline underline-offset-2"
+                          >
                             {g.counts.recoveredOrRenewed}
                           </Link>
                         </td>
-                        <td className="py-1 pr-4 tabular-nums">
-                          <Link href={to("saved")} className="underline">
+                        <td className="tabular-nums">
+                          <Link
+                            href={to("saved")}
+                            className="text-primary underline underline-offset-2"
+                          >
                             {g.counts.savedCount}
                           </Link>
                         </td>
-                        <td className="py-1 pr-4 tabular-nums">{money(g.counts.savedMinor)}</td>
-                        <td className="py-1 pr-4 tabular-nums">
-                          <Link href={to("churned")} className="underline">
+                        <td className="tabular-nums">{money(g.counts.savedMinor)}</td>
+                        <td className="tabular-nums">
+                          <Link
+                            href={to("churned")}
+                            className="text-primary underline underline-offset-2"
+                          >
                             {g.counts.churned}
                           </Link>
                         </td>
-                        <td className="py-1 tabular-nums">{g.counts.awaiting}</td>
+                        <td className="tabular-nums">{g.counts.awaiting}</td>
                       </tr>
                     );
                   })}
@@ -303,7 +324,10 @@ export default async function OutcomesReportPage({ searchParams }: { searchParam
           {show !== "all" ? ` (${show})` : ""}
         </h2>
         {show !== "all" ? (
-          <Link href={href({ ...keep, show: undefined })} className="text-sm underline">
+          <Link
+            href={href({ ...keep, show: undefined })}
+            className="text-primary text-sm underline underline-offset-2"
+          >
             Show all records
           </Link>
         ) : null}
@@ -313,62 +337,63 @@ export default async function OutcomesReportPage({ searchParams }: { searchParam
             {show !== "all" || filtered ? " that match this view" : ""}.
           </p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="surface overflow-x-auto">
             <table className="w-full text-left text-sm" data-testid="records">
               <caption className="sr-only">Outcome records</caption>
               <thead>
-                <tr className="text-muted-foreground border-b text-xs">
-                  <th scope="col" className="py-1 pr-4 font-normal">
+                <tr className="text-muted-foreground text-xs">
+                  <th scope="col" className="font-normal">
                     Account
                   </th>
-                  <th scope="col" className="py-1 pr-4 font-normal">
+                  <th scope="col" className="font-normal">
                     Flag
                   </th>
-                  <th scope="col" className="py-1 pr-4 font-normal">
+                  <th scope="col" className="font-normal">
                     Flagged
                   </th>
-                  <th scope="col" className="py-1 pr-4 font-normal">
+                  <th scope="col" className="font-normal">
                     Day-90 status
                   </th>
-                  <th scope="col" className="py-1 pr-4 font-normal">
+                  <th scope="col" className="font-normal">
                     Team
                   </th>
-                  <th scope="col" className="py-1 pr-4 font-normal">
+                  <th scope="col" className="font-normal">
                     Saved ARR
                   </th>
-                  <th scope="col" className="py-1 font-normal">
+                  <th scope="col" className="font-normal">
                     Proof
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {records.map((r) => (
-                  <tr key={r.id} className="border-b last:border-0">
-                    <th scope="row" className="py-1 pr-4 font-normal">
-                      <Link href={`/accounts/${r.accountId}` as Route} className="underline">
+                  <tr key={r.id} className="last:border-0">
+                    <th scope="row" className="font-normal">
+                      <Link
+                        href={`/accounts/${r.accountId}` as Route}
+                        className="text-primary underline underline-offset-2"
+                      >
                         {view.accountNames[r.accountId] ?? "Account"}
                       </Link>
                     </th>
-                    <td className="py-1 pr-4">
+                    <td>
                       {r.flagType === "RISK" ? "Risk" : "Opportunity"}
                       {r.signalId ? (
                         <>
                           {" · "}
                           <Link
                             href={`/accounts/${r.accountId}/signals` as Route}
-                            className="underline"
+                            className="text-primary underline underline-offset-2"
                           >
                             signal
                           </Link>
                         </>
                       ) : null}
                     </td>
-                    <td className="py-1 pr-4">{fmtDate(r.flaggedAt)}</td>
-                    <td className="py-1 pr-4">{r.status}</td>
-                    <td className="py-1 pr-4">
-                      {r.actionTaken === "ACTED" ? "Acted" : "No action"}
-                    </td>
-                    <td className="py-1 pr-4 tabular-nums">
+                    <td>{fmtDate(r.flaggedAt)}</td>
+                    <td>{r.status}</td>
+                    <td>{r.actionTaken === "ACTED" ? "Acted" : "No action"}</td>
+                    <td className="tabular-nums">
                       {r.savedMoney === null
                         ? r.saved
                           ? "No ARR on file"
@@ -377,8 +402,11 @@ export default async function OutcomesReportPage({ searchParams }: { searchParam
                           ? "Restricted"
                           : fmtMoneyTotals([r.savedMoney])}
                     </td>
-                    <td className="py-1">
-                      <Link href={`/reports/outcomes/${r.id}` as Route} className="underline">
+                    <td>
+                      <Link
+                        href={`/reports/outcomes/${r.id}` as Route}
+                        className="text-primary underline underline-offset-2"
+                      >
                         Save record
                       </Link>
                     </td>

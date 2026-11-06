@@ -1,6 +1,7 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { loadAccuracy, type AccuracyRow } from "@/modules/outcomes/service";
@@ -41,7 +42,7 @@ function CountLink({
   return n === 0 ? (
     <span>0</span>
   ) : (
-    <Link href={rowHref(param, k, show)} className="underline">
+    <Link href={rowHref(param, k, show)} className="text-primary underline underline-offset-2">
       {n}
     </Link>
   );
@@ -68,46 +69,49 @@ function Table({
       {rows.length === 0 ? (
         <p className="text-muted-foreground text-sm">Nothing flagged in this window.</p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="surface overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-muted-foreground border-b text-left">
-                <th className="py-1 pr-3 font-medium">{param === "rule" ? "Rule" : "Agent"}</th>
-                <th className="py-1 pr-3 font-medium">True alarms</th>
-                <th className="py-1 pr-3 font-medium">False alarms</th>
-                <th className="py-1 pr-3 font-medium">Undetermined</th>
-                <th className="py-1 pr-3 font-medium">False-alarm rate</th>
-                {showAcceptance ? <th className="py-1 pr-3 font-medium">CSM acceptance</th> : null}
+              <tr className="text-muted-foreground text-left">
+                <th className="font-medium">{param === "rule" ? "Rule" : "Agent"}</th>
+                <th className="font-medium">True alarms</th>
+                <th className="font-medium">False alarms</th>
+                <th className="font-medium">Undetermined</th>
+                <th className="font-medium">False-alarm rate</th>
+                {showAcceptance ? <th className="font-medium">CSM acceptance</th> : null}
               </tr>
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.key} className="border-b align-top" data-testid={`${param}-${r.key}`}>
-                  <td className="py-1 pr-3">
-                    <Link href={rowHref(param, r.key)} className="underline">
+                <tr key={r.key} className="align-top" data-testid={`${param}-${r.key}`}>
+                  <td>
+                    <Link
+                      href={rowHref(param, r.key)}
+                      className="text-primary underline underline-offset-2"
+                    >
                       {label(r.key)}
                     </Link>
                     {r.criesWolf ? (
-                      <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-900">
+                      <Badge variant="warning" className="ml-2">
                         Cries wolf
-                      </span>
+                      </Badge>
                     ) : null}
                   </td>
-                  <td className="py-1 pr-3">
+                  <td>
                     <CountLink param={param} k={r.key} show="true" n={r.trueAlarms} />
                   </td>
-                  <td className="py-1 pr-3">
+                  <td>
                     <CountLink param={param} k={r.key} show="false" n={r.falseAlarms} />
                   </td>
-                  <td className="py-1 pr-3">
+                  <td>
                     <CountLink param={param} k={r.key} show="undetermined" n={r.undetermined} />
                   </td>
-                  <td className="py-1 pr-3">
+                  <td>
                     {pct(r.falseAlarmRate)}{" "}
                     <span className="text-muted-foreground">(of {r.determined} determined)</span>
                   </td>
                   {showAcceptance ? (
-                    <td className="py-1 pr-3">
+                    <td>
                       {pct(r.acceptanceRate)}{" "}
                       <span className="text-muted-foreground">
                         (<CountLink param={param} k={r.key} show="approved" n={r.approved} />{" "}
@@ -176,19 +180,19 @@ export default async function AiAccuracyPage({ searchParams }: { searchParams: S
   const name = (id: string | null) => (id ? (view.accountNames[id] ?? "Account") : "No account");
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-section">
       <div>
         <Link href={"/reports" as Route} className="text-muted-foreground text-sm hover:underline">
           ← Reports
         </Link>
-        <h1 className="mt-1 text-2xl font-semibold">AI accuracy</h1>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight">AI accuracy</h1>
         <p className="text-muted-foreground text-sm">
           Risks whose 90-day check date fell in the last {view.windowDays} days, judged by what
           happened to the account. Every row links to the records behind it.
         </p>
       </div>
 
-      <section aria-labelledby="defs" className="border-border space-y-1 rounded-md border p-3">
+      <section aria-labelledby="defs" className="surface space-y-1 p-3">
         <h2 id="defs" className="text-base font-semibold">
           What the words mean
         </h2>
@@ -230,13 +234,12 @@ export default async function AiAccuracyPage({ searchParams }: { searchParams: S
             {wolves.map((r) => {
               const rule = byKey.get(r.key);
               return (
-                <li
-                  key={r.key}
-                  className="border-border space-y-2 rounded-md border p-3"
-                  data-testid={`wolf-${r.key}`}
-                >
+                <li key={r.key} className="surface space-y-2 p-3" data-testid={`wolf-${r.key}`}>
                   <p className="text-sm">
-                    <Link href={rowHref("rule", r.key)} className="font-medium underline">
+                    <Link
+                      href={rowHref("rule", r.key)}
+                      className="text-primary font-medium underline underline-offset-2"
+                    >
                       {ruleLabel(r.key)}
                     </Link>
                     : {r.falseAlarms} of {r.determined} determined alarms were false (
@@ -284,37 +287,41 @@ export default async function AiAccuracyPage({ searchParams }: { searchParams: S
           <p className="text-muted-foreground text-sm">
             {param === "agent" ? humanize(key!) : ruleLabel(key!)}
             {show ? `, ${show}` : ", all records"} ·{" "}
-            <Link href={"/reports/ai-accuracy" as Route} className="underline">
+            <Link
+              href={"/reports/ai-accuracy" as Route}
+              className="text-primary underline underline-offset-2"
+            >
               Clear
             </Link>
           </p>
           {showFlags ? (
-            <div className="overflow-x-auto">
+            <div className="surface overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-muted-foreground border-b text-left">
-                    <th className="py-1 pr-3 font-medium">Account</th>
-                    <th className="py-1 pr-3 font-medium">Flagged</th>
-                    <th className="py-1 pr-3 font-medium">Result</th>
-                    <th className="py-1 pr-3 font-medium">Records</th>
+                  <tr className="text-muted-foreground text-left">
+                    <th className="font-medium">Account</th>
+                    <th className="font-medium">Flagged</th>
+                    <th className="font-medium">Result</th>
+                    <th className="font-medium">Records</th>
                   </tr>
                 </thead>
                 <tbody>
                   {flagItems.map((i) => (
-                    <tr key={i.outcomeRecordId} className="border-b" data-testid="flag-item">
-                      <td className="py-1 pr-3">
-                        <Link href={`/accounts/${i.accountId}` as Route} className="underline">
+                    <tr key={i.outcomeRecordId} data-testid="flag-item">
+                      <td>
+                        <Link
+                          href={`/accounts/${i.accountId}` as Route}
+                          className="text-primary underline underline-offset-2"
+                        >
                           {name(i.accountId)}
                         </Link>
                       </td>
-                      <td className="py-1 pr-3">{i.flaggedAt.toISOString().slice(0, 10)}</td>
-                      <td className="py-1 pr-3">
-                        {ALARM_WORDS[String(i.alarm) as "true" | "false" | "null"]}
-                      </td>
-                      <td className="py-1 pr-3">
+                      <td>{i.flaggedAt.toISOString().slice(0, 10)}</td>
+                      <td>{ALARM_WORDS[String(i.alarm) as "true" | "false" | "null"]}</td>
+                      <td>
                         <Link
                           href={`/reports/outcomes/${i.outcomeRecordId}` as Route}
-                          className="underline"
+                          className="text-primary underline underline-offset-2"
                         >
                           Save record
                         </Link>
@@ -323,7 +330,7 @@ export default async function AiAccuracyPage({ searchParams }: { searchParams: S
                             {" · "}
                             <Link
                               href={`/accounts/${i.accountId}/signals` as Route}
-                              className="underline"
+                              className="text-primary underline underline-offset-2"
                             >
                               Signal
                             </Link>
@@ -335,33 +342,36 @@ export default async function AiAccuracyPage({ searchParams }: { searchParams: S
                 </tbody>
               </table>
               {flagItems.length === 0 ? (
-                <p className="text-muted-foreground text-sm">No flags match.</p>
+                <p className="text-muted-foreground p-3 text-sm">No flags match.</p>
               ) : null}
             </div>
           ) : null}
           {showApprovals ? (
-            <div className="overflow-x-auto">
+            <div className="surface overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-muted-foreground border-b text-left">
-                    <th className="py-1 pr-3 font-medium">Account</th>
-                    <th className="py-1 pr-3 font-medium">Decision</th>
-                    <th className="py-1 pr-3 font-medium">Record</th>
+                  <tr className="text-muted-foreground text-left">
+                    <th className="font-medium">Account</th>
+                    <th className="font-medium">Decision</th>
+                    <th className="font-medium">Record</th>
                   </tr>
                 </thead>
                 <tbody>
                   {approvalItems.map((i) => (
-                    <tr key={i.approvalId} className="border-b" data-testid="approval-item">
-                      <td className="py-1 pr-3">{name(i.accountId)}</td>
-                      <td className="py-1 pr-3">
+                    <tr key={i.approvalId} data-testid="approval-item">
+                      <td>{name(i.accountId)}</td>
+                      <td>
                         {i.status === "REJECTED"
                           ? "Rejected"
                           : i.status === "EDITED_APPROVED"
                             ? "Approved after editing"
                             : "Approved"}
                       </td>
-                      <td className="py-1 pr-3">
-                        <Link href={`/approvals/${i.approvalId}` as Route} className="underline">
+                      <td>
+                        <Link
+                          href={`/approvals/${i.approvalId}` as Route}
+                          className="text-primary underline underline-offset-2"
+                        >
                           Approval
                         </Link>
                       </td>

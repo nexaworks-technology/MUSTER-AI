@@ -19,7 +19,7 @@ const Links = ({
       {items.map((i, n) => (
         <li key={n}>
           {i.href ? (
-            <Link href={i.href as Route} className="underline">
+            <Link href={i.href as Route} className="text-primary underline underline-offset-2">
               {i.label}
             </Link>
           ) : (
@@ -48,9 +48,9 @@ export default async function AgentRunPage({ params }: { params: Promise<{ id: s
   const ok = r.status === "SUCCEEDED";
   const output = ok ? (r.output as Record<string, unknown>) : null;
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-section max-w-3xl">
       <div>
-        <h1 className="text-2xl font-semibold">
+        <h1 className="text-2xl font-semibold tracking-tight">
           {r.agentKey} run{r.account ? `: ${r.account.name}` : ""}
         </h1>
         <p
@@ -65,27 +65,30 @@ export default async function AgentRunPage({ params }: { params: Promise<{ id: s
           {r.inputTokens + r.outputTokens} tokens · attempt {r.attempt}
         </p>
         {!ok ? (
-          <p className="mt-2 rounded-md border p-3 text-sm" data-testid="run-not-shown">
+          <p
+            className="border-warning/30 bg-warning-soft text-warning-soft-foreground mt-2 rounded-md border p-3 text-sm"
+            data-testid="run-not-shown"
+          >
             This run did not succeed, so nothing it produced is shown anywhere in the product.
             {r.errorDetail ? ` Reason: ${r.errorDetail}` : ""}
           </p>
         ) : null}
       </div>
-      <section aria-labelledby="read" className="space-y-2">
+      <section aria-labelledby="read" className="surface space-y-2 p-5">
         <h2 id="read" className="text-base font-semibold">
           What it read ({d.read.length})
         </h2>
         <Links items={d.read} label="Records the run was given" />
       </section>
       {ok && output ? (
-        <section aria-labelledby="decided" className="space-y-2">
+        <section aria-labelledby="decided" className="surface space-y-2 p-5">
           <h2 id="decided" className="text-base font-semibold">
             What it decided
           </h2>
           <p className="text-sm">{r.reasoningSummary}</p>
           <p className="text-muted-foreground text-xs">
-            Model confidence {Math.round((r.confidence ?? 0) * 100)}% (the model&rsquo;s own estimate, not
-            a score)
+            Model confidence {Math.round((r.confidence ?? 0) * 100)}% (the model&rsquo;s own
+            estimate, not a score)
           </p>
           <details className="text-sm">
             <summary className="cursor-pointer">Structured output</summary>
@@ -95,14 +98,17 @@ export default async function AgentRunPage({ params }: { params: Promise<{ id: s
           </details>
         </section>
       ) : null}
-      <section aria-labelledby="did" className="space-y-2">
+      <section aria-labelledby="did" className="surface space-y-2 p-5">
         <h2 id="did" className="text-base font-semibold">
           What it did: {r.actionTaken.toLowerCase().replaceAll("_", " ")}
         </h2>
         <Links items={d.did} label="Records the run created or changed" />
         {d.approvals.map((a) => (
           <p key={a.id} className="text-sm" data-testid="run-approval">
-            <Link href={`/approvals/${a.id}` as Route} className="underline">
+            <Link
+              href={`/approvals/${a.id}` as Route}
+              className="text-primary underline underline-offset-2"
+            >
               Approval
             </Link>
             : {a.status.toLowerCase().replaceAll("_", " ")}
@@ -112,7 +118,7 @@ export default async function AgentRunPage({ params }: { params: Promise<{ id: s
           </p>
         ))}
       </section>
-      <section aria-labelledby="trail" className="space-y-2">
+      <section aria-labelledby="trail" className="surface space-y-2 p-5">
         <h2 id="trail" className="text-base font-semibold">
           Audit trail
         </h2>

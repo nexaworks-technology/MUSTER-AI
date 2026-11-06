@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Badge } from "@/components/ui/badge";
 import { scopedDb } from "@/lib/db/scoped";
 import { listSurveys } from "@/modules/surveys/service";
 import { requireSettingsAccess } from "../access";
@@ -20,9 +21,9 @@ export default async function SurveysSettingsPage() {
   });
 
   return (
-    <div className="max-w-4xl space-y-6" data-testid="surveys-settings">
+    <div className="space-y-section max-w-4xl" data-testid="surveys-settings">
       <div>
-        <h1 className="text-2xl font-semibold">Customer Surveys</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Customer Surveys</h1>
         <p className="text-muted-foreground text-sm">
           Journey-moment triggers feed health scores with audited source attribution.
         </p>
@@ -37,13 +38,13 @@ export default async function SurveysSettingsPage() {
         ) : (
           <div className="space-y-3">
             {surveys.map((s) => (
-              <div key={s.id} className="rounded-md border p-4 space-y-1" data-testid="survey-item">
+              <div key={s.id} className="surface space-y-1 p-4" data-testid="survey-item">
                 <div className="flex items-center justify-between">
                   <span className="font-semibold">{s.type} Survey</span>
-                  <span className="text-xs uppercase px-2 py-0.5 rounded border">{s.status}</span>
+                  <Badge className="uppercase">{s.status}</Badge>
                 </div>
                 <p className="text-sm">{s.question}</p>
-                <p className="text-xs text-muted-foreground">Trigger: {s.trigger}</p>
+                <p className="text-muted-foreground text-xs">Trigger: {s.trigger}</p>
               </div>
             ))}
           </div>
@@ -57,17 +58,17 @@ export default async function SurveysSettingsPage() {
         {responses.length === 0 ? (
           <p className="text-muted-foreground text-sm">No responses received yet.</p>
         ) : (
-          <ul className="divide-y rounded-md border text-sm" data-testid="responses-list">
+          <ul className="surface divide-border divide-y text-sm" data-testid="responses-list">
             {responses.map((r) => (
-              <li key={r.id} className="p-3 space-y-1" data-testid="response-row">
+              <li key={r.id} className="space-y-1 p-3" data-testid="response-row">
                 <div className="flex items-center justify-between">
                   <span className="font-medium">{r.account?.name ?? "Unknown account"}</span>
                   <span className="text-xs font-semibold">Score: {r.score}</span>
                 </div>
                 {r.comment ? (
-                  <p className="text-xs text-muted-foreground italic">&ldquo;{r.comment}&rdquo;</p>
+                  <p className="text-muted-foreground text-xs italic">&ldquo;{r.comment}&rdquo;</p>
                 ) : null}
-                <div className="text-xs text-muted-foreground">
+                <div className="text-muted-foreground text-xs">
                   By {r.contact?.name ?? r.contact?.email ?? "Anonymous"} ·{" "}
                   {r.respondedAt ? new Date(r.respondedAt).toLocaleDateString() : "Just now"}
                 </div>

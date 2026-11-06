@@ -13,9 +13,9 @@ export default async function NotificationsPage() {
   const items = await listMyNotifications(ctx);
   const unread = items.filter((n) => !n.readAt).length;
   return (
-    <div className="max-w-2xl space-y-4">
+    <div className="space-y-section max-w-2xl">
       <div className="flex items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">Notifications</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Notifications</h1>
         {unread > 0 ? (
           <form action={markAllReadAction}>
             <Button type="submit" variant="outline" size="sm">
@@ -29,7 +29,7 @@ export default async function NotificationsPage() {
           Nothing here yet. Mentions and tasks assigned to you show up here.
         </p>
       ) : (
-        <ul className="divide-border border-border divide-y rounded-md border text-sm">
+        <ul className="surface divide-border divide-y text-sm">
           {items.map((n) => (
             <li key={n.id} className="flex justify-between gap-2 p-3" data-testid="notification">
               <div>
@@ -44,7 +44,7 @@ export default async function NotificationsPage() {
               {n.refType === "ReportDigest" || n.refType === "ReportDigestNotice" ? (
                 <Link
                   href={(n.refType === "ReportDigest" ? "/reports/digest" : "/reports") as Route}
-                  className="shrink-0 text-xs underline"
+                  className="text-primary shrink-0 text-xs underline underline-offset-2"
                 >
                   Open
                 </Link>
@@ -61,7 +61,7 @@ export default async function NotificationsPage() {
                             ? `/accounts/${n.accountId}/onboarding`
                             : `/accounts/${n.accountId}`
                   }
-                  className="shrink-0 text-xs underline"
+                  className="text-primary shrink-0 text-xs underline underline-offset-2"
                 >
                   Open
                 </Link>

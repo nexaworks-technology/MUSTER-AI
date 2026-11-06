@@ -1,7 +1,10 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { ComponentProps } from "react";
 import { KillPlayButton } from "@/components/app/play-actions";
+import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
@@ -9,11 +12,21 @@ import { getPlayResults } from "@/modules/plays/service";
 
 export const metadata: Metadata = { title: "Play Results" };
 
-const STATUS_BADGES: Record<string, string> = {
-  DRAFT: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200",
-  PUBLISHED: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200",
-  PAUSED: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200",
-  KILLED: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+type BadgeVariant = NonNullable<ComponentProps<typeof Badge>["variant"]>;
+
+const RUN_VARIANTS = {
+  COMPLETED: "success",
+  RUNNING: "accent",
+  WAITING: "warning",
+} as const satisfies Record<string, BadgeVariant>;
+const runVariant = (status: string): BadgeVariant =>
+  (RUN_VARIANTS as Record<string, BadgeVariant>)[status] ?? "neutral";
+
+const STATUS_BADGES: Record<string, BadgeVariant> = {
+  DRAFT: "warning",
+  PUBLISHED: "success",
+  PAUSED: "accent",
+  KILLED: "neutral",
 };
 
 function formatMoney(amountMinor: bigint | number | null | undefined): string {
@@ -26,11 +39,7 @@ function formatMoney(amountMinor: bigint | number | null | undefined): string {
   }).format(num);
 }
 
-export default async function PlayResultsPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function PlayResultsPage({ params }: { params: Promise<{ id: string }> }) {
   const ctx = await resolveWorkspaceContext(await requireSession());
   if (!ctx || !can(ctx, "accounts:view")) notFound();
 
@@ -46,8 +55,8 @@ export default async function PlayResultsPage({
   const canPublish = Boolean(can(ctx, "plays:publish"));
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+    <div className="space-y-section">
+      <div className="text-muted-foreground flex items-center gap-2 text-xs">
         <Link href={"/plays" as Route} className="hover:underline">
           Plays
         </Link>
@@ -59,22 +68,14 @@ export default async function PlayResultsPage({
         <span>Results</span>
       </div>
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between border-b pb-6">
+      <div className="border-border flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-semibold">{play.name} Results</h1>
-            <span
-              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                STATUS_BADGES[play.status] ?? "bg-muted text-muted-foreground"
-              }`}
-            >
-              {play.status}
-            </span>
-            <span className="text-xs bg-muted px-2 py-0.5 rounded font-mono">
-              v{play.version}
-            </span>
+            <h1 className="text-2xl font-semibold tracking-tight">{play.name} Results</h1>
+            <Badge variant={STATUS_BADGES[play.status] ?? "neutral"}>{play.status}</Badge>
+            <Badge className="font-mono">v{play.version}</Badge>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Performance metrics, executed actions, skips with reasons, and account history.
           </p>
         </div>
@@ -82,7 +83,7 @@ export default async function PlayResultsPage({
         <div className="flex items-center gap-2">
           <Link
             href={`/plays/${play.id}` as Route}
-            className="text-xs border rounded px-3 py-1.5 hover:bg-muted font-medium"
+            className={buttonVariants({ variant: "outline", size: "sm" })}
           >
             ← Back to definition
           </Link>
@@ -95,7 +96,7 @@ export default async function PlayResultsPage({
       {deadPlayStatus.isDead && (
         <div
           data-testid="dead-play-banner"
-          className="rounded-lg border border-red-300 bg-red-50 p-4 text-red-900 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200"
+          className="border-danger/30 bg-danger-soft text-danger-soft-foreground rounded-lg border p-4"
         >
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -104,8 +105,9 @@ export default async function PlayResultsPage({
                 <span>Dead Play Detected</span>
               </div>
               <p className="mt-1 text-sm">{deadPlayStatus.message}</p>
-              <p className="text-xs opacity-80 mt-1">
-                Note: Plays are never auto-killed. You can adjust the trigger criteria or kill this play to clean up.
+              <p className="mt-1 text-xs">
+                Note: Plays are never auto-killed. You can adjust the trigger criteria or kill this
+                play to clean up.
               </p>
             </div>
             {canPublish && play.status !== "KILLED" && (
@@ -124,7 +126,7 @@ export default async function PlayResultsPage({
             <CardDescription className="text-xs">Accounts Entered</CardDescription>
             <CardTitle className="text-2xl font-bold">{stats.accountsEntered}</CardTitle>
           </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
+          <CardContent className="text-muted-foreground text-xs">
             Across {stats.totalRuns} total run{stats.totalRuns === 1 ? "" : "s"}
           </CardContent>
         </Card>
@@ -134,7 +136,7 @@ export default async function PlayResultsPage({
             <CardDescription className="text-xs">Actions Taken</CardDescription>
             <CardTitle className="text-2xl font-bold">{stats.actionsTaken}</CardTitle>
           </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
+          <CardContent className="text-muted-foreground text-xs">
             Tasks, notifications, drafts sent
           </CardContent>
         </Card>
@@ -144,7 +146,7 @@ export default async function PlayResultsPage({
             <CardDescription className="text-xs">Skips</CardDescription>
             <CardTitle className="text-2xl font-bold">{stats.skipsCount}</CardTitle>
           </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
+          <CardContent className="text-muted-foreground text-xs">
             Frequency-capped or guarded steps
           </CardContent>
         </Card>
@@ -156,7 +158,7 @@ export default async function PlayResultsPage({
               {stats.openRuns} / {stats.waitingApprovals}
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
+          <CardContent className="text-muted-foreground text-xs">
             Open runs / awaiting approval
           </CardContent>
         </Card>
@@ -168,7 +170,7 @@ export default async function PlayResultsPage({
               {formatMoney(stats.revenueProtectedMinor)}
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
+          <CardContent className="text-muted-foreground text-xs">
             Entered accounts portfolio value
           </CardContent>
         </Card>
@@ -181,46 +183,44 @@ export default async function PlayResultsPage({
             <div>
               <CardTitle className="text-base font-semibold">Skips with Reasons</CardTitle>
               <CardDescription className="text-xs">
-                Steps skipped at runtime due to frequency caps or safety limits (never queued, never sent per D1).
+                Steps skipped at runtime due to frequency caps or safety limits (never queued, never
+                sent per D1).
               </CardDescription>
             </div>
-            <span className="text-xs font-mono bg-muted px-2 py-0.5 rounded">
-              {skips.length} recorded
-            </span>
+            <Badge className="font-mono">{skips.length} recorded</Badge>
           </div>
         </CardHeader>
         <CardContent>
           {skips.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-2">
-              No steps have been skipped. All active runs have passed runtime frequency and safety caps.
+            <p className="text-muted-foreground py-2 text-sm">
+              No steps have been skipped. All active runs have passed runtime frequency and safety
+              caps.
             </p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="surface overflow-x-auto">
               <table className="w-full text-left text-sm" data-testid="skips-table">
                 <thead>
-                  <tr className="border-b text-xs text-muted-foreground font-medium">
-                    <th className="py-2 pr-4">Account</th>
-                    <th className="py-2 pr-4">Step Key</th>
-                    <th className="py-2 pr-4">Skip Reason</th>
-                    <th className="py-2">Time</th>
+                  <tr className="text-muted-foreground text-xs font-medium">
+                    <th>Account</th>
+                    <th>Step Key</th>
+                    <th>Skip Reason</th>
+                    <th>Time</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+                <tbody>
                   {skips.map((skip) => (
                     <tr key={skip.id} className="text-xs">
-                      <td className="py-2.5 pr-4 font-medium">
+                      <td className="font-medium">
                         <Link
                           href={`/accounts/${skip.accountId}` as Route}
-                          className="hover:underline text-primary"
+                          className="text-primary hover:underline"
                         >
                           {skip.accountName}
                         </Link>
                       </td>
-                      <td className="py-2.5 pr-4 font-mono">{skip.stepKey}</td>
-                      <td className="py-2.5 pr-4 text-amber-800 dark:text-amber-300 font-medium">
-                        {skip.skipReason}
-                      </td>
-                      <td className="py-2.5 text-muted-foreground">
+                      <td className="font-mono">{skip.stepKey}</td>
+                      <td className="text-warning font-medium">{skip.skipReason}</td>
+                      <td className="text-muted-foreground">
                         {new Date(skip.createdAt).toLocaleString()}
                       </td>
                     </tr>
@@ -242,66 +242,50 @@ export default async function PlayResultsPage({
                 All accounts that entered this play and their current state.
               </CardDescription>
             </div>
-            <span className="text-xs font-mono bg-muted px-2 py-0.5 rounded">
-              {runs.length} runs
-            </span>
+            <Badge className="font-mono">{runs.length} runs</Badge>
           </div>
         </CardHeader>
         <CardContent>
           {runs.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-2">
+            <p className="text-muted-foreground py-2 text-sm">
               No accounts have entered this play yet.
             </p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="surface overflow-x-auto">
               <table className="w-full text-left text-sm" data-testid="runs-table">
                 <thead>
-                  <tr className="border-b text-xs text-muted-foreground font-medium">
-                    <th className="py-2 pr-4">Account</th>
-                    <th className="py-2 pr-4">Tier</th>
-                    <th className="py-2 pr-4">Status</th>
-                    <th className="py-2 pr-4">Trigger Ref</th>
-                    <th className="py-2 pr-4">Steps Executed</th>
-                    <th className="py-2">Entered</th>
+                  <tr className="text-muted-foreground text-xs font-medium">
+                    <th>Account</th>
+                    <th>Tier</th>
+                    <th>Status</th>
+                    <th>Trigger Ref</th>
+                    <th>Steps Executed</th>
+                    <th>Entered</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+                <tbody>
                   {runs.map((run) => (
                     <tr key={run.id} className="text-xs">
-                      <td className="py-2.5 pr-4 font-medium">
+                      <td className="font-medium">
                         <Link
                           href={`/accounts/${run.accountId}` as Route}
-                          className="hover:underline text-primary"
+                          className="text-primary hover:underline"
                         >
                           {run.accountName}
                         </Link>
                       </td>
-                      <td className="py-2.5 pr-4">{run.accountTier}</td>
-                      <td className="py-2.5 pr-4">
-                        <span
-                          className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                            run.status === "COMPLETED"
-                              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
-                              : run.status === "RUNNING"
-                              ? "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200"
-                              : run.status === "WAITING"
-                              ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200"
-                              : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          {run.status}
-                        </span>
+                      <td>{run.accountTier}</td>
+                      <td>
+                        <Badge variant={runVariant(run.status)}>{run.status}</Badge>
                         {run.exitReason && (
-                          <span className="block text-[10px] text-muted-foreground mt-0.5">
+                          <span className="text-muted-foreground mt-0.5 block text-xs">
                             ({run.exitReason})
                           </span>
                         )}
                       </td>
-                      <td className="py-2.5 pr-4 font-mono text-[11px] text-muted-foreground">
-                        {run.triggerRef}
-                      </td>
-                      <td className="py-2.5 pr-4 font-mono">{run.stepCount}</td>
-                      <td className="py-2.5 text-muted-foreground">
+                      <td className="text-muted-foreground font-mono text-xs">{run.triggerRef}</td>
+                      <td className="font-mono">{run.stepCount}</td>
+                      <td className="text-muted-foreground">
                         {new Date(run.enteredAt).toLocaleString()}
                       </td>
                     </tr>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { z } from "zod";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { formatCalendarDate } from "@/lib/format";
 import {
   blockStepAction,
@@ -86,7 +87,10 @@ function Proof({ accountId, evidence }: { accountId: string; evidence: unknown }
         ))}
       </ul>
       <p className="mt-1">
-        <Link href={`/accounts/${accountId}/usage` as Route} className="underline">
+        <Link
+          href={`/accounts/${accountId}/usage` as Route}
+          className="text-primary underline underline-offset-2"
+        >
           See these days in Usage
         </Link>
       </p>
@@ -114,7 +118,7 @@ export default async function AccountOnboardingPage({
   const today = new Date(`${v.asOf}T00:00:00Z`);
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="space-y-section max-w-4xl">
       {one(q.ok) ? (
         <Alert role="status">
           <AlertDescription>{one(q.ok)}</AlertDescription>
@@ -131,7 +135,7 @@ export default async function AccountOnboardingPage({
           Onboarding plan
         </h2>
         {!plan ? (
-          <div className="space-y-2 text-sm">
+          <div className="border-border bg-card space-y-3 rounded-lg border border-dashed p-5 text-sm">
             <p>No onboarding plan yet.</p>
             {v.canEdit ? (
               <form action={createPlanAction.bind(null, account.id)}>
@@ -162,7 +166,7 @@ export default async function AccountOnboardingPage({
                 </span>
               ) : null}
             </p>
-            <ol className="divide-border border-border divide-y rounded-md border text-sm">
+            <ol className="surface divide-border divide-y overflow-hidden text-sm">
               {plan.steps.map((s) => {
                 const overdue = !s.doneAt && s.dueDate < today;
                 const who =
@@ -173,7 +177,7 @@ export default async function AccountOnboardingPage({
                   <li
                     key={s.id}
                     id={`step-${s.id}`}
-                    className="space-y-1 p-3"
+                    className="space-y-1.5 p-4"
                     data-testid={`step-${s.key}`}
                   >
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -208,10 +212,10 @@ export default async function AccountOnboardingPage({
                         >
                           <label className="flex flex-col text-xs">
                             Blocked by
-                            <input
+                            <Input
                               name="blockedReason"
                               defaultValue={s.blockedReason ?? ""}
-                              className="border-input rounded-md border px-2 py-1 text-sm"
+                              className="mt-1 h-8"
                             />
                           </label>
                           <Button type="submit" size="sm" variant="ghost">
@@ -228,13 +232,16 @@ export default async function AccountOnboardingPage({
         )}
       </section>
 
-      <section aria-labelledby="onb-handoff" className="space-y-2">
+      <section aria-labelledby="onb-handoff" className="space-y-3">
         <h2 id="onb-handoff" className="text-base font-semibold">
           Sales handoff
         </h2>
-        <ul className="space-y-2 text-sm" data-testid="handoff">
+        <ul
+          className="surface divide-border divide-y overflow-hidden text-sm"
+          data-testid="handoff"
+        >
           {v.handoff.items.map((item) => (
-            <li key={item.key}>
+            <li key={item.key} className="space-y-1 p-4">
               <span className={item.found ? "" : "text-muted-foreground"}>{item.text}</span>
               {item.values?.length ? (
                 <ul className="list-disc pl-5">
@@ -252,7 +259,7 @@ export default async function AccountOnboardingPage({
                       <span key={`${s.sourceType}-${s.sourceId}-${i}`}>
                         {i ? ", " : ""}
                         {href ? (
-                          <Link href={href} className="underline">
+                          <Link href={href} className="text-primary underline underline-offset-2">
                             {s.label}
                           </Link>
                         ) : (

@@ -46,11 +46,11 @@ const href = (q: PilotQuery, member: string, figure: PilotFigureKey, week?: stri
 
 function Cell({ f, to }: { f: PilotFigure; to: Route }) {
   return (
-    <td className="py-1 pr-3 tabular-nums" title={f.value === null ? f.reason : undefined}>
+    <td className="tabular-nums" title={f.value === null ? f.reason : undefined}>
       {f.value === null || f.sources.ids.length === 0 ? (
         <span className="text-muted-foreground">{text(f)}</span>
       ) : (
-        <Link href={to} className="underline">
+        <Link href={to} className="text-primary underline underline-offset-2">
           {text(f)}
         </Link>
       )}
@@ -78,12 +78,12 @@ export default async function PilotMetricsPage({ searchParams }: { searchParams:
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-section">
       <div>
         <Link href={"/reports" as Route} className="text-muted-foreground text-sm hover:underline">
           ← Reports
         </Link>
-        <h1 className="mt-1 text-2xl font-semibold">Pilot metrics</h1>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Pilot metrics</h1>
         <p className="text-muted-foreground text-sm">
           Weeks run Monday to Sunday ({ctx.workspace.timezone}). {metrics.periodStart} to{" "}
           {metrics.periodEnd}. Every figure links to the recorded events behind it.
@@ -94,7 +94,7 @@ export default async function PilotMetricsPage({ searchParams }: { searchParams:
               key={w}
               href={`/reports/pilot-metrics?weeks=${w}` as Route}
               aria-current={q.weeks === w ? "page" : undefined}
-              className={`rounded-md px-3 py-1 ${q.weeks === w ? "bg-muted font-medium" : "hover:underline"}`}
+              className={`rounded-md px-3 py-1 ${q.weeks === w ? "bg-accent text-accent-foreground font-medium" : "text-foreground hover:bg-hover"}`}
             >
               Last {w} weeks
             </Link>
@@ -102,7 +102,7 @@ export default async function PilotMetricsPage({ searchParams }: { searchParams:
         </nav>
       </div>
 
-      <section aria-labelledby="defs" className="border-border space-y-1 rounded-md border p-3">
+      <section aria-labelledby="defs" className="surface space-y-1 p-3">
         <h2 id="defs" className="text-base font-semibold">
           What the words mean
         </h2>
@@ -136,13 +136,13 @@ export default async function PilotMetricsPage({ searchParams }: { searchParams:
         <h2 id="period" className="text-lg font-semibold">
           Whole period, per person
         </h2>
-        <div className="overflow-x-auto">
+        <div className="surface overflow-x-auto">
           <table className="w-full text-sm" data-testid="pilot-period">
             <thead>
-              <tr className="text-muted-foreground border-b text-left">
-                <th className="py-1 pr-3 font-medium">Person</th>
+              <tr className="text-muted-foreground text-left">
+                <th className="font-medium">Person</th>
                 {COLUMNS.map((c) => (
-                  <th key={c.key} className="py-1 pr-3 font-medium">
+                  <th key={c.key} className="font-medium">
                     {c.head}
                   </th>
                 ))}
@@ -152,10 +152,10 @@ export default async function PilotMetricsPage({ searchParams }: { searchParams:
               {metrics.members.map((m) => (
                 <tr
                   key={m.membershipId}
-                  className="border-b"
+
                   data-testid={`pilot-${m.membershipId}`}
                 >
-                  <td className="py-1 pr-3">{m.name}</td>
+                  <td>{m.name}</td>
                   {COLUMNS.map((c) => (
                     <Cell key={c.key} f={m.period[c.key]} to={href(q, m.membershipId, c.key)} />
                   ))}
@@ -178,10 +178,10 @@ export default async function PilotMetricsPage({ searchParams }: { searchParams:
             <h3 className="text-sm font-medium">{m.name}</h3>
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-muted-foreground border-b text-left">
-                  <th className="py-1 pr-3 font-medium">Week</th>
+                <tr className="text-muted-foreground text-left">
+                  <th className="font-medium">Week</th>
                   {COLUMNS.map((c) => (
-                    <th key={c.key} className="py-1 pr-3 font-medium">
+                    <th key={c.key} className="font-medium">
                       {c.head}
                     </th>
                   ))}
@@ -189,8 +189,8 @@ export default async function PilotMetricsPage({ searchParams }: { searchParams:
               </thead>
               <tbody>
                 {metrics.weeks.map((w) => (
-                  <tr key={w.label} className="border-b">
-                    <td className="py-1 pr-3">
+                  <tr key={w.label}>
+                    <td>
                       {w.label} <span className="text-muted-foreground">from {w.start}</span>
                     </td>
                     {COLUMNS.map((c) => (
@@ -216,31 +216,35 @@ export default async function PilotMetricsPage({ searchParams }: { searchParams:
           <p className="text-muted-foreground text-sm">
             {picked.member.name}, {picked.figure.label}
             {q.week ? `, ${q.week}` : ", whole period"}: {text(picked.figure)} ·{" "}
-            <Link href={`/reports/pilot-metrics?weeks=${q.weeks}` as Route} className="underline">
+            <Link
+              href={`/reports/pilot-metrics?weeks=${q.weeks}` as Route}
+              className="text-primary underline underline-offset-2"
+            >
               Clear
             </Link>
           </p>
-          <div className="overflow-x-auto">
+          <div className="surface overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-muted-foreground border-b text-left">
-                  <th className="py-1 pr-3 font-medium">When</th>
-                  <th className="py-1 pr-3 font-medium">Event</th>
-                  <th className="py-1 pr-3 font-medium">Record</th>
-                  <th className="py-1 pr-3 font-medium">Details</th>
-                  <th className="py-1 pr-3 font-medium">Event id</th>
+                <tr className="text-muted-foreground text-left">
+                  <th className="font-medium">When</th>
+                  <th className="font-medium">Event</th>
+                  <th className="font-medium">Record</th>
+                  <th className="font-medium">Details</th>
+                  <th className="font-medium">Event id</th>
                 </tr>
               </thead>
               <tbody>
                 {records.rows.map((r) => (
-                  <tr key={r.id} className="border-b" data-testid="pilot-record">
-                    <td className="py-1 pr-3">
-                      {formatDateTime(r.occurredAt, ctx.workspace.timezone)}
-                    </td>
-                    <td className="py-1 pr-3">{r.name}</td>
-                    <td className="py-1 pr-3">
+                  <tr key={r.id} data-testid="pilot-record">
+                    <td>{formatDateTime(r.occurredAt, ctx.workspace.timezone)}</td>
+                    <td>{r.name}</td>
+                    <td>
                       {r.subjectType === "Approval" && r.subjectId ? (
-                        <Link href={`/approvals/${r.subjectId}` as Route} className="underline">
+                        <Link
+                          href={`/approvals/${r.subjectId}` as Route}
+                          className="text-primary underline underline-offset-2"
+                        >
                           Approval
                         </Link>
                       ) : r.subjectType ? (
@@ -249,12 +253,12 @@ export default async function PilotMetricsPage({ searchParams }: { searchParams:
                         "No record"
                       )}
                     </td>
-                    <td className="py-1 pr-3">
+                    <td>
                       {Object.entries(r.props)
                         .map(([k, v]) => `${k}: ${String(v)}`)
                         .join(", ") || "None"}
                     </td>
-                    <td className="text-muted-foreground py-1 pr-3 font-mono text-xs">{r.id}</td>
+                    <td className="text-muted-foreground font-mono text-xs">{r.id}</td>
                   </tr>
                 ))}
               </tbody>

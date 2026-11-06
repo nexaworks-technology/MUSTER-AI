@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { EmptyState } from "@/components/app/empty-state";
 import { OpportunityCard, WhitespacePanel } from "@/components/expansion/opportunity";
 import { can } from "@/lib/auth/permissions";
 import { getAccountExpansion } from "@/modules/expansion/service";
@@ -28,29 +29,35 @@ export default async function ExpansionTab({
     .map((m) => ({ id: m.id, name: m.user.name ?? m.user.email }));
   const returnTo = `/accounts/${id}/expansion`;
   return (
-    <div className="space-y-6">
+    <div className="space-y-section">
       {one(q.ok) ? (
-        <p role="status" className="text-sm">
+        <p
+          role="status"
+          className="bg-success-soft text-success-soft-foreground rounded-md px-3 py-2 text-sm"
+        >
           {one(q.ok)}
         </p>
       ) : null}
       {one(q.error) ? (
-        <p role="alert" className="text-sm">
+        <p
+          role="alert"
+          className="bg-danger-soft text-danger-soft-foreground rounded-md px-3 py-2 text-sm"
+        >
           {one(q.error)}
         </p>
       ) : null}
-      <section aria-labelledby="ws-h" className="space-y-2">
+      <section aria-labelledby="ws-h" className="space-y-3">
         <h2 id="ws-h" className="text-lg font-semibold">
           Whitespace
         </h2>
         <WhitespacePanel ws={data.whitespace} />
       </section>
-      <section aria-labelledby="opp-h" className="space-y-2">
+      <section aria-labelledby="opp-h" className="space-y-3">
         <h2 id="opp-h" className="text-lg font-semibold">
           Opportunities
         </h2>
         {data.opportunities.length === 0 ? (
-          <p className="text-sm">No expansion opportunity on this account.</p>
+          <EmptyState>No expansion opportunity on this account.</EmptyState>
         ) : (
           data.opportunities.map((o) => (
             <OpportunityCard

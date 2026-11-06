@@ -2,7 +2,9 @@
 
 import { useActionState, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { NativeSelect } from "@/components/app/native-select";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { draftCheckInAction, type CheckInActionState } from "@/modules/agents/actions/checkin";
 
 /**
@@ -45,19 +47,19 @@ export function CheckInForm({
         <label htmlFor={ids.contact} className="text-sm font-medium">
           To
         </label>
-        <select
+        <NativeSelect
           id={ids.contact}
           name="contactId"
           value={contactId}
           onChange={(e) => setContactId(e.target.value)}
-          className="border-input bg-background h-9 w-full max-w-md rounded-md border px-2 text-sm"
+          className="w-full max-w-md"
         >
           {contacts.map((c) => (
             <option key={c.id} value={c.id}>
               {c.label}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </div>
       {aiConfigured ? (
         <div className="space-y-1">
@@ -73,7 +75,7 @@ export function CheckInForm({
           AI is not configured, so you write this one yourself.
         </p>
       )}
-      <fieldset className="space-y-2 rounded-md border p-3">
+      <fieldset className="bg-card border-border space-y-3 rounded-lg border p-4">
         <legend className="px-1 text-sm font-medium">Write it yourself</legend>
         <div className="space-y-1">
           <label htmlFor={ids.subject} className="text-sm">
@@ -91,14 +93,13 @@ export function CheckInForm({
           <label htmlFor={ids.body} className="text-sm">
             Message
           </label>
-          <textarea
+          <Textarea
             id={ids.body}
             name="body"
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={8}
             maxLength={10_000}
-            className="border-input bg-background focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
           />
         </div>
         <Button type="submit" name="mode" value="human" variant="outline" disabled={pending}>

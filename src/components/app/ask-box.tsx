@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useRef, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { askAction, type AskActionState } from "@/modules/ask-ai/actions/ask";
 import { browserHasSpeechRecognition, dictationOffered } from "@/modules/ask-ai/schemas";
 
@@ -106,7 +107,7 @@ export function AskBox({
       <form action={action} className="space-y-2">
         {threadId ? <input type="hidden" name="threadId" value={threadId} /> : null}
         <Label htmlFor="ask-question">Ask about your accounts</Label>
-        <textarea
+        <Textarea
           id="ask-question"
           name="question"
           value={text}
@@ -114,7 +115,6 @@ export function AskBox({
           required
           maxLength={2000}
           rows={3}
-          className="border-input bg-background w-full rounded-md border p-2 text-sm"
           placeholder="Which renewals in the next 90 days have open escalations?"
         />
         <div className="flex flex-wrap items-center gap-2">
@@ -151,7 +151,7 @@ export function AskBox({
           type="file"
           accept={accept}
           disabled={file.busy}
-          className="block text-sm"
+          className="text-muted-foreground file:bg-secondary file:text-secondary-foreground file:hover:bg-hover block text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:px-3 file:py-1.5 file:text-sm file:font-medium"
           onChange={(e) => void attach(e.currentTarget)}
         />
         <p

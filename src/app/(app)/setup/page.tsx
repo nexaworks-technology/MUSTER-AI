@@ -61,9 +61,9 @@ export default async function SetupPage({ searchParams }: { searchParams: Search
     });
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-section max-w-3xl">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">Set up {ctx.workspace.name}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Set up {ctx.workspace.name}</h1>
         <p className="text-muted-foreground text-sm">
           {s.setupPending
             ? "Six steps to your first real Today queue. You can leave and come back; nothing runs nightly until you go live."
@@ -77,7 +77,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Search
               <Link
                 href={`/setup?step=${st}`}
                 aria-current={st === current ? "step" : undefined}
-                className={`inline-block rounded-md border px-3 py-1 ${st === current ? "bg-primary text-primary-foreground" : ""}`}
+                className={`inline-block rounded-md border px-3 py-1.5 ${st === current ? "border-primary bg-primary text-primary-foreground" : "border-input bg-card text-foreground hover:bg-hover"}`}
               >
                 {n + 1}. {TITLES[st]}
               </Link>
@@ -97,10 +97,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Search
         </Alert>
       ) : null}
 
-      <section
-        aria-labelledby="step-title"
-        className="border-border space-y-4 rounded-md border p-4"
-      >
+      <section aria-labelledby="step-title" className="surface space-y-4 p-4">
         <h2 id="step-title" className="text-lg font-semibold">
           Step {idx + 1} of {SETUP_STEPS.length}: {TITLES[current]}
         </h2>
@@ -121,10 +118,13 @@ export default async function SetupPage({ searchParams }: { searchParams: Search
               <p>Nothing connected yet.</p>
             )}
             <div className="flex flex-wrap gap-3">
-              <Link href="/settings/integrations" className="underline">
+              <Link
+                href="/settings/integrations"
+                className="text-primary underline underline-offset-2"
+              >
                 Connect integrations
               </Link>
-              <Link href="/setup?step=import" className="underline">
+              <Link href="/setup?step=import" className="text-primary underline underline-offset-2">
                 Skip to CSV import
               </Link>
             </div>
@@ -151,7 +151,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Search
                 </form>
               ))}
             <p>
-              <Link href="/settings/import" className="underline">
+              <Link href="/settings/import" className="text-primary underline underline-offset-2">
                 Import accounts, contacts and contracts from CSV
               </Link>{" "}
               (templates are on that page; every row is previewed before anything is saved).
@@ -232,10 +232,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Search
               </p>
             ) : null}
             {s.health.proposal ? (
-              <div
-                className="border-border space-y-2 rounded-md border p-3"
-                data-testid="setup-proposal"
-              >
+              <div className="surface space-y-2 p-3" data-testid="setup-proposal">
                 <p className="font-medium">Proposed: v{s.health.proposal.version}</p>
                 <p>
                   {s.health.proposal.sentence ?? "No back-test result is stored for this proposal."}
@@ -265,7 +262,10 @@ export default async function SetupPage({ searchParams }: { searchParams: Search
               </form>
             )}
             <p>
-              <Link href="/settings/health-model" className="underline">
+              <Link
+                href="/settings/health-model"
+                className="text-primary underline underline-offset-2"
+              >
                 See the details or edit weights in Settings › Health model
               </Link>
             </p>
@@ -275,40 +275,42 @@ export default async function SetupPage({ searchParams }: { searchParams: Search
         {current === "plays" ? (
           <div className="space-y-4 text-sm">
             <p>
-              Based on your connected integrations, accounts, and tiers, we deterministically proposed
-              the following plays. They will land as <strong>DRAFT</strong> plays, facing your normal
-              safety checks and approval gates before they can be published.
+              Based on your connected integrations, accounts, and tiers, we deterministically
+              proposed the following plays. They will land as <strong>DRAFT</strong> plays, facing
+              your normal safety checks and approval gates before they can be published.
             </p>
             {s.plays.proposed.length === 0 ? (
-              <p className="text-muted-foreground">No specific plays proposed based on current setup.</p>
+              <p className="text-muted-foreground">
+                No specific plays proposed based on current setup.
+              </p>
             ) : (
               <form action={saveProposedPlaysAction} className="space-y-3">
-                <div className="space-y-2 border rounded-md p-3 divide-y">
+                <div className="border-border divide-border space-y-2 divide-y rounded-md border p-3">
                   {s.plays.proposed.map((p) => {
                     const isExisting = s.plays.existing.some((e) => e.key === p.playKey);
                     return (
-                      <div key={p.playKey} className="pt-2 first:pt-0 flex items-start gap-3">
+                      <div key={p.playKey} className="flex items-start gap-3 pt-2 first:pt-0">
                         <input
                           type="checkbox"
                           id={`play-${p.playKey}`}
                           name="playKeys"
                           value={p.playKey}
                           defaultChecked={true}
-                          className="mt-1"
+                          className="accent-primary mt-1"
                         />
-                        <label htmlFor={`play-${p.playKey}`} className="space-y-0.5 cursor-pointer">
+                        <label htmlFor={`play-${p.playKey}`} className="cursor-pointer space-y-0.5">
                           <div className="font-medium">
                             {p.name}{" "}
-                            <span className="text-xs text-muted-foreground font-normal">
+                            <span className="text-muted-foreground text-xs font-normal">
                               ({p.category})
                             </span>
                             {isExisting && (
-                              <span className="ml-2 text-xs text-emerald-600 font-normal">
+                              <span className="text-success ml-2 text-xs font-normal">
                                 (already in drafts)
                               </span>
                             )}
                           </div>
-                          <div className="text-xs text-muted-foreground">{p.reason}</div>
+                          <div className="text-muted-foreground text-xs">{p.reason}</div>
                         </label>
                       </div>
                     );
@@ -342,7 +344,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Search
             ) : (
               <p>
                 You are live.{" "}
-                <Link href="/today" className="underline">
+                <Link href="/today" className="text-primary underline underline-offset-2">
                   Open Today
                 </Link>
               </p>
@@ -352,7 +354,10 @@ export default async function SetupPage({ searchParams }: { searchParams: Search
 
         {next ? (
           <p>
-            <Link href={`/setup?step=${next}`} className="underline">
+            <Link
+              href={`/setup?step=${next}`}
+              className="text-primary underline underline-offset-2"
+            >
               Next: {TITLES[next]}
             </Link>
           </p>

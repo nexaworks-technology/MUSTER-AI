@@ -41,7 +41,7 @@ function FigureRow({ f }: { f: Figure }) {
         <span>{f.label}</span>
         <span className="font-medium tabular-nums">
           {f.href && shown ? (
-            <Link href={f.href as Route} className="underline">
+            <Link href={f.href as Route} className="text-primary underline underline-offset-2">
               {text}
             </Link>
           ) : (
@@ -61,7 +61,10 @@ function FigureRow({ f }: { f: Figure }) {
             <ul className="mt-1 space-y-0.5">
               {links.map((l) => (
                 <li key={l.id}>
-                  <Link href={l.href as Route} className="underline">
+                  <Link
+                    href={l.href as Route}
+                    className="text-primary underline underline-offset-2"
+                  >
                     {l.label ?? `${f.sources.type} ${l.id.slice(0, 8)}`}
                   </Link>
                 </li>
@@ -129,18 +132,22 @@ export default async function ReportPage({
     value === undefined ? null : <input type="hidden" name={name} value={value} />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-section">
       <div>
         <p className="text-sm">
-          <Link href={"/reports" as Route} className="underline">
+          <Link href={"/reports" as Route} className="text-primary underline underline-offset-2">
             Reports
           </Link>
         </p>
-        <h1 className="text-2xl font-semibold">{meta.title}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{meta.title}</h1>
         <p className="text-muted-foreground text-sm">{meta.description}</p>
       </div>
 
-      <form method="get" className="flex flex-wrap items-end gap-2" aria-label="Report filters">
+      <form
+        method="get"
+        className="surface flex flex-wrap items-end gap-3 p-4"
+        aria-label="Report filters"
+      >
         <div className="space-y-1">
           <label htmlFor="periodDays" className="text-muted-foreground block text-xs">
             Period
@@ -232,12 +239,15 @@ export default async function ReportPage({
       ) : null}
 
       {error || loadError ? (
-        <p role="alert" className="text-destructive text-sm">
+        <p
+          role="alert"
+          className="bg-danger-soft text-danger-soft-foreground rounded-md px-3 py-2 text-sm"
+        >
           {loadError ?? error}
         </p>
       ) : null}
 
-      <section aria-labelledby="snap-h" className="space-y-3">
+      <section aria-labelledby="snap-h" className="surface space-y-3 p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 id="snap-h" className="text-lg font-semibold">
             {report ? "Latest snapshot" : "No snapshot yet"}

@@ -39,7 +39,10 @@ export function AiText({
                 {item.sources.map((s, j) => (
                   <li key={j}>
                     {s.href ? (
-                      <Link href={s.href as Route} className="underline">
+                      <Link
+                        href={s.href as Route}
+                        className="text-primary underline underline-offset-2"
+                      >
                         {s.label}
                       </Link>
                     ) : (
@@ -58,7 +61,10 @@ export function AiText({
           ? ` · model confidence ${Math.round(run.confidence * 100)}% (the model's own estimate)`
           : ""}
         {" · "}
-        <Link href={`/agent-runs/${run.id}` as Route} className="underline">
+        <Link
+          href={`/agent-runs/${run.id}` as Route}
+          className="text-primary underline underline-offset-2"
+        >
           What it read
         </Link>
       </p>

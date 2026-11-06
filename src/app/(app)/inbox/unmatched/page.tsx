@@ -1,6 +1,8 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { NativeSelect } from "@/components/app/native-select";
+import { Button } from "@/components/ui/button";
 import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { formatDateTime } from "@/lib/format";
@@ -22,12 +24,12 @@ export default async function UnmatchedPage({ searchParams }: { searchParams: Se
   const error = first(sp.error);
   const done = first(sp.done);
   return (
-    <div className="space-y-4">
+    <div className="space-y-section">
       <div>
         <Link href={"/inbox" as Route} className="text-muted-foreground text-sm underline">
           ← Inbox
         </Link>
-        <h1 className="text-2xl font-semibold">Unmatched mail</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Unmatched mail</h1>
         <p className="text-muted-foreground text-sm">
           These emails matched no contact, or matched more than one account. Nothing is guessed:
           place each one, or dismiss it. Placing it moves the text into the account&apos;s
@@ -35,12 +37,18 @@ export default async function UnmatchedPage({ searchParams }: { searchParams: Se
         </p>
       </div>
       {error ? (
-        <p role="alert" className="text-sm text-red-700 dark:text-red-300">
+        <p
+          role="alert"
+          className="bg-danger-soft text-danger-soft-foreground rounded-md px-3 py-2 text-sm"
+        >
           {error}
         </p>
       ) : null}
       {done ? (
-        <p role="status" className="text-sm text-emerald-700 dark:text-emerald-300">
+        <p
+          role="status"
+          className="bg-success-soft text-success-soft-foreground rounded-md px-3 py-2 text-sm"
+        >
           {done === "assigned" ? "Placed on the account." : "Dismissed."}
         </p>
       ) : null}
@@ -49,10 +57,7 @@ export default async function UnmatchedPage({ searchParams }: { searchParams: Se
           No unmatched mail.
         </p>
       ) : (
-        <ul
-          className="divide-border border-border divide-y rounded-md border"
-          data-testid="unmatched-list"
-        >
+        <ul className="surface divide-border divide-y" data-testid="unmatched-list">
           {rows.map((r) => (
             <li key={r.id} className="space-y-2 p-3 text-sm" data-testid="unmatched-item">
               <p>
@@ -68,12 +73,7 @@ export default async function UnmatchedPage({ searchParams }: { searchParams: Se
                   <input type="hidden" name="id" value={r.id} />
                   <label className="text-xs">
                     <span className="block">Place on account</span>
-                    <select
-                      name="accountId"
-                      required
-                      defaultValue=""
-                      className="border-input bg-background mt-1 rounded-md border px-2 py-1 text-sm"
-                    >
+                    <NativeSelect name="accountId" required defaultValue="" className="mt-1 block">
                       <option value="" disabled>
                         Choose…
                       </option>
@@ -93,20 +93,17 @@ export default async function UnmatchedPage({ searchParams }: { searchParams: Se
                           </option>
                         ))}
                       </optgroup>
-                    </select>
+                    </NativeSelect>
                   </label>
-                  <button
-                    type="submit"
-                    className="bg-primary text-primary-foreground rounded-md px-3 py-1 text-sm"
-                  >
+                  <Button type="submit" size="sm">
                     Place
-                  </button>
+                  </Button>
                 </form>
                 <form action={dismissUnmatchedAction}>
                   <input type="hidden" name="id" value={r.id} />
-                  <button type="submit" className="rounded-md border px-3 py-1 text-sm">
+                  <Button type="submit" variant="outline" size="sm">
                     Dismiss
-                  </button>
+                  </Button>
                 </form>
               </div>
             </li>

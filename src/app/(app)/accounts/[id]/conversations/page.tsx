@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { EmptyState } from "@/components/app/empty-state";
 import { ExtractionLabels } from "@/components/app/extraction-labels";
 import { formatDateTime } from "@/lib/format";
 import { SentimentPanel } from "@/components/app/sentiment-view";
@@ -31,13 +32,11 @@ export default async function ConversationsPage({
     getSentiment(ctx, { accountId: account.id }),
   ]);
   if (conversations.length === 0 && offset === 0) {
-    return (
-      <p className="text-muted-foreground text-sm">No emails or calls recorded for this account.</p>
-    );
+    return <EmptyState>No emails or calls recorded for this account.</EmptyState>;
   }
   return (
-    <div className="space-y-3">
-      <details className="rounded-md border p-3" data-testid="tone-panel">
+    <div className="space-y-section">
+      <details className="surface p-4" data-testid="tone-panel">
         <summary className="cursor-pointer text-sm font-medium">
           Tone and themes for this account
         </summary>
@@ -45,9 +44,9 @@ export default async function ConversationsPage({
           <SentimentPanel view={tone} themeHref={null} />
         </div>
       </details>
-      <ul className="divide-border border-border divide-y rounded-md border text-sm">
+      <ul className="surface divide-border divide-y overflow-hidden text-sm">
         {conversations.map((c) => (
-          <li key={c.id} className="p-3" data-testid="conversation">
+          <li key={c.id} className="p-4" data-testid="conversation">
             <details open={c.id === target?.conversationId}>
               <summary className="cursor-pointer">
                 <span className="text-muted-foreground text-xs uppercase">
@@ -89,14 +88,14 @@ export default async function ConversationsPage({
           </li>
         ))}
       </ul>
-      <nav aria-label="Pages" className="flex gap-3 text-sm">
+      <nav aria-label="Pages" className="flex gap-4 text-sm font-medium">
         {offset > 0 ? (
           <Link
             href={{
               pathname: `/accounts/${account.id}/conversations`,
               query: { cursor: String(Math.max(0, offset - 20)) },
             }}
-            className="underline"
+            className="text-primary underline underline-offset-2"
           >
             Newer
           </Link>
@@ -107,7 +106,7 @@ export default async function ConversationsPage({
               pathname: `/accounts/${account.id}/conversations`,
               query: { cursor: String(nextCursor) },
             }}
-            className="underline"
+            className="text-primary underline underline-offset-2"
           >
             Older
           </Link>

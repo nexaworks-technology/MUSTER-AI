@@ -17,18 +17,15 @@ export function NewTaskForm({
   defaultOwner: string;
 }) {
   return (
-    <ActionForm
-      action={createTaskAction}
-      className="grid gap-3 sm:grid-cols-[1fr_12rem_10rem_auto] sm:items-end"
-    >
+    <ActionForm action={createTaskAction} className="flex flex-wrap items-end gap-3">
       {(pending) => (
         <>
           {accountId ? <input type="hidden" name="accountId" value={accountId} /> : null}
-          <div className="space-y-1">
+          <div className="min-w-48 flex-1 space-y-1">
             <Label htmlFor="task-title">Task</Label>
             <Input id="task-title" name="title" required maxLength={200} />
           </div>
-          <div className="space-y-1">
+          <div className="w-48 space-y-1">
             <Label htmlFor="task-owner">Owner</Label>
             <NativeSelect
               id="task-owner"
@@ -43,7 +40,7 @@ export function NewTaskForm({
               ))}
             </NativeSelect>
           </div>
-          <div className="space-y-1">
+          <div className="w-40 space-y-1">
             <Label htmlFor="task-due">Due</Label>
             <Input id="task-due" name="dueAt" type="date" />
           </div>

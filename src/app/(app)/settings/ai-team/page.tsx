@@ -1,6 +1,7 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { AgentSwitch } from "@/components/app/agent-switch";
+import { Badge } from "@/components/ui/badge";
 import { can } from "@/lib/auth/permissions";
 import { formatDateTime } from "@/lib/format";
 import { aiConfigured, listAgentTeam } from "@/modules/agents/service";
@@ -33,9 +34,12 @@ export default async function AiTeamPage() {
   const team = await listAgentTeam(ctx);
   const canSwitch = Boolean(can(ctx, "workspace:manageSettings"));
   return (
-    <div className="space-y-6">
+    <div className="space-y-section">
       {!aiConfigured() ? (
-        <p className="rounded-md border p-3 text-sm" data-testid="ai-not-configured">
+        <p
+          className="border-warning/30 bg-warning-soft text-warning-soft-foreground rounded-md border p-3 text-sm"
+          data-testid="ai-not-configured"
+        >
           AI is not configured (no API key). Agents do not run, and nothing is shown in their place.
         </p>
       ) : null}
@@ -47,7 +51,7 @@ export default async function AiTeamPage() {
         <section
           key={a.key}
           aria-labelledby={`agent-${a.key}`}
-          className="space-y-2 rounded-md border p-4"
+          className="surface space-y-2 p-5"
           data-testid={`agent-${a.key}`}
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -55,7 +59,7 @@ export default async function AiTeamPage() {
               {a.key}{" "}
               <span className="text-muted-foreground text-sm font-normal">v{a.version}</span>
             </h2>
-            <span className="text-sm">{a.enabled ? "On" : "Off"}</span>
+            <Badge variant={a.enabled ? "success" : "neutral"}>{a.enabled ? "On" : "Off"}</Badge>
             {canSwitch ? <AgentSwitch agentKey={a.key} enabled={a.enabled} /> : null}
           </div>
           <p className="text-sm">{a.description}.</p>
@@ -76,39 +80,34 @@ export default async function AiTeamPage() {
               <caption className="sr-only">Recent runs of {a.key}</caption>
               <thead className="text-muted-foreground text-left text-xs">
                 <tr>
-                  <th scope="col" className="py-1">
-                    When
-                  </th>
-                  <th scope="col" className="py-1">
-                    Account
-                  </th>
-                  <th scope="col" className="py-1">
-                    Status
-                  </th>
-                  <th scope="col" className="py-1">
-                    Did
-                  </th>
+                  <th scope="col">When</th>
+                  <th scope="col">Account</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Did</th>
                 </tr>
               </thead>
               <tbody>
                 {a.recent.map((r) => (
                   <tr
                     key={r.id}
-                    className="border-t"
+
                     data-testid="agent-run-row"
                     data-status={r.status}
                   >
-                    <td className="py-1">
-                      <Link href={`/agent-runs/${r.id}` as Route} className="underline">
+                    <td>
+                      <Link
+                        href={`/agent-runs/${r.id}` as Route}
+                        className="text-primary underline underline-offset-2"
+                      >
                         {formatDateTime(r.createdAt, ctx.workspace.timezone)}
                       </Link>
                     </td>
-                    <td className="py-1">{r.account?.name ?? "—"}</td>
-                    <td className="py-1">
+                    <td>{r.account?.name ?? "—"}</td>
+                    <td>
                       {STATUS_WORDS[r.status]}
                       {r.errorCode && r.status !== "SUCCEEDED" ? ` (${r.errorCode})` : ""}
                     </td>
-                    <td className="py-1">{ACTION_WORDS[r.actionTaken]}</td>
+                    <td>{ACTION_WORDS[r.actionTaken]}</td>
                   </tr>
                 ))}
               </tbody>

@@ -1,6 +1,7 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { after } from "next/server";
+import { EmptyState } from "@/components/app/empty-state";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { recordProductEvent } from "@/lib/pilot/capture";
 import { getToday, SECTIONS } from "@/modules/today/service";
@@ -41,9 +42,9 @@ export default async function TodayPage({ searchParams }: { searchParams: Search
   const sections = await getToday(ctx, { cursors });
   const empty = sections.every((s) => s.total === 0);
   return (
-    <div className="max-w-3xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Today</h1>
+    <div className="space-y-section max-w-3xl">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Today</h1>
         <p className="text-muted-foreground text-sm">
           Your accounts only, ranked by account value × urgency.
           {ctx.canViewRevenue
@@ -52,33 +53,34 @@ export default async function TodayPage({ searchParams }: { searchParams: Search
         </p>
       </div>
       {empty ? (
-        <p
-          className="text-muted-foreground rounded-md border p-6 text-sm"
-          data-testid="today-empty"
-        >
+        <EmptyState className="py-6" data-testid="today-empty">
           Nothing needs you today.
-        </p>
+        </EmptyState>
       ) : null}
       {sections.map((s) => (
         <section
           key={s.key}
           aria-labelledby={`today-${s.key}`}
-          className="space-y-2"
+          className="space-y-3"
           data-testid={`today-${s.key}`}
         >
           <h2 id={`today-${s.key}`} className="text-base font-semibold">
             {s.label} <span className="text-muted-foreground font-normal">({s.total})</span>
           </h2>
           {s.items.length === 0 ? (
-            <p className="text-muted-foreground text-sm">
+            <EmptyState>
               {s.key === "MEETING"
                 ? "No calendar connected. Meetings appear here once one is."
                 : "Nothing here."}
-            </p>
+            </EmptyState>
           ) : (
-            <ol className="divide-y rounded-md border">
+            <ol className="surface divide-border divide-y overflow-hidden">
               {s.items.map((i) => (
-                <li key={i.id} className="space-y-1 p-3 text-sm" data-testid="today-item">
+                <li
+                  key={i.id}
+                  className="hover:bg-muted space-y-1 p-4 text-sm transition-colors"
+                  data-testid="today-item"
+                >
                   <Link href={hrefFor(i) as Route} className="font-medium hover:underline">
                     {i.title}
                   </Link>
@@ -93,7 +95,10 @@ export default async function TodayPage({ searchParams }: { searchParams: Search
             </ol>
           )}
           {s.next !== null || s.cursor > 0 ? (
-            <nav aria-label={`${s.label} pages`} className="flex gap-3 text-sm">
+            <nav
+              aria-label={`${s.label} pages`}
+              className="text-primary flex gap-4 text-sm font-medium"
+            >
               {s.cursor > 0 ? (
                 <Link
                   href={`/today?${s.key}=${Math.max(0, s.cursor - 25)}` as Route}

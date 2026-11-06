@@ -8,7 +8,10 @@ export async function DeleteSection({ actor }: { actor: WorkspaceContext }) {
   const pending = await deletionStatus(actor);
   const tz = actor.workspace.timezone;
   return (
-    <section aria-labelledby="delete" className="space-y-3 border-t pt-6">
+    <section
+      aria-labelledby="delete"
+      className="bg-card border-danger/30 space-y-3 rounded-lg border p-5 shadow-xs"
+    >
       <h2 id="delete" className="text-base font-semibold">
         Delete this workspace
       </h2>
@@ -21,7 +24,7 @@ export async function DeleteSection({ actor }: { actor: WorkspaceContext }) {
         the dates) is kept.
       </p>
       {pending ? (
-        <div className="space-y-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+        <div className="border-warning/30 bg-warning-soft text-warning-soft-foreground space-y-2 rounded-md border p-3 text-sm">
           <p data-testid="deletion-pending">
             Deletion requested {formatDateTime(pending.requestedAt, tz)}. Everything will be purged
             after {formatDateTime(pending.purgeAfter, tz)} unless you cancel.

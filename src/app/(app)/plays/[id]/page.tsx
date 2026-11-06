@@ -1,6 +1,7 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { ComponentProps } from "react";
 import {
   DuplicatePlayButton,
   KillPlayButton,
@@ -8,6 +9,8 @@ import {
   PublishPlayControl,
   RevertVersionButton,
 } from "@/components/app/play-actions";
+import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
@@ -15,11 +18,21 @@ import { getPlay, previewRetroactiveAccounts, validatePlaySafety } from "@/modul
 
 export const metadata: Metadata = { title: "Inspect Play" };
 
-const STATUS_BADGES: Record<string, string> = {
-  DRAFT: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200",
-  PUBLISHED: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200",
-  PAUSED: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200",
-  KILLED: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+type BadgeVariant = NonNullable<ComponentProps<typeof Badge>["variant"]>;
+
+const RUN_VARIANTS = {
+  COMPLETED: "success",
+  RUNNING: "accent",
+  WAITING: "warning",
+} as const satisfies Record<string, BadgeVariant>;
+const runVariant = (status: string): BadgeVariant =>
+  (RUN_VARIANTS as Record<string, BadgeVariant>)[status] ?? "neutral";
+
+const STATUS_BADGES: Record<string, BadgeVariant> = {
+  DRAFT: "warning",
+  PUBLISHED: "success",
+  PAUSED: "accent",
+  KILLED: "neutral",
 };
 
 export default async function InspectPlayPage({ params }: { params: Promise<{ id: string }> }) {
@@ -47,7 +60,7 @@ export default async function InspectPlayPage({ params }: { params: Promise<{ id
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-section">
       <div className="text-muted-foreground flex items-center gap-2 text-xs">
         <Link href={"/plays" as Route} className="hover:underline">
           Plays
@@ -56,25 +69,13 @@ export default async function InspectPlayPage({ params }: { params: Promise<{ id
         <span>{play.name}</span>
       </div>
 
-      <div className="flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-start sm:justify-between">
+      <div className="border-border flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-semibold">{play.name}</h1>
-            <span
-              className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${
-                STATUS_BADGES[play.status] ?? "bg-muted text-muted-foreground"
-              }`}
-            >
-              {play.status}
-            </span>
-            <span className="bg-muted rounded px-2 py-0.5 font-mono text-xs">
-              v{play.latestVersion?.version ?? 1}
-            </span>
-            {play.isSeeded && (
-              <span className="rounded bg-blue-50 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-                Seeded
-              </span>
-            )}
+            <h1 className="text-2xl font-semibold tracking-tight">{play.name}</h1>
+            <Badge variant={STATUS_BADGES[play.status] ?? "neutral"}>{play.status}</Badge>
+            <Badge className="font-mono">v{play.latestVersion?.version ?? 1}</Badge>
+            {play.isSeeded && <Badge variant="accent">Seeded</Badge>}
           </div>
           {play.description && <p className="text-muted-foreground text-sm">{play.description}</p>}
         </div>
@@ -82,13 +83,13 @@ export default async function InspectPlayPage({ params }: { params: Promise<{ id
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/plays/${play.id}/results` as Route}
-            className="hover:bg-muted inline-flex items-center gap-1 rounded border px-3 py-1.5 text-xs font-medium"
+            className={buttonVariants({ variant: "outline", size: "sm" })}
           >
             📊 View Results
           </Link>
           <Link
             href={`/reports/outcomes?play=${encodeURIComponent(play.key)}` as Route}
-            className="hover:bg-muted inline-flex items-center gap-1 rounded border px-3 py-1.5 text-xs font-medium"
+            className={buttonVariants({ variant: "outline", size: "sm" })}
           >
             Results
           </Link>
@@ -116,13 +117,9 @@ export default async function InspectPlayPage({ params }: { params: Promise<{ id
             <CardTitle className="flex items-center justify-between text-base">
               <span>Safety Check</span>
               {safetyResult.passed ? (
-                <span className="inline-flex items-center rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
-                  Safe to publish
-                </span>
+                <Badge variant="success">Safe to publish</Badge>
               ) : (
-                <span className="inline-flex items-center rounded bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-800 dark:bg-rose-950 dark:text-rose-200">
-                  Refused ({safetyResult.refusals.length})
-                </span>
+                <Badge variant="danger">Refused ({safetyResult.refusals.length})</Badge>
               )}
             </CardTitle>
           </CardHeader>
@@ -151,7 +148,7 @@ export default async function InspectPlayPage({ params }: { params: Promise<{ id
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <pre className="bg-muted/40 rounded-lg p-4 font-mono text-xs whitespace-pre-wrap">
+          <pre className="bg-muted rounded-lg p-4 font-mono text-xs whitespace-pre-wrap">
             {play.summary || "No definition available."}
           </pre>
         </CardContent>
@@ -167,13 +164,13 @@ export default async function InspectPlayPage({ params }: { params: Promise<{ id
           </CardHeader>
           <CardContent className="space-y-4">
             {play.definition.branches.map((branch, idx) => (
-              <div key={idx} className="space-y-2 rounded-md border p-4">
+              <div key={idx} className="border-border space-y-2 rounded-md border p-4">
                 <div className="text-sm font-semibold">Branch: {branch.tier ?? "Default"}</div>
                 <div className="space-y-1">
                   {branch.steps.map((step, sIdx) => (
                     <div
                       key={sIdx}
-                      className="text-muted-foreground flex items-center justify-between border-b pb-1 text-xs"
+                      className="text-muted-foreground border-border flex items-center justify-between border-b pb-1 text-xs"
                     >
                       <span>
                         {sIdx + 1}. {step.name} ({step.handler})
@@ -190,7 +187,7 @@ export default async function InspectPlayPage({ params }: { params: Promise<{ id
         </Card>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Version History</CardTitle>
@@ -210,9 +207,7 @@ export default async function InspectPlayPage({ params }: { params: Promise<{ id
                           : ""}
                       </span>
                     ) : (
-                      <span className="ml-2 font-medium text-amber-800 dark:text-amber-300">
-                        Draft
-                      </span>
+                      <span className="text-warning ml-2 font-medium">Draft</span>
                     )}
                   </div>
                   {v.version !== play.latestVersion?.version && (
@@ -243,25 +238,13 @@ export default async function InspectPlayPage({ params }: { params: Promise<{ id
                   >
                     <div>
                       <div className="font-medium">{run.account.name}</div>
-                      <div className="text-muted-foreground font-mono text-[10px]">
+                      <div className="text-muted-foreground font-mono text-xs">
                         {run.triggerRef}
                       </div>
                     </div>
                     <div className="text-right">
-                      <span
-                        className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                          run.status === "COMPLETED"
-                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
-                            : run.status === "RUNNING"
-                              ? "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200"
-                              : run.status === "WAITING"
-                                ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200"
-                                : "bg-muted text-muted-foreground"
-                        }`}
-                      >
-                        {run.status}
-                      </span>
-                      <div className="text-muted-foreground text-[10px]">
+                      <Badge variant={runVariant(run.status)}>{run.status}</Badge>
+                      <div className="text-muted-foreground text-xs">
                         {new Date(run.enteredAt).toLocaleDateString()}
                       </div>
                     </div>

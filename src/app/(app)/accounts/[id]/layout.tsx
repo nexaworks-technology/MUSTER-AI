@@ -37,12 +37,12 @@ export default async function AccountLayout({
     { label: "Timeline", href: `${base}/timeline` },
   ] as Array<{ label: string; href: Route }>;
   return (
-    <div className="space-y-4">
-      <div>
+    <div className="space-y-section">
+      <div className="space-y-1">
         <Link href="/accounts" className="text-muted-foreground text-sm hover:underline">
           ← Accounts
         </Link>
-        <h1 className="mt-1 text-2xl font-semibold">{account.name}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{account.name}</h1>
         <p className="text-muted-foreground text-sm">
           {TIER_LABELS[account.tier]} · {STAGE_LABELS[account.lifecycleStage]} ·{" "}
           {account.ownerName ? `Owner: ${account.ownerName}` : "No owner"}

@@ -46,16 +46,16 @@ export default async function SignalsPage({ searchParams }: { searchParams: Sear
     `/health/signals?${new URLSearchParams({ ...(raw as Record<string, string>), cursor: String(cursor) })}` as Route;
 
   return (
-    <div className="space-y-4">
-      <div>
+    <div className="space-y-section">
+      <div className="space-y-1">
         <Link href={"/health" as Route} className="text-muted-foreground text-sm hover:underline">
           ← Health
         </Link>
-        <h1 className="mt-1 text-2xl font-semibold">Signals</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Signals</h1>
       </div>
       <form
         method="get"
-        className="flex flex-wrap items-end gap-2"
+        className="surface flex flex-wrap items-end gap-3 p-4"
         role="search"
         aria-label="Filter signals"
       >
@@ -113,14 +113,14 @@ export default async function SignalsPage({ searchParams }: { searchParams: Sear
         canAct={() => canDecide !== null}
         today={todayIn(ctx.workspace.timezone)}
       />
-      <nav aria-label="Pages" className="flex gap-3 text-sm">
+      <nav aria-label="Pages" className="text-primary flex gap-4 text-sm font-medium">
         {page.prevCursor !== null ? (
-          <Link href={href(page.prevCursor)} className="underline">
+          <Link href={href(page.prevCursor)} className="hover:underline">
             Previous
           </Link>
         ) : null}
         {page.nextCursor !== null ? (
-          <Link href={href(page.nextCursor)} className="underline">
+          <Link href={href(page.nextCursor)} className="hover:underline">
             Next
           </Link>
         ) : null}

@@ -1,5 +1,6 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
+import { EmptyState } from "@/components/app/empty-state";
 import { CategoryControl, CategoryState, Reasons, BAND_WORDS } from "@/components/renewals/reasons";
 import { formatCalendarDate } from "@/lib/format";
 import { formatMoney } from "@/lib/money";
@@ -27,27 +28,33 @@ export default async function RenewalTab({
   const error = one(q.error);
   const returnTo = `/accounts/${id}/renewal`;
   return (
-    <div className="space-y-6">
+    <div className="space-y-section">
       {ok ? (
-        <p role="status" className="text-sm">
+        <p
+          role="status"
+          className="bg-success-soft text-success-soft-foreground rounded-md px-3 py-2 text-sm"
+        >
           {ok}
         </p>
       ) : null}
       {error ? (
-        <p role="alert" className="text-sm">
+        <p
+          role="alert"
+          className="bg-danger-soft text-danger-soft-foreground rounded-md px-3 py-2 text-sm"
+        >
           {error}
         </p>
       ) : null}
       {data.open.length === 0 ? (
-        <p className="text-sm">
+        <EmptyState>
           No open renewal on record. A renewal appears once a contract has a renewal date; add the
           date on the Billing tab.
-        </p>
+        </EmptyState>
       ) : (
         data.open.map((r) => (
           <section
             key={r.id}
-            className="space-y-3"
+            className="surface space-y-3 p-5"
             aria-label={`Renewal on ${formatCalendarDate(r.renewalDate)}`}
           >
             <h2 className="text-lg font-semibold">Renews {formatCalendarDate(r.renewalDate)}</h2>
@@ -61,7 +68,10 @@ export default async function RenewalTab({
                   : "No contract value on file."}
             </p>
             <p className="text-sm">
-              <Link href={`/renewals/${r.id}/brief` as Route} className="underline">
+              <Link
+                href={`/renewals/${r.id}/brief` as Route}
+                className="text-primary underline underline-offset-2"
+              >
                 Open the renewal brief
               </Link>
             </p>
@@ -79,8 +89,12 @@ export default async function RenewalTab({
         ))
       )}
       {data.past.length ? (
-        <section aria-labelledby="past-h" data-testid="past-renewals">
-          <h2 id="past-h" className="text-sm font-medium">
+        <section
+          aria-labelledby="past-h"
+          className="surface space-y-2 p-5"
+          data-testid="past-renewals"
+        >
+          <h2 id="past-h" className="text-base font-semibold">
             Earlier renewals
           </h2>
           <ul className="space-y-1 text-sm">

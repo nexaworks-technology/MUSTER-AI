@@ -51,27 +51,23 @@ function Weights({
       <caption className="sr-only">Pillar weights</caption>
       <thead className="text-muted-foreground text-left text-xs">
         <tr>
-          <th scope="col" className="py-1">
-            Part
-          </th>
-          <th scope="col" className="py-1 text-right">
+          <th scope="col">Part</th>
+          <th scope="col" className="text-right">
             Weight
           </th>
-          <th scope="col" className="py-1 pl-3">
-            What it measures
-          </th>
+          <th scope="col">What it measures</th>
         </tr>
       </thead>
       <tbody>
         {PILLARS.map((p) => (
-          <tr key={p} className="border-border border-t align-top">
-            <td className="py-1 font-medium">{LABELS[p]}</td>
-            <td className="py-1 text-right tabular-nums">{Math.round((weights[p] ?? 0) * 100)}%</td>
-            <td className="text-muted-foreground py-1 pl-3">{PILLAR_MEANING[p]}</td>
+          <tr key={p} className="border-border align-top">
+            <td className="font-medium">{LABELS[p]}</td>
+            <td className="text-right tabular-nums">{Math.round((weights[p] ?? 0) * 100)}%</td>
+            <td className="text-muted-foreground">{PILLAR_MEANING[p]}</td>
           </tr>
         ))}
-        <tr className="border-border border-t">
-          <td className="py-1 font-medium" colSpan={3}>
+        <tr>
+          <td className="font-medium" colSpan={3}>
             Healthy from {thresholds.healthyMin} · Watch from {thresholds.watchMin} · At Risk below{" "}
             {thresholds.watchMin}
           </td>
@@ -102,9 +98,9 @@ export default async function HealthModelPage() {
   const editFrom = proposal ?? models.find((m) => m.backtest) ?? null;
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="space-y-section max-w-4xl">
       {active ? (
-        <section aria-labelledby="active" className="border-border space-y-2 rounded-md border p-3">
+        <section aria-labelledby="active" className="surface space-y-2 p-4">
           <h2 id="active" className="text-base font-semibold">
             Active: v{active.version} · {ORIGIN[active.proposedBy]}
           </h2>
@@ -125,7 +121,7 @@ export default async function HealthModelPage() {
         </section>
       ) : null}
 
-      <section aria-labelledby="propose" className="space-y-2">
+      <section aria-labelledby="propose" className="space-y-3">
         <h2 id="propose" className="text-base font-semibold">
           Proposed model
         </h2>
@@ -136,7 +132,7 @@ export default async function HealthModelPage() {
         </p>
         <RunBacktestButton running={running} />
         {proposal?.backtest ? (
-          <div className="border-border space-y-3 rounded-md border p-3" data-testid="proposal">
+          <div className="surface space-y-3 p-4" data-testid="proposal">
             <h3 className="font-medium">
               v{proposal.version} · proposed {formatDateTime(proposal.createdAt, tz)}
             </h3>
@@ -197,18 +193,10 @@ export default async function HealthModelPage() {
                 <caption className="sr-only">Back-test results per account</caption>
                 <thead className="text-muted-foreground text-left text-xs">
                   <tr>
-                    <th scope="col" className="py-1">
-                      Account
-                    </th>
-                    <th scope="col" className="py-1">
-                      Outcome
-                    </th>
-                    <th scope="col" className="py-1">
-                      Result
-                    </th>
-                    <th scope="col" className="py-1">
-                      Lowest level
-                    </th>
+                    <th scope="col">Account</th>
+                    <th scope="col">Outcome</th>
+                    <th scope="col">Result</th>
+                    <th scope="col">Lowest level</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -217,12 +205,12 @@ export default async function HealthModelPage() {
                       a.points.some((p) => p.band === b),
                     ) as keyof typeof RISK_WORDS;
                     return (
-                      <tr key={`${a.accountId}-${a.date}`} className="border-border border-t">
-                        <td className="py-1">{a.name}</td>
-                        <td className="py-1">
+                      <tr key={`${a.accountId}-${a.date}`}>
+                        <td>{a.name}</td>
+                        <td>
                           {a.type === "CHURN" ? "Churned" : "Renewed"} {day(a.date)}
                         </td>
-                        <td className="py-1">
+                        <td>
                           {a.type === "CHURN"
                             ? a.caught
                               ? `Caught ${a.leadDays} days early`
@@ -231,7 +219,7 @@ export default async function HealthModelPage() {
                               ? "False alarm"
                               : "No alarm"}
                         </td>
-                        <td className="py-1">{RISK_WORDS[worst]}</td>
+                        <td>{RISK_WORDS[worst]}</td>
                       </tr>
                     );
                   })}
@@ -246,7 +234,7 @@ export default async function HealthModelPage() {
       </section>
 
       {editFrom ? (
-        <section aria-labelledby="edit" className="space-y-2">
+        <section aria-labelledby="edit" className="surface space-y-3 p-5">
           <h2 id="edit" className="text-base font-semibold">
             Change the weights
           </h2>
@@ -259,11 +247,11 @@ export default async function HealthModelPage() {
         </section>
       ) : null}
 
-      <section aria-labelledby="versions" className="space-y-2">
+      <section aria-labelledby="versions" className="space-y-3">
         <h2 id="versions" className="text-base font-semibold">
           All versions
         </h2>
-        <ul className="divide-border border-border divide-y rounded-md border text-sm">
+        <ul className="surface divide-border divide-y text-sm">
           {models.map((m) => (
             <li key={m.id} className="space-y-1 p-3" data-testid={`model-v${m.version}`}>
               <div className="flex flex-wrap items-center justify-between gap-2">

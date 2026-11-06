@@ -25,14 +25,14 @@ export function TaskList({
   showAccount: boolean;
 }) {
   return (
-    <ul className="divide-border border-border divide-y rounded-md border text-sm">
+    <ul className="surface divide-border divide-y overflow-hidden text-sm">
       {tasks.map((t) => {
         const overdue = t.status === "OPEN" && t.dueAt !== null && t.dueAt < now;
         return (
           <li
             key={t.id}
             id={`task-${t.id}`}
-            className="target:bg-muted flex scroll-mt-4 flex-wrap items-center justify-between gap-2 p-3"
+            className="target:bg-muted flex scroll-mt-4 flex-wrap items-center justify-between gap-2 p-4"
             data-testid="task"
           >
             <div>
@@ -46,7 +46,10 @@ export function TaskList({
               <div className="text-muted-foreground text-xs">
                 {showAccount && t.account ? (
                   <>
-                    <Link href={`/accounts/${t.account.id}`} className="underline">
+                    <Link
+                      href={`/accounts/${t.account.id}`}
+                      className="text-primary underline underline-offset-2"
+                    >
                       {t.account.name}
                     </Link>
                     {" · "}
@@ -60,7 +63,7 @@ export function TaskList({
                     ? `due ${formatCalendarDate(t.dueAt)}`
                     : "no due date"}
                 {overdue ? (
-                  <span className="ml-1 text-[var(--risk-at-risk)]">· overdue</span>
+                  <span className="text-risk-at-risk ml-1 font-medium">· overdue</span>
                 ) : null}
               </div>
             </div>

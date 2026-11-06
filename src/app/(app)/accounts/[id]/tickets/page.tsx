@@ -1,5 +1,7 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
+import { EmptyState } from "@/components/app/empty-state";
+import { Badge } from "@/components/ui/badge";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { listTickets } from "@/modules/support/service";
 import { loadAccount } from "../data";
@@ -15,22 +17,20 @@ export default async function TicketsPage({ params }: { params: Promise<{ id: st
   const tz = ctx.workspace.timezone;
   const tickets = await listTickets(ctx, account.id);
   if (tickets.length === 0)
-    return (
-      <p className="text-muted-foreground text-sm">No support tickets recorded for this account.</p>
-    );
+    return <EmptyState>No support tickets recorded for this account.</EmptyState>;
   const open = tickets.filter((t) => t.isOpen).length;
   return (
-    <div className="space-y-3">
+    <div className="space-y-section">
       <p className="text-muted-foreground text-sm">
         {open} open · {tickets.length - open} closed
         {tickets.length === 100 ? " (latest 100 shown)" : ""}
       </p>
-      <ul className="divide-border border-border divide-y rounded-md border text-sm">
+      <ul className="surface divide-border divide-y overflow-hidden text-sm">
         {tickets.map((t) => (
           <li
             key={t.id}
             id={`ticket-${t.id}`}
-            className="target:bg-muted scroll-mt-4 p-3"
+            className="target:bg-muted scroll-mt-4 p-4"
             data-testid="ticket"
           >
             <details>
@@ -43,9 +43,9 @@ export default async function TicketsPage({ params }: { params: Promise<{ id: st
                   {t.contactName ? ` · from ${t.contactName}` : ""}
                 </span>
                 {t.isOpen && (t.priority === "HIGH" || t.priority === "URGENT" || t.isEscalated) ? (
-                  <span className="ml-2 rounded border border-[var(--risk-at-risk)] px-1.5 py-0.5 text-xs text-[var(--risk-at-risk)]">
+                  <Badge variant="danger" className="ml-2">
                     Needs attention
-                  </span>
+                  </Badge>
                 ) : null}
               </summary>
               <ol className="border-border mt-2 space-y-2 border-l-2 pl-3">
@@ -63,7 +63,7 @@ export default async function TicketsPage({ params }: { params: Promise<{ id: st
                 <p className="mt-2 text-xs">
                   <Link
                     href={`/approvals/new?sourceType=Ticket&sourceId=${t.id}` as Route}
-                    className="underline"
+                    className="text-primary underline underline-offset-2"
                     data-testid="draft-check-in"
                   >
                     Draft check-in

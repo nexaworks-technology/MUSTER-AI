@@ -25,13 +25,13 @@ export default async function SignalSettingsPage() {
     }),
   ]);
   return (
-    <div className="max-w-4xl space-y-4">
+    <div className="space-y-section max-w-4xl">
       <p className="text-muted-foreground text-sm">
         Signals are checked every night and when payments, tickets or a CSM Pulse change. Changing a
         threshold creates a new rule version; signals already raised keep the version that raised
         them.
       </p>
-      <section aria-labelledby="outside" className="border-border space-y-2 rounded-md border p-3">
+      <section aria-labelledby="outside" className="surface space-y-2 p-4">
         <h2 id="outside" className="text-base font-semibold">
           Add an outside signal
         </h2>
@@ -42,13 +42,9 @@ export default async function SignalSettingsPage() {
         </p>
         <OutsideSignalForm accounts={accounts} />
       </section>
-      <ul className="space-y-3" aria-label="Signal rules">
+      <ul className="space-y-4" aria-label="Signal rules">
         {rules.map((r) => (
-          <li
-            key={r.id}
-            className="border-border space-y-2 rounded-md border p-3"
-            data-testid={`rule-${r.ruleKey}`}
-          >
+          <li key={r.id} className="surface space-y-2 p-4" data-testid={`rule-${r.ruleKey}`}>
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="text-base font-semibold">{r.label}</h2>
               <span className="text-muted-foreground text-xs">
@@ -60,15 +56,15 @@ export default async function SignalSettingsPage() {
                 {r.dormantReason ? " · dormant" : ""}
               </span>
             </div>
-            <dl className="grid gap-x-3 gap-y-1 text-sm sm:grid-cols-[max-content_1fr]">
+            <dl className="grid gap-x-3 gap-y-1 text-sm sm:grid-cols-3">
               <dt className="font-medium">What it means</dt>
-              <dd>{r.meaning}</dd>
+              <dd className="sm:col-span-2">{r.meaning}</dd>
               <dt className="font-medium">How we detect it</dt>
-              <dd>{r.howDetected}</dd>
+              <dd className="sm:col-span-2">{r.howDetected}</dd>
               <dt className="font-medium">How early it appears</dt>
-              <dd>{r.typicalLeadTime}</dd>
+              <dd className="sm:col-span-2">{r.typicalLeadTime}</dd>
               <dt className="font-medium">What can make it a false alarm</dt>
-              <dd>{r.falseAlarmCauses}</dd>
+              <dd className="sm:col-span-2">{r.falseAlarmCauses}</dd>
             </dl>
             {r.ruleKey === "outside_event" ? (
               <p className="text-muted-foreground text-sm">

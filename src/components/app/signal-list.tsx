@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/app/empty-state";
 import { formatCalendarDate } from "@/lib/format";
 import { SignalActions } from "./signal-actions";
 import {
@@ -37,11 +38,7 @@ export interface RuleFields {
   falseAlarmCauses: string;
 }
 
-const SEVERITY_STYLE = {
-  CRITICAL: "border-red-300 bg-red-50 text-red-900",
-  WARN: "border-amber-300 bg-amber-50 text-amber-900",
-  INFO: "border-border bg-muted text-muted-foreground",
-} as const;
+const SEVERITY_VARIANT = { CRITICAL: "danger", WARN: "warning", INFO: "neutral" } as const;
 
 export function SignalList({
   signals,
@@ -57,10 +54,9 @@ export function SignalList({
   /** The workspace's today: outside events older than 30 days read "Reported <date>", never "New". */
   today: string;
 }) {
-  if (signals.length === 0)
-    return <p className="text-muted-foreground text-sm">No signals match.</p>;
+  if (signals.length === 0) return <EmptyState>No signals match.</EmptyState>;
   return (
-    <ul className="divide-border border-border divide-y rounded-md border" aria-label="Signals">
+    <ul className="surface divide-border divide-y overflow-hidden" aria-label="Signals">
       {signals.map((s) => {
         const live = s.status === "OPEN" || s.status === "ACKNOWLEDGED";
         const rule = rules.get(s.ruleKey);
@@ -68,28 +64,17 @@ export function SignalList({
           <li
             key={s.id}
             id={`signal-${s.id}`}
-            className="target:bg-muted scroll-mt-4 space-y-2 p-3 text-sm"
+            className="target:bg-muted scroll-mt-4 space-y-2 p-4 text-sm"
             data-testid="signal"
           >
             <div className="flex flex-wrap items-center gap-2">
-              <span
-                className={cn(
-                  "rounded-full border px-2 py-0.5 text-xs font-medium",
-                  SEVERITY_STYLE[s.severity],
-                )}
-              >
-                {SEVERITY_WORDS[s.severity]}
-              </span>
-              {s.polarity === "OPPORTUNITY" ? (
-                <span className="rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs text-emerald-900">
-                  Opportunity
-                </span>
-              ) : null}
+              <Badge variant={SEVERITY_VARIANT[s.severity]}>{SEVERITY_WORDS[s.severity]}</Badge>
+              {s.polarity === "OPPORTUNITY" ? <Badge variant="success">Opportunity</Badge> : null}
               <span className="font-medium">{s.title}</span>
               {showAccount && s.account ? (
                 <Link
                   href={`/accounts/${s.accountId}/signals#signal-${s.id}`}
-                  className="underline"
+                  className="text-primary underline underline-offset-2"
                 >
                   {s.account.name}
                 </Link>
@@ -114,7 +99,7 @@ export function SignalList({
               <p className="text-xs">
                 <Link
                   href={`/approvals/new?sourceType=Signal&sourceId=${s.id}`}
-                  className="underline"
+                  className="text-primary underline underline-offset-2"
                   data-testid="draft-check-in"
                 >
                   Draft check-in
@@ -126,7 +111,7 @@ export function SignalList({
                 <li>
                   <a
                     href={s.publicSourceUrl}
-                    className="underline"
+                    className="text-primary underline underline-offset-2"
                     rel="noopener noreferrer nofollow"
                     target="_blank"
                   >
@@ -137,7 +122,7 @@ export function SignalList({
               {s.evidenceLinks.map((e, i) => (
                 <li key={i}>
                   {e.href ? (
-                    <a href={e.href} className="underline">
+                    <a href={e.href} className="text-primary underline underline-offset-2">
                       {e.label}
                     </a>
                   ) : (

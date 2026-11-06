@@ -24,7 +24,7 @@ export async function ExportSection({ actor }: { actor: WorkspaceContext }) {
   for (const e of exports.filter((x) => x.status === "ready").slice(0, 3))
     links.set(e.requestId, (await getExportLink(actor, e.requestId)).url);
   return (
-    <section aria-labelledby="export" className="space-y-3">
+    <section aria-labelledby="export" className="surface space-y-3 p-5">
       <h2 id="export" className="text-base font-semibold">
         Export all data
       </h2>
@@ -53,7 +53,7 @@ export async function ExportSection({ actor }: { actor: WorkspaceContext }) {
       {exports.length === 0 ? (
         <p className="text-muted-foreground text-sm">No exports yet.</p>
       ) : (
-        <ul className="divide-border border-border divide-y rounded-md border text-sm">
+        <ul className="divide-border border-border bg-card divide-y rounded-md border text-sm">
           {exports.map((e) => (
             <li key={e.requestId} className="flex flex-wrap items-center justify-between gap-2 p-2">
               <span>
@@ -67,7 +67,11 @@ export async function ExportSection({ actor }: { actor: WorkspaceContext }) {
                 </span>
               </span>
               {links.get(e.requestId) ? (
-                <a href={links.get(e.requestId)} className="shrink-0 underline" download>
+                <a
+                  href={links.get(e.requestId)}
+                  className="text-primary shrink-0 hover:underline"
+                  download
+                >
                   Download ZIP
                 </a>
               ) : null}

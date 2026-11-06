@@ -1,12 +1,13 @@
+import { Badge } from "@/components/ui/badge";
 import type { DisplayLabel } from "@/modules/conversations/service";
 
-const TONE: Record<DisplayLabel["tone"], string> = {
-  good: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100",
-  neutral: "bg-muted text-foreground",
-  risk: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-100",
-  negative: "bg-red-100 text-red-900 dark:bg-red-950 dark:text-red-100",
-  mixed: "bg-orange-100 text-orange-900 dark:bg-orange-950 dark:text-orange-100",
-};
+const TONE = {
+  good: "success",
+  neutral: "neutral",
+  risk: "warning",
+  negative: "danger",
+  mixed: "neutral",
+} as const satisfies Record<DisplayLabel["tone"], "success" | "neutral" | "warning" | "danger">;
 
 /**
  * What the Watcher read, each label next to the exact words that prove it (Rule 1). The label is
@@ -26,9 +27,7 @@ export function ExtractionLabels({
     >
       {labels.map((l, i) => (
         <li key={`${l.kind}-${i}`} className="text-xs">
-          <span className={`inline-block rounded px-1.5 py-0.5 font-medium ${TONE[l.tone]}`}>
-            {l.text}
-          </span>{" "}
+          <Badge variant={TONE[l.tone]}>{l.text}</Badge>{" "}
           <q className="text-muted-foreground">
             <mark className="text-foreground bg-transparent underline decoration-dotted">
               {l.quote}

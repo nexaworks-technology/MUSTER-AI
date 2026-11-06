@@ -1,5 +1,6 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
+import { EmptyState } from "@/components/app/empty-state";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { listThreads } from "@/modules/ask-ai/service";
 
@@ -10,18 +11,24 @@ export default async function AskLayout({ children }: { children: React.ReactNod
   const ctx = (await resolveWorkspaceContext(await requireSession()))!;
   const threads = await listThreads(ctx);
   return (
-    <div className="grid gap-6 md:grid-cols-[14rem_1fr]">
-      <nav aria-label="Your conversations" className="space-y-2 text-sm">
-        <Link href={"/ask" as Route} className="font-medium underline">
+    <div className="gap-section flex flex-col md:flex-row md:items-start">
+      <nav
+        aria-label="Your conversations"
+        className="surface space-y-3 p-4 text-sm md:w-64 md:shrink-0"
+      >
+        <Link href={"/ask" as Route} className="text-primary block font-medium hover:underline">
           New question
         </Link>
         {threads.length === 0 ? (
-          <p className="text-muted-foreground">No conversations yet.</p>
+          <EmptyState className="px-3 py-2 text-xs">No conversations yet.</EmptyState>
         ) : (
-          <ul className="space-y-1" data-testid="thread-list">
+          <ul className="border-border space-y-1 border-t pt-3" data-testid="thread-list">
             {threads.map((t) => (
               <li key={t.id}>
-                <Link href={`/ask/${t.id}` as Route} className="line-clamp-2 hover:underline">
+                <Link
+                  href={`/ask/${t.id}` as Route}
+                  className="text-foreground hover:bg-hover line-clamp-2 block rounded-md px-2 py-1.5"
+                >
                   {t.title}
                 </Link>
               </li>
@@ -29,7 +36,7 @@ export default async function AskLayout({ children }: { children: React.ReactNod
           </ul>
         )}
       </nav>
-      <div className="max-w-3xl space-y-4">{children}</div>
+      <div className="max-w-3xl min-w-0 flex-1 space-y-4">{children}</div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { EmptyState } from "@/components/app/empty-state";
 import { NewTaskForm } from "@/components/app/task-forms";
 import { TaskList } from "@/components/app/task-list";
 import { listOwners } from "@/modules/accounts/service";
@@ -12,16 +13,18 @@ export default async function AccountTasksPage({ params }: { params: Promise<{ i
   const { ctx, account } = await loadAccount(id);
   const [tasks, owners] = await Promise.all([listAccountTasks(ctx, account.id), listOwners(ctx)]);
   return (
-    <div className="space-y-4">
+    <div className="space-y-section">
       {account.canEdit ? (
-        <NewTaskForm
-          accountId={account.id}
-          owners={owners}
-          defaultOwner={account.ownerMembershipId ?? ctx.membershipId}
-        />
+        <div className="surface p-4">
+          <NewTaskForm
+            accountId={account.id}
+            owners={owners}
+            defaultOwner={account.ownerMembershipId ?? ctx.membershipId}
+          />
+        </div>
       ) : null}
       {tasks.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No tasks for this account.</p>
+        <EmptyState>No tasks for this account.</EmptyState>
       ) : (
         <TaskList tasks={tasks} tz={ctx.workspace.timezone} now={new Date()} showAccount={false} />
       )}

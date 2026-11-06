@@ -50,7 +50,7 @@ export function ContractDocumentUpload({
           type="file"
           required
           accept={accept}
-          className="block text-sm"
+          className="text-muted-foreground file:bg-secondary file:text-secondary-foreground file:hover:bg-hover block text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:px-3 file:py-1.5 file:text-sm file:font-medium"
         />
       </div>
       <Button type="submit" variant="outline" disabled={state.busy}>
