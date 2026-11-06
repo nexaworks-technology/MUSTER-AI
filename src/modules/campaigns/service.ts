@@ -93,7 +93,9 @@ export async function getCampaign(actor: Actor, campaignId: string) {
     if (group.status === "QUEUED") stats.queued = group._count.id;
     else if (group.status === "HELD") stats.held = group._count.id;
     else if (group.status === "SENT") stats.sent = group._count.id;
-    else if (group.status === "FAILED") stats.failed = group._count.id;
+    // "Failed / Bounced" counts both, from the same recipient status the badges show (M12 C0b).
+    else if (group.status === "FAILED" || group.status === "BOUNCED")
+      stats.failed += group._count.id;
   }
 
   return { ...campaign, stats };
@@ -209,8 +211,13 @@ export async function scheduleCampaign(
     include: { approval: true },
   });
 
-  if (!campaign.approval || (campaign.approval.status !== "APPROVED" && campaign.approval.status !== "EDITED_APPROVED")) {
-    throw new Error("Campaign cannot be scheduled until it has been approved by an Admin or CS Leader.");
+  if (
+    !campaign.approval ||
+    (campaign.approval.status !== "APPROVED" && campaign.approval.status !== "EDITED_APPROVED")
+  ) {
+    throw new Error(
+      "Campaign cannot be scheduled until it has been approved by an Admin or CS Leader.",
+    );
   }
 
   const recipients = await db.campaignRecipient.findMany({

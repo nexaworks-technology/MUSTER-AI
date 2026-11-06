@@ -205,3 +205,84 @@ D-179 (deletion grace on the DB clock), D-180 (export), D-181 (ClamAV), D-182 (p
 - **Machine tools:** ClamAV 1.5.4 (Homebrew, `scripts/clamd-local.sh`).
 - **Dev DB:** it now also holds the `scale-test` workspace (2,000 accounts, about 620 MB). It is harmless to the demo; `--reset` regenerates it.
 
+
+---
+
+## Session C — C0 addendum slices (2026-11-06; founder-approved, run before C3)
+
+### C0a — `/meetings/qbr/new` wired to the real QBR flow
+
+- **The stub, before:** the page had no form, action or button, its inputs had no names, and it showed two static panels (Rule 6; investigation in `M12-HARNESS-FIX-LOG.md` F4).
+- **Now:**
+  - `src/app/(app)/meetings/qbr/new/qbr-form.tsx` is an account picker plus a period field.
+  - Submitting calls `generateQbrAction` (`src/modules/qbr/actions.ts`).
+  - The action re-checks the period against the existing closed allowlist (`validatePeriodLabel`), then calls the existing `generateQbr` as the signed-in member, and redirects to the created QBR.
+  - Permissions and tenancy are exactly what `generateQbr` enforces: workspace-scoped reads, and the member's `canViewRevenue` on the revenue metric.
+  - Generation shares Ask AI's per-member rate limit (one model call per QBR).
+  - A refused period, a missing AI configuration or a failure each say "Nothing was created".
+- **The new landing view:** `src/app/(app)/meetings/qbr/[id]/page.tsx`, read through a new scoped `getQbrDocument`.
+  - **Locked metrics:** each with its label, its value or the honest "no data" reason, and a link to the Account 360 tab its records are on (Rule 1). ARR shows "Restricted" for a viewer without revenue access.
+  - **Narrative:** the blocks, with "See what it read and decided" linking to the audited agent run (Rule 5).
+  - **Status:** "Draft, not shared with the customer".
+- **Not built (the backend has them; not in scope):** narrative editing, locking/sharing and PDF export in the UI.
+- **Found while testing:**
+  - React resets an uncontrolled form after an action, so after a refused period the account silently snapped back to the first one. The next submit would have generated a QBR for the wrong account. The two fields are now controlled.
+- **Recorded transport for e2e:** `scripts/recorded-qbr.ts` prepares the exact `meeting-qbr` request and writes a citation-valid answer with no figures into the app server's recordings directory. It creates nothing in the database. The run is then judged by the real executor.
+- **Observation, not changed:** `generateQbr` has no book-scope check. A CSM with OWN scope can generate a QBR for any account in the workspace, and the page lists every non-lost account, as before.
+
+#### e2e assertion swap (stronger assertions replace placeholder ones)
+
+`e2e/m10-meetings-qbr-portal.spec.ts`. The old test was **"New QBR generation page loads with locked metrics panel and period allowlist"**. Its assertions:
+
+```ts
+await expect(page.getByRole("heading", { name: "Generate Executive Business Review (QBR)" })).toBeVisible();
+await expect(page.getByTestId("qbr-account-select")).toBeVisible();
+await expect(page.getByTestId("qbr-period-input")).toHaveValue("Q3 2026");
+await expect(page.getByTestId("locked-metrics-panel")).toBeVisible();
+```
+
+The new test is **"New QBR: a refused period creates nothing; a valid one generates a real QBR and lands on it"**. As Leo, on Lumen Freightworks (reserved in `e2e/support/reserved-accounts.ts`). Its assertions:
+
+```ts
+await expect(page.getByRole("heading", { name: "Generate Executive Business Review (QBR)" })).toBeVisible();
+// period "next quarter" is refused and creates nothing
+await expect(page.getByRole("form", { name: "New QBR" }).getByRole("alert")).toContainText("Nothing was created");
+expect((await qbrs()).length).toBe(before);
+// period "Q3 2026" generates and lands on the QBR
+await expect(page).toHaveURL(/\/meetings\/qbr\/(?!new$)[^/]+$/, { timeout: 30_000 });
+expect(created.length).toBe(before + 1);
+expect(doc.origin).toBe("AI");
+expect(doc.lockedAt).toBeNull();
+expect((doc.metrics as { period?: string }).period).toBe("Q3 2026");
+expect(run.agentKey).toBe("meeting-qbr");
+expect(run.status).toBe("SUCCEEDED");
+await expect(page.getByRole("heading", { name: doc.title, level: 1 })).toBeVisible();
+await expect(page.getByTestId("qbr-status")).toHaveText("Draft, not shared with the customer");
+await expect(page.getByTestId("qbr-metrics").getByRole("row")).toHaveCount(9);
+await expect(page.getByTestId("qbr-metrics").getByRole("link", { name: "Health tab" })).toBeVisible();
+await expect(page.getByTestId("qbr-narrative")).toContainText(`A review of ${account} for the period`);
+await expectNoBlockingViolations(page);
+```
+
+- **Assertion kept:** the heading.
+- **Assertion dropped:** `locked-metrics-panel` (the placeholder no longer exists). It is replaced by assertions that a QBR document is created in the database, by an audited, succeeded agent run, and shown with sourced metrics and its narrative.
+- **Assertion moved to the action:** the two input test ids are still used (`selectOption` and `fill`). The period default is now covered by the refusal and allowlist path.
+- **`e2e/a11y-m10.spec.ts`: not changed.** It only visits `/meetings/qbr/new` and runs axe, which stays valid for the real form, and it passes at both widths. The new test adds axe on the created QBR page (desktop).
+
+### C0b — "Failed / Bounced" counts both
+
+- **The bug:** `getCampaign` counted only `FAILED` recipients under a card labelled "Failed / Bounced".
+- **Fix:** it now counts `FAILED` and `BOUNCED` from `CampaignRecipient.status`, the same field the recipient badges show (`src/modules/campaigns/service.ts`).
+- **Test (RED first, `m12-evidence/c0b-red.txt`):** `src/modules/campaigns/__tests__/campaign-stats-m12.int.test.ts`.
+  - "a bounced-only campaign shows every bounced recipient in the figure": two BOUNCED gives 2, where the old code gave 0.
+  - "failed and bounced recipients are counted together": one of each gives 2, where the old code gave 1.
+- **Finding, not changed:** the email webhook records a bounce by setting the recipient to **FAILED** with `bouncedAt`, not BOUNCED (`src/modules/campaigns/webhook.ts`, `email.bounced`). So webhook bounces were already counted, but their badge reads FAILED. Nothing in the product writes BOUNCED to a recipient today.
+
+### Checks
+
+- `pnpm typecheck` and `eslint` are clean.
+- Unit and integration: campaigns 6 files / 25 tests; QBR plus tenant enumeration 3 files / 18 tests. Enumeration discovers the new `"use server"` QBR action.
+- e2e on the production build (`pnpm test:e2e`, both runs): m10, a11y-m10, m8 and a11y-m8 give **11 passed, 0 failed**.
+  - The first two attempts failed because of my new test: a route-announcer `role="alert"`, and a URL pattern that also matched `/new`.
+  - The third attempt found the form reset bug above.
+  - No pre-existing assertion was edited except the founder-approved swap above.

@@ -1,0 +1,10 @@
+     × a bounced-only campaign shows every bounced recipient in the figure 55ms
+     × failed and bounced recipients are counted together 12ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+AssertionError: expected +0 to be 2 // Object.is equality
+- Expected
++ Received
+AssertionError: expected 1 to be 2 // Object.is equality
+- Expected
++ Received
+      Tests  2 failed (2)
