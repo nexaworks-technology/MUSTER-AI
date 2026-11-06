@@ -18,10 +18,10 @@ export function TabNav({ tabs }: { tabs: Array<{ label: string; href: Route }> }
                 href={t.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "inline-block border-b-2 px-3 py-2 whitespace-nowrap",
+                  "focus-visible:ring-ring inline-block rounded-t-md border-b-2 px-3 py-2.5 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-inset",
                   active
-                    ? "border-primary font-medium"
-                    : "text-muted-foreground hover:text-foreground border-transparent",
+                    ? "border-primary text-primary font-medium"
+                    : "text-muted-foreground hover:border-border hover:text-foreground border-transparent",
                 )}
               >
                 {t.label}
