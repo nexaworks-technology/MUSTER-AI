@@ -8,7 +8,7 @@ export interface SecretFinding {
   rule: string;
 }
 
-const RULES: ReadonlyArray<{ rule: string; pattern: RegExp }> = [
+const RULES: ReadonlyArray<{ rule: string; pattern: RegExp; shippedCodeOnly?: boolean }> = [
   { rule: "anthropic-key", pattern: /sk-ant-[A-Za-z0-9_-]{20,}/ },
   { rule: "aws-access-key", pattern: /\bAKIA[0-9A-Z]{16}\b/ },
   { rule: "private-key", pattern: /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/ },
@@ -36,11 +36,22 @@ const RULES: ReadonlyArray<{ rule: string; pattern: RegExp }> = [
   },
   // M12 A2: a hard-coded fallback after `??` to a quoted literal naming a secret (the shape of the removed M10 survey
   // default). A `$`-placeholder or another env var is not a finding.
+  // M12 A10: a constant whose name says SECRET assigned a string literal (the M8 unsubscribe
+  // fallback shape). Env reads and `$`-placeholders are not findings.
+  {
+    rule: "secret-constant-literal",
+    // Tests declare fake signing secrets to verify signatures; shipped code must not (M12 A10).
+    shippedCodeOnly: true,
+    pattern: /\b[A-Z0-9_]*SECRET[A-Z0-9_]*\s*=\s*["'\x60](?!\$)[^"'\x60\n]{8,}["'\x60]/,
+  },
   {
     rule: "secret-fallback-default",
     pattern: /\?\?\s*["'\x60](?!\$)[^"'\x60\n]*secret[^"'\x60\n]*["'\x60]/i,
   },
 ];
+
+/** Test files: fixtures may declare fake secrets that shipped-code-only rules do not apply to. */
+const TEST_PATH = /(^|\/)(__tests__|__fixtures__|e2e)\/|\.(test|spec)\.[cm]?[jt]sx?$/;
 
 /** `.env.example` may hold names only: every non-comment line is `NAME=` with nothing after. */
 export function checkEnvExample(file: string, content: string): SecretFinding[] {
@@ -54,7 +65,8 @@ export function checkEnvExample(file: string, content: string): SecretFinding[] 
 export function scanText(file: string, content: string): SecretFinding[] {
   const findings: SecretFinding[] = [];
   content.split("\n").forEach((text, i) => {
-    for (const { rule, pattern } of RULES) {
+    for (const { rule, pattern, shippedCodeOnly } of RULES) {
+      if (shippedCodeOnly && TEST_PATH.test(file)) continue;
       if (pattern.test(text)) findings.push({ file, line: i + 1, rule });
     }
   });

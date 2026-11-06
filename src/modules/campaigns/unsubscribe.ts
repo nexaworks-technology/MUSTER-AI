@@ -2,15 +2,15 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { writeAudit } from "@/lib/audit";
 import { scopedDb } from "@/lib/db/scoped";
 
-const UNSECURE_FALLBACK_SECRET = "$REMOVED_UNSUBSCRIBE_FALLBACK";
-
+/**
+ * The unsubscribe-link signing secret, from env only (Rule 9). M12 A10 removed a hard-coded
+ * fallback that would have signed links with a known key whenever the env names were unset.
+ */
 function getSecret(): string {
-  return (
-    process.env.AUTH_SECRET ||
-    process.env.NEXTAUTH_SECRET ||
-    process.env.SESSION_SECRET ||
-    UNSECURE_FALLBACK_SECRET
-  );
+  const secret =
+    process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || process.env.SESSION_SECRET;
+  if (!secret) throw new Error("Unsubscribe links need AUTH_SECRET");
+  return secret;
 }
 
 export interface UnsubscribePayload {
@@ -57,7 +57,9 @@ export function verifyUnsubscribeToken(token: string): UnsubscribePayload | null
       return null;
     }
 
-    const data = JSON.parse(Buffer.from(payloadStr, "base64url").toString("utf8")) as UnsubscribePayload;
+    const data = JSON.parse(
+      Buffer.from(payloadStr, "base64url").toString("utf8"),
+    ) as UnsubscribePayload;
     if (data.exp && Date.now() / 1000 > data.exp) {
       return null;
     }

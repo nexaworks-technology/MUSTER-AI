@@ -1,0 +1,9 @@
+ Test Files  1 failed (1)
+      Tests  7 failed | 2 passed (9)
+   Start at  07:08:09
+   Duration  1.30s (import 57%, transform 28%, tests 14%)
+
+[ELIFECYCLE] Test failed. See above for more details.
+     × flags a hard-coded secret constant (the M8 unsubscribe fallback shape) 3ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  1 failed | 5 passed (6)

@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { z } from "zod";
 import { writeAudit } from "@/lib/audit";
+import { env } from "@/lib/config/env";
 import { businessClock, type Clock } from "@/lib/dates";
 import { withSurveyTokenSession } from "@/lib/db/token-access";
 import { scopedDb } from "@/lib/db/scoped";
@@ -9,43 +10,92 @@ import { requestApproval } from "@/modules/approvals/service";
 import { computeSurveyMetrics, type SurveyMetricsResult } from "./metrics";
 
 /**
- * The survey-link signing secret, from env only (Rule 9). The hard-coded fallback was removed in
- * M11 housekeeping: a known default would let anyone forge survey responses.
+ * Survey links (M10, hardened in M12 A10). The signing key comes from env only (Rule 9) and is
+ * domain-separated for this one purpose, so a token signed for anything else never verifies here.
  */
-function surveySecret(): string {
+function surveyKey(): Buffer {
   const secret = process.env.APP_SECRET ?? process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET;
   if (!secret) throw new Error("Survey links need APP_SECRET, NEXTAUTH_SECRET or AUTH_SECRET");
-  return secret;
+  return crypto.createHmac("sha256", secret).update("nexaworks:survey-link:v2").digest();
 }
 
-export interface SurveyTokenPayload {
-  workspaceId: string;
-  surveyId: string;
-  accountId: string;
-  contactId: string | null;
-  issuedAt: number;
-}
+/** How long an emailed survey link stays valid (M12 A10). */
+export const SURVEY_LINK_DAYS = 30;
 
-export function createSurveyToken(payload: Omit<SurveyTokenPayload, "issuedAt">): string {
-  const full: SurveyTokenPayload = { ...payload, issuedAt: Date.now() };
-  const json = JSON.stringify(full);
-  const data = Buffer.from(json).toString("base64url");
-  const sig = crypto.createHmac("sha256", surveySecret()).update(data).digest("base64url");
-  return `${data}.${sig}`;
-}
+const surveyTokenPayload = z.object({
+  v: z.literal(2),
+  workspaceId: z.string().min(1).max(64),
+  surveyId: z.string().min(1).max(64),
+  accountId: z.string().min(1).max(64),
+  contactId: z.string().min(1).max(64).nullable(),
+  issuedAt: z.number().int().positive(),
+  exp: z.number().int().positive(),
+});
+export type SurveyTokenPayload = z.infer<typeof surveyTokenPayload>;
 
-export function verifySurveyToken(token: string): SurveyTokenPayload {
-  const parts = token.split(".");
-  if (parts.length !== 2) throw new Error("Invalid survey token format.");
-  const [data, sig] = parts;
-  const expectedSig = crypto.createHmac("sha256", surveySecret()).update(data!).digest("base64url");
-  if (sig !== expectedSig) throw new Error("Invalid survey token signature.");
-  try {
-    const json = Buffer.from(data!, "base64url").toString("utf8");
-    return JSON.parse(json) as SurveyTokenPayload;
-  } catch {
-    throw new Error("Invalid survey token payload.");
+export class SurveyTokenError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "SurveyTokenError";
   }
+}
+
+const sign = (data: string) => crypto.createHmac("sha256", surveyKey()).update(data).digest();
+
+export function createSurveyToken(
+  payload: Pick<SurveyTokenPayload, "workspaceId" | "surveyId" | "accountId" | "contactId">,
+  now: number = Date.now(),
+): string {
+  const full: SurveyTokenPayload = {
+    v: 2,
+    ...payload,
+    issuedAt: now,
+    exp: now + SURVEY_LINK_DAYS * 86_400_000,
+  };
+  const data = Buffer.from(JSON.stringify(full)).toString("base64url");
+  return `${data}.${sign(data).toString("base64url")}`;
+}
+
+/** Verifies signature (constant time), payload shape (Zod) and expiry; any failure is "invalid". */
+export function verifySurveyToken(token: string, now: number = Date.now()): SurveyTokenPayload {
+  if (typeof token !== "string" || token.length > 4096)
+    throw new SurveyTokenError("Invalid survey link.");
+  const parts = token.split(".");
+  if (parts.length !== 2 || !parts[0] || !parts[1])
+    throw new SurveyTokenError("Invalid survey link.");
+  const [data, sig] = parts as [string, string];
+  const want = sign(data);
+  const got = Buffer.from(sig, "base64url");
+  if (got.length !== want.length || !crypto.timingSafeEqual(got, want))
+    throw new SurveyTokenError("Invalid survey link.");
+  let parsed: SurveyTokenPayload;
+  try {
+    parsed = surveyTokenPayload.parse(JSON.parse(Buffer.from(data, "base64url").toString("utf8")));
+  } catch {
+    throw new SurveyTokenError("Invalid survey link.");
+  }
+  if (parsed.exp <= now) throw new SurveyTokenError("This survey link has expired.");
+  return parsed;
+}
+
+/** The public survey page's view, read through the token only (M12 A10). Null when invalid. */
+export async function getSurveyForToken(token: string, now: number = Date.now()) {
+  let payload: SurveyTokenPayload;
+  try {
+    payload = verifySurveyToken(token, now);
+  } catch {
+    return null;
+  }
+  return withSurveyTokenSession(payload.workspaceId, token, async (tx) => {
+    const survey = await tx.survey.findFirst({
+      where: { id: payload.surveyId, workspaceId: payload.workspaceId, status: "ACTIVE" },
+      select: { question: true, type: true },
+    });
+    if (!survey) return null;
+    const answered =
+      (await tx.surveyResponse.count({ where: { workspaceId: payload.workspaceId, token } })) > 0;
+    return { question: survey.question, type: survey.type, answered };
+  });
 }
 
 export const createSurveySchema = z.object({
@@ -147,7 +197,8 @@ export async function dispatchSurvey(
     contactId: contact.id,
   });
 
-  const portalSurveyUrl = `https://app.nexaworks.com/portal/surveys?token=${token}`;
+  // M12 A10 (M10 bug): the link is this deployment's public survey page, not a hard-coded host.
+  const portalSurveyUrl = `${env().APP_URL}/s/${token}`;
   const subject = `Feedback request: ${survey.question}`;
   const body = `Hi ${contact.name},\n\nWe would love your feedback: ${survey.question}\n\nPlease share your rating here:\n${portalSurveyUrl}\n\nThank you,\n${account.name} Team`;
 
@@ -187,8 +238,8 @@ export type SubmitResponseInput = z.input<typeof submitResponseSchema>;
 
 export async function submitSurveyResponse(raw: SubmitResponseInput, opts: { clock?: Clock } = {}) {
   const input = submitResponseSchema.parse(raw);
-  const payload = verifySurveyToken(input.token);
   const now = (opts.clock ?? businessClock)();
+  const payload = verifySurveyToken(input.token);
 
   // RLS tenant and survey-token settings are set by the helper (src/lib/db/token-access.ts).
   return withSurveyTokenSession(payload.workspaceId, input.token, async (tx) => {

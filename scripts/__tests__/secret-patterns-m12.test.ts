@@ -37,4 +37,23 @@ describe("secret patterns (M12)", () => {
     const line = join("postgres://app:", "s3cretPassw0rd", "@db.example.com:5432/x");
     expect(scanText("x.txt", line)).toEqual([{ file: "x.txt", line: 1, rule: "url-credentials" }]);
   });
+
+  it("flags a hard-coded secret constant (the M8 unsubscribe fallback shape)", () => {
+    const line = join("const UNSECURE_FALLBACK_", 'SECRET = "acme-', 'unsubscribe-secret-dev";');
+    expect(scanText("src/x.ts", line)).toEqual([
+      { file: "src/x.ts", line: 1, rule: "secret-constant-literal" },
+    ]);
+  });
+
+  it("does not flag a secret constant read from env or a $-placeholder", () => {
+    expect(scanText("src/x.ts", "const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;")).toEqual([]);
+    expect(scanText("src/x.ts", 'const FALLBACK_SECRET = "$REMOVED";')).toEqual([]);
+  });
+
+  it("the secret-constant rule applies to shipped code, not to test fixtures", () => {
+    const line = join("const SIGNING_", 'SECRET = "fixture-signing-', 'secret-1234";');
+    expect(scanText("src/modules/x/__tests__/x.test.ts", line)).toEqual([]);
+    expect(scanText("e2e/x.spec.ts", line)).toEqual([]);
+    expect(scanText("src/modules/x/service.ts", line)).toHaveLength(1);
+  });
 });
