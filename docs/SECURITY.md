@@ -56,7 +56,10 @@ report is a roadmap item; the date is to be set by the founder.
   production). Production-build behaviour in a real browser is still to be proven (B7).
 
 ## Rate limits
-- See M12 A9. (Session A9, in progress; this section is not yet written.)
+- **Repeated failed authentication:** 20 failures (401s) from one IP in 10 minutes refuse that IP (HTTP 429 with Retry-After) on every guarded public endpoint until the window ends — webhooks, Slack interactivity, the email webhook, the Usage API, uploads, sign-in, portal and survey links (D-176).
+- **Per-endpoint limits:** sign-in 10 per 10 minutes per IP and 5 per email; invitation accept 10 per 10 minutes per IP; webhooks 600 per minute per integration; portal 60 per minute per IP; survey answers 20 per 10 minutes per IP; Ask AI 30 questions per 10 minutes per member; uploads 30 per 10 minutes per member.
+- **Request bodies** are read under a streaming cap that stops as soon as the cap is passed, whatever the declared length says (webhooks 1 MB, Slack 200 KB, email webhook 256 KB, Usage API 1 MB, uploads 25 MB).
+- Each limit has a test that proves the refusal through the real route or action (`src/lib/http/__tests__`). The client IP comes from the host's edge header (Fly.io `Fly-Client-IP`) — to be confirmed on the deployed host (Session C).
 
 ## Audit log (Rule 5)
 - `AuditLog` is append-only at the database level; values that look like secrets are redacted before storage.
