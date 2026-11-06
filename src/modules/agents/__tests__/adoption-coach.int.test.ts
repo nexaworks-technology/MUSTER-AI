@@ -231,7 +231,9 @@ describe("Adoption Coach (M6 §5)", () => {
     const w = await world("CoachNum");
     const out = await run(
       w,
-      provider((x) => good(x, { body: "Hi Raj, 4 of 5 features are unused. Want help?" }), w).p,
+      // M12 (founder-approved): figures no bundle value can hold (counts ≤ 5, days ≤ 31); "4 of 5"
+      // coincided with real-date fields like "Nov 4, 2026" on some days.
+      provider((x) => good(x, { body: "Hi Raj, 37 of 41 features are unused. Want help?" }), w).p,
     );
     expect(out).toMatchObject({ status: "UNCITED" });
     expect(await w.db.approval.count()).toBe(0);
