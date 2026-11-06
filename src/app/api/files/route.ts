@@ -3,7 +3,7 @@ import { openUpload } from "@/lib/http/guard";
 import { MAX_UPLOAD_BYTES } from "@/config/uploads";
 import { ForbiddenError } from "@/lib/auth/permissions";
 import { getWorkspaceContext } from "@/lib/auth/session";
-import { logger } from "@/lib/logger";
+import { requestLogger } from "@/lib/logger/request";
 import { FileNotFoundError, storeUpload, UploadRejectedError } from "@/modules/files/service";
 
 /**
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
     ) {
       return json({ error: "That account or contract was not found." }, 404);
     }
-    logger.error({ err: error }, "upload failed");
+    (await requestLogger()).error({ err: error }, "upload failed");
     return json({ error: "The upload failed. Nothing was saved." }, 500);
   }
 }

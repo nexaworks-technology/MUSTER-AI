@@ -1,0 +1,63 @@
+ ❯ |app| src/lib/observability/__tests__/heartbeat.test.ts (0 test)
+ ❯ |app| src/lib/observability/__tests__/error-tracking.test.ts (0 test)
+ ❯ |app| src/lib/logger/__tests__/observability-m12.test.ts (0 test)
+ ❯ |app| src/lib/observability/__tests__/health.int.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |app| src/lib/logger/__tests__/observability-m12.test.ts [ src/lib/logger/__tests__/observability-m12.test.ts ]
+Error: Cannot find package '@/lib/observability/request-id' imported from /Users/sahil/customer sucesss platform/src/lib/logger/__tests__/observability-m12.test.ts
+ ❯ src/lib/logger/__tests__/observability-m12.test.ts:4:1
+      2| import { describe, expect, it, vi } from "vitest";
+      3| import { createLogger, jobLogger, runWithJobContext } from "../index";
+      4| import { REQUEST_ID_HEADER, resolveRequestId } from "@/lib/observabili…
+       | ^
+      5|
+      6| /** M12 B4 — structured logs carry a request id / job id and never car…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  |app| src/lib/observability/__tests__/error-tracking.test.ts [ src/lib/observability/__tests__/error-tracking.test.ts ]
+Error: Cannot find module '../error-tracking' imported from /Users/sahil/customer sucesss platform/src/lib/observability/__tests__/error-tracking.test.ts
+ ❯ src/lib/observability/__tests__/error-tracking.test.ts:2:1
+      1| import { describe, expect, it, vi } from "vitest";
+      2| import { buildEvent, captureError, captureErrorWith, parseDsn } from "…
+       | ^
+      3|
+      4| /** M12 B4 — Q-20 / Rule 8: the tracker gets the error's shape, never …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  |app| src/lib/observability/__tests__/health.int.test.ts [ src/lib/observability/__tests__/health.int.test.ts ]
+Error: Cannot find module '/src/lib/observability/heartbeat' imported from /Users/sahil/customer sucesss platform/src/lib/observability/__tests__/health.int.test.ts
+ ❯ src/lib/observability/__tests__/health.int.test.ts:6:1
+      4| import { queuePrefix } from "@/lib/jobs/queues";
+      5| import { closeRateLimit } from "@/lib/rate-limit";
+      6| import { workerHeartbeatKey } from "../heartbeat";
+       | ^
+      7|
+      8| vi.mock("server-only", () => ({}));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  |app| src/lib/observability/__tests__/heartbeat.test.ts [ src/lib/observability/__tests__/heartbeat.test.ts ]
+Error: Cannot find module '../heartbeat' imported from /Users/sahil/customer sucesss platform/src/lib/observability/__tests__/heartbeat.test.ts
+ ❯ src/lib/observability/__tests__/heartbeat.test.ts:2:1
+      1| import { describe, expect, it } from "vitest";
+      2| import { WORKER_STALE_AFTER_SECONDS, workerHeartbeatStatus } from "../…
+       | ^
+      3|
+      4| describe("workerHeartbeatStatus", () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  4 failed (4)
+      Tests  no tests
+   Start at  09:30:55
+   Duration  3.72s (transform 48%, setup 32%, worker 20%, environment 1%)
+
+[ELIFECYCLE] Test failed. See above for more details.
+
+--- second RED: src/modules/system/__tests__/jobs.test.ts (service not yet written) ---
+Error: Cannot find module '../service' imported from src/modules/system/__tests__/jobs.test.ts

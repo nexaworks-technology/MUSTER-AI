@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { openPublicRequest } from "@/lib/http/guard";
-import { logger } from "@/lib/logger";
+import { requestLogger } from "@/lib/logger/request";
 import { handleSlackInteraction } from "@/modules/integrations/service";
 
 /**
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
         : NextResponse.json(r.body, { status: r.status }),
     );
   } catch (error) {
-    logger.error(
+    (await requestLogger()).error(
       { err: error instanceof Error ? error.name : "unknown" },
       "slack interaction failed",
     );

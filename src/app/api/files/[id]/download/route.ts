@@ -1,6 +1,6 @@
 import { ForbiddenError } from "@/lib/auth/permissions";
 import { getWorkspaceContext } from "@/lib/auth/session";
-import { logger } from "@/lib/logger";
+import { requestLogger } from "@/lib/logger/request";
 import { FileNotFoundError, FileNotReadyError, readFile } from "@/modules/files/service";
 
 /**
@@ -25,7 +25,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     if (error instanceof FileNotFoundError || error instanceof ForbiddenError)
       return new Response("File not found.", { status: 404 });
     if (error instanceof FileNotReadyError) return new Response(error.message, { status: 409 });
-    logger.error({ err: error, fileId: id }, "download failed");
+    (await requestLogger()).error({ err: error, fileId: id }, "download failed");
     return new Response("The file could not be downloaded.", { status: 500 });
   }
 }

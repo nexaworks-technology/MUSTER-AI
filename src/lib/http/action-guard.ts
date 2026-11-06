@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { requestLogger } from "@/lib/logger/request";
 import type { RateLimit } from "@/lib/rate-limit";
 import { clientIp } from "./client-ip";
 import { guardAuthFailures, limitOrRefuse, noteAuthFailure } from "./guard";
@@ -18,8 +19,14 @@ export async function refuseAction(
   ip: string,
   keys: Array<[string, RateLimit]>,
 ): Promise<string | null> {
-  if (await guardAuthFailures(ip)) return TOO_MANY;
-  for (const [key, limit] of keys) if (await limitOrRefuse(key, limit)) return TOO_MANY;
+  const refuse = async (why: string): Promise<string> => {
+    // Ids and the rule name only: the IP and keys are not logged (they can hold an email).
+    (await requestLogger({ guard: why })).warn("action refused by rate limit");
+    return TOO_MANY;
+  };
+  if (await guardAuthFailures(ip)) return refuse("auth-failure-block");
+  for (const [key, limit] of keys)
+    if (await limitOrRefuse(key, limit)) return refuse(key.split(":")[0] ?? "limit");
   return null;
 }
 

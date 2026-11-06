@@ -114,6 +114,17 @@ export const envSchema = z
     CLAMD_SOCKET: optionalString,
     CLAMD_TIMEOUT_MS: z.coerce.number().int().min(100).max(600_000).default(30_000),
 
+    /**
+     * Optional error tracking (M12 B4, Q-20): a Sentry-compatible DSN (`https://<key>@<host>/<id>`).
+     * Unset = no tracking. Only error shape is ever sent (src/lib/observability/error-tracking.ts).
+     */
+    ERROR_TRACKING_DSN: optionalString.refine(
+      (v) => v === undefined || /^https?:\/\/[^/@\s]+@[^/\s]+\/(?:[^/\s]+\/)*\d+\/?$/.test(v),
+      "must look like https://<key>@<host>/<projectId>",
+    ),
+    /** Release / commit id shown by /api/health and attached to tracked errors. Optional. */
+    APP_RELEASE: optionalString,
+
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
   })
   .superRefine((env, ctx) => {

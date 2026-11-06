@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { transportHardeningOn } from "@/lib/config/deployment";
+import { REQUEST_ID_HEADER, resolveRequestId } from "@/lib/observability/request-id";
 import { buildSecurityHeaders, generateNonce } from "@/lib/security/headers";
 
 /**
@@ -14,8 +15,12 @@ export function proxy(request: NextRequest): NextResponse {
   });
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("Content-Security-Policy", headers["Content-Security-Policy"]!);
+  // M12 B4: one correlation id per request, for logs and error tracking; echoed to the caller.
+  const requestId = resolveRequestId(request.headers.get(REQUEST_ID_HEADER));
+  requestHeaders.set(REQUEST_ID_HEADER, requestId);
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   for (const [name, value] of Object.entries(headers)) response.headers.set(name, value);
+  response.headers.set(REQUEST_ID_HEADER, requestId);
   return response;
 }
 

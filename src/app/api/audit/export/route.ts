@@ -1,6 +1,6 @@
 import { ForbiddenError } from "@/lib/auth/permissions";
 import { getWorkspaceContext } from "@/lib/auth/session";
-import { logger } from "@/lib/logger";
+import { requestLogger } from "@/lib/logger/request";
 import { exportAudit } from "@/modules/audit/service";
 
 /**
@@ -27,7 +27,7 @@ export async function GET(req: Request) {
       return new Response("Only Admins can export the audit log.", { status: 403 });
     if (error instanceof Error && error.name === "ZodError")
       return new Response("Those filters are not valid.", { status: 400 });
-    logger.error({ err: error }, "audit export failed");
+    (await requestLogger()).error({ err: error }, "audit export failed");
     return new Response("The export failed.", { status: 500 });
   }
 }

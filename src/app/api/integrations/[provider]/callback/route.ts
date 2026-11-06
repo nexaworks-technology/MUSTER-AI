@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { ForbiddenError } from "@/lib/auth/permissions";
 import { getWorkspaceContext } from "@/lib/auth/session";
 import { env } from "@/lib/config/env";
-import { logger } from "@/lib/logger";
+import { requestLogger } from "@/lib/logger/request";
 import {
   completeOAuth,
   OAUTH_NONCE_COOKIE,
@@ -38,7 +38,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ provider
     return res;
   } catch (error) {
     if (error instanceof OAuthStateError) {
-      logger.warn(
+      (await requestLogger()).warn(
         { workspaceId: ctx.workspaceId, provider, reason: error.reason },
         "oauth state refused",
       );
@@ -46,7 +46,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ provider
     }
     if (error instanceof ForbiddenError)
       return new Response("Only Admins can connect integrations.", { status: 403 });
-    logger.warn(
+    (await requestLogger()).warn(
       {
         workspaceId: ctx.workspaceId,
         provider,

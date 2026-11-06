@@ -18,6 +18,7 @@ export const LIMITS = {
   surveyPerIp: { limit: 20, windowSeconds: 600 },
   askPerMember: { limit: 30, windowSeconds: 600 },
   uploadPerMember: { limit: 30, windowSeconds: 600 },
+  healthPerIp: { limit: 120, windowSeconds: 60 },
 } satisfies Record<string, RateLimit>;
 
 const refusal = (retryAfter: number) =>

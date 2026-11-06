@@ -1,5 +1,5 @@
 import { LIMITS, limitOrRefuse, openPublicRequest } from "@/lib/http/guard";
-import { logger } from "@/lib/logger";
+import { requestLogger } from "@/lib/logger/request";
 import { providerParam, receiveWebhook } from "@/modules/integrations/service";
 
 /**
@@ -33,7 +33,7 @@ export async function POST(
     });
     return open.done(new Response(res.body, { status: res.status }));
   } catch (error) {
-    logger.error(
+    (await requestLogger()).error(
       { provider, integrationId, err: error instanceof Error ? error.name : "unknown" },
       "webhook intake failed",
     );

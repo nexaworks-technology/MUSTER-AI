@@ -3,7 +3,7 @@ import { openUpload } from "@/lib/http/guard";
 import { MAX_UPLOAD_BYTES } from "@/config/uploads";
 import { ForbiddenError } from "@/lib/auth/permissions";
 import { getWorkspaceContext } from "@/lib/auth/session";
-import { logger } from "@/lib/logger";
+import { requestLogger } from "@/lib/logger/request";
 import {
   ImportError,
   startImport,
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       return json({ error: error.message }, 400);
     if (error instanceof ForbiddenError)
       return json({ error: "Only admins and CS leaders can import data." }, 403);
-    logger.error({ err: error }, "import upload failed");
+    (await requestLogger()).error({ err: error }, "import upload failed");
     return json({ error: "The upload failed. Nothing was imported." }, 500);
   }
 }

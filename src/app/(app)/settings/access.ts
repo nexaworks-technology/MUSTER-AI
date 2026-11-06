@@ -24,6 +24,11 @@ export const SETTINGS_TABS: ReadonlyArray<{ label: string; href: Route; permissi
     },
     { label: "AI team", href: "/settings/ai-team", permission: "audit:view" },
     { label: "Audit", href: "/settings/audit", permission: "audit:view" },
+    {
+      label: "System",
+      href: "/settings/system/jobs" as Route,
+      permission: "workspace:manageSettings",
+    },
     // Last on purpose: /settings opens the first allowed tab, which stays Users for Admins.
     { label: "Setup", href: "/setup", permission: "workspace:manageSettings" },
   ];

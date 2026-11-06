@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { ForbiddenError } from "@/lib/auth/permissions";
 import { getWorkspaceContext } from "@/lib/auth/session";
 import { env } from "@/lib/config/env";
-import { logger } from "@/lib/logger";
+import { requestLogger } from "@/lib/logger/request";
 import {
   ConnectError,
   fixtureMode,
@@ -40,7 +40,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ provide
     if (error instanceof ForbiddenError)
       return new Response("Only Admins can connect integrations.", { status: 403 });
     if (error instanceof ConnectError) return new Response(error.message, { status: 400 });
-    logger.error({ err: error instanceof Error ? error.name : "unknown" }, "oauth start failed");
+    (await requestLogger()).error(
+      { err: error instanceof Error ? error.name : "unknown" },
+      "oauth start failed",
+    );
     return new Response("The connection could not be started.", { status: 500 });
   }
 }

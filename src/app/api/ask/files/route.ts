@@ -3,7 +3,7 @@ import { openUpload } from "@/lib/http/guard";
 import { MAX_UPLOAD_BYTES } from "@/config/uploads";
 import { ForbiddenError } from "@/lib/auth/permissions";
 import { getWorkspaceContext } from "@/lib/auth/session";
-import { logger } from "@/lib/logger";
+import { requestLogger } from "@/lib/logger/request";
 import { attachFile } from "@/modules/ask-ai/service";
 import { FileNotFoundError, UploadRejectedError } from "@/modules/files/service";
 
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
       return json({ error: "You don't have permission to do that." }, 403);
     if (error instanceof FileNotFoundError)
       return json({ error: "That conversation was not found." }, 404);
-    logger.error({ err: error }, "ask attachment failed");
+    (await requestLogger()).error({ err: error }, "ask attachment failed");
     return json({ error: "The upload failed. Nothing was saved." }, 500);
   }
 }
