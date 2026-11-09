@@ -29,7 +29,7 @@ Scope discipline:
 - [x] M9: Conversations, Inbox, Promises & Sentiment (2026-11-06, finished with all four connectors, contract tests, and gate green; see `docs/milestones/M9-LOG.md`)
 - [x] M10: Meetings, QBR, Success Plans & Portal
 - [x] M11: Ask AI, Reports & Outcome Ledger
-- [ ] M12: Hardening & Deploy
+- [x] M12: Hardening & Deploy (2026-11-09, see `docs/milestones/M12-LOG.md`)
 
 ---
 

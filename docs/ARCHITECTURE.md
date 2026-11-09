@@ -204,7 +204,7 @@ Cross-cutting libraries (`src/lib/`): `auth`, `db` (scoped client, RLS), `ai` (p
 
 | Entity | Scope | Key fields | Relations | Indexes / constraints |
 |---|---|---|---|---|
-| Workspace | root | name, slug, timezone, baseCurrency, status, dataRetentionDays, deletionRequestedAt | has many Membership, everything [W] | unique slug |
+| Workspace | root | name, slug, timezone, baseCurrency, status, deletionRequestedAt | has many Membership, everything [W] | unique slug |
 | User | G | email, name, image, passwordHash? (credentials), emailVerified | Membership, AuthAccount, Session | unique email |
 | AuthAccount | G | Auth.js OAuth link (provider, providerAccountId, tokens encrypted) | User | unique (provider, providerAccountId). Named `AuthAccount` to avoid colliding with our `Account` (DECISIONS D-08) |
 | Session | G | sessionToken, userId, expires, activeWorkspaceId | User | unique sessionToken |
@@ -625,7 +625,7 @@ Permissions are checked server-side by `requirePermission(ctx, perm)`. Book scop
 | Campaign send | ✓ | ✓ | draft only | ✗ |
 | Reports (non-financial) | ✓ | ✓ | own book | ✓ |
 | Audit log view/export | ✓ | view | ✗ | ✗ |
-| **Revenue/financial views** (ARR, contract value, forecast, Revenue, money in ledger) | requires `canViewRevenue` flag on Membership, for any role. Admins have it by default |
+| **Revenue/financial views** (ARR, contract value, forecast, Revenue, money in ledger) | requires `canViewRevenue` flag on Membership, for any role. Never granted by default (off until granted per person for every role). |
 
 Without `canViewRevenue`, money fields are stripped server-side (projection helper `redactFinancials`) and replaced with "Restricted".
 

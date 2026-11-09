@@ -287,6 +287,176 @@ await expectNoBlockingViolations(page);
   - The third attempt found the form reset bug above.
   - No pre-existing assertion was edited except the founder-approved swap above.
 
+
+---
+
+## Session C — Fixes, live checks, close (2026-11-09)
+
+Founder go: C1–C3 on Sonnet/Opus; C4 PARKED (deploy-ready, awaiting founder server); C5 close on Opus.
+
+### C1 — Small fixes
+
+1. **Q-87 (Brief pilot metric):** Removed `briefPrepMedian` and `briefPrepP90` from `PILOT_FIGURE_KEYS` in `src/modules/reports/pilot-metrics.ts` and dropped the prep time card from `src/app/(app)/reports/pilot-metrics/page.tsx` so the report never displays a permanent "No data". Unit tests verified (`pilot-metrics.test.ts` 11/11).
+2. **Q-88 (Setup-wizard unowned accounts warning):** Added `unownedAccounts` count to `getSetupState` (`src/modules/setup/service.ts`). In `src/app/(app)/setup/page.tsx`, added a warning alert banner (`data-testid="unowned-accounts-warning"`) during the import review step when `unownedAccounts > 0`, informing admins that imported accounts without an assigned owner will not appear on CSM Today dashboards until assigned. Setup tests verified (`setup.int.test.ts` 6/6).
+3. **Q-89 (ARCHITECTURE §7.2 correction):** Corrected line 628 of `docs/ARCHITECTURE.md` to state that `revenue:view` is never granted by default to any role (Admins and CS Leaders can be explicitly granted it, but default is false).
+4. **Q-90 (Settings AI-team copy and M4 e2e):** Updated copy in `src/app/(app)/settings/ai-team/page.tsx` from "Low-risk actions send automatically..." to "Low-confidence actions require approval. Higher-confidence actions can auto-send when confidence thresholds are met." Updated pinned assertion in `e2e/m4-today-approvals.spec.ts:183` (`m4-today-approvals.spec.ts` 7/7 passed).
+5. **Q-91 (Purge orphaned users and drop unused column):** Updated `src/lib/db/deletion.ts` (`purgeWorkspace`): after deleting all workspace-scoped data and memberships, any user with zero remaining memberships in any workspace has their personal user record deleted/anonymised so no orphaned PII survives. Dropped unused column `Workspace.dataRetentionDays` from `prisma/schema.prisma` and applied Prisma migration `20261114000000_m12_drop_data_retention_days`. Verified `purge.int.test.ts` (7/7 passed).
+6. **BullMQ worker locks:** Added `lockDuration: 120_000` (2 minutes) to signals and health workers in `src/worker/index.ts` to prevent premature BullMQ lock release during heavy processing.
+7. **Tasks list truncation:** Added `data-testid="tasks-truncation-label"` rendering "Showing first 100" in `src/components/app/task-list.tsx` whenever `tasks.length >= 100`.
+
+### C2 — Addendum slices
+
+- **(a) `/meetings/qbr/new` wire-up:** Verified real creation flow and landing view (`/meetings/qbr/[id]`) with audited agent run, locked metrics with source links, and draft status (details and assertion diff in C0a).
+- **(b) Campaign stats:** Verified `getCampaign` counts both `FAILED` and `BOUNCED` recipients (`campaign-stats-m12.int.test.ts` 2/2 passed; details in C0b).
+
+### C3 — Live checks
+
+Using live Anthropic API key (`ANTHROPIC_API_KEY`) and active models `AI_MODEL_FAST=claude-haiku-4-5-20251001`, `AI_MODEL_STANDARD=claude-sonnet-4-6`, `AI_MODEL_DEEP=claude-sonnet-4-6`:
+
+1. **Extraction Golden Eval (`pnpm eval`):**
+   - Executed against live Claude model: **11/11 golden evaluation test cases passed**.
+2. **Leader Reporter Weekly Digest (`scripts/leader-digest.ts --workspace larkspur-demo`):**
+   - Executed live against `larkspur-demo`: **SUCCEEDED**.
+   - Created digest run `cmw947kjz000hrfzf4l2oo3ze` with 6,357 prompt tokens, 1,638 completion tokens, 27,183ms latency. Generated 2 emails and 2 notifications for workspace leaders with cited report sources and no hallucinated numbers.
+3. **Live Ask AI Evaluation (M11 Acceptance #16, `scripts/eval-ask-live.ts`):**
+   - Executed 4 live questions against `larkspur-demo` with live Claude: **4/4 SUCCEEDED**:
+     - *Q1 (Brightwell competitor mention):* Correctly cited exact quote: `"Our CFO asked us to look at Tallyfield before renewal."`
+     - *Q2 (Northgate Freight contract value):* Correctly refused to hallucinate: `"Northgate Freight does not appear in any of the records available to me. I cannot see a contract value for that account."`
+     - *Q3 (Fairhaven Dental Group contract value):* Correctly cited `hasContract is false` and confirmed no contract is on record.
+     - *Q4 (Proposal to move Brightwell to Renewal Risk play):* Generated pending approval proposal `cmw94fky2001brfabboaydcpc` (`ENROLL_PLAY`), correctly citing Brightwell's risk and excluding Northgate Freight.
+4. **Write-back safety:**
+   - `WRITE_BACK_LIVE` was maintained as `false` throughout testing.
+
+### C4 — Deploy slice: PARKED
+
+- **Status:** **Deploy-ready, awaiting founder server.**
+- **Missing inputs:**
+  1. Staging/production host server or Fly.io organization credentials (D5).
+  2. DNS hostname and SSL termination configuration (`APP_URL`).
+  3. External managed Postgres (v16) and Redis instances.
+  4. Production ClamAV (`clamd`) service host/port (Q-18).
+  5. S3/MinIO production credentials and bucket setup.
+
+### C5 — Close: Full Regression & Gate
+
+1. **Full Production-Build e2e Regression (`pnpm test:e2e`):**
+   - **Main Run (recorded AI on production build):** 96 passed, 70 skipped (mobile-only project filter) in 3.2m.
+   - **AI-off Run (unconfigured AI suites on production build):** 17 passed in 54.7s.
+   - **Total:** **113 e2e tests passed, 0 failed**.
+2. **Final Full `pnpm gate`:**
+   - `pnpm typecheck`: Clean (0 errors).
+   - `pnpm lint`: Clean (1,618 files scanned, 0 warnings, 0 secrets).
+   - `pnpm test`: **333 test files passed, 1 skipped (334 total); 2,938 tests passed, 5 skipped (2,943 total)** (duration: 390.51s).
+   - `pnpm build`: Clean production build (`next build` compiled all routes cleanly with Turbopack).
+   - Exit code: **0**.
+3. **M10-LOG Brightwell Erratum:**
+   - Confirmed present at `docs/milestones/M10-LOG.md:247` (Brightwell figures updated from 52.50 to 64.87, band WATCH, sentiment 40 per Q-86).
+
+### Pre-M12 test changes (complete milestone ledger)
+
+| File | Change | Authority / Reason |
+|---|---|---|
+| `src/modules/agents/__tests__/adoption-coach.int.test.ts` | Changed invented figure to `37 of 41` (date-independent); assertion unchanged | Founder approval 1 (calendar-date collision on Nov 4/5) |
+| `src/lib/auth/__tests__/rbac-matrix.test.ts` | DOC table covers `data:import` and `workspace:manageSettings`; `UNSPECIFIED_BY_DOC` removed | Founder approval 2 (ARCHITECTURE §7.2 alignment) |
+| `e2e/m4-today-approvals.spec.ts:183` | Updated stale copy assertion to match actual auto-send copy | Q-90 (Founder-approved in Session C) |
+| `e2e/m1-foundation.spec.ts:38,77` | Updated expected nav lists to grouped navigation order | Founder-approved nav order (Design 2.0 prototype) |
+| `src/modules/usage/__tests__/ingest-api.int.test.ts:512` | Added `"ProductEvent"` to `EVENT_MODELS` list | M12 B5 added `ProductEvent` model for pilot metrics |
+| `src/test/setup.ts` | Set `process.env.ANTHROPIC_API_KEY = ""` in test worker setup | Rule 6 / D-186 isolation: unit tests must never leak live outbound Anthropic calls |
+
+---
+
+## M12 Acceptance Checklist
+
+| # | Check | Status | Evidence |
+|---|---|---|---|
+| 1 | `pnpm gate` green | PASS | Clean exit (typecheck, lint, 2,938 tests, build); exit code 0 |
+| 2 | Full e2e regression green | PASS | `pnpm test:e2e`: 96 main + 17 AI-off = 113 passed, 0 failed |
+| 3 | Rules 1–9 have ≥ 1 automated check | PASS | `docs/RULES_CHECK_MAP.md` |
+| 4 | Tenant enumeration covers all entries | PASS | `tenant-enumeration.int.test.ts` (90 actions, 16 routes, 12 Ask AI tools) |
+| 5 | RBAC full matrix passes; revenue redacted | PASS | `rbac-matrix.test.ts` (100/100 passed) |
+| 6 | Export → re-import round-trip counts | PASS | `export-roundtrip.int.test.ts` (7/7 passed) |
+| 7 | Deletion purges all [W] rows after grace | PASS | `purge.int.test.ts` (7/7 passed) |
+| 8 | Security headers, rate limits, cookie flags | PASS | `security-headers.test.ts`, `endpoints-m12.int.test.ts`, `m12-production.spec.ts` |
+| 9 | No secrets in repo or logs | PASS | `scripts/check-secrets.ts` (1,618 files clean), `check-secrets-history.ts`, `log-redaction.test.ts` |
+| 10 | AI provider no-training terms recorded | PASS | `docs/SECURITY.md` (Q-19 record), `bundle-isolation.int.test.ts` |
+| 11 | 2,000-account nightly within budget | PASS | `perf-scale.ts` (checkpoints 0.1s, digest 0.5s, total nightly 25.5s) |
+| 12 | Query budgets hold on every list/360 screen | PASS | 19 `query-budget-m12.int.test.ts` suites (0 N+1 regressions) |
+| 13 | Restore drill done | PASS | Timestamps and verification recorded in Session B |
+| 14 | Staging deploy smoke passes | DEFERRED | Host awaiting founder server (Q-13); deploy-ready |
+| 15 | Prod boot refuses missing ClamAV / RecordedProvider | PASS | `boot.test.ts`, `m12-production.spec.ts` |
+| 16 | Pilot metrics captured and shown | PASS | `/reports/pilot-metrics` (`pilot-metrics.test.ts`, `pilot.int.test.ts`) |
+| 17 | Security overview makes no certificate claims | PASS | `docs/SECURITY.md` |
+| 18 | All M1–M11 deferrals resolved or moved | PASS | See Deferral sweep ledger |
+| 19 | axe passes on every screen in regression | PASS | All 10 `a11y-*.spec.ts` suites passed on desktop and mobile (375px) |
+| 20 | Live connector checks (M5, M6, M9) | DEFERRED | No sandbox credentials in `.env`; fixture-verified |
+| 21 | Live Resend send and webhook | DEFERRED | No `RESEND_API_KEY` in `.env`; fixture-verified |
+| 22 | Live write-back refused without env | PASS | `writeback.test.ts` (refused without `WRITE_BACK_LIVE=true`) |
+| 23 | Docker #16 compose up | PASS (2026-11-09, Addendum D1) | Full stack built and run in containers (Colima); see `docs/DOCKER-VERIFICATION.md`. Earlier native-runner result (D-31) superseded |
+| 24 | No scopedDb read in tenant transaction | PASS | `scoped.ts` client reuse on tenant transaction (D-174) |
+| 25 | Q-47 decided and recorded | PASS | Recorded AI on app server (D-182, D-186) |
+| 26 | Push subscriptions (Gmail/Graph) | DEFERRED | Polling architecture documented; needs sandbox OAuth credentials |
+| 27 | Q-81 UTC trigger clock migration | PASS | `contact_status_changed_at`, `ticket_escalated_at` UTC migration applied |
+| 28 | Git history scrub (Q-78) | PASS | Two passes via `git-filter-repo`; 0 leaked credentials in history |
+
+---
+
+## Honest Live-Check Ledger
+
+| Target | Status | Detail / Unlock |
+|---|---|---|
+| **Anthropic Claude (Ask AI, Digest, Evals)** | **PASS** | Live Anthropic API key verified in C3: 11/11 golden evals passed, live Leader Reporter digest succeeded (27s latency), 4/4 live Ask AI queries passed against `larkspur-demo`. |
+| Google OAuth Sign-in | DEFERRED | Requires `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` from Google Cloud Console. |
+| Resend Email Outbound & Delivery Webhooks | DEFERRED | Requires active `RESEND_API_KEY` and domain verification in Resend dashboard. |
+| HubSpot CRM Connector | DEFERRED | Requires HubSpot App developer test account with OAuth credentials or private app token. |
+| Salesforce CRM Connector | DEFERRED | Requires Salesforce sandbox Connected App credentials (Consumer Key/Secret). |
+| Stripe Payment Webhooks | DEFERRED | Requires Stripe test account `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`. |
+| Chargebee Connector | DEFERRED | Requires Chargebee test site API key. |
+| Slack Bot & Interactivity | DEFERRED | Requires Slack App bot token (`xoxb-`) and signing secret. |
+| Segment Ingest API | DEFERRED | Requires Segment source webhook destination with shared secret. |
+| Mixpanel & Amplitude Adapters | DEFERRED | Requires Mixpanel project token / Amplitude API key. |
+| Zendesk & Freshdesk Support Connectors | DEFERRED | Requires Zendesk/Freshdesk sandbox instances with API tokens and webhook secrets. |
+| Gmail & Microsoft Graph Email Pollers | DEFERRED | Requires Google Workspace Service Account / Azure App Registration with Mail.Read permissions. |
+| Calendar & Transcript Sync | DEFERRED | Requires Google Calendar / Microsoft Graph Calendar OAuth credentials. |
+| ClamAV Malware Scanner in Production | DEFERRED | Staging/production container orchestration awaiting host deployment. Local daemon verified. |
+
+---
+
+## Pilot Handover Pack
+
+### 1. What a Pilot Gets (In What Order)
+
+1. **Step 1: Setup Wizard (`/setup`)**
+   - Connect data sources (CSV upload or test integrations).
+   - Review imported accounts, tier distributions, and starter segments.
+   - Review proposed health score weights with deterministic back-test sentence against historical churn.
+   - Review recommended plays and activate day 1.
+2. **Step 2: Day-1 Today Dashboard (`/today`)**
+   - Immediate prioritized queue based on imported accounts: tasks due, open signals, pending approvals, and upcoming renewals.
+   - Restyled Design 2.0 dashboard cards, KPI summary, and monogram avatars.
+3. **Step 3: Core Workflow & Management**
+   - **Accounts & Account 360 (`/accounts`, `/accounts/[id]`):** Complete customer view across Overview, People, Usage, Tickets, Conversations, Billing, Tasks, and Notes.
+   - **Health & Signals (`/health`):** Six-pillar transparent scoring with clickable reason records; 15 configurable signal rules with false-alarm tracking.
+   - **Approvals (`/approvals`):** Single choke point for all AI and automated communications. Approve, edit-then-approve, or reject with notes.
+   - **Plays Engine (`/plays`):** Automated workflows with pre-publish safety checks and execution logs.
+4. **Step 4: Insights & Executive Reviews**
+   - **Executive Business Reviews (`/meetings/qbr/new`):** Generate QBR documents citing locked system metrics with Account 360 deep links and audited narratives.
+   - **Reports & Pilot Metrics (`/reports`, `/reports/pilot-metrics`):** 7 pre-built reports with dated snapshots; pilot telemetry dashboard tracking CSM adoption and flag resolution.
+   - **Ask AI (`/ask`):** Private assistant citing only permitted customer data with zero cross-tenant leakage.
+
+### 2. What is Still Fixture-Only (Honest Limits)
+
+- **External CRM/Support/Billing syncs:** The connectors run verified parsing and reconciliation algorithms against documented provider payload fixtures. Live sync requires pilot credentials.
+- **Outbound Email & Slack:** In test/staging environments, transports default to `log` mode. Live delivery requires Resend and Slack app credentials.
+- **Calendar real-time webhooks:** Polling sync is implemented; streaming push subscriptions (Pub/Sub / Graph change notifications) require cloud tenant setup.
+- **Write-back to CRMs:** Locked behind `WRITE_BACK_LIVE=false` by default; requires explicit admin opt-in and approval per field.
+
+### 3. Operational Runbooks & Environment Checklist
+
+- **Environment variables:** See `.env.example`. Required for production: `DATABASE_URL`, `DATABASE_URL_MIGRATE`, `REDIS_URL`, `S3_*`, `AUTH_SECRET`, `APP_URL`, `CLAMD_HOST`, `CLAMD_PORT`, `ANTHROPIC_API_KEY`.
+- **Nightly jobs:** Triggered via BullMQ repeatable jobs at 02:00 workspace local time, or run on demand via `pnpm jobs:nightly --workspace <slug>`.
+- **Weekly leader digest:** Dispatched Monday 08:00 workspace local time via `pnpm reports:digest --workspace <slug>`.
+- **Data export & purge:** Admins can request full JSON/ZIP export under Settings › Data; deletion requests initiate a 7-day grace period followed by automated purge on the database clock.
+
 ## Addendum D1 — Docker verification, M1 acceptance #16 closed (2026-11-09)
 
 **M1 acceptance #16 ("Docker: compose up; CLAUDE.md Commands true") — PASS**, with seven boot fixes. Full record: [`docs/DOCKER-VERIFICATION.md`](../DOCKER-VERIFICATION.md).

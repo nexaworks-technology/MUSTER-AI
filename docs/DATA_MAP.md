@@ -147,8 +147,8 @@ puts in or connects. Personal data in the system mostly belongs to the customer'
 | OAuth connect state | 10 minutes | `src/modules/integrations/oauth.ts` |
 | Usage API events older than 35 days | Rejected on receipt | `src/modules/integrations/usage-api/receive.ts` |
 
-`Workspace.dataRetentionDays` exists in the schema, and no code reads it (searched `src`). It does
-not change any retention today.
+Per Q-91, the unused `Workspace.dataRetentionDays` schema column was removed in migration
+`20261114000000_m12_drop_data_retention_days`. All retention periods remain explicit per table/item above.
 
 ## 5. Export and deletion
 

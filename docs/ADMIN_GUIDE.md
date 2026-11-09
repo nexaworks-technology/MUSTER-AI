@@ -91,8 +91,7 @@ Settings > AI team (Admin and CS Leader can view; only an Admin has the on/off s
   nothing is shown in their place.
 - Customer-facing drafts always go to Approvals. A play can send on its own only if an Admin enables auto-send for it
   and all the guards pass. Sensitive topics never send on their own.
-- Note: the page's own sentence says auto-send is off "until plays arrive (M8)". Plays have shipped.
-  The sentence is out of date; ignore it.
+- Note: per Q-90 the page reflects the current rule: "Agents never send on their own: customer-facing drafts always go to Approvals. Only an automated play step can auto-send when enabled by an Admin and all guards pass."
 
 ## 6. Audit log and export
 
@@ -157,9 +156,9 @@ It is limited to 120 requests per minute per IP.
 |---|---|
 | Opens | Times a person opened Today or Approvals, counted at most once every 30 minutes. |
 | Flag acceptance | Flags a person acknowledged or approved a draft for, over those plus flags they marked false alarm. One verdict per flag. "No data" when there are none, never 0. |
-| Prep time (median, p90) | Minutes from a QBR or brief being generated to it being shared. A QBR counts as shared when it is locked for the customer portal. Credited to the person who generated it, in the week it was shared. |
+| Prep time (median, p90) | Minutes from a QBR being generated to it being shared (locked for the customer portal). Credited to the person who generated it, in the week it was shared. |
 
-Briefs have no share step in the product yet, so brief prep time shows "No data" (Q-87).
+Per Q-87, brief prep time was dropped as briefs have no customer-sharing step in the product; only measurable QBR prep time is reported.
 The events come from the `ProductEvent` table (ids and small values only; D-183).
 
 ## 11. Rate limits you may hit
