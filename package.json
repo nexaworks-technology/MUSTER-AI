@@ -31,7 +31,9 @@
     "reports:digest": "tsx --env-file=.env scripts/leader-digest.ts",
     "agents:extract": "tsx --env-file=.env scripts/agents-extract.ts",
     "demo:webhook": "tsx --env-file=.env scripts/demo-webhook.ts",
-    "demo:usage": "tsx --env-file=.env scripts/demo-usage.ts"
+    "demo:usage": "tsx --env-file=.env scripts/demo-usage.ts",
+    "healthcheck": "tsx --env-file=.env scripts/healthcheck.ts",
+    "deploy:release": "bash scripts/deploy-release.sh"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.3.0",
