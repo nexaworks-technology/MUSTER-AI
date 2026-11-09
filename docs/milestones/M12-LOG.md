@@ -8,7 +8,7 @@ Source: every `docs/milestones/M1-LOG.md` through `M11-LOG.md`, cross-read with 
 
 | # | Item | Origin (milestone + log section) | Target in M12 | Status |
 |---|---|---|---|---|
-| 1 | Docker #16: run `docker compose up -d postgres redis minio`, record output in M1-LOG; verify the unverified compose file, MinIO image tag (`chainguard/minio:latest`), init script, Postgres 14 vs 16 drift (D-31) | M1 (Acceptance #16, Deferrals, Known risks 1 and 5); carried in M2-M11 logs; M11 hand-off 2 | Session C, C2 (on a host with Docker; M12 §6 #23). Stays PARTIAL with reason if no Docker | open |
+| 1 | Docker #16: run `docker compose up -d postgres redis minio`, record output in M1-LOG; verify the unverified compose file, MinIO image tag (`chainguard/minio:latest`), init script, Postgres 14 vs 16 drift (D-31) | M1 (Acceptance #16, Deferrals, Known risks 1 and 5); carried in M2-M11 logs; M11 hand-off 2 | Session C, C2 (on a host with Docker; M12 §6 #23). Stays PARTIAL with reason if no Docker | **CLOSED 2026-11-09** (see Addendum D1 and `docs/DOCKER-VERIFICATION.md`) |
 | 2 | Live Google sign-in check (Auth.js Google provider) | M1 Deferrals | Session C, C3 (needs Google OAuth credentials) | open |
 | 3 | Live Resend send through `outbound.dispatch` to a test address, plus delivery webhook (Svix/Resend signature) verified live | M1 Deferrals; M4 Deferrals; M8 acceptance #17 and Homing of Deferrals | Session C, C3 (M12 §6 #21); DEFERRED if no `RESEND_API_KEY` | open |
 | 4 | Server Action / Route Handler / Ask tool tenant enumeration test (Q-50); M11 inventory: `askAction`, `decideCardAction`, `generateReportAction`, `tuneRuleAction`, `killRuleAction`, `saveVoiceDictationAction`, `saveWorkspaceProfileAction`, `POST /api/ask/files`, the 12 Ask AI tools, plus portal, webhook, Slack interactivity, usage API routes | M1 Deferrals; M5 Deferrals (Q-50); M11 hand-off 8 | Session A, A6 | open |
@@ -286,3 +286,21 @@ await expectNoBlockingViolations(page);
   - The first two attempts failed because of my new test: a route-announcer `role="alert"`, and a URL pattern that also matched `/new`.
   - The third attempt found the form reset bug above.
   - No pre-existing assertion was edited except the founder-approved swap above.
+
+## Addendum D1 — Docker verification, M1 acceptance #16 closed (2026-11-09)
+
+**M1 acceptance #16 ("Docker: compose up; CLAUDE.md Commands true") — PASS**, with seven boot fixes. Full record: [`docs/DOCKER-VERIFICATION.md`](../DOCKER-VERIFICATION.md).
+
+| Check | Result | Evidence |
+|---|---|---|
+| `docker compose build` (web + worker) | PASS | exit 0 after fixes 1–2 and 4–5, 7 (pnpm allowlist, 4 GB Node heap, bash, tsconfig, prompts) |
+| Fresh volumes, `up -d`, all services | PASS | postgres, redis healthy; clamav healthy after ~60 s; web, worker, minio up |
+| `pnpm deploy:release` from zero | PASS | 41 migrations applied, grants applied. Its built-in healthcheck failed once on a cold ClamAV, passed on re-run |
+| `pnpm healthcheck` probes | PASS | DB, Redis, ClamAV PONG, worker heartbeat, web `/api/health` 200 |
+| Browser smoke, production CSP | PASS | sign-in → Today, Accounts (72 accounts), public survey submitted; nonce + `strict-dynamic` CSP, HSTS, `X-Frame-Options: DENY`; no CSP violations |
+| Backup drill | PASS | `pg_dump -Fc` (2.9 MB), volume wiped, `pg_restore --exit-on-error` exit 0; all tables identical (AgentRun 17 original rows kept, +53 created by the worker after restart); healthcheck green; browser session still valid |
+| `docker compose down` | PASS | no stack containers or network left |
+
+**What broke and what changed** (no test was edited): `Dockerfile` — copy `pnpm-workspace.yaml`, set `NODE_OPTIONS=--max-old-space-size=4096` for the build, `apk add bash`, copy `tsconfig.json`, copy `prompts/`. `docker-compose.yml` — `platform: linux/amd64` on `clamav` (image is amd64-only), pass `FIELD_ENCRYPTION_KEY`, `EMAIL_TRANSPORT` (default `resend`), `EMAIL_FROM`, `RESEND_API_KEY`, `SLACK_DELIVERY` (default `live`) to web and worker. Production guards in `src/lib/config/env.ts` were not loosened.
+
+**Caveats:** run on Colima (arm64, not Docker Desktop) with host ports remapped because native services were running; Resend values were placeholders and AI was off, so live Resend (sweep #21) and live-model checks (#15) remain DEFERRED. The Dockerfile, `.dockerignore` and compose changes are uncommitted. **Open notes** (not fixed): `pnpm healthcheck` needs `.env` so it cannot run in the image (use `pnpm exec tsx scripts/healthcheck.ts`); clamd readiness is not awaited before `deploy:release`; the worker crash-loops until migrations exist; pnpm is downloaded at container start.

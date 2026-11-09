@@ -1,0 +1,16 @@
+.git
+.github
+node_modules
+.next
+.next-e2e
+.next-e2e-aioff
+.dev-mail
+.dev-recordings
+m12-evidence
+docs/milestones/design2-*
+*.tsbuildinfo
+*.log
+.DS_Store
+.env
+.env.local
+.env.*.local
