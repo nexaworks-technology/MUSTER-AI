@@ -44,8 +44,8 @@ export default async function AiTeamPage() {
         </p>
       ) : null}
       <p className="text-muted-foreground text-sm">
-        Auto-send is off for every agent until plays arrive (M8): every customer email waits in
-        Approvals.
+        Agents never send on their own: customer-facing drafts always go to Approvals. Only an automated
+        play step can auto-send when enabled by an Admin and all guards pass.
       </p>
       {team.map((a) => (
         <section

@@ -1,7 +1,9 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { NativeSelect } from "@/components/app/native-select";
+import { DataListCard } from "@/components/app/data-list";
 import { OpportunityCard } from "@/components/expansion/opportunity";
 import { Button } from "@/components/ui/button";
 import { can } from "@/lib/auth/permissions";
@@ -57,25 +59,28 @@ export default async function ExpansionPage({ searchParams }: { searchParams: Se
           {error}
         </p>
       ) : null}
-      <form method="get" className="surface flex flex-wrap items-end gap-3 p-4 text-sm">
-        <label className="flex flex-col gap-1">
-          Status
-          <NativeSelect name="status" defaultValue={list.status}>
-            <option value="OPEN">Open and in progress</option>
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {STATUS_WORDS[s]}
-              </option>
-            ))}
-            <option value="ALL">All</option>
-          </NativeSelect>
-        </label>
-        <Button type="submit" variant="outline">
-          Filter
-        </Button>
-      </form>
+      <DataListCard className="p-3">
+        <form method="get" className="flex flex-wrap items-center gap-3 text-xs sm:text-sm">
+          <label className="flex items-center gap-2">
+            <span className="text-muted-foreground font-medium">Status</span>
+            <NativeSelect name="status" defaultValue={list.status} className="h-8 text-xs">
+              <option value="OPEN">Open and in progress</option>
+              {STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {STATUS_WORDS[s]}
+                </option>
+              ))}
+              <option value="ALL">All</option>
+            </NativeSelect>
+          </label>
+          <Button type="submit" variant="outline" size="sm" className="h-8">
+            Filter
+          </Button>
+        </form>
+      </DataListCard>
+
       {list.rows.length === 0 ? (
-        <p className="text-sm">No expansion opportunities with this status.</p>
+        <p className="text-sm text-muted-foreground">No expansion opportunities with this status.</p>
       ) : (
         <div className="space-y-3">
           {list.rows.map((r) => (
@@ -91,20 +96,26 @@ export default async function ExpansionPage({ searchParams }: { searchParams: Se
         </div>
       )}
       {list.pages > 1 ? (
-        <nav aria-label="Pages" className="flex gap-3 text-sm">
-          {list.page > 1 ? (
-            <Link href={href(list.page - 1)} className="text-primary underline underline-offset-2">
-              Previous
-            </Link>
-          ) : null}
-          <span>
+        <nav aria-label="Pages" className="flex items-center justify-between text-xs sm:text-sm font-medium">
+          <div>
+            {list.page > 1 ? (
+              <Link href={href(list.page - 1)} className="inline-flex items-center gap-1.5 text-primary hover:underline">
+                <ArrowLeft className="size-3.5" />
+                Previous
+              </Link>
+            ) : null}
+          </div>
+          <span className="text-muted-foreground text-xs">
             Page {list.page} of {list.pages}
           </span>
-          {list.page < list.pages ? (
-            <Link href={href(list.page + 1)} className="text-primary underline underline-offset-2">
-              Next
-            </Link>
-          ) : null}
+          <div>
+            {list.page < list.pages ? (
+              <Link href={href(list.page + 1)} className="inline-flex items-center gap-1.5 text-primary hover:underline">
+                Next
+                <ArrowRight className="size-3.5" />
+              </Link>
+            ) : null}
+          </div>
         </nav>
       ) : null}
     </div>

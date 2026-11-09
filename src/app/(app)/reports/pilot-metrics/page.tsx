@@ -25,8 +25,6 @@ const COLUMNS: Array<{ key: PilotFigureKey; head: string }> = [
   { key: "flagAcceptance", head: "Flag acceptance" },
   { key: "qbrPrepMedian", head: "QBR prep, median" },
   { key: "qbrPrepP90", head: "QBR prep, p90" },
-  { key: "briefPrepMedian", head: "Brief prep, median" },
-  { key: "briefPrepP90", head: "Brief prep, p90" },
 ];
 
 const text = (f: PilotFigure) =>
@@ -116,10 +114,9 @@ export default async function PilotMetricsPage({ searchParams }: { searchParams:
             over those plus flags they marked false alarm. One verdict per flag.
           </li>
           <li>
-            <strong>Prep time:</strong> minutes from a QBR or brief being generated to it being
+            <strong>Prep time:</strong> minutes from a QBR being generated to it being
             shared (a QBR is shared when it is locked for the customer portal), credited to the
-            person who generated it and to the week it was shared. Briefs have no share step in the
-            product yet, so brief prep time stays empty until one exists.
+            person who generated it and to the week it was shared.
           </li>
         </ul>
       </section>

@@ -31,10 +31,33 @@ test.describe("M1 foundation", () => {
     await expect(page.getByRole("heading", { name: "Larkspur Analytics" })).toBeVisible();
     await expect(page.getByTestId("role")).toHaveText("Admin");
     const nav = page.getByRole("navigation", { name: "Main" });
-    // Approved C1 change (M2): exact match against the nav that features.ts declares for this
-    // role, so the test keeps proving nav == features.ts as screens ship. Still an exact list.
-    const navFor = (role: "ADMIN" | "CSM") =>
-      visibleNav({ role, canViewRevenue: role === "ADMIN", bookScope: "OWN" }).map((n) => n.label);
+    // Design 2.0 grouped order (founder-approved): Work, Portfolio, Automation, Insight, Settings.
+    const GROUPED_ORDER = [
+      "Home",
+      "Today",
+      "Approvals",
+      "Tasks",
+      "Accounts",
+      "Health",
+      "Onboarding",
+      "Renewals",
+      "Expansion",
+      "Revenue",
+      "Plays",
+      "Inbox",
+      "Promises",
+      "Reports",
+      "Ask AI",
+      "Settings",
+    ];
+    const navFor = (role: "ADMIN" | "CSM") => {
+      const allowed = new Set(
+        visibleNav({ role, canViewRevenue: role === "ADMIN", bookScope: "OWN" }).map(
+          (n) => n.label,
+        ),
+      );
+      return GROUPED_ORDER.filter((label) => allowed.has(label));
+    };
     await expect(nav.getByRole("link")).toHaveText(navFor("ADMIN"));
 
     // 4. Five seeded members; revenue access only for Priya and Dana.

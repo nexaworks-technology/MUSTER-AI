@@ -28,7 +28,7 @@ export default async function AskPage() {
           can answer it until an Admin configures one.
         </p>
       ) : null}
-      <div className="surface p-4">
+      <div className="surface p-5 rounded-xl border border-border/80 shadow-xs">
         <AskBox
           voiceEnabled={settings.ask.voiceDictation}
           disclosure={VOICE_DICTATION_DISCLOSURE}

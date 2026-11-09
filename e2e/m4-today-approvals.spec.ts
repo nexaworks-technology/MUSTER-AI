@@ -180,7 +180,7 @@ test.describe("M4 Today, approvals and the AI team", () => {
   }) => {
     await signIn(page, "admin@larkspur.test");
     await page.goto("/settings/ai-team");
-    await expect(page.getByText("Auto-send is off for every agent")).toBeVisible();
+    await expect(page.getByText("Agents never send on their own")).toBeVisible();
     await expect(page.getByRole("button", { name: /auto-send/i })).toHaveCount(0);
     const ha = page.getByTestId("agent-health-analyst");
     await ha

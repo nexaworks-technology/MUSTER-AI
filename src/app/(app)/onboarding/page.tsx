@@ -1,7 +1,10 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import { NativeSelect } from "@/components/app/native-select";
+import { DataListAvatar, DataListCard } from "@/components/app/data-list";
+import { StatusPill } from "@/components/app/status-pill";
 import { Button } from "@/components/ui/button";
 import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
@@ -60,98 +63,130 @@ export default async function OnboardingPage({ searchParams }: { searchParams: S
           accounts come first.
         </p>
       </div>
-      <form method="get" className="surface flex flex-wrap items-end gap-3 p-4 text-sm">
-        <label className="flex flex-col gap-1">
-          Tier
-          <NativeSelect name="tier" defaultValue={tier ?? ""}>
-            <option value="">All tiers</option>
-            {Object.entries(TIERS).map(([v, l]) => (
-              <option key={v} value={v}>
-                {l}
-              </option>
-            ))}
-          </NativeSelect>
-        </label>
-        {members.length ? (
-          <label className="flex flex-col gap-1">
-            Owner
-            <NativeSelect name="owner" defaultValue={owner ?? ""}>
-              <option value="">Everyone</option>
-              {members
-                .filter((m) => m.status === "ACTIVE")
-                .map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.user.name ?? m.user.email}
-                  </option>
-                ))}
+      <DataListCard className="p-3">
+        <form method="get" className="flex flex-wrap items-center gap-3 text-xs sm:text-sm">
+          <label className="flex items-center gap-2">
+            <span className="text-muted-foreground font-medium">Tier</span>
+            <NativeSelect name="tier" defaultValue={tier ?? ""} className="h-8 text-xs">
+              <option value="">All tiers</option>
+              {Object.entries(TIERS).map(([v, l]) => (
+                <option key={v} value={v}>
+                  {l}
+                </option>
+              ))}
             </NativeSelect>
           </label>
-        ) : null}
-        <Button type="submit" variant="outline">
-          Filter
-        </Button>
-      </form>
+          {members.length ? (
+            <label className="flex items-center gap-2">
+              <span className="text-muted-foreground font-medium">Owner</span>
+              <NativeSelect name="owner" defaultValue={owner ?? ""} className="h-8 text-xs">
+                <option value="">Everyone</option>
+                {members
+                  .filter((m) => m.status === "ACTIVE")
+                  .map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.user.name ?? m.user.email}
+                    </option>
+                  ))}
+              </NativeSelect>
+            </label>
+          ) : null}
+          <Button type="submit" variant="outline" size="sm" className="h-8">
+            Filter
+          </Button>
+        </form>
+      </DataListCard>
 
       {list.rows.length === 0 ? (
-        <p className="text-sm">
+        <p className="text-sm text-muted-foreground">
           No accounts are onboarding{tier || owner ? " with these filters" : " in your book"}.
         </p>
       ) : (
-        <div className="surface overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <caption className="sr-only">Accounts onboarding</caption>
-            <thead>
-              <tr>
-                <th scope="col">Account</th>
-                <th scope="col">Status</th>
-                <th scope="col">Likely blocker</th>
-                <th scope="col">Time to value</th>
-                <th scope="col">Owner</th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.rows.map((r) => (
-                <tr
-                  key={r.planId}
-
-                  data-testid={`onboarding-row-${r.account.name}`}
-                >
-                  <td>
-                    <Link
-                      href={`/accounts/${r.account.id}/onboarding` as Route}
-                      className="text-primary underline underline-offset-2"
-                    >
-                      {r.account.name}
-                    </Link>
-                    <span className="text-muted-foreground block text-xs">
-                      {TIERS[r.account.tier as keyof typeof TIERS]} · day {r.day}
-                    </span>
-                  </td>
-                  <td>{r.status === "STALLED" ? "Stalled" : "On track"}</td>
-                  <td>{r.blocker ?? "—"}</td>
-                  <td>{ttvText(r)}</td>
-                  <td>{r.owner ?? "No owner"}</td>
+        <DataListCard>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <caption className="sr-only">Accounts onboarding</caption>
+              <thead>
+                <tr className="border-border bg-muted/60 text-muted-foreground border-b text-[11px] font-semibold tracking-wider uppercase sticky top-0 z-10 backdrop-blur-sm">
+                  <th scope="col" className="px-4 py-3">Account</th>
+                  <th scope="col" className="px-4 py-3">Status</th>
+                  <th scope="col" className="px-4 py-3">Likely blocker</th>
+                  <th scope="col" className="px-4 py-3">Time to value</th>
+                  <th scope="col" className="px-4 py-3">Owner</th>
+                  <th scope="col" className="px-4 py-3 w-16 sr-only">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-border divide-y">
+                {list.rows.map((r) => (
+                  <tr
+                    key={r.planId}
+                    className="group hover:bg-muted/40 transition-colors"
+                    data-testid={`onboarding-row-${r.account.name}`}
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <DataListAvatar name={r.account.name} size="sm" className="shrink-0" />
+                        <div>
+                          <Link
+                            href={`/accounts/${r.account.id}/onboarding` as Route}
+                            className="font-medium text-foreground hover:underline"
+                          >
+                            {r.account.name}
+                          </Link>
+                          <span className="text-muted-foreground block text-xs">
+                            {TIERS[r.account.tier as keyof typeof TIERS]} · day {r.day}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <StatusPill
+                        variant={r.status === "STALLED" ? "danger" : "success"}
+                        size="sm"
+                      >
+                        {r.status === "STALLED" ? "Stalled" : "On track"}
+                      </StatusPill>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground text-xs leading-relaxed max-w-xs">{r.blocker ?? "—"}</td>
+                    <td className="px-4 py-3 text-xs leading-relaxed">{ttvText(r)}</td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">{r.owner ?? "No owner"}</td>
+                    <td className="px-4 py-3 text-right">
+                      <Link
+                        href={`/accounts/${r.account.id}/onboarding` as Route}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-primary hover:text-primary/80 inline-flex items-center text-xs font-medium"
+                      >
+                        <span>Open</span>
+                        <ArrowUpRight className="size-3.5 ml-0.5" />
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </DataListCard>
       )}
       {list.pages > 1 ? (
-        <nav aria-label="Pages" className="flex gap-3 text-sm">
-          {list.page > 1 ? (
-            <Link href={href(list.page - 1)} className="text-primary underline underline-offset-2">
-              Previous
-            </Link>
-          ) : null}
-          <span>
+        <nav aria-label="Pages" className="flex items-center justify-between text-xs sm:text-sm font-medium">
+          <div>
+            {list.page > 1 ? (
+              <Link href={href(list.page - 1)} className="inline-flex items-center gap-1.5 text-primary hover:underline">
+                <ArrowLeft className="size-3.5" />
+                Previous
+              </Link>
+            ) : null}
+          </div>
+          <span className="text-muted-foreground text-xs">
             Page {list.page} of {list.pages}
           </span>
-          {list.page < list.pages ? (
-            <Link href={href(list.page + 1)} className="text-primary underline underline-offset-2">
-              Next
-            </Link>
-          ) : null}
+          <div>
+            {list.page < list.pages ? (
+              <Link href={href(list.page + 1)} className="inline-flex items-center gap-1.5 text-primary hover:underline">
+                Next
+                <ArrowRight className="size-3.5" />
+              </Link>
+            ) : null}
+          </div>
         </nav>
       ) : null}
     </div>

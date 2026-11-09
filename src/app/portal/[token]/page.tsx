@@ -1,17 +1,11 @@
 import type { Metadata } from "next";
 import { FileText, LinkIcon } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { StatusPill } from "@/components/app/status-pill";
 import { noteAuthFailure, openTokenPage, TOO_MANY } from "@/lib/http/action-guard";
 import { LIMITS } from "@/lib/http/guard";
 import { getPortalView, PortalAuthError } from "@/modules/portal/service";
 
 export const metadata: Metadata = { title: "Customer Portal" };
-
-const PLAN_STATUS_VARIANT: Record<string, "neutral" | "accent" | "success"> = {
-  ACTIVE: "success",
-  COMPLETED: "accent",
-};
 
 export default async function CustomerPortalPage({
   params,
@@ -37,21 +31,21 @@ export default async function CustomerPortalPage({
   if (authError || !portalData) {
     return (
       <main className="mx-auto flex min-h-screen max-w-xl items-center px-4 py-10 md:py-16">
-        <Card
-          className="w-full items-center gap-3 px-6 py-10 text-center md:px-10 md:py-12"
+        <div
+          className="surface-card rounded-2xl border border-border/80 w-full flex flex-col items-center gap-3 px-6 py-10 text-center md:px-10 md:py-12 shadow-sm"
           data-testid="portal-auth-error"
         >
           <span
-            className="bg-muted text-muted-foreground flex size-12 items-center justify-center rounded-full"
+            className="bg-muted/80 text-muted-foreground flex size-12 items-center justify-center rounded-xl border border-border/60"
             aria-hidden="true"
           >
             <LinkIcon className="size-5" />
           </span>
-          <h1 className="text-xl font-semibold tracking-tight">Portal Access</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">Portal Access</h1>
           <p className="text-muted-foreground max-w-sm text-sm leading-relaxed">
             {authError ?? "Unable to load portal."}
           </p>
-        </Card>
+        </div>
       </main>
     );
   }
@@ -63,8 +57,8 @@ export default async function CustomerPortalPage({
       className="mx-auto max-w-2xl space-y-8 px-4 py-8 md:space-y-10 md:py-14"
       data-testid="portal-container"
     >
-      <header className="border-b pb-6">
-        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{account.name} Portal</h1>
+      <header className="border-b border-border/80 pb-6">
+        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl text-foreground">{account.name} Portal</h1>
         <p className="text-muted-foreground mt-1.5 text-sm">
           Welcome back, {contact.name ?? contact.email}
         </p>
@@ -75,22 +69,22 @@ export default async function CustomerPortalPage({
           Shared Success Plans
         </h2>
         {successPlans.length === 0 ? (
-          <Card className="px-5 py-6">
+          <div className="surface-card rounded-xl border border-border/80 px-5 py-6 shadow-xs">
             <p className="text-muted-foreground text-sm">No shared plans at this time.</p>
-          </Card>
+          </div>
         ) : (
           <div className="space-y-3">
             {successPlans.map((plan) => (
-              <Card
+              <div
                 key={plan.id}
-                className="flex-col items-start gap-2 px-5 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                className="surface-card rounded-xl border border-border/80 flex flex-col items-start gap-2 p-5 sm:flex-row sm:items-center sm:justify-between sm:gap-4 shadow-xs hover:shadow-sm transition-all"
                 data-testid="portal-plan"
               >
-                <h3 className="font-medium">{plan.title}</h3>
-                <Badge variant={PLAN_STATUS_VARIANT[plan.status] ?? "neutral"}>
-                  <span className="tracking-wide uppercase">{plan.status}</span>
-                </Badge>
-              </Card>
+                <h3 className="font-medium text-foreground">{plan.title}</h3>
+                <StatusPill variant={plan.status === "ACTIVE" ? "success" : "accent"} size="sm">
+                  <span className="tracking-wide uppercase text-[10px]">{plan.status}</span>
+                </StatusPill>
+              </div>
             ))}
           </div>
         )}
@@ -101,30 +95,30 @@ export default async function CustomerPortalPage({
           Business Reviews & Reports
         </h2>
         {qbrDocuments.length === 0 ? (
-          <Card className="px-5 py-6">
+          <div className="surface-card rounded-xl border border-border/80 px-5 py-6 shadow-xs">
             <p className="text-muted-foreground text-sm">No reports shared yet.</p>
-          </Card>
+          </div>
         ) : (
           <div className="space-y-3">
             {qbrDocuments.map((doc) => (
-              <Card
+              <div
                 key={doc.id}
-                className="flex-row items-start gap-3 px-5"
+                className="surface-card rounded-xl border border-border/80 flex flex-row items-start gap-3.5 p-5 shadow-xs hover:shadow-sm transition-all"
                 data-testid="portal-doc"
               >
                 <span
-                  className="bg-accent text-accent-foreground flex size-9 shrink-0 items-center justify-center rounded-md"
+                  className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-lg border border-primary/20"
                   aria-hidden="true"
                 >
                   <FileText className="size-4" />
                 </span>
                 <div className="min-w-0">
-                  <h3 className="font-medium">{doc.title}</h3>
+                  <h3 className="font-medium text-foreground">{doc.title}</h3>
                   <p className="text-muted-foreground mt-0.5 text-xs tabular-nums">
                     Published on {doc.lockedAt?.toLocaleDateString()}
                   </p>
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
         )}

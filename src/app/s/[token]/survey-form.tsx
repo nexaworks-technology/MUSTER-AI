@@ -41,23 +41,23 @@ export function SurveyForm({
           {scores.map((s) => (
             <label key={s} className="cursor-pointer">
               <input type="radio" name="score" value={s} required className="peer sr-only" />
-              <span className="border-input bg-card text-foreground hover:bg-hover peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground peer-focus-visible:ring-ring peer-focus-visible:ring-offset-background flex size-11 items-center justify-center rounded-md border text-base font-medium tabular-nums shadow-xs transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2">
+              <span className="border-border/80 bg-background text-foreground hover:bg-muted/60 peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground peer-focus-visible:ring-ring peer-focus-visible:ring-offset-background flex size-11 items-center justify-center rounded-xl border text-sm font-semibold tabular-nums shadow-xs transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2">
                 {s}
               </span>
             </label>
           ))}
         </div>
       </fieldset>
-      <label className="block space-y-2 text-sm font-medium">
+      <label className="block space-y-2 text-sm font-medium text-foreground">
         Anything you want to add? (optional)
-        <Textarea name="comment" maxLength={2000} className="min-h-28 font-normal" />
+        <Textarea name="comment" maxLength={2000} className="min-h-28 font-normal rounded-xl border-border/80 bg-background/80 focus-visible:ring-1 focus-visible:ring-primary shadow-xs text-sm" />
       </label>
       {state.error ? (
         <p role="alert" className="text-danger text-sm">
           {state.error}
         </p>
       ) : null}
-      <Button type="submit" size="lg" disabled={pending} className="w-full sm:w-auto">
+      <Button type="submit" size="lg" disabled={pending} className="w-full sm:w-auto shadow-xs font-medium">
         Send
       </Button>
     </form>

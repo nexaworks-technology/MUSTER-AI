@@ -47,12 +47,14 @@ export default async function AskThreadPage({ params }: { params: Promise<{ thre
         {view.messages.map((m) => (
           <li key={m.id} className="space-y-2" data-role={m.role}>
             {m.role === "USER" ? (
-              <p className="bg-secondary text-secondary-foreground rounded-lg px-4 py-3 text-sm whitespace-pre-wrap">
-                {m.content}
-              </p>
+              <div className="flex justify-end">
+                <p className="bg-primary text-primary-foreground max-w-xl rounded-2xl rounded-tr-sm px-4 py-3 text-sm shadow-xs leading-relaxed whitespace-pre-wrap">
+                  {m.content}
+                </p>
+              </div>
             ) : m.run?.status === "SUCCEEDED" ? (
-              <>
-                <div className="surface p-4">
+              <div className="space-y-3">
+                <div className="surface p-5 rounded-2xl rounded-tl-sm border border-border/80 shadow-xs">
                   <AiText
                     run={m.run}
                     items={[
@@ -70,10 +72,10 @@ export default async function AskThreadPage({ params }: { params: Promise<{ thre
                 {m.cards.map((c) => (
                   <ApprovalCard key={c.id} card={c} />
                 ))}
-              </>
+              </div>
             ) : (
               <p
-                className="bg-card border-border rounded-lg border px-4 py-3 text-sm"
+                className="bg-card border-border/80 rounded-2xl rounded-tl-sm border px-4 py-3 text-sm shadow-xs text-muted-foreground"
                 data-testid="no-answer"
               >
                 I could not answer that with sources I can show you.
@@ -93,7 +95,7 @@ export default async function AskThreadPage({ params }: { params: Promise<{ thre
           </li>
         ))}
       </ol>
-      <div className="surface p-4">
+      <div className="surface p-5 rounded-xl border border-border/80 shadow-xs">
         <AskBox
           threadId={view.thread.id}
           voiceEnabled={settings.ask.voiceDictation}

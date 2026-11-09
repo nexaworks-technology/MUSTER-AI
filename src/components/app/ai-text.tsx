@@ -32,7 +32,7 @@ export function AiText({
             <li key={i} className="space-y-1" data-testid="ai-item">
               <p className="text-sm">{item.text}</p>
               <ul
-                className="flex flex-wrap gap-x-3 gap-y-1 text-xs"
+                className="flex flex-wrap gap-1.5 text-xs pt-1.5"
                 aria-label="Sources"
                 data-testid="ai-sources"
               >
@@ -41,12 +41,14 @@ export function AiText({
                     {s.href ? (
                       <Link
                         href={s.href as Route}
-                        className="text-primary underline underline-offset-2"
+                        className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium border border-border/70 bg-muted/50 hover:bg-muted text-foreground hover:text-primary transition-colors"
                       >
                         {s.label}
                       </Link>
                     ) : (
-                      <span className="text-muted-foreground">{s.label}</span>
+                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium border border-border/50 bg-muted/30 text-muted-foreground">
+                        {s.label}
+                      </span>
                     )}
                   </li>
                 ))}

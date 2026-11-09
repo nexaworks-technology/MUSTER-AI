@@ -141,6 +141,19 @@ export default async function SetupPage({ searchParams }: { searchParams: Search
                 : ""}
               .
             </p>
+            {s.counts.unownedAccounts > 0 ? (
+              <Alert variant="warning" data-testid="unowned-accounts-warning">
+                <AlertDescription>
+                  <strong>Warning:</strong>{" "}
+                  {s.counts.unownedAccounts === 1
+                    ? "1 account has no owner assigned."
+                    : `${s.counts.unownedAccounts} accounts have no owner assigned.`}{" "}
+                  Accounts without an owner will not appear on CSM Today dashboards (only visible to
+                  members with Team book scope). We recommend including the <code>owner_email</code>{" "}
+                  column in your import CSV or assigning owners before going live.
+                </AlertDescription>
+              </Alert>
+            ) : null}
             {s.connected
               .filter((c) => c.category !== "CHAT" && c.integration)
               .map((c) => (

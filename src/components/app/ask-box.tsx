@@ -103,10 +103,12 @@ export function AskBox({
     browserSupported: supported,
   });
   return (
-    <div className="space-y-3">
-      <form action={action} className="space-y-2">
+    <div className="space-y-4">
+      <form action={action} className="space-y-3">
         {threadId ? <input type="hidden" name="threadId" value={threadId} /> : null}
-        <Label htmlFor="ask-question">Ask about your accounts</Label>
+        <Label htmlFor="ask-question" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Ask about your accounts
+        </Label>
         <Textarea
           id="ask-question"
           name="question"
@@ -116,9 +118,10 @@ export function AskBox({
           maxLength={2000}
           rows={3}
           placeholder="Which renewals in the next 90 days have open escalations?"
+          className="rounded-xl border-border/80 bg-background/80 focus-visible:ring-1 focus-visible:ring-primary shadow-xs text-sm leading-relaxed"
         />
         <div className="flex flex-wrap items-center gap-2">
-          <Button type="submit" disabled={pending}>
+          <Button type="submit" disabled={pending} className="shadow-xs font-medium">
             {pending ? "Reading your records…" : "Ask"}
           </Button>
           {showDictation ? (
@@ -144,23 +147,25 @@ export function AskBox({
           </p>
         ) : null}
       </form>
-      <div className="space-y-1">
-        <Label htmlFor="ask-file">Attach a file (PDF, txt, vtt, srt or json, up to 25 MB)</Label>
+      <div className="space-y-1.5 border-t border-border/60 pt-3">
+        <Label htmlFor="ask-file" className="text-xs text-muted-foreground font-medium">
+          Attach a file (PDF, txt, vtt, srt or json, up to 25 MB)
+        </Label>
         <input
           id="ask-file"
           type="file"
           accept={accept}
           disabled={file.busy}
-          className="text-muted-foreground file:bg-secondary file:text-secondary-foreground file:hover:bg-hover block text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:px-3 file:py-1.5 file:text-sm file:font-medium"
+          className="text-muted-foreground file:bg-secondary file:text-secondary-foreground file:hover:bg-hover block text-xs file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:px-3 file:py-1 file:text-xs file:font-medium"
           onChange={(e) => void attach(e.currentTarget)}
         />
         <p
           role={file.error ? "alert" : "status"}
-          className={file.error ? "text-destructive text-sm" : "text-muted-foreground text-sm"}
+          className={file.error ? "text-destructive text-xs" : "text-muted-foreground text-xs"}
         >
           {file.busy ? "Uploading and scanning…" : (file.error ?? file.ok ?? "")}
         </p>
-        <p className="text-muted-foreground text-xs">
+        <p className="text-muted-foreground text-[11px]">
           Only you can read an attached file, and only after it passes the malware scan.
         </p>
       </div>

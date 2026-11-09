@@ -37,21 +37,21 @@ export default async function PromisesPage({ searchParams }: { searchParams: Sea
     <Link
       href={href as Route}
       aria-current={active ? "page" : undefined}
-      className={`rounded-md px-3 py-1 text-sm ${active ? "bg-accent text-accent-foreground font-medium" : "text-foreground hover:bg-hover"}`}
+      className={`rounded-md px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all ${active ? "bg-background text-foreground shadow-xs border border-border/80" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"}`}
     >
       {label}
     </Link>
   );
   return (
     <div className="space-y-section">
-      <div>
+      <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">Promises</h1>
         <p className="text-muted-foreground text-sm">
           Promises read from calls, emails and notes, each with the exact words, plus any added by
           hand. Late ones first, then ones with no owner.
         </p>
       </div>
-      <nav aria-label="Promise views" className="flex gap-1">
+      <nav aria-label="Promise views" className="inline-flex rounded-lg bg-muted/60 p-1 border border-border/60">
         {tab("/promises", "Open", status === "OPEN")}
         {tab("/promises?status=ALL", "All", status === "ALL")}
       </nav>

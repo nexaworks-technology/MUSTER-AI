@@ -1,7 +1,10 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { NativeSelect } from "@/components/app/native-select";
+import { DataListAvatar, DataListCard } from "@/components/app/data-list";
+import { StatusPill } from "@/components/app/status-pill";
 import { CategoryControl, CategoryState, Reasons, BAND_WORDS } from "@/components/renewals/reasons";
 import { Button } from "@/components/ui/button";
 import { can } from "@/lib/auth/permissions";
@@ -36,10 +39,10 @@ function ForecastSection({ f }: { f: Forecast }) {
       <tbody>
         {items.map((r) => (
           <tr key={r.label}>
-            <th scope="row" className="font-normal">
+            <th scope="row" className="font-normal pr-4">
               {r.label}
             </th>
-            <td>{money(r.v.arrMinor, f.baseCurrency)}</td>
+            <td className="tabular-nums font-medium pr-4">{money(r.v.arrMinor, f.baseCurrency)}</td>
             <td className="text-muted-foreground text-xs">
               {r.v.renewalIds.length} renewal{r.v.renewalIds.length === 1 ? "" : "s"}
             </td>
@@ -49,7 +52,7 @@ function ForecastSection({ f }: { f: Forecast }) {
     </table>
   );
   return (
-    <section aria-labelledby="forecast-h" className="surface space-y-3 p-5" data-testid="forecast">
+    <DataListCard className="p-5 space-y-3" data-testid="forecast">
       <h2 id="forecast-h" className="text-lg font-semibold">
         Forecast for this window ({f.baseCurrency})
       </h2>
@@ -75,7 +78,7 @@ function ForecastSection({ f }: { f: Forecast }) {
           file are not counted.
         </p>
       ) : null}
-    </section>
+    </DataListCard>
   );
 }
 
@@ -133,148 +136,168 @@ export default async function RenewalsPage({ searchParams }: { searchParams: Sea
           {error}
         </p>
       ) : null}
-      <form method="get" className="surface flex flex-wrap items-end gap-3 p-4 text-sm">
-        <label className="flex flex-col gap-1">
-          Renewing within
-          <NativeSelect name="days" defaultValue={String(list.days)}>
-            {WINDOWS.map((d) => (
-              <option key={d} value={d}>
-                {d} days
-              </option>
-            ))}
-          </NativeSelect>
-        </label>
-        <label className="flex flex-col gap-1">
-          Confidence
-          <NativeSelect name="band" defaultValue={band ?? ""}>
-            <option value="">All</option>
-            {Object.entries(BAND_WORDS).map(([v, l]) => (
-              <option key={v} value={v}>
-                {l}
-              </option>
-            ))}
-          </NativeSelect>
-        </label>
-        {members.length ? (
-          <label className="flex flex-col gap-1">
-            Owner
-            <NativeSelect name="owner" defaultValue={owner ?? ""}>
-              <option value="">Everyone</option>
-              {members
-                .filter((m) => m.status === "ACTIVE")
-                .map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.user.name ?? m.user.email}
-                  </option>
-                ))}
+      <DataListCard className="p-3">
+        <form method="get" className="flex flex-wrap items-center gap-3 text-xs sm:text-sm">
+          <label className="flex items-center gap-2">
+            <span className="text-muted-foreground font-medium">Renewing within</span>
+            <NativeSelect name="days" defaultValue={String(list.days)} className="h-8 text-xs">
+              {WINDOWS.map((d) => (
+                <option key={d} value={d}>
+                  {d} days
+                </option>
+              ))}
             </NativeSelect>
           </label>
-        ) : null}
-        <Button type="submit" variant="outline">
-          Filter
-        </Button>
-      </form>
+          <label className="flex items-center gap-2">
+            <span className="text-muted-foreground font-medium">Confidence</span>
+            <NativeSelect name="band" defaultValue={band ?? ""} className="h-8 text-xs">
+              <option value="">All</option>
+              {Object.entries(BAND_WORDS).map(([v, l]) => (
+                <option key={v} value={v}>
+                  {l}
+                </option>
+              ))}
+            </NativeSelect>
+          </label>
+          {members.length ? (
+            <label className="flex items-center gap-2">
+              <span className="text-muted-foreground font-medium">Owner</span>
+              <NativeSelect name="owner" defaultValue={owner ?? ""} className="h-8 text-xs">
+                <option value="">Everyone</option>
+                {members
+                  .filter((m) => m.status === "ACTIVE")
+                  .map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.user.name ?? m.user.email}
+                    </option>
+                  ))}
+              </NativeSelect>
+            </label>
+          ) : null}
+          <Button type="submit" variant="outline" size="sm" className="h-8">
+            Filter
+          </Button>
+        </form>
+      </DataListCard>
 
       {list.forecast ? <ForecastSection f={list.forecast} /> : null}
 
       {list.rows.length === 0 ? (
-        <p className="text-sm">
+        <p className="text-sm text-muted-foreground">
           No open renewals in this window{band || owner ? " with these filters" : ""}.
         </p>
       ) : (
-        <div className="surface overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <caption className="sr-only">Open renewals, lowest confidence first</caption>
-            <thead>
-              <tr>
-                <th scope="col">Account</th>
-                <th scope="col">Renews</th>
-                <th scope="col">Confidence</th>
-                <th scope="col">ARR</th>
-                <th scope="col">Forecast category</th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.rows.map((r) => (
-                <tr key={r.id} className="align-top" data-testid={`renewal-row-${r.account.name}`}>
-                  <td>
-                    <Link
-                      href={`/accounts/${r.account.id}/renewal` as Route}
-                      className="text-primary underline underline-offset-2"
-                    >
-                      {r.account.name}
-                    </Link>
-                    <Link
-                      href={`/renewals/${r.id}/brief` as Route}
-                      className="text-muted-foreground block text-xs underline"
-                    >
-                      Renewal brief
-                    </Link>
-                    <span className="text-muted-foreground block text-xs">
-                      {r.account.owner ?? "No owner"}
-                    </span>
-                  </td>
-                  <td>
-                    {formatCalendarDate(r.renewalDate)}
-                    <span className="text-muted-foreground block text-xs">
-                      in {r.daysToRenewal} days
-                      {r.noticeDeadline
-                        ? `, notice by ${formatCalendarDate(r.noticeDeadline)}`
-                        : ", no notice period on file"}
-                    </span>
-                  </td>
-                  <td>
-                    <span data-testid="confidence">{r.confidence}%</span> {BAND_WORDS[r.band]}
-                    <details className="mt-1">
-                      <summary className="text-primary cursor-pointer text-xs underline underline-offset-2">
-                        Why {r.confidence}%
-                      </summary>
-                      <div className="mt-2">
-                        <Reasons accountId={r.account.id} factors={r.reasons} />
-                      </div>
-                    </details>
-                  </td>
-                  <td>
-                    {!r.moneyVisible
-                      ? "Restricted"
-                      : r.arrMinor != null && r.currency
-                        ? money(r.arrMinor, r.currency)
-                        : "No contract value on file"}
-                  </td>
-                  <td>
-                    <CategoryState row={r} />
-                    {r.canCategorise ? (
-                      <details className="mt-1">
-                        <summary className="text-primary cursor-pointer text-xs underline underline-offset-2">
-                          Change
-                        </summary>
-                        <div className="mt-2">
-                          <CategoryControl row={r} returnTo="/renewals" />
-                        </div>
-                      </details>
-                    ) : null}
-                  </td>
+        <DataListCard>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <caption className="sr-only">Open renewals, lowest confidence first</caption>
+              <thead>
+                <tr className="border-border bg-muted/60 text-muted-foreground border-b text-[11px] font-semibold tracking-wider uppercase sticky top-0 z-10 backdrop-blur-sm">
+                  <th scope="col" className="px-4 py-3">Account</th>
+                  <th scope="col" className="px-4 py-3">Renews</th>
+                  <th scope="col" className="px-4 py-3">Confidence</th>
+                  <th scope="col" className="px-4 py-3">ARR</th>
+                  <th scope="col" className="px-4 py-3">Forecast category</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-border divide-y">
+                {list.rows.map((r) => {
+                  const pillVariant = r.band === "HIGH" ? "healthy" : r.band === "MEDIUM" ? "watch" : "atRisk";
+                  return (
+                    <tr key={r.id} className="align-top hover:bg-muted/40 transition-colors" data-testid={`renewal-row-${r.account.name}`}>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <DataListAvatar name={r.account.name} size="sm" className="shrink-0" />
+                          <div>
+                            <Link
+                              href={`/accounts/${r.account.id}/renewal` as Route}
+                              className="font-medium text-foreground hover:underline"
+                            >
+                              {r.account.name}
+                            </Link>
+                            <Link
+                              href={`/renewals/${r.id}/brief` as Route}
+                              className="text-muted-foreground block text-xs underline"
+                            >
+                              Renewal brief
+                            </Link>
+                            <span className="text-muted-foreground block text-xs">
+                              {r.account.owner ?? "No owner"}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-foreground font-medium">{formatCalendarDate(r.renewalDate)}</span>
+                        <span className="text-muted-foreground block text-xs">
+                          in {r.daysToRenewal} days
+                          {r.noticeDeadline
+                            ? `, notice by ${formatCalendarDate(r.noticeDeadline)}`
+                            : ", no notice period on file"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <StatusPill variant={pillVariant} size="sm">
+                          <span data-testid="confidence">{r.confidence}%</span> {BAND_WORDS[r.band]}
+                        </StatusPill>
+                        <details className="mt-1.5">
+                          <summary className="text-primary cursor-pointer text-xs underline underline-offset-2">
+                            Why {r.confidence}%
+                          </summary>
+                          <div className="mt-2">
+                            <Reasons accountId={r.account.id} factors={r.reasons} />
+                          </div>
+                        </details>
+                      </td>
+                      <td className="px-4 py-3 tabular-nums font-medium text-foreground">
+                        {!r.moneyVisible
+                          ? "Restricted"
+                          : r.arrMinor != null && r.currency
+                            ? money(r.arrMinor, r.currency)
+                            : "No contract value on file"}
+                      </td>
+                      <td className="px-4 py-3">
+                        <CategoryState row={r} />
+                        {r.canCategorise ? (
+                          <details className="mt-1.5">
+                            <summary className="text-primary cursor-pointer text-xs underline underline-offset-2">
+                              Change
+                            </summary>
+                            <div className="mt-2">
+                              <CategoryControl row={r} returnTo="/renewals" />
+                            </div>
+                          </details>
+                        ) : null}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </DataListCard>
       )}
       {list.pages > 1 ? (
-        <nav aria-label="Pages" className="flex gap-3 text-sm">
-          {list.page > 1 ? (
-            <Link href={href(list.page - 1)} className="text-primary underline underline-offset-2">
-              Previous
-            </Link>
-          ) : null}
-          <span>
+        <nav aria-label="Pages" className="flex items-center justify-between text-xs sm:text-sm font-medium">
+          <div>
+            {list.page > 1 ? (
+              <Link href={href(list.page - 1)} className="inline-flex items-center gap-1.5 text-primary hover:underline">
+                <ArrowLeft className="size-3.5" />
+                Previous
+              </Link>
+            ) : null}
+          </div>
+          <span className="text-muted-foreground text-xs">
             Page {list.page} of {list.pages}
           </span>
-          {list.page < list.pages ? (
-            <Link href={href(list.page + 1)} className="text-primary underline underline-offset-2">
-              Next
-            </Link>
-          ) : null}
+          <div>
+            {list.page < list.pages ? (
+              <Link href={href(list.page + 1)} className="inline-flex items-center gap-1.5 text-primary hover:underline">
+                Next
+                <ArrowRight className="size-3.5" />
+              </Link>
+            ) : null}
+          </div>
         </nav>
       ) : null}
     </div>

@@ -20,18 +20,18 @@ export default async function MyTasksPage({
   return (
     <div className="space-y-section max-w-3xl">
       <h1 className="text-2xl font-semibold tracking-tight">My tasks</h1>
-      <nav aria-label="Task filter" className="flex gap-2 text-sm">
+      <nav aria-label="Task filter" className="inline-flex rounded-lg bg-muted/60 p-1 border border-border/60 text-xs sm:text-sm font-medium">
         <Link
           href="/tasks"
           aria-current={show === "OPEN" ? "page" : undefined}
-          className={`rounded-md px-3 py-1 ${show === "OPEN" ? "bg-accent text-accent-foreground font-medium" : "text-foreground hover:bg-hover"}`}
+          className={`rounded-md px-3.5 py-1.5 transition-all ${show === "OPEN" ? "bg-background text-foreground shadow-xs border border-border/80" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"}`}
         >
           Open
         </Link>
         <Link
           href={{ pathname: "/tasks", query: { show: "done" } }}
           aria-current={show === "DONE" ? "page" : undefined}
-          className={`rounded-md px-3 py-1 ${show === "DONE" ? "bg-accent text-accent-foreground font-medium" : "text-foreground hover:bg-hover"}`}
+          className={`rounded-md px-3.5 py-1.5 transition-all ${show === "DONE" ? "bg-background text-foreground shadow-xs border border-border/80" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"}`}
         >
           Done
         </Link>

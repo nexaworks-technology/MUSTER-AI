@@ -1,10 +1,9 @@
-import { badgeVariants } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { StatusPill } from "@/components/app/status-pill";
 
 /**
  * Risk band chip (ARCHITECTURE §12): colour is reserved for risk — At Risk red, Watch amber,
- * Healthy green, no data grey "Not enough data" (soft-tint pills from the health-band tokens). The word is always shown (never colour alone).
- * The app has a light theme only, so there are no dark-mode variants here.
+ * Healthy green, no data grey "Not enough data" (soft-tint pills from the health-band tokens).
+ * The word is always shown (never colour alone).
  */
 export type RiskLevelValue = "HEALTHY" | "WATCH" | "AT_RISK" | "INSUFFICIENT_DATA";
 
@@ -15,29 +14,30 @@ export const RISK_WORDS: Record<RiskLevelValue, string> = {
   INSUFFICIENT_DATA: "Not enough data",
 };
 
-const VARIANTS = {
+const PILL_VARIANTS = {
   HEALTHY: "healthy",
   WATCH: "watch",
   AT_RISK: "atRisk",
-  INSUFFICIENT_DATA: "unknown",
-} as const satisfies Record<RiskLevelValue, "healthy" | "watch" | "atRisk" | "unknown">;
+  INSUFFICIENT_DATA: "neutral",
+} as const;
 
 export function RiskBadge({ level, className }: { level: RiskLevelValue; className?: string }) {
   return (
-    <span
-      className={cn(badgeVariants({ variant: VARIANTS[level] }), className)}
+    <StatusPill
+      variant={PILL_VARIANTS[level]}
+      className={className}
       data-testid="risk-badge"
     >
       {RISK_WORDS[level]}
-    </span>
+    </StatusPill>
   );
 }
 
 /** "Score and CSM disagree" marker, shown wherever a score and its Pulse appear. */
 export function DisagreementMark() {
   return (
-    <span className={badgeVariants({ variant: "accent" })} data-testid="disagreement">
+    <StatusPill variant="accent" data-testid="disagreement">
       Score and CSM disagree
-    </span>
+    </StatusPill>
   );
 }

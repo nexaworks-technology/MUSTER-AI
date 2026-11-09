@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { CircleCheck, LinkIcon } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { noteAuthFailure, openTokenPage, TOO_MANY } from "@/lib/http/action-guard";
 import { LIMITS } from "@/lib/http/guard";
 import { getSurveyForToken } from "@/modules/surveys/service";
@@ -18,17 +17,17 @@ export default async function SurveyPage({ params }: { params: Promise<{ token: 
   if (!gate.refused && !view) await noteAuthFailure(gate.ip);
   const form = !gate.refused && view && !view.answered ? view : null;
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl items-center px-4 py-10 md:py-16">
-      <Card className="w-full gap-0 px-5 py-6 md:px-8 md:py-10" data-testid="survey-page">
+    <main className="bg-background mx-auto flex min-h-screen max-w-2xl items-center px-4 py-10 md:py-16">
+      <div className="surface-card rounded-2xl border border-border/80 w-full p-6 md:p-10 shadow-sm" data-testid="survey-page">
         {form ? (
-          <h1 className="text-xl font-semibold tracking-tight md:text-2xl">Your feedback</h1>
+          <h1 className="text-xl font-semibold tracking-tight md:text-2xl text-foreground">Your feedback</h1>
         ) : (
           <div className="flex flex-col items-center gap-3 text-center">
             <span
               className={
                 !gate.refused && view
-                  ? "bg-success-soft text-success-soft-foreground flex size-12 items-center justify-center rounded-full"
-                  : "bg-muted text-muted-foreground flex size-12 items-center justify-center rounded-full"
+                  ? "bg-success-soft text-success-soft-foreground flex size-12 items-center justify-center rounded-xl border border-success-soft-foreground/20"
+                  : "bg-muted text-muted-foreground flex size-12 items-center justify-center rounded-xl border border-border/60"
               }
               aria-hidden="true"
             >
@@ -38,7 +37,7 @@ export default async function SurveyPage({ params }: { params: Promise<{ token: 
                 <LinkIcon className="size-5" />
               )}
             </span>
-            <h1 className="text-xl font-semibold tracking-tight">Your feedback</h1>
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">Your feedback</h1>
           </div>
         )}
         {gate.refused ? (
@@ -56,7 +55,7 @@ export default async function SurveyPage({ params }: { params: Promise<{ token: 
         ) : (
           <SurveyForm token={token} question={view.question} range={RANGE[view.type] ?? [0, 10]} />
         )}
-      </Card>
+      </div>
     </main>
   );
 }

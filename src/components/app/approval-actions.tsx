@@ -55,10 +55,10 @@ export function ApprovalActions({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2.5">
         <form action={approveRun}>
           <input type="hidden" name="approvalId" value={approvalId} />
-          <Button type="submit" disabled={pending}>
+          <Button type="submit" disabled={pending} variant="default" className="shadow-xs">
             Approve{draft ? " and send" : ""}
           </Button>
         </form>
@@ -78,7 +78,7 @@ export function ApprovalActions({
       {draft && open ? (
         <form
           action={editRun}
-          className="bg-card border-border space-y-3 rounded-lg border p-4"
+          className="bg-card border-border/80 space-y-3 rounded-lg border p-4 shadow-xs"
           aria-label="Edit the draft"
         >
           <input type="hidden" name="approvalId" value={approvalId} />
@@ -119,7 +119,7 @@ export function ApprovalActions({
         </form>
       ) : null}
 
-      <form action={rejectRun} className="flex flex-wrap items-end gap-2">
+      <form action={rejectRun} className="flex flex-wrap items-end gap-2.5 border-t border-border/80 pt-4">
         <input type="hidden" name="approvalId" value={approvalId} />
         <div className="space-y-1">
           <label htmlFor={ids.note} className="text-muted-foreground block text-xs">
@@ -134,7 +134,12 @@ export function ApprovalActions({
             className="h-9 w-72"
           />
         </div>
-        <Button type="submit" variant="outline" disabled={pending}>
+        <Button
+          type="submit"
+          variant="outline"
+          className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+          disabled={pending}
+        >
           Reject
         </Button>
       </form>

@@ -56,16 +56,16 @@ function ReasonItem({ r, main, linked }: { r: Reason; main: boolean; linked: boo
   return (
     <li
       id={`reason-${r.id}`}
-      className={`scroll-mt-20 space-y-1 p-4 ${linked ? "bg-muted" : ""}`}
+      className={`scroll-mt-20 space-y-1.5 p-4 transition-colors ${linked ? "bg-muted/70" : "hover:bg-muted/30"}`}
       data-testid="health-reason"
       data-kind={r.kind}
       aria-current={linked ? "true" : undefined}
     >
-      <p className={r.kind === "MISSING_DATA" ? "text-muted-foreground" : ""}>
-        {main ? <span className="font-semibold">Main reason: </span> : null}
+      <p className={r.kind === "MISSING_DATA" ? "text-muted-foreground text-xs" : "text-xs font-normal"}>
+        {main ? <span className="font-semibold text-foreground">Main reason: </span> : null}
         {r.message}
       </p>
-      {facts.length ? <p className="text-muted-foreground text-xs">{facts.join(" · ")}</p> : null}
+      {facts.length ? <p className="text-muted-foreground text-[11px]">{facts.join(" · ")}</p> : null}
       {r.sources.length ? (
         <ul className="flex flex-wrap gap-x-3 gap-y-1 text-xs" aria-label="Sources">
           {r.sources.map((s, i) => (
@@ -106,23 +106,33 @@ export default async function HealthPage({
 
   return (
     <div className="space-y-section">
-      <section aria-labelledby="health-score" className="surface space-y-4 p-5">
-        <h2 id="health-score" className="text-base font-semibold">
-          Health
-        </h2>
+      {/* Health Score Overview Card */}
+      <section
+        aria-labelledby="health-score"
+        className="surface rounded-xl border border-border/80 p-5 shadow-xs space-y-4"
+      >
+        <div className="flex items-center justify-between">
+          <h2 id="health-score" className="text-base font-semibold text-foreground">
+            Health
+          </h2>
+          {account.canEdit ? <RecomputeButton accountId={account.id} /> : null}
+        </div>
         {!s ? (
           <EmptyState data-testid="no-health">
             Health has not been calculated for this account yet. It is calculated every night and
             whenever someone presses Recompute.
           </EmptyState>
         ) : (
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-4xl font-semibold tabular-nums" data-testid="health-overall">
+          <div className="flex flex-wrap items-center gap-3.5">
+            <span
+              className="text-4xl font-bold tracking-tight tabular-nums text-foreground"
+              data-testid="health-overall"
+            >
               {s.overall === null ? "—" : s.overall.toFixed(0)}
             </span>
             <RiskBadge level={s.riskLevel} />
             {s.pulseDisagreement ? <DisagreementMark /> : null}
-            <span className="text-muted-foreground text-sm">
+            <span className="text-muted-foreground text-xs">
               as of {day(s.asOf)} · Health model v{model.version}
               {model.proposedBy === "SYSTEM_DEFAULT"
                 ? " (default weights — not yet back-tested on your accounts)"
@@ -130,22 +140,28 @@ export default async function HealthPage({
             </span>
           </div>
         )}
-        {account.canEdit ? <RecomputeButton accountId={account.id} /> : null}
         {s && s.riskReasonId ? (
-          <p className="text-sm">
-            <span className="font-medium">Why At Risk: </span>
-            {s.reasons.find((r) => r.id === s.riskReasonId)?.message}
+          <p className="text-xs bg-muted/30 border border-border/60 rounded-lg p-3">
+            <span className="font-semibold text-foreground">Why At Risk: </span>
+            <span className="text-muted-foreground">
+              {s.reasons.find((r) => r.id === s.riskReasonId)?.message}
+            </span>
           </p>
         ) : null}
       </section>
 
-      <section id="pulse" aria-labelledby="pulse-heading" className="surface space-y-3 p-5">
-        <h2 id="pulse-heading" className="text-base font-semibold">
+      {/* CSM Pulse Card */}
+      <section
+        id="pulse"
+        aria-labelledby="pulse-heading"
+        className="surface rounded-xl border border-border/80 p-5 shadow-xs space-y-3.5"
+      >
+        <h2 id="pulse-heading" className="text-base font-semibold text-foreground">
           CSM Pulse
         </h2>
         {pulse ? (
-          <p className="text-sm" data-testid="pulse">
-            <span className="font-medium">{PULSE_WORDS[pulse.value]}</span>
+          <p className="text-xs" data-testid="pulse">
+            <span className="font-semibold text-foreground">{PULSE_WORDS[pulse.value]}</span>
             {pulse.comment ? ` — "${pulse.comment}"` : ""} · {pulse.author},{" "}
             {formatDateTime(pulse.createdAt, tz)}
             {pulse.valid ? "" : " (older than 30 days, no longer counted)"}
@@ -154,7 +170,7 @@ export default async function HealthPage({
           <EmptyState>No Pulse yet.</EmptyState>
         )}
         {s?.pulseDisagreement && pulse ? (
-          <p className="text-sm" data-testid="disagreement-detail">
+          <p className="text-xs text-muted-foreground bg-accent/20 border border-accent/30 rounded-lg p-3" data-testid="disagreement-detail">
             The numbers say {RISK_WORDS[s.riskLevelExcludingPulse]} (
             {s.overallExcludingPulse?.toFixed(0)} without the Pulse); {pulse.author} says{" "}
             {PULSE_WORDS[pulse.value]}. Both are shown; neither replaces the other.
@@ -163,16 +179,17 @@ export default async function HealthPage({
         {account.canEdit ? <PulseControls accountId={account.id} /> : null}
       </section>
 
+      {/* Narrative Card */}
       <section
         aria-labelledby="narrative-heading"
-        className="surface space-y-3 p-5"
+        className="surface rounded-xl border border-border/80 p-5 shadow-xs space-y-3"
         data-testid="health-narrative"
       >
-        <h2 id="narrative-heading" className="text-base font-semibold">
+        <h2 id="narrative-heading" className="text-base font-semibold text-foreground">
           What the Health Analyst sees
         </h2>
         {!narrative.configured && !narrative.run ? (
-          <p className="text-muted-foreground text-sm" data-testid="ai-not-configured">
+          <p className="text-muted-foreground text-xs" data-testid="ai-not-configured">
             AI is not configured. The scores and reasons below are computed without AI.
           </p>
         ) : narrative.run ? (
@@ -187,12 +204,12 @@ export default async function HealthPage({
           </EmptyState>
         )}
         {narrative.missing.length ? (
-          <p className="text-muted-foreground text-xs">
+          <p className="text-muted-foreground text-[11px]">
             Not on file: {narrative.missing.join("; ")}.
           </p>
         ) : null}
         {narrative.latestAttempt ? (
-          <p className="text-muted-foreground text-xs" data-testid="narrative-failed">
+          <p className="text-muted-foreground text-[11px]" data-testid="narrative-failed">
             The latest attempt did not succeed (
             {narrative.latestAttempt.status.toLowerCase().replaceAll("_", " ")}), so nothing from it
             is shown.
@@ -200,14 +217,17 @@ export default async function HealthPage({
         ) : null}
       </section>
 
+      {/* The Six Parts (Pillars) */}
       {s ? (
         <section aria-labelledby="pillars" className="space-y-3">
-          <h2 id="pillars" className="text-base font-semibold">
-            The six parts
-          </h2>
-          <p className="text-muted-foreground text-sm">
-            Open a part to see every reason behind it and the records it read.
-          </p>
+          <div>
+            <h2 id="pillars" className="text-base font-semibold text-foreground">
+              The six parts
+            </h2>
+            <p className="text-muted-foreground text-xs mt-0.5">
+              Open a part to see every reason behind it and the records it read.
+            </p>
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {PILLARS.map(([key, label]) => {
               const value = s.pillars[key] ?? null;
@@ -217,17 +237,17 @@ export default async function HealthPage({
                 <details
                   key={key}
                   open={reasons.some((r) => r.id === linked) || undefined}
-                  className="surface open:col-span-full"
+                  className="surface rounded-xl border border-border/80 shadow-xs open:col-span-full overflow-hidden transition-all group/pillar"
                   data-testid={`pillar-${key}`}
                 >
-                  <summary className="flex cursor-pointer items-center justify-between gap-2 p-4">
-                    <span className="font-medium">{label}</span>
-                    <span className="text-sm tabular-nums">
+                  <summary className="flex cursor-pointer items-center justify-between gap-2 p-4 hover:bg-muted/30 transition-colors select-none">
+                    <span className="font-medium text-foreground text-sm">{label}</span>
+                    <span className="text-xs tabular-nums">
                       {value === null ? (
                         <span className="text-muted-foreground">Not enough data</span>
                       ) : (
                         <>
-                          {value.toFixed(0)}
+                          <span className="font-semibold text-foreground">{value.toFixed(0)}</span>
                           <span className="text-muted-foreground">
                             {" "}
                             · weight {Math.round((weight ?? 0) * 100)}%
@@ -236,7 +256,7 @@ export default async function HealthPage({
                       )}
                     </span>
                   </summary>
-                  <ul className="divide-border border-border divide-y border-t text-sm">
+                  <ul className="divide-border/40 border-border/60 divide-y border-t text-sm">
                     {reasons.map((r) => (
                       <ReasonItem
                         key={r.id}
@@ -253,9 +273,13 @@ export default async function HealthPage({
         </section>
       ) : null}
 
+      {/* History */}
       {history.length > 1 ? (
-        <section aria-labelledby="health-history" className="surface space-y-3 p-5">
-          <h2 id="health-history" className="text-base font-semibold">
+        <section
+          aria-labelledby="health-history"
+          className="surface rounded-xl border border-border/80 p-5 shadow-xs space-y-3"
+        >
+          <h2 id="health-history" className="text-base font-semibold text-foreground">
             Health history (model v{model.version})
           </h2>
           <LineChart
@@ -264,25 +288,31 @@ export default async function HealthPage({
               .map((h) => ({ label: day(h.asOf).replace(/, \d{4}$/, ""), value: h.overall! }))}
             valueLabel="Health score"
           />
-          <details className="text-sm">
-            <summary className="text-muted-foreground cursor-pointer">Show the numbers</summary>
-            <table className="mt-2 w-full max-w-sm text-sm">
+          <details className="text-xs">
+            <summary className="text-muted-foreground cursor-pointer hover:text-foreground">
+              Show the numbers
+            </summary>
+            <table className="mt-2.5 w-full max-w-sm text-xs">
               <caption className="sr-only">Health score by day</caption>
               <thead>
-                <tr>
-                  <th scope="col">Date</th>
-                  <th scope="col" className="text-right">
+                <tr className="border-b border-border/60 text-muted-foreground">
+                  <th scope="col" className="text-left py-1 font-medium">Date</th>
+                  <th scope="col" className="text-right py-1 font-medium">
                     Score
                   </th>
-                  <th scope="col">Level</th>
+                  <th scope="col" className="text-left pl-3 py-1 font-medium">Level</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border/30">
                 {history.map((h) => (
-                  <tr key={h.asOf}>
-                    <td>{day(h.asOf)}</td>
-                    <td className="text-right">{h.overall ?? "—"}</td>
-                    <td>{RISK_WORDS[h.riskLevel]}</td>
+                  <tr key={h.asOf} className="hover:bg-muted/20">
+                    <td className="py-1 text-muted-foreground">{day(h.asOf)}</td>
+                    <td className="text-right py-1 tabular-nums font-semibold text-foreground">
+                      {h.overall ?? "—"}
+                    </td>
+                    <td className="py-1 pl-3 font-medium">
+                      <RiskBadge level={h.riskLevel} />
+                    </td>
                   </tr>
                 ))}
               </tbody>

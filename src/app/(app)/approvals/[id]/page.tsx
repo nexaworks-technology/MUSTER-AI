@@ -79,7 +79,7 @@ export default async function ApprovalPage({ params }: { params: Promise<{ id: s
         </p>
       ) : null}
 
-      <section aria-labelledby="proof-heading" className="space-y-3">
+      <section aria-labelledby="proof-heading" className="surface space-y-3 p-5 rounded-xl border border-border/80 shadow-xs">
         <h2 id="proof-heading" className="text-base font-semibold">
           Why, with proof
         </h2>
@@ -113,7 +113,7 @@ export default async function ApprovalPage({ params }: { params: Promise<{ id: s
       </section>
 
       {message && latest ? (
-        <section aria-labelledby="draft-heading" className="space-y-3">
+        <section aria-labelledby="draft-heading" className="surface space-y-3 p-5 rounded-xl border border-border/80 shadow-xs">
           <h2 id="draft-heading" className="text-base font-semibold">
             The email (version {latest.version})
           </h2>
@@ -174,7 +174,7 @@ export default async function ApprovalPage({ params }: { params: Promise<{ id: s
       ) : null}
 
       {canDecide ? (
-        <section aria-labelledby="decide-heading" className="space-y-3">
+        <section aria-labelledby="decide-heading" className="surface space-y-4 p-5 rounded-xl border border-border/80 shadow-xs">
           <h2 id="decide-heading" className="text-base font-semibold">
             Decide
           </h2>

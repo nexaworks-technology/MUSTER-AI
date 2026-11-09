@@ -1,6 +1,9 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { ExtractionLabels } from "@/components/app/extraction-labels";
+import { DataListAvatar, DataListCard } from "@/components/app/data-list";
+import { StatusPill } from "@/components/app/status-pill";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { can } from "@/lib/auth/permissions";
@@ -8,6 +11,7 @@ import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { formatDateTime } from "@/lib/format";
 import { draftReplyAction } from "@/modules/inbox/actions/inbox";
 import { listInbox, listUnmatched } from "@/modules/inbox/service";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Inbox" };
 
@@ -47,21 +51,26 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
     <Link
       href={href as Route}
       aria-current={active ? "page" : undefined}
-      className={`rounded-md px-3 py-1 text-sm ${active ? "bg-accent text-accent-foreground font-medium" : "text-foreground hover:bg-hover"}`}
+      className={cn(
+        "rounded-md px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all",
+        active
+          ? "bg-background text-foreground shadow-xs border border-border/80"
+          : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+      )}
     >
       {label}
     </Link>
   );
   return (
     <div className="space-y-section">
-      <div>
+      <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">Inbox</h1>
         <p className="text-muted-foreground text-sm">
           Emails and tickets from your customers. Intent and tone are read from the words, with the
           quote shown. Nothing is sent from here without an approval.
         </p>
       </div>
-      <nav aria-label="Inbox views" className="flex flex-wrap gap-1">
+      <nav aria-label="Inbox views" className="inline-flex rounded-lg bg-muted/60 p-1 border border-border/60">
         {tab("/inbox", "Open", status === "OPEN")}
         {tab("/inbox?status=ALL", "All", status === "ALL")}
         {can(ctx, "accounts:edit")
@@ -71,7 +80,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
       {draftNote ? (
         <p
           role="status"
-          className="bg-muted text-foreground rounded-md px-3 py-2 text-sm"
+          className="bg-muted text-foreground rounded-md px-3.5 py-2.5 text-sm border border-border/60"
           data-testid="draft-note"
         >
           {draftNote}
@@ -84,116 +93,128 @@ export default async function InboxPage({ searchParams }: { searchParams: Search
             : "No inbound emails or tickets in the last 30 days."}
         </p>
       ) : (
-        <ul className="surface divide-border divide-y" data-testid="inbox-list">
-          {items.map((i) => (
-            <li key={i.id} className="space-y-1 p-3 text-sm" data-testid="inbox-item">
-              <div className="flex flex-wrap items-baseline gap-x-2">
-                <Link
-                  href={`/accounts/${i.account.id}` as Route}
-                  className="text-primary font-medium underline underline-offset-2"
-                >
-                  {i.account.name}
-                </Link>
-                <span className="text-muted-foreground text-xs uppercase">
-                  {i.sourceType === "TICKET" ? "Ticket" : "Email"}
-                </span>
-                <span className="text-muted-foreground text-xs">
-                  {formatDateTime(i.receivedAt, tz)} · {STATUS_WORDS[i.status]} ·{" "}
-                  {MATCH_WORDS[i.matchedBy]}
-                </span>
-              </div>
-              <p className="font-medium">
-                <Link
-                  href={
-                    (i.sourceType === "MESSAGE"
-                      ? `/accounts/${i.account.id}/conversations?message=${i.sourceId}`
-                      : `/accounts/${i.account.id}/tickets`) as Route
-                  }
-                  className="hover:underline"
-                >
-                  {i.title}
-                </Link>{" "}
-                <span className="text-muted-foreground font-normal">from {i.from}</span>
-              </p>
-              <p className="text-muted-foreground">{i.snippet}</p>
-              <div className="flex flex-wrap gap-2 text-xs">
-                {i.intent ? <Badge>Intent: {i.intent}</Badge> : null}
-                {i.sensitive.isSensitive ? (
-                  <Badge variant="danger" className="whitespace-normal" data-testid="sensitive">
-                    Sensitive ({i.sensitive.reasons.join(", ")}) · Always goes to a human
-                  </Badge>
-                ) : null}
-              </div>
-              <ExtractionLabels
-                labels={[
-                  ...(i.sentiment
-                    ? [
-                        {
-                          kind: "SENTIMENT" as const,
-                          text: `Sentiment: ${i.sentiment.label.toLowerCase()}`,
-                          tone: (i.sentiment.label === "NEGATIVE"
-                            ? "negative"
-                            : i.sentiment.label === "POSITIVE"
-                              ? "good"
-                              : i.sentiment.label === "MIXED"
-                                ? "mixed"
-                                : "neutral") as "negative" | "good" | "mixed" | "neutral",
-                          quote: i.sentiment.quote,
-                        },
-                      ]
-                    : []),
-                  ...i.labels,
-                ]}
-              />
-              <div className="flex items-center gap-3 pt-1 text-xs">
-                {i.hasDraft ? (
-                  <Link
-                    href={"/approvals" as Route}
-                    className="text-primary underline underline-offset-2"
-                    data-testid="draft-link"
-                  >
-                    Reply drafted · see it in Approvals
-                  </Link>
-                ) : canDraft && i.status !== "CLOSED" ? (
-                  <form action={draftReplyAction}>
-                    <input type="hidden" name="inboxItemId" value={i.id} />
-                    <Button type="submit" variant="outline" size="sm" data-testid="draft-reply">
-                      Draft a reply
-                    </Button>
-                  </form>
-                ) : null}
-                {i.sensitive.isSensitive ? (
-                  <span className="text-muted-foreground">No auto-send option, ever.</span>
-                ) : null}
-              </div>
-              {i.relatedTickets.length > 0 ? (
-                <p className="text-xs" data-testid="related-tickets">
-                  Same problem in {i.relatedTickets.length} other ticket
-                  {i.relatedTickets.length === 1 ? "" : "s"}:{" "}
-                  {i.relatedTickets.map((t, n) => (
-                    <span key={t.id}>
-                      {n > 0 ? ", " : ""}
+        <DataListCard>
+          <ul className="divide-border divide-y" data-testid="inbox-list">
+            {items.map((i) => (
+              <li key={i.id} className="group p-4 text-sm hover:bg-muted/40 transition-colors space-y-2" data-testid="inbox-item">
+                <div className="flex items-start gap-3.5">
+                  <DataListAvatar name={i.account.name} size="sm" className="mt-0.5 shrink-0" />
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Link
+                          href={`/accounts/${i.account.id}` as Route}
+                          className="text-primary font-medium underline underline-offset-2 hover:text-primary/80"
+                        >
+                          {i.account.name}
+                        </Link>
+                        <StatusPill variant="neutral" size="sm" withDot={false}>
+                          {i.sourceType === "TICKET" ? "Ticket" : "Email"}
+                        </StatusPill>
+                        <StatusPill variant={i.status === "NEW" ? "accent" : i.status === "DRAFTED" ? "warning" : "success"} size="sm">
+                          {STATUS_WORDS[i.status]}
+                        </StatusPill>
+                      </div>
+                      <span className="text-muted-foreground text-xs tabular-nums">
+                        {formatDateTime(i.receivedAt, tz)} · {MATCH_WORDS[i.matchedBy]}
+                      </span>
+                    </div>
+                    <p className="font-medium text-foreground">
                       <Link
-                        href={`/accounts/${i.account.id}/tickets` as Route}
-                        className="text-primary underline underline-offset-2"
+                        href={
+                          (i.sourceType === "MESSAGE"
+                            ? `/accounts/${i.account.id}/conversations?message=${i.sourceId}`
+                            : `/accounts/${i.account.id}/tickets`) as Route
+                        }
+                        className="hover:underline"
                       >
-                        {t.subject}
-                      </Link>
-                    </span>
-                  ))}
-                </p>
-              ) : null}
-            </li>
-          ))}
-        </ul>
+                        {i.title}
+                      </Link>{" "}
+                      <span className="text-muted-foreground font-normal text-xs">from {i.from}</span>
+                    </p>
+                    <p className="text-muted-foreground text-xs leading-relaxed">{i.snippet}</p>
+                    <div className="flex flex-wrap gap-2 text-xs pt-1">
+                      {i.intent ? <Badge variant="neutral">Intent: {i.intent}</Badge> : null}
+                      {i.sensitive.isSensitive ? (
+                        <Badge variant="danger" className="whitespace-normal" data-testid="sensitive">
+                          Sensitive ({i.sensitive.reasons.join(", ")}) · Always goes to a human
+                        </Badge>
+                      ) : null}
+                    </div>
+                    <ExtractionLabels
+                      labels={[
+                        ...(i.sentiment
+                          ? [
+                              {
+                                kind: "SENTIMENT" as const,
+                                text: `Sentiment: ${i.sentiment.label.toLowerCase()}`,
+                                tone: (i.sentiment.label === "NEGATIVE"
+                                  ? "negative"
+                                  : i.sentiment.label === "POSITIVE"
+                                    ? "good"
+                                    : i.sentiment.label === "MIXED"
+                                      ? "mixed"
+                                      : "neutral") as "negative" | "good" | "mixed" | "neutral",
+                                quote: i.sentiment.quote,
+                              },
+                            ]
+                          : []),
+                        ...i.labels,
+                      ]}
+                    />
+                    <div className="flex items-center gap-3 pt-1 text-xs">
+                      {i.hasDraft ? (
+                        <Link
+                          href={"/approvals" as Route}
+                          className="text-primary underline underline-offset-2 font-medium"
+                          data-testid="draft-link"
+                        >
+                          Reply drafted · see it in Approvals
+                        </Link>
+                      ) : canDraft && i.status !== "CLOSED" ? (
+                        <form action={draftReplyAction}>
+                          <input type="hidden" name="inboxItemId" value={i.id} />
+                          <Button type="submit" variant="outline" size="sm" className="h-7 text-xs" data-testid="draft-reply">
+                            Draft a reply
+                          </Button>
+                        </form>
+                      ) : null}
+                      {i.sensitive.isSensitive ? (
+                        <span className="text-muted-foreground text-xs">No auto-send option, ever.</span>
+                      ) : null}
+                    </div>
+                    {i.relatedTickets.length > 0 ? (
+                      <p className="text-xs text-muted-foreground pt-1" data-testid="related-tickets">
+                        Same problem in {i.relatedTickets.length} other ticket
+                        {i.relatedTickets.length === 1 ? "" : "s"}:{" "}
+                        {i.relatedTickets.map((t, n) => (
+                          <span key={t.id}>
+                            {n > 0 ? ", " : ""}
+                            <Link
+                              href={`/accounts/${i.account.id}/tickets` as Route}
+                              className="text-primary underline underline-offset-2"
+                            >
+                              {t.subject}
+                            </Link>
+                          </span>
+                        ))}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </DataListCard>
       )}
       {nextCursor ? (
         <nav aria-label="Pages" className="text-sm">
           <Link
             href={{ pathname: "/inbox", query: { status, cursor: nextCursor } }}
-            className="text-primary underline underline-offset-2"
+            className="inline-flex items-center gap-1.5 text-primary hover:underline font-medium text-xs sm:text-sm"
           >
             Older
+            <ArrowRight className="size-3.5" />
           </Link>
         </nav>
       ) : null}
