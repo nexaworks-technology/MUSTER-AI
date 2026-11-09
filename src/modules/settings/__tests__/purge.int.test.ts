@@ -140,6 +140,13 @@ describe("workspace deletion", () => {
     expect(tomb.requestedAt.getTime()).toBe(requestedAt.getTime());
     expect(await wCount(survivor.actor.workspaceId)).toBe(survivorBefore);
     expect((await getStorage().listKeys(survivor.actor)).length).toBeGreaterThan(0);
+    // Q-91: personal data of users left in no workspace is deleted on purge
+    expect(
+      await rawDb.user.findUnique({ where: { id: doomed.actor.userId } }),
+    ).toBeNull();
+    expect(
+      await rawDb.user.findUnique({ where: { id: survivor.actor.userId } }),
+    ).not.toBeNull();
   });
 
   it("is idempotent: a second run purges nothing more", async () => {

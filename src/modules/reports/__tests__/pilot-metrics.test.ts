@@ -131,16 +131,15 @@ describe("computePilotMetrics", () => {
     expect(median.sources.ids).toHaveLength(6);
     expect(median.sources.ids).not.toContain(lonely.id);
     expect(fig(r, "m1", "qbrPrepP90").value).toBe(90);
-    expect(fig(r, "m1", "briefPrepMedian").value).toBeNull();
   });
 
   it("uses the earliest generated and the first share at or after it; a share before generation is not a pair", () => {
-    const early = ev("m1", "brief.shared", "2026-11-03T08:00:00Z", "d1");
-    const g = ev("m1", "brief.generated", "2026-11-03T09:00:00Z", "d1");
-    const s1 = ev("m1", "brief.shared", "2026-11-03T09:30:00Z", "d1");
-    const s2 = ev("m1", "brief.shared", "2026-11-03T12:00:00Z", "d1");
+    const early = ev("m1", "qbr.shared", "2026-11-03T08:00:00Z", "d1");
+    const g = ev("m1", "qbr.generated", "2026-11-03T09:00:00Z", "d1");
+    const s1 = ev("m1", "qbr.shared", "2026-11-03T09:30:00Z", "d1");
+    const s2 = ev("m1", "qbr.shared", "2026-11-03T12:00:00Z", "d1");
     const r = run([early, g, s1, s2]);
-    expect(fig(r, "m1", "briefPrepMedian").value).toBe(30);
+    expect(fig(r, "m1", "qbrPrepMedian").value).toBe(30);
   });
 
   it("buckets weeks by the workspace timezone", () => {

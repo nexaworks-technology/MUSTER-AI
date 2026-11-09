@@ -47,6 +47,8 @@ async function main(): Promise<void> {
         connection: redisConnection(),
         prefix: queuePrefix(),
         concurrency: 4,
+        // Longer lock duration for signals and health workers under heavy scale load (D-185, approved in Session C).
+        ...(name === "signals" || name === "health" ? { lockDuration: 120_000 } : {}),
       },
     );
     worker.on("failed", (job, err) => {

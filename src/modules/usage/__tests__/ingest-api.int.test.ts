@@ -509,7 +509,7 @@ describe("Segment destination (verified with the integration's own shared secret
 });
 
 describe("no raw-event table (D-23, Q-33)", () => {
-  const EVENT_MODELS = ["WebhookEvent", "OutboxEvent", "RevenueEvent"];
+  const EVENT_MODELS = ["WebhookEvent", "OutboxEvent", "RevenueEvent", "ProductEvent"];
   const RAW_COLUMNS = [
     "properties",
     "traits",
@@ -534,7 +534,7 @@ describe("no raw-event table (D-23, Q-33)", () => {
         });
       }
     }
-    // The three event-named tables hold billing, webhook and outbox records, none of them usage.
+    // The four event-named tables hold billing, webhook, outbox and pilot telemetry records, none of them usage.
     const rawish = models
       .filter((m) => !EVENT_MODELS.includes(m.name))
       .flatMap((m) => m.fields.map((f) => ({ model: m.name, column: f.name })))

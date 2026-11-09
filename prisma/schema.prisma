@@ -58,7 +58,6 @@ model Workspace {
   /// M5 setup wizard: true until an Admin finishes /setup and goes live. A pending workspace gets
   /// no nightly run (and no hourly Today/escalation sweep) until then.
   setupPending        Boolean         @default(false)
-  dataRetentionDays   Int?
   deletionRequestedAt DateTime?
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt

@@ -142,6 +142,16 @@ describe("setup wizard", () => {
     expect(audit).toBeDefined();
   });
 
+  it("counts unowned accounts so the wizard can warn during import", async () => {
+    const S = await fresh("SetupUnowned");
+    await S.db.account.create({
+      data: { workspaceId: S.actor.workspaceId, name: "Unowned Co", tier: "HIGH_TOUCH" },
+    });
+    const state = await getSetupState(S.actor);
+    expect(state.counts.accounts).toBe(1);
+    expect(state.counts.unownedAccounts).toBe(1);
+  });
+
   it("is Admin only", async () => {
     const S = await fresh("SetupRole");
     await expect(getSetupState({ ...S.actor, role: "CS_LEADER" })).rejects.toBeInstanceOf(

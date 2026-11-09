@@ -58,6 +58,7 @@ export async function getSetupState(actor: Actor) {
     imports,
     onboardingCount,
     existingPlays,
+    unownedAccounts,
   ] = await Promise.all([
     getOwnWorkspace(actor),
     listIntegrations(actor),
@@ -72,6 +73,7 @@ export async function getSetupState(actor: Actor) {
     db.importJob.count({ where: { status: "COMPLETED" } }),
     db.account.count({ where: { lifecycleStage: "ONBOARDING", archivedAt: null } }),
     db.play.findMany({ select: { key: true, name: true, status: true } }),
+    db.account.count({ where: { archivedAt: null, ownerMembershipId: null } }),
   ]);
   const active = models.find((m) => m.status === "ACTIVE") ?? null;
   const proposal =
@@ -103,7 +105,7 @@ export async function getSetupState(actor: Actor) {
     setupPending: workspace.setupPending,
     baseCurrency: workspace.baseCurrency,
     connected: connectedList,
-    counts: { accounts, contacts, contracts, importsDone: imports },
+    counts: { accounts, contacts, contracts, importsDone: imports, unownedAccounts },
     tierRule: settings.tierRule,
     tierCounts: Object.fromEntries(tiers.map((t) => [t.tier, t._count._all])) as Partial<
       Record<string, number>

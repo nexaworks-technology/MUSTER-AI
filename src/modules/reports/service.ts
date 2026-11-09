@@ -276,3 +276,6 @@ export {
   type PilotQuery,
 } from "./pilot-report";
 export type { PilotFigure, PilotFigureKey } from "./pilot-metrics";
+
+// Portfolio health trend (spec §5 Reports / Health overview)
+export { portfolioHealthTrend, type HealthTrendInput } from "./portfolio-health-trend";

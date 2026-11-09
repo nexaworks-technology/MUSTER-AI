@@ -92,10 +92,35 @@ export async function deleteWorkspaceRows(
 ): Promise<void> {
   await rawDb.$transaction(async (tx) => {
     await tx.$executeRaw`SELECT set_config('app.workspace_id', ${workspaceId}, true)`;
+    // Q-91: capture member users before workspace delete so we can remove personal data of users
+    // left in no workspace after the cascade removes their memberships.
+    const memberUsers = await tx.membership.findMany({
+      where: { workspaceId },
+      select: { userId: true },
+    });
+    const candidateUserIds = [...new Set(memberUsers.map((m) => m.userId))];
+
     // AuditLog does not cascade from Workspace (it protects the log); the append-only trigger lets
     // these rows go only because this workspace's grace has ended by the database clock.
     await tx.auditLog.deleteMany({ where: { workspaceId } });
     await tx.workspace.deleteMany({ where: { id: workspaceId } });
+
+    // Q-91: delete orphaned users who belong to no remaining workspace
+    if (candidateUserIds.length > 0) {
+      const orphaned = await tx.user.findMany({
+        where: {
+          id: { in: candidateUserIds },
+          memberships: { none: {} },
+        },
+        select: { id: true },
+      });
+      if (orphaned.length > 0) {
+        await tx.user.deleteMany({
+          where: { id: { in: orphaned.map((u) => u.id) } },
+        });
+      }
+    }
+
     await tx.workspaceTombstone.update({
       where: { id: tombstoneId },
       data: { purgedAt, purgeCounts },

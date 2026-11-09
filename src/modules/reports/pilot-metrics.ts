@@ -31,8 +31,6 @@ export const PILOT_FIGURE_KEYS = [
   "flagAcceptance",
   "qbrPrepMedian",
   "qbrPrepP90",
-  "briefPrepMedian",
-  "briefPrepP90",
 ] as const;
 export type PilotFigureKey = (typeof PILOT_FIGURE_KEYS)[number];
 export type PilotFigures = Record<PilotFigureKey, PilotFigure>;
@@ -217,7 +215,6 @@ function prep(label: string, pairs: Pair[], p: number): PilotFigure {
 interface Bucket {
   events: PilotEvent[];
   qbr: Pair[];
-  brief: Pair[];
 }
 
 function figuresFor(b: Bucket): PilotFigures {
@@ -230,8 +227,6 @@ function figuresFor(b: Bucket): PilotFigures {
     ),
     qbrPrepMedian: prep("QBR prep time, median", b.qbr, 0.5),
     qbrPrepP90: prep("QBR prep time, p90", b.qbr, 0.9),
-    briefPrepMedian: prep("Brief prep time, median", b.brief, 0.5),
-    briefPrepP90: prep("Brief prep time, p90", b.brief, 0.9),
   };
 }
 
@@ -253,24 +248,21 @@ export function computePilotMetrics(input: ComputeInput): PilotMetrics {
   const events = input.events.filter((e) => known.has(e.membershipId));
   const pairs = {
     qbr: prepPairs(events, "qbr"),
-    brief: prepPairs(events, "brief"),
   };
 
   const members = input.members.map((m): PilotMemberMetrics => {
     const mine = events.filter((e) => e.membershipId === m.id);
     const weekly: Record<string, PilotFigures> = {};
-    const period: Bucket = { events: [], qbr: [], brief: [] };
+    const period: Bucket = { events: [], qbr: [] };
     for (const w of weeks) {
       const b: Bucket = {
         events: mine.filter((e) => weekOf(e.occurredAt) === w.label),
         qbr: pairs.qbr.filter((p) => p.member === m.id && weekOf(p.sharedAt) === w.label),
-        brief: pairs.brief.filter((p) => p.member === m.id && weekOf(p.sharedAt) === w.label),
       };
       weekly[w.label] = figuresFor(b);
       // Prep pairs are counted in the week they were shared; the rest by when they happened.
       period.events.push(...b.events);
       period.qbr.push(...b.qbr);
-      period.brief.push(...b.brief);
     }
     return { membershipId: m.id, name: m.name, weekly, period: figuresFor(period) };
   });

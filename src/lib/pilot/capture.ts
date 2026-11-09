@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { businessClock } from "@/lib/dates";
 import { scopedDb } from "@/lib/db/scoped";
 import { logger } from "@/lib/logger";
 import {
@@ -44,7 +45,7 @@ export async function recordProductEvent(actor: EventActor, input: EventInput): 
   try {
     if (!actor.membershipId || !isProductEventName(input.name)) return false;
     const membershipId = actor.membershipId;
-    const at = input.at ?? new Date();
+    const at = input.at ?? businessClock();
     const dedupe = PAGE_VIEW_EVENTS.includes(input.name);
     return await scopedDb({ workspaceId: actor.workspaceId }).$tenantTransaction(async (tx) => {
       if (dedupe) {

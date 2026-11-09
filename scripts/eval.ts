@@ -11,6 +11,7 @@ import { env } from "@/lib/config/env";
 import { getAiProvider, loadPrompt, renderPrompt } from "@/lib/ai";
 import { getAgent, judge, loadGolden } from "@/modules/agents/service";
 import type { ContextBundle } from "@/modules/agents/service";
+import { DEFAULT_THEMES } from "@/modules/conversations/service";
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
@@ -60,7 +61,7 @@ async function main() {
       tier: def.modelTier,
       workspaceId: "eval",
       promptRef: prompt.ref,
-      system: renderPrompt(prompt.body, { accountName: "the account" }),
+      system: renderPrompt(prompt.body, { accountName: "the account", themes: DEFAULT_THEMES.join(", ") }),
       input: JSON.stringify(c.bundle, null, 2),
       schema: def.outputSchema,
     });
