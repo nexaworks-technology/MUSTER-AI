@@ -68,6 +68,17 @@ export interface RenewalRow {
 
 const OPEN = ["UPCOMING", "IN_PROGRESS"] as const;
 
+/**
+ * The one definition of "an open renewal due within `days`", shared by the Renewals page and Today
+ * (FIX-2026-11-11): open stage, renewal date from `asOf` to `asOf + days`, both ends included.
+ */
+export function openRenewalWindow(asOf: string, days: number) {
+  return {
+    stage: { in: [...OPEN] },
+    renewalDate: { gte: utcMidnight(asOf), lte: utcMidnight(addDays(asOf, days)) },
+  } satisfies Prisma.RenewalWhereInput;
+}
+
 const rowSelect = {
   id: true,
   renewalDate: true,
@@ -129,8 +140,7 @@ export async function listRenewals(actor: Actor, raw: unknown = {}, clock: Clock
   const asOf = todayIn(ctx.timeZone, clock);
   const db = scopedDb(actor);
   const where: Prisma.RenewalWhereInput = {
-    stage: { in: [...OPEN] },
-    renewalDate: { gte: utcMidnight(asOf), lte: utcMidnight(addDays(asOf, q.days)) },
+    ...openRenewalWindow(asOf, q.days),
     ...(q.band ? { confidenceBand: q.band } : {}),
     account: {
       AND: [bookWhere(actor, grant.scope), q.owner ? { ownerMembershipId: q.owner } : {}],

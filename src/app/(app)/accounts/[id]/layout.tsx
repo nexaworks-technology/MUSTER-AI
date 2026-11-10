@@ -37,6 +37,7 @@ export default async function AccountLayout({
     { label: "Adoption", href: `${base}/adoption` },
     { label: "Tickets", href: `${base}/tickets` },
     { label: "Conversations", href: `${base}/conversations` },
+    { label: "Meetings", href: `${base}/meetings` },
     { label: "Promises", href: `${base}/promises` },
     { label: "Contracts & billing", href: `${base}/billing` },
     { label: "Plans", href: `${base}/plans` },
@@ -148,7 +149,9 @@ export default async function AccountLayout({
               </>
             ) : (
               <div className="px-1 py-0.5">
-                <StatusPill variant="neutral">Not scored yet</StatusPill>
+                <StatusPill variant="neutral">
+                  {account.lifecycleStage === "LOST" ? "Not scored (lost account)" : "Not scored yet"}
+                </StatusPill>
               </div>
             )}
           </div>

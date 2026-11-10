@@ -196,3 +196,12 @@ export async function sweepAllUpcomingMeetingBriefs(
   }
   return out;
 }
+
+// The Meetings & QBRs screen's read side (FIX-2026-11-11), kept in its own file and re-exported here.
+export {
+  listMeetingsIndex,
+  MEETINGS_INDEX_LIMIT,
+  type MeetingIndexRow,
+  type MeetingsIndex,
+  type QbrIndexRow,
+} from "./list";

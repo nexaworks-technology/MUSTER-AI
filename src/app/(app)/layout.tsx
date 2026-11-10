@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   BarChart3,
   Sparkles,
+  Video,
   Settings as SettingsIcon,
   Search,
   Bell,
@@ -50,13 +51,14 @@ const NAV_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   Promises: ShieldCheck,
   Reports: BarChart3,
   "Ask AI": Sparkles,
+  "Meetings & QBRs": Video,
   Settings: SettingsIcon,
 };
 
 const NAV_GROUPS = [
   {
     title: "Work",
-    items: ["Home", "Today", "Approvals", "Tasks"],
+    items: ["Home", "Today", "Approvals", "Tasks", "Meetings & QBRs"],
   },
   {
     title: "Portfolio",

@@ -18,7 +18,9 @@ import {
   getActiveModel,
   healthForAccounts,
   healthOverview,
+  listUnscoredAccounts,
   liveSnapshotWhere,
+  UNSCORED_LIST_LIMIT,
   type Band,
   type Mover,
 } from "@/modules/health/service";
@@ -149,12 +151,13 @@ export default async function HealthPage({ searchParams }: { searchParams: Searc
   );
   const parsed = accountListQuery.safeParse({ health: "AT_RISK", ...raw });
   const query = parsed.success ? parsed.data : accountListQuery.parse({ health: "AT_RISK" });
-  const [overview, page, owners, segments, trend] = await Promise.all([
+  const [overview, page, owners, segments, trend, unscoredAccounts] = await Promise.all([
     healthOverview(ctx),
     listAccounts(ctx, query),
     listOwners(ctx),
     listSegments(ctx),
     loadPortfolioHealthTrend(ctx),
+    listUnscoredAccounts(ctx),
   ]);
   const health = await healthForAccounts(
     ctx,
@@ -278,11 +281,46 @@ export default async function HealthPage({ searchParams }: { searchParams: Searc
             );
           })}
         </ul>
-        {overview.unscored > 0 ? (
-          <p className="text-muted-foreground text-xs">
-            {overview.unscored} account{overview.unscored === 1 ? " has" : "s have"} not been scored
-            yet.
-          </p>
+        {unscoredAccounts.length > 0 ? (
+          <details
+            className="surface px-4 py-3 text-sm"
+            open={unscoredAccounts.length <= 15}
+            data-testid="not-scored"
+          >
+            <summary className="cursor-pointer font-medium">
+              Not scored ({unscoredAccounts.length}){" "}
+              <span className="text-muted-foreground font-normal">
+                · these accounts are in no band above; the reason is beside each
+              </span>
+            </summary>
+            <ul className="divide-border mt-3 divide-y">
+              {unscoredAccounts.map((u) => (
+                <li
+                  key={u.accountId}
+                  className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-2"
+                  data-testid="not-scored-row"
+                >
+                  <Link
+                    href={`/accounts/${u.accountId}` as Route}
+                    className="font-medium underline-offset-2 hover:underline"
+                  >
+                    {u.name}
+                  </Link>
+                  <span className="text-muted-foreground max-w-prose text-xs">
+                    {u.kind === "LOST" ? "Lost" : "Awaiting first score"}
+                    {u.churnedAt ? ` (${formatCalendarDate(new Date(`${u.churnedAt}T00:00:00Z`))})` : ""}
+                    {" · "}
+                    {u.reason}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {unscoredAccounts.length >= UNSCORED_LIST_LIMIT ? (
+              <p className="text-muted-foreground mt-2 text-xs">
+                Showing the first {UNSCORED_LIST_LIMIT}.
+              </p>
+            ) : null}
+          </details>
         ) : null}
       </section>
 

@@ -18,7 +18,7 @@ import { formatMoney } from "@/lib/money";
 import { recordProductEvent } from "@/lib/pilot/capture";
 import { healthOverview } from "@/modules/health/service";
 import { listRenewals } from "@/modules/renewals/service";
-import { getToday, SECTIONS } from "@/modules/today/service";
+import { countMyRenewalsDue, getToday, SECTIONS } from "@/modules/today/service";
 
 export const metadata: Metadata = { title: "Today" };
 
@@ -73,10 +73,14 @@ export default async function TodayPage({ searchParams }: { searchParams: Search
     ]),
   );
 
-  const [sections, health, renewals30] = await Promise.all([
+  // The card and the "next 90 days" list read the same Renewal records as the Renewals page, on
+  // the member's own accounts ("only for my accounts", spec §5). `renewalsAll90` is the Renewals
+  // page's own total, shown only to explain an empty own-book list.
+  const [sections, health, renewalsDue30, renewalsAll90] = await Promise.all([
     getToday(ctx, { cursors }),
     healthOverview(ctx),
-    listRenewals(ctx, { days: 30 }),
+    countMyRenewalsDue(ctx, 30),
+    listRenewals(ctx, { days: 90 }),
   ]);
 
   const empty = sections.every((s) => s.total === 0);
@@ -94,7 +98,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Search
   const approvalsSection = sections.find((s) => s.key === "APPROVAL");
   const pendingApprovalsCount = approvalsSection?.total ?? 0;
   const accountsAtRiskCount = health.bands.AT_RISK.count;
-  const renewalsDue30Count = renewals30.total;
+  const renewalsDue30Count = renewalsDue30;
   const arrAtRiskMinor = health.bands.AT_RISK.arrMinor;
 
   return (
@@ -188,7 +192,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Search
               <div className="text-foreground text-2xl font-bold tracking-tight tabular-nums">
                 {renewalsDue30Count}
               </div>
-              <p className="text-muted-foreground truncate text-[11px]">Open renewal window</p>
+              <p className="text-muted-foreground truncate text-[11px]">On your own accounts</p>
             </CardContent>
           </Card>
         </Link>
@@ -268,7 +272,9 @@ export default async function TodayPage({ searchParams }: { searchParams: Search
                     <EmptyState>
                       {s.key === "MEETING"
                         ? "No calendar connected. Meetings appear here once one is."
-                        : "Nothing here."}
+                        : s.key === "RENEWAL" && renewalsAll90.total > 0
+                          ? `None of your own accounts renew in the next 90 days. The Renewals page lists ${renewalsAll90.total} across everyone you can see.`
+                          : "Nothing here."}
                     </EmptyState>
                   </div>
                 ) : (

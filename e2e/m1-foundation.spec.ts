@@ -37,6 +37,7 @@ test.describe("M1 foundation", () => {
       "Today",
       "Approvals",
       "Tasks",
+      "Meetings & QBRs",
       "Accounts",
       "Health",
       "Onboarding",

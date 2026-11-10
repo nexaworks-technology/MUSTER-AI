@@ -294,7 +294,11 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
                       {(() => {
                         const h = health.get(a.id);
                         if (!h?.riskLevel)
-                          return <span className="text-muted-foreground text-xs">Not scored yet</span>;
+                          return (
+                            <span className="text-muted-foreground text-xs">
+                              {a.lifecycleStage === "LOST" ? "Not scored (lost account)" : "Not scored yet"}
+                            </span>
+                          );
                         return (
                           <Link
                             href={`/accounts/${a.id}/health`}

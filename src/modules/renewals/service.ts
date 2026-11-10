@@ -49,6 +49,7 @@ export {
   canCategorise,
   getAccountRenewals,
   listRenewals,
+  openRenewalWindow,
   RenewalError,
   setForecastCategory,
   type RenewalRow,

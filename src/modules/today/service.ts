@@ -6,12 +6,12 @@ import {
   startOfLocalDay,
   businessClock,
   todayIn,
-  utcMidnight,
   type Clock,
 } from "@/lib/dates";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { getOwnWorkspace } from "@/lib/db/workspace";
 import type { Actor } from "@/modules/accounts/service";
+import { openRenewalWindow } from "@/modules/renewals/service";
 import { rankItems, type Candidate, type Reason } from "./ranking";
 
 /**
@@ -41,6 +41,38 @@ const myAccounts = (m: Member): Prisma.AccountWhereInput =>
         lifecycleStage: { not: "LOST" },
       }
     : { ownerMembershipId: m.membershipId, lifecycleStage: { not: "LOST" } };
+
+/**
+ * Whose renewals Today covers: the member's own accounts, plus the unowned pool for TEAM scope.
+ * The same owner rule as `myAccounts`, without its lost-account filter, so that Today covers
+ * exactly the renewals the Renewals page lists for that owner (one source: the Renewal rows).
+ */
+const myRenewalOwners = (m: Member): Prisma.AccountWhereInput =>
+  m.bookScope === "TEAM"
+    ? { OR: [{ ownerMembershipId: m.membershipId }, { ownerMembershipId: null }] }
+    : { ownerMembershipId: m.membershipId };
+
+/**
+ * Open renewals due within `days` on the member's own accounts, read from Renewal records through
+ * the Renewals page's own window (`openRenewalWindow`). Today's "Renewals in 30 days" card and its
+ * "next 90 days" list both come from here.
+ */
+const myRenewalsWhere = (m: Member, asOf: string, days: number): Prisma.RenewalWhereInput => ({
+  ...openRenewalWindow(asOf, days),
+  account: myRenewalOwners(m),
+});
+
+export async function countMyRenewalsDue(
+  m: Member,
+  days: number,
+  clock: Clock = businessClock,
+): Promise<number> {
+  const ctx: TenantContext = { workspaceId: m.workspaceId };
+  const ws = await getOwnWorkspace(ctx);
+  return scopedDb(ctx).renewal.count({
+    where: myRenewalsWhere(m, todayIn(ws.timezone, clock), days),
+  });
+}
 
 const accountSelect = {
   id: true,
@@ -84,12 +116,10 @@ export async function todayCandidates(
       where: { status: "PENDING", assigneeId: m.membershipId },
       include: { account: { select: accountSelect } },
     }),
-    db.account.findMany({
-      where: {
-        ...myAccounts(m),
-        renewalDate: { gte: utcMidnight(today), lte: utcMidnight(addDays(today, 90)) },
-      },
-      select: accountSelect,
+    db.renewal.findMany({
+      where: myRenewalsWhere(m, today, 90),
+      orderBy: [{ renewalDate: "asc" }, { id: "asc" }],
+      select: { renewalDate: true, account: { select: accountSelect } },
     }),
     db.meeting.findMany({
       where: {
@@ -165,12 +195,12 @@ export async function todayCandidates(
       ...acct(a.account),
       driver: { kind: "APPROVAL", waitingHours: (+now - +a.createdAt) / 3_600_000 },
     })),
-    ...renewals.map((a): Candidate => ({
+    ...renewalsByAccount(renewals).map((r): Candidate => ({
       itemType: "RENEWAL",
-      refId: a.id,
-      title: `${a.name} renews`,
-      ...acct(a),
-      driver: { kind: "RENEWAL", renewalDate: calendarDateOf(a.renewalDate!) },
+      refId: r.account.id,
+      title: `${r.account.name} renews`,
+      ...acct({ ...r.account, renewalDate: r.renewalDate }),
+      driver: { kind: "RENEWAL", renewalDate: calendarDateOf(r.renewalDate) },
     })),
     ...meetings.map((mtg): Candidate => {
       const hh = mtg.startsAt.getUTCHours().toString().padStart(2, "0");
@@ -186,6 +216,12 @@ export async function todayCandidates(
       };
     }),
   ];
+}
+
+/** One Today item per account: its soonest open renewal in the window (rows arrive soonest first). */
+function renewalsByAccount<T extends { account: { id: string } }>(rows: T[]): T[] {
+  const seen = new Set<string>();
+  return rows.filter((r) => (seen.has(r.account.id) ? false : (seen.add(r.account.id), true)));
 }
 
 /** Replaces one member's Today items with a fresh ranking (idempotent). */

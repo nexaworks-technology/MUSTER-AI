@@ -53,6 +53,30 @@ beforeAll(async () => {
       },
     });
   big = (await acct("Brightwell", 142_000_00n, leo.membershipId, "2026-11-25")).id;
+  // FIX-2026-11-11: Today's renewals are read from Renewal records (the Renewals page's source),
+  // so Brightwell's 2026-11-25 renewal exists as one. Arrangement only; assertions unchanged.
+  const contract = await db.contract.create({
+    data: {
+      workspaceId: ws,
+      accountId: big,
+      startDate: new Date("2025-11-25T00:00:00Z"),
+      endDate: new Date("2026-11-25T00:00:00Z"),
+      valueMinor: 142_000_00n,
+    },
+  });
+  await db.renewal.create({
+    data: {
+      workspaceId: ws,
+      accountId: big,
+      contractId: contract.id,
+      renewalDate: new Date("2026-11-25T00:00:00Z"),
+      arrAtRiskMinor: 142_000_00n,
+      currency: "USD",
+      confidence: 60,
+      confidenceBand: "MEDIUM",
+      confidenceAsOf: new Date("2026-11-03T00:00:00Z"),
+    },
+  });
   small = (await acct("Tinyco", 2_000_00n, leo.membershipId)).id;
   const otherOwner = (await acct("Not Leo's", 999_000_00n, actor.membershipId)).id;
   const task = (accountId: string, title: string, dueAt: string, owner = leo.membershipId) =>

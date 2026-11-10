@@ -658,6 +658,75 @@ export async function healthOverview(actor: Actor, clock: Clock = businessClock)
   };
 }
 
+/** Rows returned by `listUnscoredAccounts`; the Health page says so when it is reached. */
+export const UNSCORED_LIST_LIMIT = 200;
+
+export interface UnscoredAccount {
+  accountId: string;
+  name: string;
+  /** LOST: not scored by design. AWAITING_FIRST_SCORE: active, no score for the active model yet. */
+  kind: "LOST" | "AWAITING_FIRST_SCORE";
+  /** The reason, in plain words, shown beside the account. */
+  reason: string;
+  /** Calendar date the account was marked churned, when it was recorded (LOST only). */
+  churnedAt: string | null;
+}
+
+/**
+ * Every account in the member's book that has no health score, with why (FIX-2026-11-11). Lost
+ * accounts are never scored (the nightly pipeline, the Health overview and every agent skip
+ * them), so they appear in no band; this list is where they are shown instead of being silently
+ * absent. Active accounts not yet scored by the active model are the Health page's `unscored`.
+ * Missing data never lowers a score (rule 4): nothing here is a score.
+ */
+export async function listUnscoredAccounts(actor: Actor): Promise<UnscoredAccount[]> {
+  const grant = requirePermission(actor, "accounts:view");
+  const db = scopedDb(actor);
+  const model = await getActiveModel(actor);
+  const rows = await db.account.findMany({
+    where: {
+      AND: [
+        bookWhere(actor, grant.scope),
+        { archivedAt: null },
+        {
+          OR: [
+            { lifecycleStage: "LOST" },
+            { currentHealthSnapshotId: null },
+            { currentHealth: { is: { healthModelId: { not: model.id } } } },
+          ],
+        },
+      ],
+    },
+    select: { id: true, name: true, lifecycleStage: true, churnedAt: true },
+    orderBy: { name: "asc" },
+    take: UNSCORED_LIST_LIMIT,
+  });
+  const out = rows.map((a): UnscoredAccount =>
+    a.lifecycleStage === "LOST"
+      ? {
+          accountId: a.id,
+          name: a.name,
+          kind: "LOST",
+          reason:
+            "Lost account. Health is only calculated for active customers, so it is not scored.",
+          churnedAt: a.churnedAt ? calendarDateOf(a.churnedAt) : null,
+        }
+      : {
+          accountId: a.id,
+          name: a.name,
+          kind: "AWAITING_FIRST_SCORE",
+          reason:
+            "Active account that has not been scored by the current health model yet. It is scored in the next nightly run, or when someone recomputes.",
+          churnedAt: null,
+        },
+  );
+  // Active accounts waiting for a score first: those are the ones someone can act on.
+  return [
+    ...out.filter((u) => u.kind === "AWAITING_FIRST_SCORE"),
+    ...out.filter((u) => u.kind === "LOST"),
+  ];
+}
+
 // ─── Back-test, proposal and versions (implemented in backtest-service.ts) ───
 export {
   activateModel,
