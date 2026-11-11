@@ -9,8 +9,15 @@
  * Accent: ONE indigo-violet (PRODUCT_ACCENT in src/config/product.ts), hue 285. It marks the primary
  * action, the focus ring and the selected/hover tint, and nothing else. Neutrals are a warm grey
  * (hue 70-85, chroma under 0.015). Colour is otherwise reserved for meaning: health bands and the
- * success / warning / danger states. The structure is dark-mode-ready (every colour is a variable
- * on :root); dark mode itself is not built (decided in DP5).
+ * success / warning / danger states.
+ *
+ * Design 3.0 (glass): the light theme is :root; the dark theme overrides the same names under
+ * :root[data-theme="dark"] (explicit toggle) and, identically, under prefers-color-scheme: dark
+ * when no explicit choice is set. `theme-tokens.test.ts` checks that both blocks match and that the
+ * contrast pairs below hold in BOTH themes, including glass panels over the worst ambient backdrop.
+ * Glass rules: live backdrop blur only on fixed chrome (.glass-chrome) and popovers/modals
+ * (.glass-popover); cards and panels use translucent fills, hairlines and shadows with no blur.
+ * `.glass-scope` re-maps the card tokens to glass panels for Today and Ask AI only.
  *
  * WCAG AA contrast, computed from the oklch values below (sRGB, WCAG 2.x relative luminance).
  * Text needs 4.5:1, large text and UI boundaries 3:1.
@@ -37,6 +44,7 @@
  * --border (1.3:1 on card) is a decorative divider only; field and control boundaries use --input.
  */
 :root {
+  color-scheme: light;
   /* Surfaces: Layered elevation (Design 2.0) — app background one step darker than pure white card surfaces */
   --background: oklch(0.978 0.005 85);
   --foreground: oklch(0.21 0.012 70);
@@ -92,15 +100,213 @@
   --risk-unknown-soft: oklch(0.95 0.005 80);
   --risk-unknown-soft-foreground: oklch(0.4 0.012 70);
 
+  /* Design 3.0 glass: ambient backdrop stops (peak colours; contrast is tested against each) */
+  --ambient-base: oklch(0.965 0.014 285);
+  --ambient-a: oklch(0.9 0.07 295);
+  --ambient-b: oklch(0.92 0.055 235);
+  --ambient-c: oklch(0.93 0.06 55);
+  --ambient:
+    radial-gradient(60rem 42rem at 6% -8%, var(--ambient-a), transparent 62%),
+    radial-gradient(52rem 40rem at 100% 0%, var(--ambient-b), transparent 58%),
+    radial-gradient(48rem 38rem at 72% 108%, var(--ambient-c), transparent 62%), var(--ambient-base);
+
+  /* Glass surfaces: chrome (blurred, fixed), panels at three elevations (translucent, NOT blurred) */
+  --glass-blur: 20px;
+  --glass-chrome-fill: oklch(1 0 0 / 0.62);
+  --glass-panel-1: oklch(1 0 0 / 0.84);
+  --glass-panel-2: oklch(1 0 0 / 0.92);
+  --glass-panel-3: oklch(1 0 0 / 0.97);
+  --glass-muted: oklch(0.96 0.012 285 / 0.9);
+  --glass-hover: oklch(0.94 0.02 285 / 0.9);
+  --glass-border: oklch(0.8 0.04 285 / 0.5);
+  --glass-highlight: oklch(1 0 0 / 0.7);
+  /* Solid stand-ins for prefers-reduced-transparency and browsers without backdrop-filter */
+  --glass-solid-chrome: oklch(0.985 0.004 285);
+  --glass-solid-panel: oklch(1 0 0);
+  --glass-solid-muted: oklch(0.96 0.008 285);
+  --glass-solid-hover: oklch(0.935 0.012 285);
+  --glass-shadow-1:
+    inset 0 1px 0 var(--glass-highlight), 0 8px 24px -10px oklch(0.4 0.1 285 / 0.16),
+    0 2px 6px -2px oklch(0.4 0.1 285 / 0.08);
+  --glass-shadow-2:
+    inset 0 1px 0 var(--glass-highlight), 0 16px 36px -12px oklch(0.4 0.1 285 / 0.22),
+    0 4px 10px -4px oklch(0.4 0.1 285 / 0.1);
+  --glass-shadow-3:
+    inset 0 1px 0 var(--glass-highlight), 0 28px 60px -16px oklch(0.35 0.12 285 / 0.32),
+    0 8px 18px -6px oklch(0.35 0.12 285 / 0.14);
+  /* Violet to teal accent family */
+  --accent-from: oklch(0.52 0.19 290);
+  --accent-to: oklch(0.5 0.1 200);
+  --accent-gradient: linear-gradient(135deg, var(--accent-from), var(--accent-to));
+
   /* Page and section rhythm (steps of Tailwind's spacing scale; see the md rule below) */
   --space-page: 1rem;
   --space-section: 1.5rem;
+}
+
+/* Design 3.0 dark theme. Explicit choice (toggle) ... */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.15 0.03 285);
+  --foreground: oklch(0.95 0.01 285);
+  --card: oklch(0.2 0.03 285);
+  --card-foreground: oklch(0.95 0.01 285);
+  --popover: oklch(0.22 0.035 285);
+  --popover-foreground: oklch(0.95 0.01 285);
+  --muted: oklch(0.24 0.03 285);
+  --muted-foreground: oklch(0.74 0.025 285);
+  --hover: oklch(0.28 0.035 285);
+  --secondary: oklch(0.26 0.03 285);
+  --secondary-foreground: oklch(0.9 0.015 285);
+  --border: oklch(0.32 0.035 285);
+  --input: oklch(0.58 0.04 285);
+  --placeholder: oklch(0.66 0.03 285);
+  --overlay: oklch(0.08 0.02 285 / 0.6);
+
+  --primary: oklch(0.72 0.15 290);
+  --primary-hover: oklch(0.78 0.13 290);
+  --primary-foreground: oklch(0.16 0.04 285);
+  --accent: oklch(0.3 0.08 290);
+  --accent-foreground: oklch(0.88 0.08 290);
+  --ring: oklch(0.74 0.15 290);
+
+  --success: oklch(0.76 0.15 155);
+  --success-foreground: oklch(0.16 0.03 155);
+  --success-soft: oklch(0.28 0.06 155);
+  --success-soft-foreground: oklch(0.88 0.1 155);
+  --warning: oklch(0.8 0.14 80);
+  --warning-foreground: oklch(0.18 0.04 80);
+  --warning-soft: oklch(0.3 0.06 80);
+  --warning-soft-foreground: oklch(0.9 0.1 85);
+  --danger: oklch(0.72 0.18 25);
+  --danger-foreground: oklch(0.16 0.04 25);
+  --danger-soft: oklch(0.3 0.08 25);
+  --danger-soft-foreground: oklch(0.9 0.07 25);
+  --risk-unknown: oklch(0.74 0.015 285);
+  --risk-unknown-soft: oklch(0.27 0.02 285);
+  --risk-unknown-soft-foreground: oklch(0.88 0.015 285);
+
+  --ambient-base: oklch(0.13 0.035 285);
+  --ambient-a: oklch(0.34 0.14 295);
+  --ambient-b: oklch(0.36 0.09 210);
+  --ambient-c: oklch(0.28 0.09 260);
+
+  --glass-chrome-fill: oklch(0.2 0.04 285 / 0.6);
+  --glass-panel-1: oklch(0.22 0.035 285 / 0.82);
+  --glass-panel-2: oklch(0.25 0.04 285 / 0.9);
+  --glass-panel-3: oklch(0.27 0.04 285 / 0.96);
+  --glass-muted: oklch(0.27 0.035 285 / 0.9);
+  --glass-hover: oklch(0.31 0.045 285 / 0.9);
+  --glass-border: oklch(0.75 0.06 285 / 0.24);
+  --glass-highlight: oklch(1 0 0 / 0.09);
+  --glass-solid-chrome: oklch(0.18 0.035 285);
+  --glass-solid-panel: oklch(0.22 0.035 285);
+  --glass-solid-muted: oklch(0.26 0.035 285);
+  --glass-solid-hover: oklch(0.3 0.04 285);
+  --glass-shadow-1:
+    inset 0 1px 0 var(--glass-highlight), 0 10px 28px -10px oklch(0 0 0 / 0.55),
+    0 2px 8px -2px oklch(0 0 0 / 0.4);
+  --glass-shadow-2:
+    inset 0 1px 0 var(--glass-highlight), 0 18px 40px -12px oklch(0 0 0 / 0.6),
+    0 4px 12px -4px oklch(0 0 0 / 0.45);
+  --glass-shadow-3:
+    inset 0 1px 0 var(--glass-highlight), 0 30px 64px -16px oklch(0 0 0 / 0.7),
+    0 8px 20px -6px oklch(0 0 0 / 0.5);
+  --accent-from: oklch(0.7 0.16 290);
+  --accent-to: oklch(0.74 0.11 200);
+}
+
+/* ... and the same values when the choice is "system" and the OS is dark. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --background: oklch(0.15 0.03 285);
+    --foreground: oklch(0.95 0.01 285);
+    --card: oklch(0.2 0.03 285);
+    --card-foreground: oklch(0.95 0.01 285);
+    --popover: oklch(0.22 0.035 285);
+    --popover-foreground: oklch(0.95 0.01 285);
+    --muted: oklch(0.24 0.03 285);
+    --muted-foreground: oklch(0.74 0.025 285);
+    --hover: oklch(0.28 0.035 285);
+    --secondary: oklch(0.26 0.03 285);
+    --secondary-foreground: oklch(0.9 0.015 285);
+    --border: oklch(0.32 0.035 285);
+    --input: oklch(0.58 0.04 285);
+    --placeholder: oklch(0.66 0.03 285);
+    --overlay: oklch(0.08 0.02 285 / 0.6);
+
+    --primary: oklch(0.72 0.15 290);
+    --primary-hover: oklch(0.78 0.13 290);
+    --primary-foreground: oklch(0.16 0.04 285);
+    --accent: oklch(0.3 0.08 290);
+    --accent-foreground: oklch(0.88 0.08 290);
+    --ring: oklch(0.74 0.15 290);
+
+    --success: oklch(0.76 0.15 155);
+    --success-foreground: oklch(0.16 0.03 155);
+    --success-soft: oklch(0.28 0.06 155);
+    --success-soft-foreground: oklch(0.88 0.1 155);
+    --warning: oklch(0.8 0.14 80);
+    --warning-foreground: oklch(0.18 0.04 80);
+    --warning-soft: oklch(0.3 0.06 80);
+    --warning-soft-foreground: oklch(0.9 0.1 85);
+    --danger: oklch(0.72 0.18 25);
+    --danger-foreground: oklch(0.16 0.04 25);
+    --danger-soft: oklch(0.3 0.08 25);
+    --danger-soft-foreground: oklch(0.9 0.07 25);
+    --risk-unknown: oklch(0.74 0.015 285);
+    --risk-unknown-soft: oklch(0.27 0.02 285);
+    --risk-unknown-soft-foreground: oklch(0.88 0.015 285);
+
+    --ambient-base: oklch(0.13 0.035 285);
+    --ambient-a: oklch(0.34 0.14 295);
+    --ambient-b: oklch(0.36 0.09 210);
+    --ambient-c: oklch(0.28 0.09 260);
+
+    --glass-chrome-fill: oklch(0.2 0.04 285 / 0.6);
+    --glass-panel-1: oklch(0.22 0.035 285 / 0.82);
+    --glass-panel-2: oklch(0.25 0.04 285 / 0.9);
+    --glass-panel-3: oklch(0.27 0.04 285 / 0.96);
+    --glass-muted: oklch(0.27 0.035 285 / 0.9);
+    --glass-hover: oklch(0.31 0.045 285 / 0.9);
+    --glass-border: oklch(0.75 0.06 285 / 0.24);
+    --glass-highlight: oklch(1 0 0 / 0.09);
+    --glass-solid-chrome: oklch(0.18 0.035 285);
+    --glass-solid-panel: oklch(0.22 0.035 285);
+    --glass-solid-muted: oklch(0.26 0.035 285);
+    --glass-solid-hover: oklch(0.3 0.04 285);
+    --glass-shadow-1:
+      inset 0 1px 0 var(--glass-highlight), 0 10px 28px -10px oklch(0 0 0 / 0.55),
+      0 2px 8px -2px oklch(0 0 0 / 0.4);
+    --glass-shadow-2:
+      inset 0 1px 0 var(--glass-highlight), 0 18px 40px -12px oklch(0 0 0 / 0.6),
+      0 4px 12px -4px oklch(0 0 0 / 0.45);
+    --glass-shadow-3:
+      inset 0 1px 0 var(--glass-highlight), 0 30px 64px -16px oklch(0 0 0 / 0.7),
+      0 8px 20px -6px oklch(0 0 0 / 0.5);
+    --accent-from: oklch(0.7 0.16 290);
+    --accent-to: oklch(0.74 0.11 200);
+  }
 }
 
 @media (min-width: 48rem) {
   :root {
     --space-page: 2rem;
     --space-section: 2rem;
+  }
+}
+
+/* Tailwind's dark: variant follows the same two paths as the dark token block (toggle, or system). */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *) {
+      @slot;
+    }
   }
 }
 
@@ -198,8 +404,18 @@
   }
 
   body {
-    background: var(--background);
+    background-color: var(--background);
     color: var(--foreground);
+  }
+
+  /* The soft ambient gradient behind everything: one fixed, composited layer (cheap to scroll). */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: var(--ambient);
   }
 
   h1,
@@ -246,6 +462,101 @@
   &:hover {
     transform: translateY(-1px);
     box-shadow: var(--shadow-sm);
+  }
+}
+
+/*
+ * Design 3.0 glass utilities.
+ *
+ * .glass-chrome  fixed chrome only (sidebar, top bar): translucent fill + LIVE backdrop blur.
+ * .glass-popover modals and popovers: near-solid fill + live blur.
+ * Cards and panels never blur: they use the card tokens, which .glass-scope maps to translucent
+ * panel fills, a hairline border and a deep soft shadow. Data (tables, numbers, body copy) sits on
+ * these near-solid fills, never on raw glass.
+ */
+@utility glass-chrome {
+  background-color: var(--glass-chrome-fill);
+  border-color: var(--glass-border);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
+}
+
+@utility glass-popover {
+  background-color: var(--glass-panel-3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow-3);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
+}
+
+/* Accent surfaces: the violet-to-teal gradient (text on it is --primary-foreground, tested). */
+@utility bg-accent-gradient {
+  background-image: var(--accent-gradient);
+}
+
+/*
+ * Today and Ask AI (Design 3.0 session 1): the same utilities and components, re-themed by
+ * re-mapping tokens. Nothing here sets a blur.
+ */
+.glass-scope {
+  --card: var(--glass-panel-1);
+  --muted: var(--glass-muted);
+  --hover: var(--glass-hover);
+  --border: var(--glass-border);
+  --radius-md: 0.75rem;
+  --radius-lg: 1.125rem;
+  --radius-xl: 1.375rem;
+  --shadow-xs: var(--glass-shadow-1);
+  --shadow-sm: var(--glass-shadow-1);
+  --shadow-md: var(--glass-shadow-2);
+}
+
+/* Sticky list headers carry a small blur in Design 2.0; panels never blur, so it is off here. */
+.glass-scope .backdrop-blur-sm {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.glass-scope .surface-interactive:hover {
+  box-shadow: var(--glass-shadow-2);
+}
+
+/* Where backdrop-filter is not supported, chrome becomes solid and panels get their solid fill. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root:root:root {
+    --glass-chrome-fill: var(--glass-solid-chrome);
+  }
+}
+
+/* Reduced transparency: every glass fill becomes its solid stand-in, and chrome stops blurring. */
+@media (prefers-reduced-transparency: reduce) {
+  :root:root:root {
+    --glass-chrome-fill: var(--glass-solid-chrome);
+    --glass-panel-1: var(--glass-solid-panel);
+    --glass-panel-2: var(--glass-solid-panel);
+    --glass-panel-3: var(--glass-solid-panel);
+    --glass-muted: var(--glass-solid-muted);
+    --glass-hover: var(--glass-solid-hover);
+  }
+
+  .glass-chrome,
+  .glass-popover {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Reduced motion: no hover lift and no colour or shadow transitions on surfaces. */
+@media (prefers-reduced-motion: reduce) {
+  .surface-interactive,
+  .glass-scope .surface-interactive {
+    transition: none;
+  }
+
+  .surface-interactive:hover,
+  .glass-scope .surface-interactive:hover {
+    transform: none;
   }
 }
 

@@ -108,6 +108,8 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: "retain-on-failure",
+    // Design 3.0: E2E_COLOR_SCHEME=dark runs any suite with the OS in dark mode (theme "system").
+    ...(process.env.E2E_COLOR_SCHEME === "dark" ? { colorScheme: "dark" as const } : {}),
   },
   projects: [
     {

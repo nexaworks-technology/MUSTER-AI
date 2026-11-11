@@ -13,7 +13,7 @@ export default async function AskLayout({ children }: { children: React.ReactNod
   const ctx = (await resolveWorkspaceContext(await requireSession()))!;
   const threads = await listThreads(ctx);
   return (
-    <div className="gap-section flex flex-col md:flex-row md:items-start">
+    <div className="glass-scope gap-section flex flex-col md:flex-row md:items-start">
       <nav
         aria-label="Your conversations"
         className="space-y-3 md:w-64 md:shrink-0"

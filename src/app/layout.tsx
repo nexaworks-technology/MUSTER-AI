@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { cookies } from "next/headers";
 import { Inter } from "next/font/google";
+import { THEME_COOKIE, parseTheme, themeAttribute } from "@/lib/theme";
 import { PRODUCT_NAME } from "@/config/product";
 import "./globals.css";
 
@@ -14,9 +16,11 @@ export const metadata: Metadata = {
 // Dynamic rendering: Next applies the per-request CSP nonce (src/proxy.ts) only while rendering.
 export const dynamic = "force-dynamic";
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  // The saved theme is set on <html> on the server, so the first paint is already the right one.
+  const theme = themeAttribute(parseTheme((await cookies()).get(THEME_COOKIE)?.value));
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={inter.variable} data-theme={theme} suppressHydrationWarning>
       <body className="min-h-screen antialiased">{children}</body>
     </html>
   );

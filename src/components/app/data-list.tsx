@@ -106,12 +106,12 @@ export function getInitials(name?: string | null): string {
 /** Soft pastel palette mapped deterministically from string hash for avatar backgrounds. */
 const AVATAR_PALETTE = [
   "bg-primary/10 text-primary border-primary/20",
-  "bg-indigo-500/10 text-indigo-700 border-indigo-500/20",
-  "bg-sky-500/10 text-sky-700 border-sky-500/20",
-  "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
-  "bg-violet-500/10 text-violet-700 border-violet-500/20",
-  "bg-amber-500/10 text-amber-700 border-amber-500/20",
-  "bg-rose-500/10 text-rose-700 border-rose-500/20",
+  "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20",
+  "bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/20",
+  "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20",
+  "bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-500/20",
+  "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20",
+  "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20",
 ];
 
 function hashString(s: string): number {

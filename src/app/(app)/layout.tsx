@@ -27,6 +27,9 @@ import { NavLink } from "@/components/app/nav-link";
 import { NativeSelect } from "@/components/app/native-select";
 import { TopBarBreadcrumb } from "@/components/app/breadcrumb";
 import { getInitials } from "@/components/app/data-list";
+import { cookies } from "next/headers";
+import { ThemeToggle } from "@/components/app/theme-toggle";
+import { THEME_COOKIE, parseTheme } from "@/lib/theme";
 import { PRODUCT_NAME } from "@/config/product";
 import { visibleNav } from "@/config/features";
 import { unreadCount } from "@/modules/notifications/service";
@@ -109,9 +112,10 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const visibleMap = new Map(nav.map((item) => [item.label, item]));
   const unread = await unreadCount(ctx);
   const settingsItem = visibleMap.get("Settings");
+  const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value);
 
   return (
-    <div className="bg-background min-h-screen md:flex">
+    <div className="min-h-screen md:flex">
       <a
         href="#main"
         className="bg-card text-foreground focus-visible:ring-ring sr-only z-50 rounded-md shadow-md focus:not-sr-only focus:absolute focus:m-2 focus:p-2 focus-visible:ring-2"
@@ -120,7 +124,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       </a>
 
       {/* S1: Sidebar */}
-      <aside className="border-border bg-card/95 border-b backdrop-blur md:sticky md:top-0 md:flex md:h-screen md:w-60 md:shrink-0 md:flex-col md:border-r md:border-b-0">
+      <aside className="glass-chrome border-b md:sticky md:top-0 md:flex md:h-screen md:w-60 md:shrink-0 md:flex-col md:border-r md:border-b-0">
         {/* Workspace Card at Top */}
         <div className="border-border flex items-center justify-between gap-3 border-b px-4 py-3.5">
           <div className="flex min-w-0 items-center gap-2.5">
@@ -214,7 +218,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         </nav>
 
         {/* User Card at bottom of sidebar */}
-        <div className="border-border bg-card/60 hidden border-t px-3 py-3 md:flex md:items-center md:justify-between md:gap-2">
+        <div className="border-border hidden border-t px-3 py-3 md:flex md:items-center md:justify-between md:gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-2.5">
             <div className="border-border bg-accent text-accent-foreground flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold">
               {getInitials(userLabel)}
@@ -245,7 +249,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       {/* Main Content Area */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Top Bar */}
-        <header className="border-border bg-card/80 px-page sticky top-0 z-20 flex items-center justify-between gap-3 border-b py-2.5 backdrop-blur">
+        <header className="glass-chrome px-page sticky top-0 z-20 flex items-center justify-between gap-3 border-b py-2.5">
           <div className="flex min-w-0 items-center gap-3">
             <TopBarBreadcrumb workspaceName={ctx.workspace.name} />
           </div>
@@ -261,6 +265,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
           {/* User actions and notifications */}
           <div className="flex items-center gap-2">
+            <ThemeToggle initial={theme} />
             <Link
               href="/notifications"
               className="hover:bg-hover focus-visible:ring-ring text-muted-foreground hover:text-foreground relative flex items-center justify-center rounded-md p-1.5 transition-colors focus-visible:ring-2 focus-visible:outline-none"
