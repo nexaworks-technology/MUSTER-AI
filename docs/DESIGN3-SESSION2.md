@@ -85,3 +85,18 @@ headless Chromium on one machine; a low-end laptop or phone was not tested. Cont
 Phase 1 re-shoots: `today-light.png`, `today-dark.png`, `ask-light.png`, `ask-dark.png`.
 Phase 2: `accounts-light.png`, `accounts-dark.png`, `health-light.png`, `health-dark.png`,
 `account360-light.png`, `account360-dark.png`, `approvals-light.png`, `approvals-dark.png`.
+
+## Addendum: sidebar nav density (micro-fix)
+
+At 1280 x 800 the floating sidebar's navigation scrolled inside the panel. In the sidebar only, at
+desktop width (the phone's horizontal nav is untouched): nav item vertical padding `py-1.5` to
+`py-1`, no gap between items in a group, group gap `gap-3` to `gap-2`, section label padding and the
+nav's outer padding reduced, and the workspace header slightly shorter. No item removed, no order
+change, no other screen touched; item height stays at least 24 px.
+
+- Measured: the nav no longer scrolls (scroll height equals client height, 664 px) and all 17 items
+  plus Settings sit above the user card in both themes, with roughly 80 px to spare.
+- New test `e2e/design3-shell-nav.spec.ts` (light and dark): asserts no internal scroll and that each of
+  the 17 items ends above the user card.
+- a11y suites: light 26/26, dark 26/26 (the light run also included the new nav spec, 28 in all).
+- Screenshots: `docs/design/shell-light.png`, `docs/design/shell-dark.png`.

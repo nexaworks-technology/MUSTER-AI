@@ -126,7 +126,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       {/* S1: Sidebar */}
       <aside className="glass-chrome z-30 m-2 overflow-hidden rounded-2xl border md:sticky md:top-3 md:m-3 md:flex md:h-[calc(100vh-1.5rem)] md:w-60 md:shrink-0 md:flex-col">
         {/* Workspace Card at Top */}
-        <div className="border-border flex items-center justify-between gap-3 border-b px-4 py-3.5">
+        <div className="border-border flex items-center justify-between gap-3 border-b px-4 py-3.5 md:py-2.5">
           <div className="flex min-w-0 items-center gap-2.5">
             <div className="bg-primary text-primary-foreground flex size-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold shadow-xs">
               {ctx.workspace.name.charAt(0).toUpperCase()}
@@ -166,10 +166,10 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         {/* Grouped Navigation */}
         <nav
           aria-label="Main"
-          className="flex-1 overflow-x-auto px-2 py-3 md:space-y-4 md:overflow-y-auto"
+          className="flex-1 overflow-x-auto px-2 py-3 md:space-y-2 md:overflow-y-auto md:py-2"
         >
           {/* Mobile horizontal scroll / desktop vertical grouped sections */}
-          <div className="flex gap-1 md:flex-col md:gap-3">
+          <div className="flex gap-1 md:flex-col md:gap-2">
             {NAV_GROUPS.map((group) => {
               const groupItems = group.items
                 .map((name) => visibleMap.get(name))
@@ -179,17 +179,17 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
               return (
                 <div key={group.title} className="space-y-0.5">
-                  <div className="text-muted-foreground hidden px-2.5 py-1 text-xs font-semibold tracking-wider uppercase md:block">
+                  <div className="text-muted-foreground hidden px-2.5 py-1 text-xs font-semibold tracking-wider uppercase md:block md:py-0.5">
                     {group.title}
                   </div>
-                  <ul className="flex gap-1 md:flex-col md:space-y-0.5">
+                  <ul className="flex gap-1 md:flex-col md:space-y-0">
                     {groupItems.map((item) => {
                       const Icon = NAV_ICONS[item.label] ?? Home;
                       return (
                         <li key={item.label}>
                           <NavLink
                             href={{ pathname: item.href }}
-                            className="text-muted-foreground hover:bg-hover hover:text-foreground focus-visible:ring-ring flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                            className="text-muted-foreground hover:bg-hover hover:text-foreground focus-visible:ring-ring flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:outline-none md:py-1"
                           >
                             <Icon className="size-4 shrink-0" />
                             <span>{item.label}</span>
@@ -208,7 +208,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
             <div className="border-border hidden border-t pt-2 md:block">
               <NavLink
                 href={{ pathname: settingsItem.href }}
-                className="text-muted-foreground hover:bg-hover hover:text-foreground focus-visible:ring-ring flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                className="text-muted-foreground hover:bg-hover hover:text-foreground focus-visible:ring-ring flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none md:py-1"
               >
                 <SettingsIcon className="size-4 shrink-0" />
                 <span>Settings</span>
