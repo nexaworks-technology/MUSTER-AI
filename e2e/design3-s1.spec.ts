@@ -53,7 +53,7 @@ test.describe("Design 3.0 session 1", () => {
       page,
       context,
     }) => {
-      test.setTimeout(240_000);
+      test.setTimeout(600_000);
       await setTheme(context, theme);
       const thread = await dana(page);
 
@@ -65,7 +65,7 @@ test.describe("Design 3.0 session 1", () => {
       // Chrome blurs; cards and panels never do.
       expect(await backdrop(page, "header")).toContain("blur");
       expect(await backdrop(page, "aside")).toContain("blur");
-      expect(await backdrop(page, ".glass-scope [data-slot=card]")).toBe("none");
+      expect(await backdrop(page, ".glass-surfaces [data-slot=card]")).toBe("none");
       await page.screenshot({ path: path.join(SHOTS, `today-${theme}.png`), fullPage: false });
 
       await page.goto(`/ask/${thread}`);

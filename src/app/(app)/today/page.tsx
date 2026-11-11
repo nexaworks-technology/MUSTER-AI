@@ -102,7 +102,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Search
   const arrAtRiskMinor = health.bands.AT_RISK.arrMinor;
 
   return (
-    <div className="glass-scope space-y-6">
+    <div className="space-y-6">
       {/* S3: Header Row (Greeting + Date + Primary Action) */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
@@ -187,7 +187,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Search
             <CardContent className="space-y-2 p-0">
               <div className="text-muted-foreground flex items-center justify-between">
                 <span className="text-xs font-medium">Renewals in 30 days</span>
-                <RefreshCw className="size-4 text-sky-600 transition-transform group-hover:scale-110" />
+                <RefreshCw className="size-4 text-sky-600 dark:text-sky-400 transition-transform group-hover:scale-110" />
               </div>
               <div className="text-foreground text-2xl font-bold tracking-tight tabular-nums">
                 {renewalsDue30Count}

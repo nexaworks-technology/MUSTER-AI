@@ -124,7 +124,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       </a>
 
       {/* S1: Sidebar */}
-      <aside className="glass-chrome border-b md:sticky md:top-0 md:flex md:h-screen md:w-60 md:shrink-0 md:flex-col md:border-r md:border-b-0">
+      <aside className="glass-chrome z-30 m-2 overflow-hidden rounded-2xl border md:sticky md:top-3 md:m-3 md:flex md:h-[calc(100vh-1.5rem)] md:w-60 md:shrink-0 md:flex-col">
         {/* Workspace Card at Top */}
         <div className="border-border flex items-center justify-between gap-3 border-b px-4 py-3.5">
           <div className="flex min-w-0 items-center gap-2.5">
@@ -249,7 +249,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       {/* Main Content Area */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Top Bar */}
-        <header className="glass-chrome px-page sticky top-0 z-20 flex items-center justify-between gap-3 border-b py-2.5">
+        <header className="glass-chrome sticky top-2 z-20 mx-2 mt-0 flex items-center justify-between gap-3 rounded-2xl border px-4 py-2.5 md:top-3 md:mt-3 md:mr-3 md:ml-0">
           <div className="flex min-w-0 items-center gap-3">
             <TopBarBreadcrumb workspaceName={ctx.workspace.name} />
           </div>

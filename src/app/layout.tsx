@@ -21,7 +21,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const theme = themeAttribute(parseTheme((await cookies()).get(THEME_COOKIE)?.value));
   return (
     <html lang="en" className={inter.variable} data-theme={theme} suppressHydrationWarning>
-      <body className="min-h-screen antialiased">{children}</body>
+      <body className="glass-surfaces min-h-screen antialiased">{children}</body>
     </html>
   );
 }

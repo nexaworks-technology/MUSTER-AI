@@ -232,7 +232,7 @@ export default async function AccountsPage({ searchParams }: { searchParams: Sea
           <div className="overflow-x-auto">
             <table className="w-full min-w-224 text-sm border-collapse">
               <caption className="sr-only">Accounts</caption>
-              <thead className="sticky top-0 z-10 bg-card/95 backdrop-blur-xs border-b border-border/80">
+              <thead className="sticky top-0 z-10 border-b border-border/80">
                 <tr className="text-muted-foreground text-xs font-medium">
                   <th scope="col" className="px-3.5 py-2.5 text-left font-medium">
                     Name

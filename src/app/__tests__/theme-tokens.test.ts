@@ -20,7 +20,7 @@ const darkExplicit = declarations(blockBody(GLOBALS_CSS, '\n:root[data-theme="da
 const darkSystem = declarations(
   blockBody(blockBody(GLOBALS_CSS, "@media (prefers-color-scheme: dark)"), ":root:not("),
 );
-const scope = declarations(blockBody(GLOBALS_CSS, ".glass-scope {"));
+const scope = declarations(blockBody(GLOBALS_CSS, ".glass-surfaces {"));
 
 const themes = { light: root, dark: { ...root, ...darkExplicit } } as const;
 
@@ -86,8 +86,8 @@ describe("theme token layer", () => {
     });
 
     describe(`${theme}: glass over the worst ambient backdrop`, () => {
-      const backdrops = ["ambient-base", "ambient-a", "ambient-b", "ambient-c"].map((n) =>
-        colour(theme, n),
+      const backdrops = ["ambient-base", "ambient-a", "ambient-b", "ambient-c", "ambient-d"].map(
+        (n) => colour(theme, n),
       );
       const glass = (name: string, backdrop: Rgba) => over(colour(theme, name, scope), backdrop);
 
@@ -110,6 +110,23 @@ describe("theme token layer", () => {
             expect(contrast(colour(theme, "muted-foreground"), t)).toBeGreaterThanOrEqual(4.5);
           }
         }
+      });
+
+      it("table and dense-grid text sits on a near-solid data fill: at least 4.5:1", () => {
+        for (const backdrop of backdrops) {
+          const data = over(
+            colour(theme, "glass-data"),
+            over(colour(theme, "card", scope), backdrop),
+          );
+          expect(contrast(colour(theme, "foreground"), data)).toBeGreaterThanOrEqual(4.5);
+          expect(contrast(colour(theme, "muted-foreground"), data)).toBeGreaterThanOrEqual(4.5);
+          expect(contrast(colour(theme, "primary"), data)).toBeGreaterThanOrEqual(4.5);
+          expect(contrast(colour(theme, "danger"), data)).toBeGreaterThanOrEqual(4.5);
+        }
+      });
+
+      it("sticky table headers are fully opaque", () => {
+        expect(parseOklch(resolve(themes[theme]["--glass-solid-muted"]!)).a).toBe(1);
       });
 
       it("fixed chrome (sidebar, top bar) text is at least 4.5:1 on its fill", () => {
@@ -153,13 +170,17 @@ describe("glass rules", () => {
   });
 
   it("surface, surface-interactive and the glass scope never blur", () => {
-    for (const sel of ["@utility surface {", "@utility surface-interactive {", ".glass-scope {"]) {
+    for (const sel of [
+      "@utility surface {",
+      "@utility surface-interactive {",
+      ".glass-surfaces {",
+    ]) {
       expect(blockBody(css, sel)).not.toMatch(/backdrop-filter/);
     }
   });
 
   it("scope turns off the sticky-header blur of data lists", () => {
-    expect(css).toMatch(/\.glass-scope\s+\.backdrop-blur-sm[^}]*backdrop-filter\s*:\s*none/);
+    expect(css).toMatch(/\.glass-surfaces\s+\.backdrop-blur-sm[^}]*backdrop-filter\s*:\s*none/);
   });
 
   it("reduced transparency gives solid chrome and solid panels", () => {
