@@ -16,6 +16,8 @@ export interface StructuredRequest<T> {
   input: string;
   schema: z.ZodType<T>;
   maxTokens?: number;
+  /** Per-request timeout in ms; the provider default (60 s) applies when absent. */
+  timeoutMs?: number;
 }
 
 export interface StructuredResult<T> {

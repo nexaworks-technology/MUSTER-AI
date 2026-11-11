@@ -48,13 +48,13 @@ export default async function AskThreadPage({ params }: { params: Promise<{ thre
           <li key={m.id} className="space-y-2" data-role={m.role}>
             {m.role === "USER" ? (
               <div className="flex justify-end">
-                <p className="bg-primary text-primary-foreground max-w-xl rounded-2xl rounded-tr-sm px-4 py-3 text-sm shadow-xs leading-relaxed whitespace-pre-wrap">
+                <p className="bg-primary text-primary-foreground max-w-xl rounded-2xl rounded-tr-sm px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap shadow-xs">
                   {m.content}
                 </p>
               </div>
             ) : m.run?.status === "SUCCEEDED" ? (
               <div className="space-y-3">
-                <div className="surface p-5 rounded-2xl rounded-tl-sm border border-border/80 shadow-xs">
+                <div className="surface border-border/80 rounded-2xl rounded-tl-sm border p-5 shadow-xs">
                   <AiText
                     run={m.run}
                     items={[
@@ -75,10 +75,12 @@ export default async function AskThreadPage({ params }: { params: Promise<{ thre
               </div>
             ) : (
               <p
-                className="bg-card border-border/80 rounded-2xl rounded-tl-sm border px-4 py-3 text-sm shadow-xs text-muted-foreground"
+                className="bg-card border-border/80 text-muted-foreground rounded-2xl rounded-tl-sm border px-4 py-3 text-sm shadow-xs"
                 data-testid="no-answer"
               >
-                I could not answer that with sources I can show you.
+                {/* Stored for a run that did not produce an answer: always a plain system sentence
+                    ("could not answer…", "took too long…"), never model text. */}
+                {m.content}
                 {m.run ? (
                   <>
                     {" "}
@@ -95,7 +97,7 @@ export default async function AskThreadPage({ params }: { params: Promise<{ thre
           </li>
         ))}
       </ol>
-      <div className="surface p-5 rounded-xl border border-border/80 shadow-xs">
+      <div className="surface border-border/80 rounded-xl border p-5 shadow-xs">
         <AskBox
           threadId={view.thread.id}
           voiceEnabled={settings.ask.voiceDictation}

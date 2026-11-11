@@ -133,7 +133,7 @@ export const askAi = defineAgent<AskAiInput, AskAiOutput>({
     "Answers questions from the asker's scoped records, with citations; proposes changes for approval.",
   modelTier: jobTier("ask-ai"),
   tierReason: "Multi-record reasoning across accounts, calls and contracts in one answer.",
-  prompt: { name: "ask-ai", version: "1.0.0" },
+  prompt: { name: "ask-ai", version: "1.1.1" },
   inputSchema: askAiInput,
   outputSchema: askAiOutput,
   async buildContext(db, input, ctx) {
@@ -141,6 +141,8 @@ export const askAi = defineAgent<AskAiInput, AskAiOutput>({
     const { bundle, notFound } = await retrieve(actor, input.retrieval);
     return {
       bundle,
+      // Records carry short cite handles: copying a long random id is where answers went wrong.
+      aliasRefs: true,
       vars: {
         question: input.question,
         history:

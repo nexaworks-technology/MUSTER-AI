@@ -19,6 +19,10 @@ export {
   AskThreadNotFoundError,
   AskFileNotInThreadError,
   MAX_STEPS,
+  ASK_TIMEOUT_MESSAGE,
+  ASK_UNAVAILABLE_MESSAGE,
+  ASK_DEADLINE_MS,
+  type AskDeps,
   type AskResult,
 } from "./loop";
 export {

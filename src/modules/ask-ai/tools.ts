@@ -7,7 +7,7 @@ import { getBilling } from "@/modules/billing/service";
 import { searchExtractions } from "@/modules/conversations/service";
 import { DocumentError, readDocument } from "@/modules/documents/service";
 import { listPeople } from "@/modules/contacts/service";
-import { getAccountHealth } from "@/modules/health/service";
+import { getAccountHealth, portfolioHealth } from "@/modules/health/service";
 import { listPlays } from "@/modules/plays/service";
 import { listPromises } from "@/modules/promises/service";
 import { listRenewals } from "@/modules/renewals/service";
@@ -306,6 +306,61 @@ export const ASK_TOOLS: AskTool[] = [
         })),
         `I cannot see a contract for ${account.name}.`,
       );
+    },
+  }),
+  define({
+    name: "getPortfolioHealth",
+    description:
+      "Use this ONE call, with no input, for any question about the health of the whole book, such as which accounts are at risk or on watch and why. Returns the health-band counts and the lowest-scoring At Risk and Watch accounts, each with its score, band and its top reasons (the same data as the Health page).",
+    // No filter: both bad bands always come back, so an At Risk-only request cannot under-fetch.
+    input: z.object({}),
+    async run(actor) {
+      const p = await portfolioHealth(actor);
+      if (p.asOf === null)
+        return {
+          records: [],
+          notFound: "There is no health score yet for any account in your book.",
+        };
+      const summary: AskRecord = {
+        ref: `PortfolioHealth:book-${p.asOf}`,
+        type: "PortfolioHealth",
+        id: `book-${p.asOf}`,
+        label: `Health of the portfolio on ${p.asOf}`,
+        href: "/health",
+        fields: {
+          asOf: p.asOf,
+          healthy: p.counts.HEALTHY,
+          watch: p.counts.WATCH,
+          atRisk: p.counts.AT_RISK,
+          notEnoughData: p.counts.INSUFFICIENT_DATA,
+          accountsInBands: p.totalInBands,
+          accountsListed: p.accounts.length,
+        },
+      };
+      const accounts: AskRecord[] = p.accounts.map((a) => ({
+        ref: `HealthScoreSnapshot:${a.snapshotId}`,
+        type: "HealthScoreSnapshot",
+        id: a.snapshotId,
+        label: `Health of ${a.name} on ${a.asOf}`,
+        href: `/accounts/${a.accountId}/health`,
+        fields: {
+          accountId: a.accountId,
+          accountName: a.name,
+          asOf: a.asOf,
+          score: a.overall,
+          band: a.band,
+          ...Object.fromEntries(a.reasons.map((r, i) => [`reason${i + 1}`, r.message])),
+          ...(a.arrMinor !== null ? { arr: major(a.arrMinor), arrCurrency: a.arrCurrency } : {}),
+        },
+      }));
+      return {
+        records: [summary, ...accounts],
+        notFound: null,
+        note:
+          p.totalInBands > p.accounts.length
+            ? `Showing the ${p.accounts.length} lowest-scoring of ${p.totalInBands} At Risk and Watch accounts. This is not the full list: an account that is not shown may also be at risk. Ask about a named account for the rest.`
+            : null,
+      };
     },
   }),
   define({

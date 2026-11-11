@@ -63,6 +63,21 @@ describe("prompt caching (docs/AI-COST-2026-11-11.md, item 3)", () => {
     expect(params.messages).toEqual([{ role: "user", content: "per-account records" }]);
   });
 
+  it("passes a per-request timeout to the SDK, and none when the request sets none", async () => {
+    const parse = vi.fn(async () => ({
+      parsed_output: { summary: "ok" },
+      stop_reason: "end_turn",
+      model: "haiku-from-env",
+      usage,
+    }));
+    const provider = createAnthropicProvider({ apiKey: "k", models }, fakeClient({ parse }));
+    await provider.generateStructured({ ...request, timeoutMs: 20_000 });
+    await provider.generateStructured(request);
+    const calls = parse.mock.calls as unknown as Array<[unknown, { timeout?: number } | undefined]>;
+    expect(calls[0]![1]).toEqual({ timeout: 20_000 });
+    expect(calls[1]![1]).toBeUndefined();
+  });
+
   it("returns cache-read and cache-write token counts from the provider's usage", async () => {
     const parse = vi.fn(async () => ({
       parsed_output: { summary: "ok" },

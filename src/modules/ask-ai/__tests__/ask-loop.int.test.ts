@@ -167,7 +167,7 @@ describe("askQuestion", () => {
     expect(run).toMatchObject({
       agentKey: "ask-ai",
       promptName: "ask-ai",
-      promptVersion: "1.0.0",
+      promptVersion: "1.1.1",
       status: "SUCCEEDED",
     });
     expect(run.model).toBe("test-model");

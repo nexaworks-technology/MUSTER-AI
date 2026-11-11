@@ -19,6 +19,11 @@ export interface BuiltContext {
   prompt?: { name: string; version: string };
   /** Optional model tier override for multi-mode agents. */
   tier?: ModelTier;
+  /**
+   * Show each record with a short cite handle (R1, R2, …) and accept handles in citations; code
+   * resolves them to the real records before the citation checker runs (see `aliases.ts`).
+   */
+  aliasRefs?: boolean;
 }
 
 /** What a side effect wrote, recorded on AgentRun.effects (Rule 5). */

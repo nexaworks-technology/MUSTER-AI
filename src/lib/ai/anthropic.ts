@@ -87,7 +87,10 @@ export function createAnthropicProvider(
       const started = Date.now();
       let response;
       try {
-        response = await client.messages.parse(messageParams(model, request));
+        response = await client.messages.parse(
+          messageParams(model, request),
+          request.timeoutMs ? { timeout: request.timeoutMs } : undefined,
+        );
       } catch (error) {
         // The SDK throws (not an APIError) when the output does not match the schema: that is an
         // invalid output for the executor's single repair call, not a provider failure.

@@ -110,6 +110,8 @@ describe("Ask AI tools run as the asking user", () => {
         "getAccount360Summary",
         "getContract",
         "getHealthWithReasons",
+        // FIX-2026-11-11-ASK2: the one-call portfolio health read (read-only, book-scoped).
+        "getPortfolioHealth",
         "listPromises",
         "listRenewals",
         "listSignals",

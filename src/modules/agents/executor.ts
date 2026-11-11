@@ -20,6 +20,7 @@ import { getOwnWorkspace } from "@/lib/db/workspace";
 import { logger } from "@/lib/logger";
 import { getSettingsData } from "@/modules/settings/service";
 import type { ActResult, AnyAgentDef, BuiltContext } from "./define";
+import { resolveHandles, withHandles } from "./aliases";
 import { isPausedForBudget, noteBudgetUsage } from "./budget";
 import { evaluateOutput } from "./evaluate";
 
@@ -30,6 +31,11 @@ import { evaluateOutput } from "./evaluate";
  * run row that says so.
  */
 export const MAX_ATTEMPTS = 5; // the first call + 4 retries on transient provider errors (D-74)
+/**
+ * A person is waiting (Ask AI): at most this many attempts in all, and a timeout is never retried
+ * (a timeout already cost a full request time; retrying multiplies cost and latency).
+ */
+export const INTERACTIVE_MAX_ATTEMPTS = 2;
 const BACKOFF_BASE_MS = 2_000;
 const BACKOFF_CAP_MS = 60_000;
 
@@ -45,6 +51,13 @@ export interface ExecutorDeps {
    * model call and write no run. Off for a person's own request, so asking again always answers.
    */
   skipIfUnchanged?: boolean;
+  /**
+   * A person is waiting on this run: at most INTERACTIVE_MAX_ATTEMPTS attempts and no retry after a
+   * timeout. Background jobs leave it off and keep the patient D-74 retry policy.
+   */
+  interactive?: boolean;
+  /** Per-request timeout in ms passed to the provider (default 60 s). */
+  timeoutMs?: number;
   /** Finds an agent by key when a batch result is collected; defaults to the registry. */
   resolveAgent?: (key: string) => AnyAgentDef;
 }
@@ -105,7 +118,7 @@ function renderInput(built: BuiltContext): string {
   return [
     "Records you may use. Cite each one you rely on by its sourceType and sourceId.",
     "Quote only words that appear in the record. Repeat only numbers that appear in a record you cite.",
-    JSON.stringify(built.bundle, null, 2),
+    JSON.stringify(built.aliasRefs ? withHandles(built.bundle) : built.bundle, null, 2),
   ].join("\n\n");
 }
 
@@ -361,7 +374,11 @@ async function execute(b: Prepared, first?: StructuredResult<unknown>): Promise<
   const { ctx, def, run, reused, built, input, prompt, deps } = b;
   const db = scopedDb(ctx);
   const provider = deps.provider ?? getAiProvider();
-  const request = { ...b.request, schema: def.outputSchema };
+  const request = {
+    ...b.request,
+    schema: def.outputSchema,
+    ...(deps.timeoutMs ? { timeoutMs: deps.timeoutMs } : {}),
+  };
 
   const started = first && run.startedAt ? +run.startedAt : Date.now();
   let tokens = NO_TOKENS;
@@ -382,7 +399,12 @@ async function execute(b: Prepared, first?: StructuredResult<unknown>): Promise<
       try {
         return await provider.generateStructured<unknown>(req);
       } catch (error) {
-        if (error instanceof AiTransientError && attempt < MAX_ATTEMPTS) {
+        const retryable =
+          error instanceof AiTransientError &&
+          (deps.interactive
+            ? attempt < INTERACTIVE_MAX_ATTEMPTS && error.code !== "timeout"
+            : attempt < MAX_ATTEMPTS);
+        if (error instanceof AiTransientError && retryable) {
           logger.warn(
             { runId: run.id, agentKey: def.key, attempt, code: error.code },
             "agent retry",
@@ -469,7 +491,9 @@ async function execute(b: Prepared, first?: StructuredResult<unknown>): Promise<
       );
   }
 
-  const evaluation = evaluateOutput(def, built.bundle, result.output, built.facts);
+  // Handle citations become the real records first; the checker below is unchanged.
+  const candidate = built.aliasRefs ? resolveHandles(result.output, built.bundle) : result.output;
+  const evaluation = evaluateOutput(def, built.bundle, candidate, built.facts);
   if (evaluation.status !== "SUCCEEDED")
     return finish(
       ctx,

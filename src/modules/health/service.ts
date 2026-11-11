@@ -727,6 +727,142 @@ export async function listUnscoredAccounts(actor: Actor): Promise<UnscoredAccoun
   ];
 }
 
+// ─── Portfolio health for Ask AI (FIX-2026-11-11-ASK2) ───────────────────────────────────────────
+
+export interface PortfolioHealthReason {
+  id: string;
+  message: string;
+  pillar: string;
+  impact: number;
+  periodStart: string | null;
+  periodEnd: string | null;
+}
+
+export interface PortfolioHealthAccount {
+  accountId: string;
+  name: string;
+  band: Band;
+  overall: number | null;
+  snapshotId: string;
+  asOf: string;
+  /** Only for a member with revenue access; null otherwise (Restricted). */
+  arrMinor: bigint | null;
+  arrCurrency: string | null;
+  reasons: PortfolioHealthReason[];
+}
+
+export interface PortfolioHealth {
+  asOf: string | null;
+  counts: Record<Band, number>;
+  /** Accounts in the requested bands (Watch and At Risk by default), however many are listed. */
+  totalInBands: number;
+  accounts: PortfolioHealthAccount[];
+}
+
+const BAD_BANDS: Band[] = ["AT_RISK", "WATCH"];
+const BAND_RANK: Record<string, number> = { AT_RISK: 0, WATCH: 1 };
+
+/**
+ * "Which accounts are at risk and why", as one deterministic read: the band counts and the
+ * accounts in the bad bands, worst first, each with its most negative evidence reasons and the ids
+ * of those reasons. The same snapshot the Health page shows (latest live one under the active
+ * model), limited to the member's book, with ARR only for members who may see money. Nothing here
+ * is a model output.
+ */
+export async function portfolioHealth(
+  actor: Actor,
+  opts: { bands?: Band[]; limit?: number; reasonsPerAccount?: number } = {},
+): Promise<PortfolioHealth> {
+  const grant = requirePermission(actor, "accounts:view");
+  const db = scopedDb(actor);
+  const bands = opts.bands?.length ? opts.bands : BAD_BANDS;
+  const limit = Math.max(1, Math.min(opts.limit ?? 10, 25));
+  const perAccount = Math.max(1, Math.min(opts.reasonsPerAccount ?? 3, 5));
+  // In order: both create the default model on first use, and two concurrent first calls race.
+  const model = await getActiveModel(actor);
+  const overview = await healthOverview(actor);
+  const counts = Object.fromEntries(BANDS.map((b) => [b, overview.bands[b].count])) as Record<
+    Band,
+    number
+  >;
+
+  const inBands = await db.account.findMany({
+    where: {
+      AND: [
+        bookWhere(actor, grant.scope),
+        { archivedAt: null, lifecycleStage: { not: "LOST" } },
+        { currentHealth: { is: { healthModelId: model.id, riskLevel: { in: bands } } } },
+      ],
+    },
+    select: {
+      id: true,
+      name: true,
+      arrMinor: true,
+      arrCurrency: true,
+      currentHealth: { select: { id: true, asOf: true, overall: true, riskLevel: true } },
+    },
+  });
+  const ranked = inBands
+    .filter((a) => a.currentHealth)
+    .sort(
+      (a, b) =>
+        (BAND_RANK[a.currentHealth!.riskLevel] ?? 9) -
+          (BAND_RANK[b.currentHealth!.riskLevel] ?? 9) ||
+        (num(a.currentHealth!.overall) ?? 0) - (num(b.currentHealth!.overall) ?? 0) ||
+        a.name.localeCompare(b.name),
+    );
+  const top = ranked.slice(0, limit);
+  const reasons = top.length
+    ? await db.healthReason.findMany({
+        where: {
+          snapshotId: { in: top.map((a) => a.currentHealth!.id) },
+          kind: "EVIDENCE",
+          direction: "DOWN",
+        },
+        orderBy: [{ impact: "asc" }, { sortOrder: "asc" }],
+        select: {
+          id: true,
+          snapshotId: true,
+          message: true,
+          pillar: true,
+          impact: true,
+          periodStart: true,
+          periodEnd: true,
+        },
+      })
+    : [];
+  const bySnapshot = new Map<string, PortfolioHealthReason[]>();
+  for (const r of reasons) {
+    const list = bySnapshot.get(r.snapshotId) ?? [];
+    if (list.length < perAccount)
+      list.push({
+        id: r.id,
+        message: r.message,
+        pillar: r.pillar,
+        impact: num(r.impact) ?? 0,
+        periodStart: r.periodStart ? calendarDateOf(r.periodStart) : null,
+        periodEnd: r.periodEnd ? calendarDateOf(r.periodEnd) : null,
+      });
+    bySnapshot.set(r.snapshotId, list);
+  }
+  return {
+    asOf: overview.asOf,
+    counts,
+    totalInBands: ranked.length,
+    accounts: top.map((a) => ({
+      accountId: a.id,
+      name: a.name,
+      band: a.currentHealth!.riskLevel as Band,
+      overall: num(a.currentHealth!.overall),
+      snapshotId: a.currentHealth!.id,
+      asOf: calendarDateOf(a.currentHealth!.asOf),
+      arrMinor: actor.canViewRevenue ? a.arrMinor : null,
+      arrCurrency: actor.canViewRevenue ? a.arrCurrency : null,
+      reasons: bySnapshot.get(a.currentHealth!.id) ?? [],
+    })),
+  };
+}
+
 // ─── Back-test, proposal and versions (implemented in backtest-service.ts) ───
 export {
   activateModel,

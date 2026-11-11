@@ -3,6 +3,7 @@ import { type AgentRun } from "@prisma/client";
 import { z } from "zod";
 import {
   AiNotConfiguredError,
+  AiTransientError,
   getAiProvider,
   isAiConfigured,
   loadPrompt,
@@ -12,6 +13,7 @@ import {
 } from "@/lib/ai";
 import { writeAudit } from "@/lib/audit";
 import { scopedDb } from "@/lib/db/scoped";
+import { logger } from "@/lib/logger";
 import type { AskAiOutput, ExecutorDeps } from "@/modules/agents/service";
 import { threadAttachmentIds } from "./files";
 import { ASK_TOOLS, runAskTool, type AskActor, type AskRecord } from "./tools";
@@ -27,6 +29,27 @@ import { ASK_TOOLS, runAskTool, type AskActor, type AskRecord } from "./tools";
  * An answer that did not pass validation is stored with its run but is never rendered.
  */
 export const MAX_STEPS = 6;
+
+/**
+ * Time limits for one question (FIX-2026-11-11-ASK2). A person is waiting, and the request passes
+ * through a proxy or tunnel that cuts it off at 100 s (the page then shows a client-side "Something
+ * went wrong" with no reference, and the answer is lost). So the whole question is bounded under that:
+ * planning gets a short budget and short per-call timeouts, and the answer call's timeout is whatever
+ * is left, never retried after a timeout.
+ */
+export const ASK_DEADLINE_MS = 80_000;
+export const ASK_PLANNING_BUDGET_MS = 25_000;
+export const ASK_PLANNING_CALL_TIMEOUT_MS = 20_000;
+export const ASK_ANSWER_TIMEOUT_MS = 60_000;
+const ASK_ANSWER_MIN_TIMEOUT_MS = 15_000;
+
+/** Saved in place of an answer when time ran out. A system sentence, never model text. */
+export const ASK_TIMEOUT_MESSAGE =
+  "That took too long, so I stopped. Nothing was saved as an answer. Try again, or ask about one account or one topic.";
+export const ASK_UNAVAILABLE_MESSAGE =
+  "I could not answer that right now. Nothing was saved as an answer. Try again in a moment.";
+
+export type AskDeps = ExecutorDeps & { promptsDir?: string; nowMs?: () => number };
 const MAX_CALLS = 24;
 
 export class AskThreadNotFoundError extends Error {
@@ -125,7 +148,7 @@ export async function getThread(actor: AskActor, threadId: string) {
 export async function askQuestion(
   actor: AskActor,
   raw: { question: string; threadId?: string; fileIds?: string[] },
-  deps: ExecutorDeps & { promptsDir?: string } = {},
+  deps: AskDeps = {},
 ): Promise<AskResult> {
   const { question, threadId, fileIds } = z
     .object({
@@ -184,6 +207,8 @@ export async function askQuestion(
       runId: null,
     };
   const provider: AiProvider = deps.provider ?? getAiProvider();
+  const nowMs = deps.nowMs ?? Date.now;
+  const startedAt = nowMs();
   const history = earlier.reverse().map((m) => ({ role: m.role, text: m.content }));
 
   // ── Retrieval: code runs every tool the planner asks for, as the asker ────────────────────────
@@ -207,7 +232,10 @@ export async function askQuestion(
     inputTokens: number;
     outputTokens: number;
   }> = [];
+  let planningFailure: unknown = null;
   for (let step = 1; step <= MAX_STEPS && steps.length < MAX_CALLS; step++) {
+    // Out of planning time: answer from what was retrieved rather than keep exploring.
+    if (step > 1 && nowMs() - startedAt > ASK_PLANNING_BUDGET_MS) break;
     let res;
     try {
       res = await provider.generateStructured({
@@ -227,10 +255,18 @@ export async function askQuestion(
           })),
         }),
         schema: planOutput,
+        timeoutMs: Math.min(
+          ASK_PLANNING_CALL_TIMEOUT_MS,
+          Math.max(1_000, ASK_DEADLINE_MS - (nowMs() - startedAt)),
+        ),
       });
     } catch (e) {
       if (e instanceof AiNotConfiguredError) break; // answer from what was retrieved
-      throw e;
+      // A planning call that timed out or failed must not crash the question (it used to, so the
+      // page broke and nothing was saved): answer from what was retrieved, or say so honestly.
+      logger.warn({ err: e, workspaceId: actor.workspaceId }, "ask planning step failed");
+      planningFailure = e;
+      break;
     }
     planning.push({
       step,
@@ -261,6 +297,78 @@ export async function askQuestion(
     }
   }
 
+  // Nothing retrieved and planning failed: there is nothing to answer from, so no answer call.
+  if (planningFailure && results.length === 0) {
+    const message =
+      planningFailure instanceof AiTransientError && planningFailure.code === "timeout"
+        ? ASK_TIMEOUT_MESSAGE
+        : ASK_UNAVAILABLE_MESSAGE;
+    // Every assistant message links to a run (DB rule: no orphan AI text, and none is bypassed here).
+    // No answer call was made, so the run records only that it failed and what planning used.
+    const { askAi: askAiDef } = await import("@/modules/agents/service");
+    const failedRun = await db.agentRun.create({
+      data: {
+        workspaceId: actor.workspaceId,
+        agentKey: askAiDef.key,
+        agentVersion: askAiDef.version,
+        promptName: askAiDef.prompt.name,
+        promptVersion: askAiDef.prompt.version,
+        modelTier: jobTier("ask-ai"),
+        triggerType: "AskMessage",
+        triggerId: userMessage.id,
+        idempotencyKey: `ask-planning-failed:${userMessage.id}`,
+        status: "FAILED",
+        errorCode:
+          planningFailure instanceof AiTransientError
+            ? `PROVIDER_${planningFailure.code.toUpperCase()}`
+            : "ERROR",
+        errorDetail: (planningFailure instanceof Error
+          ? planningFailure.message
+          : "planning failed"
+        ).slice(0, 500),
+        attempt: 1,
+        finishedAt: new Date(),
+        planningInputTokens: planning.reduce((n, p) => n + p.inputTokens, 0),
+        planningOutputTokens: planning.reduce((n, p) => n + p.outputTokens, 0),
+      },
+    });
+    const stored = await db.$tenantTransaction(async (tx) => {
+      const m = await tx.askMessage.create({
+        data: {
+          workspaceId: actor.workspaceId,
+          threadId: thread.id,
+          role: "ASSISTANT",
+          content: message,
+          agentRunId: failedRun.id,
+          citations: json([]),
+          toolCalls: json({ steps, planning, effects: [] }),
+        },
+      });
+      await tx.askThread.update({ where: { id: thread.id }, data: { updatedAt: new Date() } });
+      await writeAudit(
+        {
+          workspaceId: actor.workspaceId,
+          actorType: "USER",
+          actorId: actor.userId,
+          action: "ask.answered",
+          targetType: "AskMessage",
+          targetId: m.id,
+          agentRunId: failedRun.id,
+          summary: "Ask AI did not answer (planning failed before any record was read)",
+        },
+        tx,
+      );
+      return m;
+    });
+    return {
+      threadId: thread.id,
+      userMessageId: userMessage.id,
+      assistantMessageId: stored.id,
+      status: "FAILED",
+      runId: failedRun.id,
+    };
+  }
+
   // Loaded on use: the ask-ai agent definition imports this module's tools (no load-time cycle).
   const { askAi, runAgent } = await import("@/modules/agents/service");
   // ── Answer: one validated AgentRun ──────────────────────────────────────────────────────────
@@ -276,7 +384,17 @@ export async function askQuestion(
       retrieval: steps,
     },
     { type: "AskMessage", id: userMessage.id },
-    { ...deps, provider },
+    {
+      ...deps,
+      provider,
+      // A person is waiting: two attempts at most, a timeout is never retried, and the call cannot
+      // outlast what is left of the question's time.
+      interactive: true,
+      timeoutMs: Math.min(
+        ASK_ANSWER_TIMEOUT_MS,
+        Math.max(ASK_ANSWER_MIN_TIMEOUT_MS, ASK_DEADLINE_MS - (nowMs() - startedAt)),
+      ),
+    },
   );
   if (outcome.kind === "not_configured")
     return {
@@ -309,7 +427,11 @@ export async function askQuestion(
         threadId: thread.id,
         role: "ASSISTANT",
         // Only a validated answer is stored as text; otherwise a plain system sentence (no AI text).
-        content: out?.answer ?? "I could not answer that with sources I can show you.",
+        content:
+          out?.answer ??
+          (run.status === "FAILED" && run.errorCode === "PROVIDER_TIMEOUT"
+            ? ASK_TIMEOUT_MESSAGE
+            : "I could not answer that with sources I can show you."),
         agentRunId: run.id,
         citations: json(citations),
         toolCalls: json({ steps, planning, effects: run.effects ?? [] }),
