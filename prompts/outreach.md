@@ -2,7 +2,7 @@
 name: outreach
 version: 1.1.0
 agent: outreach
-tier: standard
+tier: fast
 changelog:
   - "1.0.0: first version (M4, basic form, D-30). One check-in email for one CSM-requested intent; always goes to Approvals."
   - "1.1.0: extended for M8 plays with in-prompt VoiceSample styling from approved workspace emails (Rule 8)."

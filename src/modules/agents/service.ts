@@ -17,15 +17,25 @@ export {
 } from "./define";
 export {
   runAgent,
+  runAgentsBatch,
+  collectBatches,
   prepareRun,
   createOnce,
   idempotencyKey,
   backoffMs,
   MAX_ATTEMPTS,
+  type BulkJob,
   type ExecutorDeps,
   type RunOutcome,
   type Trigger,
 } from "./executor";
+export {
+  budgetStatus,
+  ESSENTIAL_AI_JOBS,
+  isPausedForBudget,
+  noteBudgetUsage,
+  type BudgetStatus,
+} from "./budget";
 export { evaluateOutput, type Evaluation } from "./evaluate";
 export { registerAgent, getAgent, listAgents, checkAgentPrompts } from "./registry";
 export { retrieve as retrieveAskAiContext, askerFor } from "./definitions/ask-ai";
@@ -49,6 +59,7 @@ export {
   agentRunPayload,
   processConsider,
   sweepAllHealthNarratives,
+  collectAllBatches,
   enqueueReextract,
   processReextract,
   sweepAllExtractions,

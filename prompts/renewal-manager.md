@@ -2,7 +2,7 @@
 name: renewal-manager
 version: 1.0.0
 agent: renewal-manager
-tier: standard
+tier: fast
 changelog:
   - "1.0.0: first version (M7). A renewal plan, a talk track, one outreach draft and a next step for a renewal inside its 90-day window. The outreach goes to Approvals; the next step becomes an internal Task. Numbers are never written by the model: they are {{metric.key}} placeholders that code fills in."
 ---

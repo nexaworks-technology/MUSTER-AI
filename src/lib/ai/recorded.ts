@@ -2,7 +2,13 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { testSeamsAllowed } from "@/lib/config/deployment";
-import { AiNotConfiguredError, type AiProvider, type StructuredRequest } from "./types";
+import {
+  AiNotConfiguredError,
+  type AiProvider,
+  type BatchItem,
+  type BatchRequest,
+  type StructuredRequest,
+} from "./types";
 
 /**
  * Test/demo-replay provider (DECISIONS D-19): returns previously recorded model outputs, keyed by
@@ -21,8 +27,44 @@ export function recordingKey(
 export function createRecordedProvider(dir: string, nodeEnv = process.env.NODE_ENV): AiProvider {
   if (nodeEnv === "production" && !testSeamsAllowed({ ...process.env, NODE_ENV: nodeEnv }))
     throw new Error("The recorded AI provider is refused in production (D-19)");
-  return {
+  const batches = new Map<string, BatchItem[]>();
+  let batchSeq = 0;
+  const provider: AiProvider = {
     name: "recorded",
+    /** Answered from recordings and finished at once, in the real batch result shape. */
+    async submitBatch(requests: BatchRequest[]) {
+      const items: BatchItem[] = [];
+      for (const r of requests) {
+        try {
+          const res = await provider.generateStructured(r);
+          items.push({
+            customId: r.customId,
+            outcome: "succeeded",
+            text: res.output === null ? null : JSON.stringify(res.output),
+            stopReason: res.stopReason,
+            model: res.model,
+            requestId: null,
+            inputTokens: res.inputTokens,
+            outputTokens: res.outputTokens,
+            cacheReadTokens: 0,
+            cacheCreationTokens: 0,
+          });
+        } catch (error) {
+          items.push({
+            customId: r.customId,
+            outcome: "errored",
+            code: "no_recording",
+            detail: error instanceof Error ? error.message.slice(0, 200) : "no recording",
+          });
+        }
+      }
+      const batchId = `recorded-batch-${++batchSeq}`;
+      batches.set(batchId, items);
+      return { batchId };
+    },
+    async getBatch(batchId: string) {
+      return { done: true, items: batches.get(batchId) ?? [] };
+    },
     async generateStructured<T>(request: StructuredRequest<T>) {
       const promptName = request.promptRef.split("@")[0] ?? request.promptRef;
       const file = path.join(dir, promptName, `${recordingKey(request)}.json`);
@@ -63,4 +105,5 @@ export function createRecordedProvider(dir: string, nodeEnv = process.env.NODE_E
       };
     },
   };
+  return provider;
 }

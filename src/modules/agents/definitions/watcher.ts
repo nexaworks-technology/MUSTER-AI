@@ -14,8 +14,9 @@ import {
   type WatchedSource,
 } from "@/modules/conversations/service";
 import { defineAgent, type Effect } from "../define";
-import { createOnce, runAgent, type ExecutorDeps } from "../executor";
+import { createOnce, runAgentsBatch, type ExecutorDeps } from "../executor";
 import { baseAgentOutput, type ContextBundle } from "../schemas";
+import { jobTier } from "@/lib/ai/routing";
 
 /**
  * Watcher (spec §6E1, ARCHITECTURE §5.3; M4 basic, M9 full): one extraction call per email or
@@ -111,7 +112,7 @@ export const watcher = defineAgent({
   version: "1.1.0",
   description:
     "Labels what one message, note or call-transcript chunk says, with verbatim quotes (extraction step)",
-  modelTier: "fast",
+  modelTier: jobTier("watcher"),
   tierReason: "High-volume, narrow labelling of one short record at a time (§6.1).",
   prompt: WATCHER_PROMPT,
   inputSchema: watcherInput,
@@ -282,18 +283,22 @@ type Planned = Array<WatchedSource & { triggerId: string }>;
 
 async function runPlanned(ctx: TenantContext, sources: Planned, deps: ExecutorDeps) {
   const counts: Record<string, number> = {};
-  for (const s of sources) {
-    const r = await runAgent(
-      ctx,
-      watcher,
-      { sourceType: s.sourceType, sourceId: s.sourceId, chunkIndex: s.chunkIndex },
-      { type: "extraction", id: s.triggerId },
-      deps,
-    );
-    if (r.kind === "not_configured")
-      return { notConfigured: true as const, reason: r.reason, counts };
-    counts[r.status] = (counts[r.status] ?? 0) + 1;
-  }
+  if (sources.length === 0) return { notConfigured: false as const, sources: 0, counts };
+  // Bulk reading of new records goes through the Batch API (docs/AI-COST-2026-11-11.md, item 2).
+  const outcomes = await runAgentsBatch(
+    ctx,
+    sources.map((s) => ({
+      def: watcher,
+      input: { sourceType: s.sourceType, sourceId: s.sourceId, chunkIndex: s.chunkIndex },
+      trigger: { type: "extraction", id: s.triggerId },
+    })),
+    deps,
+  );
+  const notConfigured = outcomes.find((o) => o.kind === "not_configured");
+  if (notConfigured && notConfigured.kind === "not_configured")
+    return { notConfigured: true as const, reason: notConfigured.reason, counts };
+  for (const r of outcomes)
+    if (r.kind === "run" && !r.unchanged) counts[r.status] = (counts[r.status] ?? 0) + 1;
   return { notConfigured: false as const, sources: sources.length, counts };
 }
 

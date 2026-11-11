@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { defineAgent, type BuiltContext } from "../define";
 import { baseAgentOutput, citationSchema, type ContextBundle } from "../schemas";
+import { jobTier } from "@/lib/ai/routing";
 
 /**
  * Leader Reporter (M11 S7, spec §5 Reports, ARCHITECTURE §6.2 row 13): the weekly digest for the
@@ -52,7 +53,7 @@ export const leaderReporter = defineAgent({
   version: "1.0.0",
   description:
     "Writes the weekly digest for the CS leaders from the computed report figures, every sentence citing the figures it uses",
-  modelTier: "standard",
+  modelTier: jobTier("leader-reporter"),
   tierReason: "A short, accurate summary of already-computed figures; no deep reasoning needed.",
   prompt: { name: "leader-reporter", version: "1.0.0" },
   forbiddenNumericFields: [],

@@ -1010,6 +1010,8 @@ enum NotificationType {
   LEADER_DIGEST
   /// M11 (S7): the digest could not be written; the reports are ready (refType ReportDigestNotice, refId = week start).
   LEADER_DIGEST_FAILED
+  /// AI cost session: the workspace has used 80 % of its monthly AI token budget (refId = YYYY-MM).
+  AI_BUDGET_SOFT
 }
 
 /// [W] A unit of work for one member (spec §6F3). Agents and plays create tasks from M4/M8.
@@ -1743,39 +1745,53 @@ model AgentDefinition {
 /// [W] One execution of one agent: what it read, what it decided, what it did (Rule 5, §6E).
 /// CHECK: status = SUCCEEDED ⇒ output, reasoningSummary, confidence, promptVersion, model NOT NULL.
 model AgentRun {
-  id               String           @id @default(cuid())
-  workspaceId      String
-  agentKey         String
-  agentVersion     String
-  promptName       String
-  promptVersion    String?
+  id                   String           @id @default(cuid())
+  workspaceId          String
+  agentKey             String
+  agentVersion         String
+  promptName           String
+  promptVersion        String?
   /// The model id the provider reported (never written in code; from env per tier).
-  model            String?
-  modelTier        String
-  triggerType      String
-  triggerId        String
-  idempotencyKey   String
+  model                String?
+  modelTier            String
+  triggerType          String
+  triggerId            String
+  idempotencyKey       String
   /// The exact records the run was given: [{ sourceType, sourceId }].
-  inputRefs        Json             @default("[]")
-  accountId        String?
-  status           AgentRunStatus   @default(QUEUED)
-  attempt          Int              @default(0)
-  output           Json?
-  reasoningSummary String?
-  confidence       Float?
-  citations        Json?
-  actionTaken      AgentActionTaken @default(NONE)
+  inputRefs            Json             @default("[]")
+  accountId            String?
+  status               AgentRunStatus   @default(QUEUED)
+  attempt              Int              @default(0)
+  output               Json?
+  reasoningSummary     String?
+  confidence           Float?
+  citations            Json?
+  actionTaken          AgentActionTaken @default(NONE)
   /// Every record the run created or changed: [{ type, id }].
-  effects          Json             @default("[]")
-  inputTokens      Int              @default(0)
-  outputTokens     Int              @default(0)
-  latencyMs        Int?
-  errorCode        String?
-  errorDetail      String?
-  startedAt        DateTime?
-  finishedAt       DateTime?
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  effects              Json             @default("[]")
+  inputTokens          Int              @default(0)
+  outputTokens         Int              @default(0)
+  /// Input tokens served from the prompt cache / written to it (cache reads cost 10 % of input).
+  cacheReadTokens      Int              @default(0)
+  cacheCreationTokens  Int              @default(0)
+  /// Ask AI only: tokens of its planning calls (tool selection), priced at the fast tier.
+  planningInputTokens  Int              @default(0)
+  planningOutputTokens Int              @default(0)
+  /// sha256 of the exact input, bundle and prompt variables; equal to the last successful run's =
+  /// nothing changed, so a sweep makes no model call.
+  inputHash            String?
+  /// The Message Batches id when the run was submitted as a batch (custom_id = this run's id).
+  batchId              String?
+  /// The run's input payload (ids only) when it was submitted as a batch; used to rebuild its
+  /// records when the result is collected.
+  batchInput           Json?
+  latencyMs            Int?
+  errorCode            String?
+  errorDetail          String?
+  startedAt            DateTime?
+  finishedAt           DateTime?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   account   Account?  @relation(fields: [workspaceId, accountId], references: [workspaceId, id], onDelete: Cascade)
@@ -1804,6 +1820,7 @@ model AgentRun {
   @@index([workspaceId, agentKey, createdAt])
   @@index([workspaceId, status])
   @@index([workspaceId, accountId, agentKey, createdAt])
+  @@index([workspaceId, batchId])
 }
 
 enum ApprovalKind {

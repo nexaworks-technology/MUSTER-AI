@@ -119,6 +119,36 @@ describe("Today and Renewals read the same renewals (FIX-2026-11-11, item 2)", (
     expect(today.items.map((i) => i.accountId)).toContain(s.a2.id);
   });
 
+  it("an imported account with a renewal date but no Renewal record yet still shows on Today (day 1)", async () => {
+    // Renewal records are created from contracts by renewals.sync; a CSV import that sets only the
+    // account's renewal date has none yet. Today must still list it, with the card agreeing.
+    const s = await seed("RenImported");
+    const db = scopedDb({ workspaceId: s.admin.workspace.id });
+    const imported = await db.account.create({
+      data: {
+        workspaceId: s.admin.workspace.id,
+        name: "Imported Co",
+        tier: "MID_TOUCH",
+        ownerMembershipId: s.csmA.membershipId,
+        renewalDate: day("2026-12-16"),
+      },
+    });
+    const today = await todayRenewals(s.csmA);
+    expect(today.items.map((i) => i.accountId)).toContain(imported.id);
+    expect(today.total).toBe(3); // A1, A2 (Renewal records) + Imported Co (account date)
+    expect(await countMyRenewalsDue(s.csmA, 90, clock)).toBe(today.total);
+    expect(await countMyRenewalsDue(s.csmA, 30, clock)).toBe(1); // A1 only: Imported Co is in 43 days
+    // An account that HAS a Renewal record is read from its records, not from its own date: A3's
+    // record is 200 days out, and A4's is already renewed, so a stale in-window date on either
+    // account must not bring it back.
+    const a3 = (await db.account.findMany({ where: { name: "A3 in 200d" } }))[0]!;
+    await db.account.update({ where: { id: a3.id }, data: { renewalDate: day("2026-11-30") } });
+    const a4 = (await db.account.findMany({ where: { name: "A4 already renewed" } }))[0]!;
+    const ids = (await todayRenewals(s.csmA)).items.map((i) => i.accountId);
+    expect(ids).not.toContain(a3.id);
+    expect(ids).not.toContain(a4.id);
+  });
+
   it("the 30-day card is computed from the same records as its list, on the same scope", async () => {
     const s = await seed("RenCard");
     for (const m of [s.csmA, s.csmB, s.csmTeam]) {

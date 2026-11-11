@@ -37,3 +37,4 @@ export function getAiProvider(): AiProvider {
   });
   return provider;
 }
+export * from "./routing";

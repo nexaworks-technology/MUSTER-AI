@@ -4,6 +4,7 @@ import { formatCalendarDate } from "@/lib/format";
 import { requestApproval } from "@/modules/approvals/service";
 import { defineAgent } from "../define";
 import { baseAgentOutput, type ContextBundle, type ContextRecord } from "../schemas";
+import { jobTier } from "@/lib/ai/routing";
 
 /**
  * Outreach Agent, basic form (spec §6E11, D-30; M4): one check-in email for one CSM-requested
@@ -95,7 +96,7 @@ export const outreach = defineAgent({
   version: "1.1.0",
   description:
     "Drafts one check-in email for a CSM-requested or play intent; every draft goes to Approvals",
-  modelTier: "standard",
+  modelTier: jobTier("outreach"),
   tierReason: "A short customer-facing draft: tone and accuracy matter, depth does not (§6.1).",
   prompt: { name: "outreach", version: "1.1.0" },
   inputSchema: outreachInput,

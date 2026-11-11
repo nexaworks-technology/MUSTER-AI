@@ -5,6 +5,7 @@ import { requestApproval } from "@/modules/approvals/service";
 import { championGuardFor } from "@/modules/contacts/service";
 import { defineAgent } from "../define";
 import { baseAgentOutput, type ContextBundle } from "../schemas";
+import { jobTier } from "@/lib/ai/routing";
 
 /**
  * Champion Guard (spec §6E10, M9 B4): when the champion is gone or silent, the records rank the
@@ -33,7 +34,7 @@ export const championGuard = defineAgent({
   version: "1.0.0",
   description:
     "Explains why a pre-ranked contact is the next-best person to reach and drafts an introduction; every draft goes to Approvals",
-  modelTier: "standard",
+  modelTier: jobTier("champion-guard"),
   tierReason: "A short customer-facing draft: tone matters, the ranking is done by code (§6.1).",
   prompt: { name: "champion-guard", version: "1.0.0" },
   inputSchema: championGuardInput,

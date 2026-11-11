@@ -2,7 +2,7 @@
 name: meeting-brief
 version: 1.0.0
 agent: meeting-qbr
-tier: standard
+tier: fast
 changelog:
   - "1.0.0: first version (M10, spec §5 Meetings & QBRs). Prepares a pre-call brief for a scheduled meeting with an account: current health and primary drivers, recent conversation summary, open tickets, open promises, renewal timing, and recommended questions to ask."
 ---

@@ -344,6 +344,12 @@ describe("workspace export", () => {
       "ReportSnapshot.filtersHash",
       "AgentRun.inputTokens",
       "AgentRun.outputTokens",
+      // AI cost session: token counts and a hash of the (non-secret) run input; exported plain.
+      "AgentRun.cacheReadTokens",
+      "AgentRun.cacheCreationTokens",
+      "AgentRun.planningInputTokens",
+      "AgentRun.planningOutputTokens",
+      "AgentRun.inputHash",
     ]);
     const excluded = new Set(EXCLUDED_COLUMNS.map((c) => `${c.model}.${c.column}`));
     const unnamed: string[] = [];

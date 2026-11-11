@@ -24,16 +24,57 @@ export interface StructuredResult<T> {
   stopReason: string | null;
   model: string;
   requestId: string | null;
+  /** Uncached input tokens (the provider reports cache reads and writes separately). */
   inputTokens: number;
   outputTokens: number;
+  /** Input tokens served from the prompt cache (billed at a tenth of the input price). */
+  cacheReadTokens?: number;
+  /** Input tokens written to the prompt cache (billed at 1.25× the input price). */
+  cacheCreationTokens?: number;
   latencyMs: number;
   /** Why the output did not match the schema (issue paths and expectations), for the one repair call. */
   validationError?: string;
 }
 
+/** One request inside a batch; `customId` is the AgentRun id, so results map back to runs. */
+export interface BatchRequest extends StructuredRequest<unknown> {
+  customId: string;
+}
+
+/**
+ * One finished batch request. A success carries the model's raw text; the caller parses it with
+ * the request's own schema (the provider never sees a schema again after submitting).
+ */
+export type BatchItem =
+  | {
+      customId: string;
+      outcome: "succeeded";
+      text: string | null;
+      stopReason: string | null;
+      model: string;
+      requestId: string | null;
+      inputTokens: number;
+      outputTokens: number;
+      cacheReadTokens: number;
+      cacheCreationTokens: number;
+    }
+  | { customId: string; outcome: "errored" | "expired" | "canceled"; code: string; detail: string };
+
+export interface BatchStatus {
+  /** True once every request has a result (or expired/was cancelled). */
+  done: boolean;
+  items: BatchItem[];
+}
+
 export interface AiProvider {
   readonly name: "anthropic" | "recorded";
   generateStructured<T>(request: StructuredRequest<T>): Promise<StructuredResult<T>>;
+  /**
+   * Bulk jobs only (Message Batches API, half price, results within 24 h). A provider without
+   * these is used in real time by every caller.
+   */
+  submitBatch?(requests: BatchRequest[]): Promise<{ batchId: string }>;
+  getBatch?(batchId: string): Promise<BatchStatus>;
 }
 
 /** Shown in the UI as "AI is not configured" — the product never fakes AI output (D-19). */

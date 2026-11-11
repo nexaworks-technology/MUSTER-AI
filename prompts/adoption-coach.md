@@ -2,7 +2,7 @@
 name: adoption-coach
 version: 1.0.0
 agent: adoption-coach
-tier: standard
+tier: fast
 changelog:
   - "1.0.0: first version (M6). The unused-value finding for one account (what they pay for and have not used) and one nudge draft. Always goes to Approvals; never sends."
 ---

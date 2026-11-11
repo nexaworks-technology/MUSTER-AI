@@ -2,7 +2,7 @@
 name: digital-csm
 version: 1.0.0
 agent: digital-csm
-tier: standard
+tier: fast
 changelog:
   - "1.0.0: first version (M8, spec §8). Digital CSM for long-tail plays with safe execution and automatic hand-off on risk/anger/pricing/legal."
 ---

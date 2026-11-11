@@ -2,7 +2,7 @@
 name: meeting-summary
 version: 1.0.0
 agent: meeting-qbr
-tier: standard
+tier: fast
 changelog:
   - "1.0.0: first version (M10, spec §5 Meetings & QBRs). Analyzes a call/meeting transcript to extract a clear summary, key decisions made, and concrete action items with detected assignees."
 ---

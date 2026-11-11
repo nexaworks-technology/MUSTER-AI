@@ -2,7 +2,7 @@
 name: health-analyst
 version: 1.0.0
 agent: health-analyst
-tier: standard
+tier: fast
 changelog:
   - "1.0.0: first version (M4). Top 1–2 risks or opportunities for one account, from its health reasons and open signals only."
 ---

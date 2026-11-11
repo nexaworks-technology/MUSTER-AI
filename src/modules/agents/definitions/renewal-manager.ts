@@ -21,6 +21,7 @@ import {
   type ContextRecord,
 } from "../schemas";
 import { fallbackLeader, firstEmailContact } from "./draft-support";
+import { jobTier } from "@/lib/ai/routing";
 
 /**
  * Renewal Manager (spec §6E8, M7 §2): for one renewal inside its window, a plan, a talk track, one
@@ -236,7 +237,7 @@ export const renewalManager = defineAgent({
   version: "1.0.0",
   description:
     "Builds the renewal plan, talk track, outreach draft and next step; the draft goes to Approvals, the next step becomes a Task",
-  modelTier: "standard",
+  modelTier: jobTier("renewal-manager"),
   tierReason:
     "A brief and one customer-facing draft from a few records: tone and accuracy matter (§6.1).",
   prompt: { name: "renewal-manager", version: "1.0.0" },

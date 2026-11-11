@@ -9,6 +9,8 @@ import {
   adoptionCoach,
   onboardingManager,
   runAgent,
+  runAgentsBatch,
+  type BulkJob,
   type ExecutorDeps,
   type RunOutcome,
 } from "@/modules/agents/service";
@@ -214,17 +216,18 @@ export async function sweepOnboardingAgents(ctx: TenantContext, deps: ExecutorDe
       })
     ).map((r) => r.triggerId),
   );
+  // The sweep is bulk work: the steps due and the coaching runs go out as one batch
+  // (docs/AI-COST-2026-11-11.md, item 2).
+  const jobs: BulkJob[] = [];
+  let stepJobs = 0;
   for (const s of due) {
     if (ranSteps.has(s.id) || playAccounts.has(s.plan.accountId)) continue;
-    const r = await runAgent(
-      ctx,
-      onboardingManager,
-      { planId: s.planId, reason: "step_due" },
-      { type: "step-due", id: s.id },
-      deps,
-    );
-    if (r.kind === "not_configured") return out;
-    out.stepsDue++;
+    jobs.push({
+      def: onboardingManager,
+      input: { planId: s.planId, reason: "step_due" },
+      trigger: { type: "step-due", id: s.id },
+    });
+    stepJobs++;
   }
 
   const signals = await db.signal.findMany({
@@ -252,18 +255,23 @@ export async function sweepOnboardingAgents(ctx: TenantContext, deps: ExecutorDe
   const seenAccounts = new Set<string>();
   for (const s of signals) {
     // One coaching run per account per sweep, however many signals it has open.
-    if (ranSignals.has(s.id) || seenAccounts.has(s.accountId) || playAccounts.has(s.accountId)) continue;
+    if (ranSignals.has(s.id) || seenAccounts.has(s.accountId) || playAccounts.has(s.accountId))
+      continue;
     seenAccounts.add(s.accountId);
-    const r = await runAgent(
-      ctx,
-      adoptionCoach,
-      { accountId: s.accountId, reason: "signal" },
-      { type: "signal", id: s.id },
-      deps,
-    );
-    if (r.kind === "not_configured") return out;
-    out.signals++;
+    jobs.push({
+      def: adoptionCoach,
+      input: { accountId: s.accountId, reason: "signal" },
+      trigger: { type: "signal", id: s.id },
+    });
   }
+  if (jobs.length === 0) return out;
+  const outcomes = await runAgentsBatch(ctx, jobs, deps);
+  if (outcomes.some((o) => o.kind === "not_configured")) return out;
+  outcomes.forEach((o, i) => {
+    if (o.kind !== "run" || o.unchanged) return;
+    if (i < stepJobs) out.stepsDue++;
+    else out.signals++;
+  });
   return out;
 }
 

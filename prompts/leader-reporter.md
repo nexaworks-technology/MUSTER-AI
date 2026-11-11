@@ -2,7 +2,7 @@
 name: leader-reporter
 version: 1.0.0
 agent: leader-reporter
-tier: standard
+tier: deep
 changelog:
   - "1.0.0: first version (M11 S7, spec §5 Reports, ARCHITECTURE §6.2 row 13). A short weekly digest for the CS leaders, written only from computed report figures. Every sentence cites the figures it uses; money figures are never given."
 ---

@@ -3,6 +3,7 @@ import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { formatCalendarDate } from "@/lib/format";
 import { defineAgent } from "../define";
 import { baseAgentOutput, type ContextBundle } from "../schemas";
+import { jobTier } from "@/lib/ai/routing";
 
 /**
  * Health Analyst (spec §6E2, ARCHITECTURE §6.2 #2): the top 1–2 risks or opportunities for one
@@ -101,7 +102,7 @@ export const healthAnalyst = defineAgent({
   version: "1.0.0",
   description:
     "Writes the top 1–2 risks or opportunities for an account from its health reasons and signals",
-  modelTier: "standard",
+  modelTier: jobTier("health-analyst"),
   tierReason: "A short narrative from structured reasons: needs judgement, not depth (§6.1).",
   prompt: { name: "health-analyst", version: "1.0.0" },
   inputSchema: healthAnalystInput,

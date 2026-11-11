@@ -2,7 +2,7 @@
 name: ask-ai-plan
 version: 1.0.0
 agent: ask-ai
-tier: deep
+tier: fast
 changelog:
   - "1.0.0: first version (M11 S10, D-159). Chooses which read tools to call before Ask AI answers; it sees only tool results returned for the asking member."
 ---

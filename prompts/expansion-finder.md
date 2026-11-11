@@ -2,7 +2,7 @@
 name: expansion-finder
 version: 1.0.0
 agent: expansion-finder
-tier: standard
+tier: fast
 changelog:
   - "1.0.0: first version (M7). A short opportunity note for the CSM and one conversation draft for the customer, from usage and limit records only. The estimate is a placeholder that code fills in from the account's own price; the model never writes a money figure. The draft goes to Approvals."
 ---

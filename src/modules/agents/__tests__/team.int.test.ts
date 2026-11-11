@@ -103,7 +103,7 @@ describe("AI team", () => {
     ]);
     const ha = team.find((a) => a.key === "health-analyst")!;
     expect(ha).toMatchObject({
-      tier: "standard",
+      tier: "fast", // frugal routing (docs/AI-COST-2026-11-11.md): health-analyst runs on the fast tier
       enabled: true,
       internalOnly: true,
       counts: { SUCCEEDED: 1 },

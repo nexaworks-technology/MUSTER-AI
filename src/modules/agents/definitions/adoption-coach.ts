@@ -7,6 +7,7 @@ import { loadAdoption } from "@/modules/usage/service";
 import { defineAgent } from "../define";
 import { baseAgentOutput, proposedActionSchema, type ContextBundle } from "../schemas";
 import { firstEmailContact } from "./draft-support";
+import { jobTier } from "@/lib/ai/routing";
 
 /**
  * Adoption Coach (spec §6E5, M6 §2): for one account with an adoption signal, the unused-value
@@ -173,7 +174,7 @@ export const adoptionCoach = defineAgent({
   version: "1.0.0",
   description:
     "Finds the value an account pays for and does not use, and drafts one nudge; every draft goes to Approvals",
-  modelTier: "standard",
+  modelTier: jobTier("adoption-coach"),
   tierReason:
     "A short finding and nudge from a few structured records: judgement, not depth (§6.1).",
   prompt: { name: "adoption-coach", version: "1.0.0" },

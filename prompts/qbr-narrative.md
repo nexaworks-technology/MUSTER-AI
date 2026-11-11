@@ -2,7 +2,7 @@
 name: qbr-narrative
 version: 1.0.0
 agent: meeting-qbr
-tier: deep
+tier: fast
 changelog:
   - "1.0.0: first version (M10, spec §5 QBR / business review). Drafts executive narrative blocks for a quarterly business review using locked metrics placeholders."
 ---

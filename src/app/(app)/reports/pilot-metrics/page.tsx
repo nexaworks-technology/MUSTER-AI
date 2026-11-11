@@ -1,8 +1,10 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PRICING_LABEL } from "@/config/ai-pricing";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { formatDateTime } from "@/lib/format";
+import { budgetStatus } from "@/modules/agents/service";
 import {
   PILOT_WEEK_OPTIONS,
   canViewPilotMetrics,
@@ -68,7 +70,7 @@ export default async function PilotMetricsPage({ searchParams }: { searchParams:
   );
   const parsed = pilotQuery.safeParse(raw);
   const q = parsed.success ? parsed.data : pilotQuery.parse({});
-  const metrics = await loadPilotMetrics(ctx, q);
+  const [metrics, ai] = await Promise.all([loadPilotMetrics(ctx, q), budgetStatus(ctx)]);
   const picked = pickFigure(metrics, q);
   const records = picked ? await listPilotRecords(ctx, picked.figure.sources.ids) : null;
   const anyData = metrics.members.some((m) =>
@@ -114,11 +116,68 @@ export default async function PilotMetricsPage({ searchParams }: { searchParams:
             over those plus flags they marked false alarm. One verdict per flag.
           </li>
           <li>
-            <strong>Prep time:</strong> minutes from a QBR being generated to it being
-            shared (a QBR is shared when it is locked for the customer portal), credited to the
-            person who generated it and to the week it was shared.
+            <strong>Prep time:</strong> minutes from a QBR being generated to it being shared (a QBR
+            is shared when it is locked for the customer portal), credited to the person who
+            generated it and to the week it was shared.
           </li>
         </ul>
+      </section>
+
+      <section aria-labelledby="ai-usage" className="surface space-y-2 p-3" data-testid="ai-usage">
+        <h2 id="ai-usage" className="text-lg font-semibold">
+          AI usage this month (estimate)
+        </h2>
+        <p className="text-sm">
+          <span className="font-medium tabular-nums">{ai.usedTokens.toLocaleString("en-US")}</span>{" "}
+          of <span className="tabular-nums">{ai.budgetTokens.toLocaleString("en-US")}</span> tokens
+          (<span className="tabular-nums">{Math.floor(ai.percent)}%</span>) in {ai.month}. Estimated
+          cost so far:{" "}
+          <span className="font-medium tabular-nums" data-testid="ai-cost-estimate">
+            ${ai.estimatedCostUsd.toFixed(2)}
+          </span>
+          .
+        </p>
+        {ai.level === "SOFT" ? (
+          <p role="status" className="text-sm font-medium" data-testid="ai-budget-soft">
+            80% of the monthly AI budget is used. Non-essential AI jobs pause at 100%.
+          </p>
+        ) : null}
+        {ai.level === "PAUSED" ? (
+          <p role="alert" className="text-sm font-medium" data-testid="ai-budget-paused">
+            The monthly AI budget is used up. Non-essential AI jobs are paused; Ask AI still works.
+          </p>
+        ) : null}
+        {ai.byTier.length > 0 ? (
+          <table className="w-full text-sm" data-testid="ai-usage-tiers">
+            <thead>
+              <tr className="text-muted-foreground text-left">
+                <th className="font-medium">Model tier</th>
+                <th className="font-medium">Runs</th>
+                <th className="font-medium">Tokens</th>
+                <th className="font-medium">Estimated cost</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ai.byTier.map((t) => (
+                <tr key={t.tier}>
+                  <th scope="row" className="font-normal">
+                    {t.tier}
+                  </th>
+                  <td className="tabular-nums">{t.runs}</td>
+                  <td className="tabular-nums">{t.tokens.toLocaleString("en-US")}</td>
+                  <td className="tabular-nums">${t.estimatedCostUsd.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="text-muted-foreground text-sm">No AI runs recorded this month.</p>
+        )}
+        <p className="text-muted-foreground text-xs">
+          {ai.batchedRuns} run{ai.batchedRuns === 1 ? "" : "s"} went through the half-price batch
+          service; {ai.cacheReadTokens.toLocaleString("en-US")} tokens were read from the prompt
+          cache. {PRICING_LABEL}
+        </p>
       </section>
 
       {!anyData ? (

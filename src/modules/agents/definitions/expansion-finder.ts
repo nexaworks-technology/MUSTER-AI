@@ -13,6 +13,7 @@ import {
   type ContextRecord,
 } from "../schemas";
 import { firstEmailContact } from "./draft-support";
+import { jobTier } from "@/lib/ai/routing";
 
 /**
  * Expansion Finder (spec §6E9, M7 §2): for one expansion opportunity, a short note for the CSM and
@@ -195,7 +196,7 @@ export const expansionFinder = defineAgent({
   version: "1.0.0",
   description:
     "Explains an expansion opportunity from usage and limit records and drafts a conversation, never a hard pitch; the draft goes to Approvals",
-  modelTier: "standard",
+  modelTier: jobTier("expansion-finder"),
   tierReason:
     "A short note and one customer-facing draft from a few records: tone and accuracy matter (§6.1).",
   prompt: { name: "expansion-finder", version: "1.0.0" },

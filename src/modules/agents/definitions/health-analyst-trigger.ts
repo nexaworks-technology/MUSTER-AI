@@ -2,7 +2,7 @@ import { z } from "zod";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { displayedSnapshot, getActiveModel } from "@/modules/health/service";
 import { logger } from "@/lib/logger";
-import { runAgent, type ExecutorDeps } from "../executor";
+import { runAgent, runAgentsBatch, type BulkJob, type ExecutorDeps } from "../executor";
 import { healthAnalyst } from "./health-analyst";
 
 /**
@@ -42,12 +42,11 @@ const reasonSelect = {
   select: { kind: true, impact: true, component: true, input: true },
 } as const;
 
-/** Decides for one account's current snapshot and runs the agent when a trigger fires. */
-export async function considerHealthNarrative(
+/** Decides for one account's current snapshot whether a narrative is needed, and what to run. */
+async function planHealthNarrative(
   ctx: TenantContext,
   accountId: string,
-  deps: ExecutorDeps = {},
-) {
+): Promise<{ job: BulkJob; why: string } | { job: null; why: string }> {
   const db = scopedDb(ctx);
   const account = await db.account.findUnique({
     where: { id: accountId },
@@ -56,7 +55,7 @@ export async function considerHealthNarrative(
   // The snapshot the Health tab shows, so every link in the narrative lands on a reason there.
   const shown =
     account && account.lifecycleStage !== "LOST" ? await displayedSnapshot(ctx, accountId) : null;
-  if (!shown) return { ran: false as const, why: "no current snapshot" };
+  if (!shown) return { job: null, why: "no current snapshot" };
   const current = await db.healthScoreSnapshot.findUniqueOrThrow({
     where: { id: shown.id },
     include: { reasons: reasonSelect },
@@ -77,15 +76,30 @@ export async function considerHealthNarrative(
     reasons: s.reasons.map((r) => ({ ...r, impact: Number(r.impact) })),
   });
   const why = needsNarrative(facts(current), previous && facts(previous));
-  if (!why) return { ran: false as const, why: "no trigger" };
-  const outcome = await runAgent(
-    ctx,
-    healthAnalyst,
-    { accountId, snapshotId: current.id },
-    { type: "snapshot", id: current.id },
-    deps,
-  );
-  return { ran: true as const, why, outcome };
+  if (!why) return { job: null, why: "no trigger" };
+  return {
+    job: {
+      def: healthAnalyst,
+      input: { accountId, snapshotId: current.id },
+      trigger: { type: "snapshot", id: current.id },
+    },
+    why,
+  };
+}
+
+/**
+ * Decides for one account's current snapshot and runs the agent when a trigger fires. Real time:
+ * this is the event path (`health.bandChanged`), where a person may be looking at the account.
+ */
+export async function considerHealthNarrative(
+  ctx: TenantContext,
+  accountId: string,
+  deps: ExecutorDeps = {},
+) {
+  const plan = await planHealthNarrative(ctx, accountId);
+  if (!plan.job) return { ran: false as const, why: plan.why };
+  const outcome = await runAgent(ctx, plan.job.def, plan.job.input, plan.job.trigger, deps);
+  return { ran: true as const, why: plan.why, outcome };
 }
 
 export const considerPayload = z.object({
@@ -130,18 +144,22 @@ export async function sweepHealthNarratives(ctx: TenantContext, deps: ExecutorDe
       })
     ).map((r) => r.triggerId),
   );
-  let ran = 0;
+  const jobs: BulkJob[] = [];
   for (const a of accounts) {
     if (done.has(a.snapshotId)) continue;
-    const r = await considerHealthNarrative(ctx, a.id, deps);
-    if (r.ran && r.outcome.kind === "not_configured") {
+    const plan = await planHealthNarrative(ctx, a.id);
+    if (plan.job) jobs.push(plan.job);
+  }
+  let ran = 0;
+  if (jobs.length > 0) {
+    // The sweep is bulk work: one batch for the pass (docs/AI-COST-2026-11-11.md, item 2).
+    const outcomes = await runAgentsBatch(ctx, jobs, deps);
+    if (outcomes.some((o) => o.kind === "not_configured"))
       logger.info(
         { workspaceId: ctx.workspaceId },
         "health narratives skipped: AI is not configured",
       );
-      break;
-    }
-    if (r.ran) ran++;
+    else ran = outcomes.filter((o) => o.kind === "run" && !o.unchanged).length;
   }
   return { considered: accounts.length - done.size, ran };
 }

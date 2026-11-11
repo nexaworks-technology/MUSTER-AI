@@ -4,6 +4,7 @@ import {
   calendarDateOf,
   localDate,
   startOfLocalDay,
+  utcMidnight,
   businessClock,
   todayIn,
   type Clock,
@@ -62,6 +63,19 @@ const myRenewalsWhere = (m: Member, asOf: string, days: number): Prisma.RenewalW
   account: myRenewalOwners(m),
 });
 
+/**
+ * Accounts whose own renewal date is in the window but that have no Renewal record yet. A CSV
+ * import (or a typed-in date) sets only the account's date; Renewal records are created from
+ * contracts by `renewals.sync`. Until then the account still renews, so day-1 Today lists it. Once
+ * an account has any Renewal record (open, renewed or churned) it is read from its records only,
+ * never from this date, so a renewed account with a stale date does not come back.
+ */
+const myDatedAccountsWhere = (m: Member, asOf: string, days: number): Prisma.AccountWhereInput => ({
+  ...myAccounts(m),
+  renewalDate: { gte: utcMidnight(asOf), lte: utcMidnight(addDays(asOf, days)) },
+  renewals: { none: {} },
+});
+
 export async function countMyRenewalsDue(
   m: Member,
   days: number,
@@ -69,9 +83,13 @@ export async function countMyRenewalsDue(
 ): Promise<number> {
   const ctx: TenantContext = { workspaceId: m.workspaceId };
   const ws = await getOwnWorkspace(ctx);
-  return scopedDb(ctx).renewal.count({
-    where: myRenewalsWhere(m, todayIn(ws.timezone, clock), days),
-  });
+  const asOf = todayIn(ws.timezone, clock);
+  const db = scopedDb(ctx);
+  const [records, dated] = await Promise.all([
+    db.renewal.count({ where: myRenewalsWhere(m, asOf, days) }),
+    db.account.count({ where: myDatedAccountsWhere(m, asOf, days) }),
+  ]);
+  return records + dated;
 }
 
 const accountSelect = {
@@ -95,41 +113,47 @@ export async function todayCandidates(
   const startOfToday = startOfLocalDay(today, tz);
   // Due before tomorrow starts in the workspace time zone (D-50): today and anything overdue.
   const endOfToday = startOfLocalDay(addDays(today, 1), tz);
-  const [tasks, escalated, signals, approvals, renewals, meetings] = await Promise.all([
-    db.task.findMany({
-      where: {
-        ownerMembershipId: m.membershipId,
-        status: "OPEN",
-        dueAt: { not: null, lt: endOfToday },
-      },
-      include: { account: { select: accountSelect } },
-    }),
-    db.notification.findMany({
-      where: { recipientMembershipId: m.membershipId, type: "TASK_OVERDUE", refType: "Task" },
-      select: { refId: true },
-    }),
-    db.signal.findMany({
-      where: { status: "OPEN", severity: { in: ["WARN", "CRITICAL"] }, account: myAccounts(m) },
-      include: { account: { select: accountSelect } },
-    }),
-    db.approval.findMany({
-      where: { status: "PENDING", assigneeId: m.membershipId },
-      include: { account: { select: accountSelect } },
-    }),
-    db.renewal.findMany({
-      where: myRenewalsWhere(m, today, 90),
-      orderBy: [{ renewalDate: "asc" }, { id: "asc" }],
-      select: { renewalDate: true, account: { select: accountSelect } },
-    }),
-    db.meeting.findMany({
-      where: {
-        account: myAccounts(m),
-        startsAt: { gte: startOfToday, lt: endOfToday },
-        status: { not: "CANCELLED" },
-      },
-      include: { account: { select: accountSelect } },
-    }),
-  ]);
+  const [tasks, escalated, signals, approvals, renewals, datedAccounts, meetings] =
+    await Promise.all([
+      db.task.findMany({
+        where: {
+          ownerMembershipId: m.membershipId,
+          status: "OPEN",
+          dueAt: { not: null, lt: endOfToday },
+        },
+        include: { account: { select: accountSelect } },
+      }),
+      db.notification.findMany({
+        where: { recipientMembershipId: m.membershipId, type: "TASK_OVERDUE", refType: "Task" },
+        select: { refId: true },
+      }),
+      db.signal.findMany({
+        where: { status: "OPEN", severity: { in: ["WARN", "CRITICAL"] }, account: myAccounts(m) },
+        include: { account: { select: accountSelect } },
+      }),
+      db.approval.findMany({
+        where: { status: "PENDING", assigneeId: m.membershipId },
+        include: { account: { select: accountSelect } },
+      }),
+      db.renewal.findMany({
+        where: myRenewalsWhere(m, today, 90),
+        orderBy: [{ renewalDate: "asc" }, { id: "asc" }],
+        select: { renewalDate: true, account: { select: accountSelect } },
+      }),
+      db.account.findMany({
+        where: myDatedAccountsWhere(m, today, 90),
+        orderBy: [{ renewalDate: "asc" }, { id: "asc" }],
+        select: accountSelect,
+      }),
+      db.meeting.findMany({
+        where: {
+          account: myAccounts(m),
+          startsAt: { gte: startOfToday, lt: endOfToday },
+          status: { not: "CANCELLED" },
+        },
+        include: { account: { select: accountSelect } },
+      }),
+    ]);
   const escalatedTasks = escalated.length
     ? await db.task.findMany({
         where: {
@@ -195,7 +219,10 @@ export async function todayCandidates(
       ...acct(a.account),
       driver: { kind: "APPROVAL", waitingHours: (+now - +a.createdAt) / 3_600_000 },
     })),
-    ...renewalsByAccount(renewals).map((r): Candidate => ({
+    ...renewalsByAccount([
+      ...renewals,
+      ...datedAccounts.map((a) => ({ renewalDate: a.renewalDate!, account: a })),
+    ]).map((r): Candidate => ({
       itemType: "RENEWAL",
       refId: r.account.id,
       title: `${r.account.name} renews`,

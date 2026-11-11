@@ -2,7 +2,7 @@
 name: champion-guard
 version: 1.0.0
 agent: champion-guard
-tier: standard
+tier: fast
 changelog:
   - "1.0.0: first version (M9, spec §6E10 Champion Guard). Explains why one pre-ranked contact is the next-best person to reach, and drafts a short introduction to them. The ranking is done by code, never by you. Always a draft for approval."
 ---

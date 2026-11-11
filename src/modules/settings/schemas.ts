@@ -96,6 +96,13 @@ export const workspaceSettingsData = z.object({
     .object({
       /** Tokens (input + output) all agents may use per workspace per calendar day (§6.3). */
       dailyTokenBudget: z.number().int().min(0).default(2_000_000),
+      /**
+       * Tokens (input + output + cache) all agents may use per workspace per calendar month
+       * (docs/AI-COST-2026-11-11.md). 80 % raises a soft alert; at 100 % every job except Ask AI
+       * pauses. 10M tokens is about half of a $40 credit at Haiku prices, leaving room for the
+       * Sonnet jobs (Ask AI answers, the weekly digest).
+       */
+      monthlyTokenBudget: z.number().int().min(0).default(10_000_000),
     })
     .prefault({}),
   ask: z

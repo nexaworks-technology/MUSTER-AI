@@ -5,6 +5,7 @@ import { writeAudit } from "@/lib/audit";
 import { playDefinitionSchema, validatePlaySafety } from "@/modules/plays/service";
 import { defineAgent } from "../define";
 import { baseAgentOutput, type ContextBundle } from "../schemas";
+import { jobTier } from "@/lib/ai/routing";
 
 export const playBuilderInput = z.object({
   userPrompt: z.string().min(1).max(5000),
@@ -27,7 +28,7 @@ export const playBuilder = defineAgent({
   version: "1.0.0",
   description:
     "Turns plain English into a structured draft play; never publishes directly and subject to safety gate (D-138)",
-  modelTier: "standard",
+  modelTier: jobTier("play-builder"),
   tierReason: "Structured workflow reasoning and policy synthesis from natural language (§5, D-138).",
   prompt: { name: "play-builder", version: "1.0.0" },
   forbiddenNumericFields: [],

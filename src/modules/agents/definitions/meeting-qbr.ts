@@ -3,6 +3,7 @@ import { liveSnapshotWhere } from "@/modules/health/service";
 import type { Prisma } from "@prisma/client";
 import { defineAgent, type BuiltContext, type Effect } from "../define";
 import { baseAgentOutput, type ContextBundle } from "../schemas";
+import { jobTier } from "@/lib/ai/routing";
 
 export const meetingQbrInput = z.object({
   action: z.enum(["PREPARE_BRIEF", "SUMMARIZE_CALL", "QBR_NARRATIVE"]).default("PREPARE_BRIEF"),
@@ -42,7 +43,7 @@ export const meetingQbr = defineAgent({
   version: "1.0.0",
   description:
     "Prepares pre-call briefs, meeting summaries with action item handoffs, and QBR narrative blocks",
-  modelTier: "standard",
+  modelTier: jobTier("meeting-qbr"),
   tierReason:
     "High-utility briefings and accurate conversation summaries require standard tone and precision.",
   prompt: { name: "meeting-brief", version: "1.0.0" },
@@ -157,7 +158,7 @@ export const meetingQbr = defineAgent({
         },
         accountId: input.accountId,
         prompt: { name: "meeting-brief", version: "1.0.0" },
-        tier: "standard",
+        tier: jobTier("meeting-brief"),
       };
     }
 
@@ -207,7 +208,7 @@ export const meetingQbr = defineAgent({
         },
         accountId: input.accountId,
         prompt: { name: "meeting-summary", version: "1.0.0" },
-        tier: "standard",
+        tier: jobTier("meeting-summary"),
       };
     }
 
@@ -220,7 +221,7 @@ export const meetingQbr = defineAgent({
       },
       accountId: input.accountId,
       prompt: { name: "qbr-narrative", version: "1.0.0" },
-      tier: "deep",
+      tier: jobTier("qbr-narrative"),
     };
   },
 

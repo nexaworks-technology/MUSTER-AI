@@ -1,7 +1,7 @@
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { listActiveWorkspaces } from "@/lib/db/workspace";
 import { logger } from "@/lib/logger";
-import { runAgent, type ExecutorDeps } from "../executor";
+import { runAgentsBatch, type BulkJob, type ExecutorDeps } from "../executor";
 import { renewalManager } from "./renewal-manager";
 
 /**
@@ -57,7 +57,7 @@ export async function sweepRenewalAgents(ctx: TenantContext, deps: ExecutorDeps 
   const playAccounts = new Set(activePlayRuns.map((r) => r.accountId));
 
   let considered = 0;
-  let asked = 0;
+  const jobs: BulkJob[] = [];
   const seen = new Set<string>();
   for (const s of signals) {
     if (playAccounts.has(s.accountId)) continue;
@@ -72,19 +72,20 @@ export async function sweepRenewalAgents(ctx: TenantContext, deps: ExecutorDeps 
     if (!renewal || seen.has(renewal.id) || ran.has(s.id)) continue;
     seen.add(renewal.id);
     if (++considered > SWEEP_CAP) break;
-    const r = await runAgent(
-      ctx,
-      renewalManager,
-      { renewalId: renewal.id },
-      { type: "signal", id: s.id },
-      deps,
-    );
-    if (r.kind === "not_configured") {
-      logger.info({ workspaceId: ctx.workspaceId }, "renewal plans skipped: AI is not configured");
-      break;
-    }
-    asked++;
+    jobs.push({
+      def: renewalManager,
+      input: { renewalId: renewal.id },
+      trigger: { type: "signal", id: s.id },
+    });
   }
+  if (jobs.length === 0) return { considered, ran: 0 };
+  // A sweep is bulk work: one batch for the pass (docs/AI-COST-2026-11-11.md, item 2).
+  const outcomes = await runAgentsBatch(ctx, jobs, deps);
+  if (outcomes.some((o) => o.kind === "not_configured")) {
+    logger.info({ workspaceId: ctx.workspaceId }, "renewal plans skipped: AI is not configured");
+    return { considered, ran: 0 };
+  }
+  const asked = outcomes.filter((o) => o.kind === "run" && !o.unchanged).length;
   return { considered, ran: asked };
 }
 

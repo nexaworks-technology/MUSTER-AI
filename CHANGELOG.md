@@ -6,6 +6,7 @@ All notable user-facing changes. Format: [Keep a Changelog](https://keepachangel
 
 ### Added
 
+- AI cost controls: every AI job runs on the cheapest model tier except Ask AI answers and the weekly digest; bulk jobs (nightly narratives, plans, extraction, chase tasks) go through Anthropic's half-price batch service and finish when the batch completes; unchanged accounts make no model call; the workspace has a monthly AI token budget (80% alert, non-essential jobs pause at 100%, Ask AI keeps working) and Pilot metrics shows month-to-date AI usage with a labelled cost estimate. Meetings & QBRs has its own screen.
 - Data export (Settings › Data controls › Export): Admins can download a full archive (ZIP) containing all workspace records in JSON, uploaded files, and an integrity manifest, via signed 7-day download links. Credentials and secrets are never exported.
 - Workspace deletion and automated purge (Settings › Data controls › Delete): Admins can request workspace deletion with typed confirmation. Initiates a 7-day grace period (cancellable by an admin). Once due, an automated purge permanently deletes all workspace records, files from object storage, and orphaned user PII on the database clock, writing an immutable tombstone record.
 - Pilot metrics report (/reports/pilot-metrics): Telemetry dashboard for Admins and CS Leaders showing CSM platform adoption, feature usage, flag resolution rates, and proposal acceptance over time.

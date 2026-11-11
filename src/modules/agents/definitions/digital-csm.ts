@@ -3,6 +3,7 @@ import { formatCalendarDate } from "@/lib/format";
 import { requestApproval } from "@/modules/approvals/service";
 import { defineAgent } from "../define";
 import { baseAgentOutput, type ContextBundle, type ContextRecord } from "../schemas";
+import { jobTier } from "@/lib/ai/routing";
 
 export const digitalCsmOutput = z.object({
   ...baseAgentOutput.shape,
@@ -36,7 +37,7 @@ export const digitalCsm = defineAgent({
   version: "1.0.0",
   description:
     "Runs safe play steps for long-tail accounts; immediately hands off to human on risk, anger, pricing, or legal topics",
-  modelTier: "standard",
+  modelTier: jobTier("digital-csm"),
   tierReason: "Standard long-tail customer communication with strict rule-based and content-based hand-off boundaries (§8).",
   prompt: { name: "digital-csm", version: "1.0.0" },
   inputSchema: digitalCsmInput,

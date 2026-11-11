@@ -12,6 +12,7 @@ import {
   type ContextRecord,
 } from "../schemas";
 import { fallbackLeader, firstEmailContact } from "./draft-support";
+import { jobTier } from "@/lib/ai/routing";
 
 /**
  * Onboarding Manager (spec §6E4, M6 §2): for one stalled or due onboarding plan, a check-in draft
@@ -184,7 +185,7 @@ export const onboardingManager = defineAgent({
   version: "1.0.0",
   description:
     "Drafts a check-in for a stalled or due onboarding step and asks the owner to step in; every draft goes to Approvals",
-  modelTier: "standard",
+  modelTier: jobTier("onboarding-manager"),
   tierReason: "A short customer-facing draft from a few records: tone and accuracy matter (§6.1).",
   prompt: { name: "onboarding-manager", version: "1.0.0" },
   inputSchema: onboardingManagerInput,

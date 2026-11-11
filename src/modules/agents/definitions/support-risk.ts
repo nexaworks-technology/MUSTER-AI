@@ -5,6 +5,7 @@ import { inboxRowFor } from "@/modules/inbox/service";
 import { detectSensitive } from "@/modules/outbound/service";
 import { defineAgent } from "../define";
 import { baseAgentOutput, type ContextBundle } from "../schemas";
+import { jobTier } from "@/lib/ai/routing";
 
 /**
  * Support Risk Agent (spec §6E6, M9 B2): a risk narrative on one inbound email or ticket, and the
@@ -41,7 +42,7 @@ export const supportRisk = defineAgent({
   version: "1.0.0",
   description:
     "Explains the risk in one inbound email or ticket and drafts the reply for the Inbox; every draft goes to Approvals",
-  modelTier: "standard",
+  modelTier: jobTier("support-risk"),
   tierReason:
     "A short customer-facing draft plus a judgement on risk: tone and accuracy matter (§6.1).",
   prompt: { name: "support-risk", version: "1.0.0" },

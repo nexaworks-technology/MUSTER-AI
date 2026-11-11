@@ -13,6 +13,7 @@ import {
   processConsider,
   sweepAllExpansionAgents,
   sweepAllHealthNarratives,
+  collectAllBatches,
   processReextract,
   sweepAllExtractions,
   sweepAllPromiseKeepers,
@@ -150,6 +151,10 @@ export const PROCESSORS: Partial<Record<QueueName, Record<string, Processor>>> =
     async "health-analyst.sweep"() {
       return sweepAllHealthNarratives();
     },
+    /** AI cost session: finish the runs of every AI batch that has completed (every 5 minutes). */
+    async "agents.collectBatches"() {
+      return collectAllBatches();
+    },
     /** M9: the Watcher reads new messages, notes and call chunks (a few per pass). */
     async "conversations.extractSweep"() {
       return sweepAllExtractions();
@@ -285,6 +290,8 @@ export const SCHEDULES = [
     job: "maintenance.purgeWorkspaces",
     everyMs: 3_600_000,
   },
+  // AI cost session: results of the AI batches the sweeps below submit (Batch API, half price).
+  { queue: "agents", id: "agent-batch-collect", job: "agents.collectBatches", everyMs: 300_000 },
   // M4: narratives for snapshots no event covers (first snapshot, top-reason change).
   { queue: "agents", id: "health-analyst-sweep", job: "health-analyst.sweep", everyMs: 900_000 },
   // M9: the Promise Keeper for late promises of ours.

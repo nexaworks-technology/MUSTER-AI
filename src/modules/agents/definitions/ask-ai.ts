@@ -3,6 +3,7 @@ import { changeItem, requestApproval } from "@/modules/approvals/service";
 import { proposeChanges, runAskTool, type AskActor } from "@/modules/ask-ai/service";
 import { defineAgent, type ActResult } from "../define";
 import { baseAgentOutput, type ContextBundle } from "../schemas";
+import { jobTier } from "@/lib/ai/routing";
 
 /**
  * Ask AI (M11 S10, spec §6M, ARCHITECTURE §6.2 row 14; tier deep). Answers ONLY from the records
@@ -126,7 +127,7 @@ export const askAi = defineAgent<AskAiInput, AskAiOutput>({
   version: "1.0.0",
   description:
     "Answers questions from the asker's scoped records, with citations; proposes changes for approval.",
-  modelTier: "deep",
+  modelTier: jobTier("ask-ai"),
   tierReason: "Multi-record reasoning across accounts, calls and contracts in one answer.",
   prompt: { name: "ask-ai", version: "1.0.0" },
   inputSchema: askAiInput,

@@ -179,6 +179,41 @@ describe("askQuestion", () => {
     expect(JSON.stringify(messages[1]!.citations)).toContain("Contract for Northgate Freight");
   });
 
+  it("records the planning steps' tokens on the answer's run, apart from the answer's own", async () => {
+    // Two planning calls (one asks for a tool, one says "answer") then the answer: the provider
+    // reports 10 in / 5 out for every call. Planning is counted so the monthly AI budget sees it.
+    const res = await askQuestion(
+      admin,
+      { question: "What is Northgate Freight's contract value?" },
+      {
+        provider: provider(
+          [{ tool: "getContract", input: { accountId: northgate.id } }],
+          (records) => {
+            const c = records.find((r) => r.sourceType === "Contract")!;
+            return {
+              ...base,
+              answer: "Northgate Freight's contract is worth $142,000.",
+              citations: [{ sourceType: "Contract", sourceId: c.sourceId }],
+              figures: [
+                {
+                  value: "142000.00",
+                  sourceType: "Contract",
+                  sourceId: c.sourceId,
+                  field: "value",
+                },
+              ],
+            };
+          },
+        ),
+      },
+    );
+    const run = await db.agentRun.findUniqueOrThrow({ where: { id: res.runId! } });
+    expect(run.inputTokens).toBe(10); // the answer call only
+    expect(run.outputTokens).toBe(5);
+    expect(run.planningInputTokens).toBe(20); // two planning calls
+    expect(run.planningOutputTokens).toBe(10);
+  });
+
   it("an account with no contract: the answer says it cannot see one, citing what it did see", async () => {
     const res = await askQuestion(
       admin,

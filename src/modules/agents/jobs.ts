@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { getQueue } from "@/lib/jobs/queues";
 import type { TenantContext } from "@/lib/db/scoped";
-import { runAgent, type Trigger } from "./executor";
+import { collectBatches, runAgent, type Trigger } from "./executor";
 import { reextractPayload } from "@/modules/conversations/service";
 import { backfillExtractions, reextractSources } from "./definitions/watcher";
 import { sweepPromiseKeeper } from "./definitions/promise-keeper";
@@ -81,6 +81,19 @@ export async function sweepAllExtractions() {
 /** Every active workspace: a chase task for each late promise of ours that has none (a few per pass). */
 export async function sweepAllPromiseKeepers() {
   const out: Record<string, unknown> = {};
-  for (const w of await listActiveWorkspaces()) out[w.slug] = await sweepPromiseKeeper({ workspaceId: w.id });
+  for (const w of await listActiveWorkspaces())
+    out[w.slug] = await sweepPromiseKeeper({ workspaceId: w.id });
+  return out;
+}
+
+/**
+ * Reads every finished AI batch (docs/AI-COST-2026-11-11.md, item 2) and finishes its runs through
+ * the executor, so each answer faces the same citation and safety checks as a real-time one. A
+ * batch that has not finished is left for the next pass. Safe to repeat.
+ */
+export async function collectAllBatches() {
+  const out: Record<string, { batches: number; finished: number }> = {};
+  for (const w of await listActiveWorkspaces())
+    out[w.slug] = await collectBatches({ workspaceId: w.id });
   return out;
 }

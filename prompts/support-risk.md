@@ -2,7 +2,7 @@
 name: support-risk
 version: 1.0.0
 agent: support-risk
-tier: standard
+tier: fast
 changelog:
   - "1.0.0: first version (M9, spec §6E6 Support Risk Agent). A risk narrative that cites the customer's own words, tickets and extractions, plus one reply draft for the Inbox. Every draft goes to Approvals."
 ---

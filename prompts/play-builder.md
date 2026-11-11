@@ -2,7 +2,7 @@
 name: play-builder
 version: 1.0.0
 agent: play-builder
-tier: standard
+tier: fast
 changelog:
   - "1.0.0: first version (M8, D-138). Assistant drafting plays from plain English descriptions. Never publishes."
 ---

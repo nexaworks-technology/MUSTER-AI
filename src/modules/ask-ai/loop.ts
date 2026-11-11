@@ -8,6 +8,7 @@ import {
   loadPrompt,
   renderPrompt,
   type AiProvider,
+  jobTier,
 } from "@/lib/ai";
 import { writeAudit } from "@/lib/audit";
 import { scopedDb } from "@/lib/db/scoped";
@@ -189,7 +190,7 @@ export async function askQuestion(
     let res;
     try {
       res = await provider.generateStructured({
-        tier: "deep",
+        tier: jobTier("ask-ai-plan"),
         workspaceId: actor.workspaceId,
         promptRef: plan.ref,
         system,
@@ -262,6 +263,15 @@ export async function askQuestion(
       status: "NOT_CONFIGURED",
       runId: null,
     };
+  // The planning calls ran outside the executor: record their tokens on the answer's run so the
+  // monthly AI budget and its cost estimate see them (they were the larger part of an Ask's tokens).
+  await db.agentRun.update({
+    where: { id: outcome.runId },
+    data: {
+      planningInputTokens: planning.reduce((n, p) => n + p.inputTokens, 0),
+      planningOutputTokens: planning.reduce((n, p) => n + p.outputTokens, 0),
+    },
+  });
   const run = await db.agentRun.findUniqueOrThrow({ where: { id: outcome.runId } });
   const out = run.status === "SUCCEEDED" ? (run.output as unknown as AskAiOutput) : null;
   const byRef = new Map(results.flatMap((r) => r.records).map((r) => [`${r.type}:${r.id}`, r]));

@@ -2,7 +2,7 @@
 name: onboarding-manager
 version: 1.0.0
 agent: onboarding-manager
-tier: standard
+tier: fast
 changelog:
   - "1.0.0: first version (M6). One check-in draft for a stalled or due onboarding step, and whether the owner should be asked to step in. Always goes to Approvals; never sends."
 ---

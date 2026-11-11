@@ -41,7 +41,14 @@ export default async function NotificationsPage() {
                   {formatDateTime(n.createdAt, ctx.workspace.timezone)}
                 </div>
               </div>
-              {n.refType === "ReportDigest" || n.refType === "ReportDigestNotice" ? (
+              {n.refType === "AiBudget" ? (
+                <Link
+                  href={"/reports/pilot-metrics" as Route}
+                  className="text-primary shrink-0 text-xs underline underline-offset-2"
+                >
+                  Open
+                </Link>
+              ) : n.refType === "ReportDigest" || n.refType === "ReportDigestNotice" ? (
                 <Link
                   href={(n.refType === "ReportDigest" ? "/reports/digest" : "/reports") as Route}
                   className="text-primary shrink-0 text-xs underline underline-offset-2"

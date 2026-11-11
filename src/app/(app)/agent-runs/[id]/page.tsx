@@ -63,6 +63,10 @@ export default async function AgentRunPage({ params }: { params: Promise<{ id: s
           agent v{r.agentVersion} · prompt {r.promptName}@{r.promptVersion ?? "?"} · model{" "}
           {r.model ?? "none (no call completed)"} · tier {r.modelTier} ·{" "}
           {r.inputTokens + r.outputTokens} tokens · attempt {r.attempt}
+          {r.cacheReadTokens > 0 || r.cacheCreationTokens > 0
+            ? ` · cache: ${r.cacheReadTokens} read, ${r.cacheCreationTokens} written`
+            : ""}
+          {r.batchId ? " · batch (half price)" : ""}
         </p>
         {!ok ? (
           <p

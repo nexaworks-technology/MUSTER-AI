@@ -3,9 +3,10 @@ import { addDays, businessClock, calendarDateOf, todayIn, type Clock } from "@/l
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import { getOwnWorkspace } from "@/lib/db/workspace";
 import { defineAgent } from "../define";
-import { runAgent, type ExecutorDeps } from "../executor";
+import { runAgentsBatch, type ExecutorDeps } from "../executor";
 import { baseAgentOutput, type ContextBundle } from "../schemas";
 import { fallbackLeader } from "./draft-support";
+import { jobTier } from "@/lib/ai/routing";
 
 /**
  * Promise Keeper (spec §6E7, M9 B3): for one late promise of ours, an internal chase Task. The
@@ -30,7 +31,7 @@ export const promiseKeeper = defineAgent({
   version: "1.0.0",
   description:
     "For a late promise of ours, makes one internal chase task with a suggested owner; never contacts the customer",
-  modelTier: "fast",
+  modelTier: jobTier("promise-keeper"),
   tierReason: "Narrow, internal, short output: who and what to chase (§6.1).",
   prompt: { name: "promise-keeper", version: "1.0.0" },
   inputSchema: promiseKeeperInput,
@@ -149,18 +150,20 @@ export async function sweepPromiseKeeper(
   const todo = late
     .filter((p) => !have.has(`${p.accountId}:${chaseTitle(p.what)}`))
     .slice(0, limit);
-  let asked = 0;
-  for (const p of todo) {
-    const r = await runAgent(
-      ctx,
-      promiseKeeper,
-      { promiseId: p.id },
-      { type: "promise", id: p.id },
-      deps,
-    );
-    if (r.kind === "not_configured")
-      return { notConfigured: true as const, reason: r.reason, asked };
-    asked++;
-  }
+  if (todo.length === 0) return { notConfigured: false as const, asked: 0 };
+  // A sweep is bulk work: one batch for the pass (docs/AI-COST-2026-11-11.md, item 2).
+  const outcomes = await runAgentsBatch(
+    ctx,
+    todo.map((p) => ({
+      def: promiseKeeper,
+      input: { promiseId: p.id },
+      trigger: { type: "promise", id: p.id },
+    })),
+    deps,
+  );
+  const nc = outcomes.find((o) => o.kind === "not_configured");
+  if (nc && nc.kind === "not_configured")
+    return { notConfigured: true as const, reason: nc.reason, asked: 0 };
+  const asked = outcomes.filter((o) => o.kind === "run" && !o.unchanged).length;
   return { notConfigured: false as const, asked };
 }
