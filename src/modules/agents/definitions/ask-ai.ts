@@ -46,7 +46,10 @@ export const askAiOutput = z.object({
   proposal: z
     .object({
       reason: z.string().trim().min(1).max(500),
-      items: z.array(z.lazy(() => changeItem)).min(1).max(200),
+      items: z
+        .array(z.lazy(() => changeItem))
+        .min(1)
+        .max(200),
     })
     .optional(),
   outreach: z
@@ -64,9 +67,7 @@ export type AskAiOutput = z.infer<typeof askAiOutput>;
 export async function askerFor(
   db: {
     membership: {
-      findUniqueOrThrow: (a: {
-        where: { id: string };
-      }) => Promise<{
+      findUniqueOrThrow: (a: { where: { id: string } }) => Promise<{
         id: string;
         userId: string;
         role: string;
@@ -105,6 +106,9 @@ export async function retrieve(actor: AskActor, steps: AskAiInput["retrieval"]) 
       continue;
     }
     if (out.notFound) notFound.push(out.notFound);
+    // An incomplete list is reported with the "not found" lines, so the answer never reads a list
+    // that does not show something as proof that it does not exist.
+    if (out.note) notFound.push(out.note);
     for (const r of out.records) {
       if (seen.has(r.ref)) continue;
       seen.add(r.ref);

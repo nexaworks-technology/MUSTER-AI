@@ -43,15 +43,35 @@ export class AskFileNotInThreadError extends Error {
   }
 }
 
-const planOutput = z.object({
+/**
+ * The arguments a planning step may pass to a tool. This is the schema the MODEL is constrained to,
+ * and Anthropic's structured output only allows closed objects: a free-form `z.record` becomes an
+ * object with no properties, which can only ever be `{}`. That is exactly what happened: every tool
+ * call had empty arguments, so `searchAccounts` listed the first 25 accounts and never found a named
+ * one, and `getContract` had no accountId. So every argument any tool takes is named here, all
+ * optional. Each tool still validates its own input with its own Zod schema (`runAskTool`); a test
+ * fails if a tool gains an argument that is not listed.
+ */
+const planToolInput = z.object({
+  query: z.string().optional(),
+  accountId: z.string().optional(),
+  status: z.enum(["OPEN", "ALL"]).optional(),
+  kinds: z.array(z.string()).optional(),
+  text: z.string().optional(),
+  sinceDays: z.number().optional(),
+  days: z.number().optional(),
+  documentId: z.string().optional(),
+  fileId: z.string().optional(),
+});
+
+export const PLAN_OUTPUT = z.object({
   action: z.enum(["call", "answer"]),
   calls: z
-    .array(
-      z.object({ tool: z.string().min(1), input: z.record(z.string(), z.unknown()).default({}) }),
-    )
+    .array(z.object({ tool: z.string().min(1), input: planToolInput }))
     .max(4)
     .default([]),
 });
+const planOutput = PLAN_OUTPUT;
 
 const json = (v: unknown) => JSON.parse(JSON.stringify(v)) as Prisma.InputJsonValue;
 const toolCatalogue = () =>
@@ -179,6 +199,7 @@ export async function askQuestion(
     input: unknown;
     records: AskRecord[];
     notFound: string | null;
+    note?: string | null;
   }> = [];
   const planning: Array<{
     step: number;
@@ -201,6 +222,7 @@ export async function askQuestion(
             tool: r.tool,
             input: r.input,
             notFound: r.notFound,
+            ...(r.note ? { note: r.note } : {}),
             records: r.records.map((x) => ({ ref: x.ref, label: x.label, fields: x.fields })),
           })),
         }),
@@ -226,6 +248,7 @@ export async function askQuestion(
           input: call.input,
           records: out.records,
           notFound: out.notFound,
+          note: out.note ?? null,
         });
       } catch {
         results.push({

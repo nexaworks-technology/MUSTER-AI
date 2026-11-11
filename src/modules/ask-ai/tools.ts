@@ -38,6 +38,11 @@ export interface ToolOutput {
   tool: string;
   records: AskRecord[];
   notFound: string | null;
+  /**
+   * Set when the records are an incomplete list (cut off at the cap). The planner and the answer
+   * both see it, so a list that does not show something is never read as "it is not there".
+   */
+  note?: string | null;
 }
 export interface AskTool<I extends z.ZodTypeAny = z.ZodTypeAny> {
   name: string;
@@ -57,9 +62,13 @@ const major = (minor: bigint | null | undefined): string | null => {
   return `${neg ? "-" : ""}${abs / 100n}.${String(abs % 100n).padStart(2, "0")}`;
 };
 const NOT_IN_BOOK = "I cannot see an account with that id in your book.";
-const found = (records: AskRecord[], empty: string) => ({
+const found = (records: AskRecord[], empty: string, total = records.length) => ({
   records: records.slice(0, MAX_RECORDS),
   notFound: records.length ? null : empty,
+  note:
+    total > MAX_RECORDS
+      ? `Showing the first ${MAX_RECORDS} of ${total}. This is not the full list: an account or record that is not shown may still exist. Search by name or narrow the question to find it.`
+      : null,
 });
 const accountRecord = (
   a: { id: string; name: string },
@@ -96,6 +105,7 @@ export const ASK_TOOLS: AskTool[] = [
           }),
         ),
         "I cannot see any account matching that in your book.",
+        page.total,
       );
     },
   }),
@@ -494,11 +504,27 @@ export const ASK_TOOLS: AskTool[] = [
 
 const BY_NAME = new Map(ASK_TOOLS.map((t) => [t.name, t]));
 
+/**
+ * Results label each record `Type:id` (its `ref`), and a model asked for "the id exactly as it
+ * appears" will often pass `Account:abc` rather than `abc`. The id arguments accept both forms; an id
+ * that still matches nothing is reported as not found by the tool, never guessed.
+ */
+const ID_ARGS = ["accountId", "documentId", "fileId"] as const;
+export function withBareIds(raw: unknown): unknown {
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return raw;
+  const out: Record<string, unknown> = { ...(raw as Record<string, unknown>) };
+  for (const k of ID_ARGS) {
+    const v = out[k];
+    if (typeof v === "string") out[k] = v.trim().replace(/^[A-Za-z]+:/, "");
+  }
+  return out;
+}
+
 /** Runs one tool as `actor`: input Zod-parsed; a permission refusal reads as "cannot see". */
 export async function runAskTool(actor: AskActor, name: string, raw: unknown): Promise<ToolOutput> {
   const tool = BY_NAME.get(name);
   if (!tool) throw new Error(`unknown tool "${name}"`);
-  const input = tool.input.parse(raw);
+  const input = tool.input.parse(withBareIds(raw));
   try {
     return { tool: name, ...(await tool.run(actor, input)) };
   } catch (e) {
