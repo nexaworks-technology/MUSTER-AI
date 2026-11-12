@@ -15,6 +15,7 @@ import { PROVIDER_NAMES } from "./providers";
 import { linkSlackMembers } from "./slack/service";
 import { findSlackIntegrationByTeam } from "@/lib/db/inbound";
 import { transportFor, type HttpTransport } from "./transport";
+import { PRODUCT_NAME } from "@/config/product";
 
 /**
  * Connecting and disconnecting integrations (Admin only, ARCHITECTURE §7.2). Credentials are
@@ -247,7 +248,7 @@ export async function testConnection(actor: Actor, integrationId: string, deps: 
     result = {
       ok: false,
       message:
-        "This Slack workspace is already connected to another NexaWorks workspace, so Approve and Reject from Slack are off until it is disconnected there.",
+        `This Slack workspace is already connected to another ${PRODUCT_NAME} workspace, so Approve and Reject from Slack are off until it is disconnected there.`,
     };
     await db.integration.update({
       where: { id: integrationId },

@@ -1,4 +1,4 @@
-# IMPLEMENTATION PLAN: NexaWorks AI CSM (V1 / spec Phase 1)
+# IMPLEMENTATION PLAN: Muster AI (V1 / spec Phase 1)
 
 Twelve milestones, M1–M12. The app is runnable and demoable on the seeded demo workspace after **every** milestone, with a walking skeleton
 first. Each milestone has a self-contained session prompt in `docs/milestones/M<n>.md` and, once done, a log in

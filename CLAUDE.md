@@ -1,4 +1,4 @@
-# CLAUDE.md — NexaWorks AI Customer Success Manager
+# CLAUDE.md — Muster AI Customer Success Manager (by NexaWorks)
 
 ## What we are building
 A complete AI Customer Success Manager SaaS: one product a B2B SaaS company buys INSTEAD OF

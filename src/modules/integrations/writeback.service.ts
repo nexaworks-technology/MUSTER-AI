@@ -11,6 +11,7 @@ import { EXPANSION_EXPORT_FIELD, type ExportRecord, type IntegrationAdapter } fr
 import { adapterFor } from "./adapters";
 import { loadConnection, type ConnectionDeps } from "./connection";
 import { PROVIDER_NAMES, recordSourceFor } from "./providers";
+import { PRODUCT_NAME } from "@/config/product";
 
 /**
  * The write-back gate (Rule 7, ARCHITECTURE §8.1, M5 D2). Read-only is the default: nothing is
@@ -217,7 +218,7 @@ async function exportRecord(
       : null;
   return {
     name: `Expansion (estimate): ${opp.account.name}`,
-    description: `Found by NexaWorks from the customer's usage. ${signals.map((x) => x.title).join("; ")}. ${estimate}`,
+    description: `Found by ${PRODUCT_NAME} from the customer's usage. ${signals.map((x) => x.title).join("; ")}. ${estimate}`,
     amount,
     closeDate: day(opp.nextStepDate ?? new Date(opp.createdAt.getTime() + 90 * 86_400_000)),
   };

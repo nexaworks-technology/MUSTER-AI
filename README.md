@@ -1,8 +1,8 @@
-# MUSTER-AI
+# Muster AI
 
 An AI Customer Success Manager for B2B SaaS companies. It does the daily CSM job in one product: it watches every account, explains health with the source records behind it, runs renewals and onboarding, drafts customer actions for human approval, and answers questions in Ask AI with citations. It is built to be bought _instead of_ Vitally, Gainsight, ChurnZero, Planhat, Totango or Clynto, not alongside them.
 
-Internally the code and docs still use the name **NexaWorks CSM** (compose project `nexaworks-csm`, `nexaworks-*` queue prefixes, `NexaWorks` in `CLAUDE.md`).
+The product is **Muster AI**; NexaWorks is the company. The product name is one constant, `PRODUCT_NAME` in `src/config/product.ts`. Some infrastructure identifiers keep the older internal name on purpose (compose project `nexaworks-csm`, `nexaworks-*` queue prefixes, the `nexaworks_owner` database role, the GitHub repo `MUSTER-AI`), because renaming them would break existing volumes and deployments.
 
 ## Status
 

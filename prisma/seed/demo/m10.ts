@@ -1,3 +1,4 @@
+import { PRODUCT_NAME } from "@/config/product";
 import type { ScopedDb } from "@/lib/db/scoped";
 import { atHour, daysAgo } from "./dates";
 import { ids, seedId } from "./ids";
@@ -26,12 +27,12 @@ export async function seedM10(db: ScopedDb, workspaceId: string): Promise<void> 
       workspaceId,
       type: "NPS",
       trigger: "RENEWAL_WINDOW_60",
-      question: "How likely are you to recommend NexaWorks to a colleague?",
+      question: `How likely are you to recommend ${PRODUCT_NAME} to a colleague?`,
       status: "ACTIVE",
     },
     update: {
       type: "NPS",
-      question: "How likely are you to recommend NexaWorks to a colleague?",
+      question: `How likely are you to recommend ${PRODUCT_NAME} to a colleague?`,
       status: "ACTIVE",
     },
   });

@@ -1,4 +1,4 @@
-# ARCHITECTURE — NexaWorks AI CSM
+# ARCHITECTURE — Muster AI
 
 Status: design, written before any product code (planning session, 2026-10-31).
 Source-of-truth order: product spec (`ai-customer-success-manager-complete-product-spec-2026-10-31.md`)
@@ -17,7 +17,7 @@ Interpretations of the spec are marked **[INTERP-n]** and mirrored in `docs/QUES
 | **Source record** | Any stored fact that came from outside the AI: usage row, ticket, message, invoice, contact, note, survey response, CSM Pulse. |
 | **Proof** | A list of `{sourceType, sourceId}` pointers plus values, dates and a plain-language reason. Every number and AI claim carries one. |
 | **AgentRun** | One audited execution of one agent. Every piece of AI text in the product points to exactly one AgentRun. |
-| **PRODUCT_NAME** | Single config value (`src/config/product.ts`), working value "NexaWorks AI CSM". Never hard-coded elsewhere. |
+| **PRODUCT_NAME** | Single config value (`src/config/product.ts`), now "Muster AI" (was the working name "NexaWorks AI CSM"). Never hard-coded elsewhere. |
 
 ---
 

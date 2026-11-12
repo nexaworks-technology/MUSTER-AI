@@ -7,6 +7,7 @@ import { createTestAdmin } from "@/test/fixtures";
 import { approve } from "@/modules/approvals/service";
 import { sealCredentials } from "../../../credentials";
 import { handleSlackInteraction, SENSITIVE_DECISIONS_FROM_SLACK } from "../../../slack/service";
+import { PRODUCT_NAME } from "@/config/product";
 
 /**
  * M5 §5 interactivity.int.test (Q-31, M5 rule 6): a bad signature or stale timestamp is refused;
@@ -141,7 +142,7 @@ describe("Slack interactivity (Q-31, M5 rule 6)", () => {
       text(
         await handleSlackInteraction(request(TEAM, "U_STRANGER", "approval.approve", a.id), deps),
       ),
-    ).toMatch(/not linked to a NexaWorks member/);
+    ).toMatch(new RegExp(`not linked to a ${PRODUCT_NAME} member`));
     expect(
       text(await handleSlackInteraction(request(TEAM, "U_VIEWER", "approval.approve", a.id), deps)),
     ).toBe("Your role cannot decide approvals.");
@@ -234,7 +235,7 @@ describe("Slack interactivity (Q-31, M5 rule 6)", () => {
       expect(
         text(await handleSlackInteraction(request(team, "U_CSM", "approval.approve", id), deps)),
       ).toBe(
-        "This Slack workspace is not connected to exactly one NexaWorks workspace, so nothing was decided.",
+        `This Slack workspace is not connected to exactly one ${PRODUCT_NAME} workspace, so nothing was decided.`,
       );
     expect((await X.db.approval.findUniqueOrThrow({ where: { id: ax.id } })).status).toBe(
       "PENDING",

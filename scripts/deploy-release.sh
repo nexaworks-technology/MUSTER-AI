@@ -8,7 +8,7 @@
 set -euo pipefail
 
 echo "=========================================================="
-echo "  NexaWorks CSM — Production Deployment & Release Runner  "
+echo "  Production Deployment & Release Runner  "
 echo "=========================================================="
 echo "Release timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 

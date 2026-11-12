@@ -1,8 +1,8 @@
 /**
- * The product name lives here and nowhere else (QUESTIONS Q-01).
- * Working name until the founder decides the final one.
+ * The product name lives here and nowhere else (QUESTIONS Q-01). "Muster AI" is the PRODUCT;
+ * NexaWorks is the COMPANY (vendor name, copyright) and is not set here.
  */
-export const PRODUCT_NAME = "NexaWorks AI CSM";
+export const PRODUCT_NAME = "Muster AI";
 
 /**
  * The single UI accent colour, named for documentation and the theme comment in

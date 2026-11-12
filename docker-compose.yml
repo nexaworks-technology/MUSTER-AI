@@ -1,4 +1,4 @@
-# NexaWorks CSM Production Stack (SF-4)
+# Muster AI Production Stack (SF-4)
 # Stateful backing services: PostgreSQL 16, Redis 7, MinIO, ClamAV daemon
 # Application services: Next.js web application and background worker
 name: nexaworks-csm

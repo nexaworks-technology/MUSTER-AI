@@ -9,7 +9,7 @@ Status legend: **OPEN** (default in use) · **ANSWERED** (see section C; the row
 
 | ID | Spec | Question | Default (in use) | If answered differently |
 |---|---|---|---|---|
-| Q-01 | §10.1 | Final product name? | One config value `PRODUCT_NAME` in `src/config/product.ts`, working value **"NexaWorks AI CSM"**. Used in UI, emails, prompts, portal. A test fails if the literal string appears anywhere else in `src/`. | Change one value. No code changes. |
+| Q-01 | §10.1 | Final product name? | One config value `PRODUCT_NAME` in `src/config/product.ts`, value now **"Muster AI"** (resolved 2026-11-12; it was the working name "NexaWorks AI CSM"). NexaWorks remains the company name. Used in UI, emails, prompts, portal. A test fails if the literal string appears anywhere else in `src/`. | Change one value. No code changes. |
 | Q-02 | §10.2 | Final price and packaging (per CSM seat vs per account band)? | `src/config/pricing.ts` holds the **structure only** (plan ids, dimension `perSeat \| perAccountBand`, limits) with `isFinal: false`. No price is displayed anywhere in the product as final; billing is not part of V1 scope. | Fill values in the config file. If limits are enforced per plan, that is a new item placed in M12. |
 | Q-03 | §10.3 | First 3 design partners? | **Irrelevant to the build. Not asked.** No partner-specific code or data. | — |
 

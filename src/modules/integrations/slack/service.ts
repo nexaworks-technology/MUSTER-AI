@@ -19,6 +19,7 @@ import { slackApi, usersPage, verifySlackSignature } from "../adapters/slack";
 import { loadConnection } from "../connection";
 import { transportFor, type HttpTransport } from "../transport";
 import { deliveryFor, type SlackDelivery, type SlackMessage } from "./delivery";
+import { PRODUCT_NAME } from "@/config/product";
 
 /**
  * Slack for the team (spec §6J3, M5 §2, founder D4, Q-31).
@@ -498,7 +499,7 @@ export async function handleSlackInteraction(
   try {
     parsed = interaction.parse(JSON.parse(new URLSearchParams(req.rawBody).get("payload") ?? ""));
   } catch {
-    return reply("That action is not one NexaWorks understands.");
+    return reply(`That action is not one ${PRODUCT_NAME} understands.`);
   }
   const action = parsed.actions[0]!;
   if (action.action_id !== "approval.approve" && action.action_id !== "approval.reject")
@@ -506,7 +507,7 @@ export async function handleSlackInteraction(
   const integration = await findSlackIntegrationByTeam(parsed.team.id);
   if (!integration)
     return reply(
-      "This Slack workspace is not connected to exactly one NexaWorks workspace, so nothing was decided.",
+      `This Slack workspace is not connected to exactly one ${PRODUCT_NAME} workspace, so nothing was decided.`,
     );
   const ctx = { workspaceId: integration.workspaceId };
   const db = scopedDb(ctx);
@@ -521,7 +522,7 @@ export async function handleSlackInteraction(
     : null;
   if (!member)
     return reply(
-      "Your Slack account is not linked to a NexaWorks member (we match verified email addresses), so nothing was decided.",
+      `Your Slack account is not linked to a ${PRODUCT_NAME} member (we match verified email addresses), so nothing was decided.`,
     );
   const actor: Actor = {
     workspaceId: ctx.workspaceId,

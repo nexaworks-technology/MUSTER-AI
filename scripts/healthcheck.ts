@@ -12,6 +12,7 @@
  * Exit code: 0 if critical services are healthy; 1 if any critical check fails.
  */
 import { Redis } from "ioredis";
+import { PRODUCT_NAME } from "../src/config/product";
 import { pingDatabase } from "../src/lib/db/health";
 import { createClamdScanner } from "../src/lib/uploads/clamd";
 import { workerHeartbeatKey, workerHeartbeatStatus } from "../src/lib/observability/heartbeat";
@@ -140,7 +141,7 @@ async function checkWeb(): Promise<{ status: "OK" | "WARN" | "FAIL" | "SKIPPED";
 }
 
 async function runHealthcheck() {
-  console.log(`\n=== NexaWorks CSM System Healthcheck [${new Date().toISOString()}] ===\n`);
+  console.log(`\n=== ${PRODUCT_NAME} System Healthcheck [${new Date().toISOString()}] ===\n`);
 
   const results: CheckResult[] = [
     await timeCheck("Database", checkDb),

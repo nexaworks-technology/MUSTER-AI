@@ -18,6 +18,7 @@ import {
 import { listIntegrations, type ProviderCard } from "@/modules/integrations/service";
 import { requireSettingsAccess } from "../access";
 import { UsageKeyPanel } from "./usage-key-panel";
+import { PRODUCT_NAME } from "@/config/product";
 
 export const metadata: Metadata = { title: "Integrations" };
 
@@ -387,7 +388,7 @@ function ConnectForm({ card }: { card: ProviderCard }) {
       <div className="space-y-2">
         <p className="text-sm">
           {card.provider === "SLACK"
-            ? "You will add the NexaWorks app to your Slack. It reads member emails to link your team and sends them direct messages; it never messages customers."
+            ? `You will add the ${PRODUCT_NAME} app to your Slack. It reads member emails to link your team and sends them direct messages; it never messages customers.`
             : `You will sign in to ${card.name} and allow read access. Nothing is written back unless you turn it on later.`}
         </p>
         <a

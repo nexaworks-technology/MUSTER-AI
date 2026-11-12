@@ -1,4 +1,4 @@
-# Multi-stage production Dockerfile for NexaWorks CSM (SF-4)
+# Multi-stage production Dockerfile for Muster AI (SF-4)
 # Packages the Next.js 16 production web application and background worker.
 
 # ------------------------------------------------------------------------------
