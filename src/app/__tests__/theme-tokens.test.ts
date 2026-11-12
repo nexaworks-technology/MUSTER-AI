@@ -58,6 +58,26 @@ const TEXT_PAIRS: [string, string][] = [
   ["risk-unknown-soft-foreground", "risk-unknown-soft"],
 ];
 
+/** The Ask AI conversation area (warm paper, terracotta accent): text 4.5:1, graphics 3:1. */
+const ASK_TEXT_PAIRS: [string, string][] = [
+  ["foreground", "ask-paper"],
+  ["muted-foreground", "ask-paper"],
+  ["ask-accent-text", "ask-paper"],
+  ["foreground", "ask-bubble"],
+  ["foreground", "ask-wash"],
+  ["muted-foreground", "ask-wash"],
+  ["foreground", "ask-pill"],
+  ["ask-accent-text", "ask-pill"],
+  ["background", "ask-accent-text"], // text on the Yes, do it button
+  ["foreground", "ask-composer"],
+  ["muted-foreground", "ask-composer"],
+];
+const ASK_GRAPHIC_PAIRS: [string, string][] = [
+  ["ask-accent", "ask-paper"], // the starburst mark on the page
+  ["ask-accent-foreground", "ask-accent"], // the arrow on the send button
+  ["ask-accent", "ask-composer"], // the send button against the composer
+];
+
 describe("theme token layer", () => {
   it("dark is declared twice, for the explicit toggle and for system, and the two match", () => {
     expect(Object.keys(darkExplicit).length).toBeGreaterThan(30);
@@ -77,6 +97,16 @@ describe("theme token layer", () => {
       for (const [fg, bg] of TEXT_PAIRS) {
         it(`${fg} on ${bg} is at least 4.5:1`, () => {
           expect(contrast(colour(theme, fg), colour(theme, bg))).toBeGreaterThanOrEqual(4.5);
+        });
+      }
+      for (const [fg, bg] of ASK_TEXT_PAIRS) {
+        it(`ask: ${fg} on ${bg} is at least 4.5:1`, () => {
+          expect(contrast(colour(theme, fg), colour(theme, bg))).toBeGreaterThanOrEqual(4.5);
+        });
+      }
+      for (const [fg, bg] of ASK_GRAPHIC_PAIRS) {
+        it(`ask: ${fg} against ${bg} is at least 3:1`, () => {
+          expect(contrast(colour(theme, fg), colour(theme, bg))).toBeGreaterThanOrEqual(3);
         });
       }
       it("focus ring and field boundary are at least 3:1 against card", () => {

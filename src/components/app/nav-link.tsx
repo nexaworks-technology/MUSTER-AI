@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 const ACTIVE_CLASSES = {
   sidebar: "bg-accent text-accent-foreground font-medium",
   tab: "border-primary hover:border-primary text-primary font-medium",
+  ask: "bg-ask-wash text-foreground font-medium",
 } as const;
 
 type NavLinkProps = ComponentProps<typeof Link> & { variant?: keyof typeof ACTIVE_CLASSES };

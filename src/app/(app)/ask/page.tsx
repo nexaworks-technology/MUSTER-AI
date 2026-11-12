@@ -10,10 +10,10 @@ export default async function AskPage() {
   const ctx = (await resolveWorkspaceContext(await requireSession()))!;
   const settings = await getSettingsData(ctx.workspaceId);
   return (
-    <>
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Ask AI</h1>
-        <p className="text-muted-foreground text-sm">
+    <div className="flex flex-1 flex-col justify-center gap-8">
+      <div className="space-y-2 text-center">
+        <h1 className="text-3xl font-medium tracking-tight">Ask AI</h1>
+        <p className="text-muted-foreground mx-auto max-w-xl text-sm leading-6">
           Answers come only from records you can already see, each with its sources. Ask AI can
           propose changes, but nothing happens until a person approves it.
         </p>
@@ -28,13 +28,11 @@ export default async function AskPage() {
           can answer it until an Admin configures one.
         </p>
       ) : null}
-      <div className="surface p-5 rounded-xl border border-border/80 shadow-xs">
-        <AskBox
-          voiceEnabled={settings.ask.voiceDictation}
-          disclosure={VOICE_DICTATION_DISCLOSURE}
-          accept={ASK_ACCEPT}
-        />
-      </div>
-    </>
+      <AskBox
+        voiceEnabled={settings.ask.voiceDictation}
+        disclosure={VOICE_DICTATION_DISCLOSURE}
+        accept={ASK_ACCEPT}
+      />
+    </div>
   );
 }

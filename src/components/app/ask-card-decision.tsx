@@ -11,10 +11,23 @@ export function AskCardDecision({ approvalId }: { approvalId: string }) {
     <div className="space-y-2">
       <form action={action} className="flex gap-2">
         <input type="hidden" name="approvalId" value={approvalId} />
-        <Button type="submit" name="decision" value="yes" disabled={pending}>
+        <Button
+          type="submit"
+          name="decision"
+          value="yes"
+          disabled={pending}
+          className="bg-ask-accent-text text-background rounded-full hover:opacity-90"
+        >
           Yes, do it
         </Button>
-        <Button type="submit" name="decision" value="no" variant="outline" disabled={pending}>
+        <Button
+          type="submit"
+          name="decision"
+          value="no"
+          variant="outline"
+          disabled={pending}
+          className="border-ask-pill-line hover:bg-ask-wash rounded-full"
+        >
           No
         </Button>
       </form>

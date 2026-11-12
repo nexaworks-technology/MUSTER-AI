@@ -143,6 +143,22 @@
   --accent-to: oklch(0.5 0.1 200);
   --accent-gradient: linear-gradient(135deg, var(--accent-from), var(--accent-to));
 
+  /* Ask AI conversation area (warm paper, terracotta accent): see ask-* contrast tests */
+  --ask-paper: oklch(0.972 0.011 80);
+  --ask-line: oklch(0.9 0.012 80);
+  --ask-wash: oklch(0.94 0.012 80);
+  --ask-bubble: oklch(0.93 0.009 80);
+  --ask-pill: oklch(0.955 0.009 80);
+  --ask-pill-line: oklch(0.86 0.012 80);
+  --ask-composer: oklch(0.995 0.004 85);
+  --ask-accent: oklch(0.64 0.14 40);
+  --ask-accent-hover: oklch(0.58 0.14 40);
+  --ask-accent-foreground: oklch(0.99 0 0);
+  --ask-accent-text: oklch(0.5 0.12 40);
+  --ask-composer-shadow:
+    0 1px 0 oklch(1 0 0 / 0.9) inset, 0 12px 32px -12px oklch(0.4 0.05 60 / 0.22),
+    0 2px 8px -2px oklch(0.4 0.05 60 / 0.1);
+
   /* Page and section rhythm (steps of Tailwind's spacing scale; see the md rule below) */
   --space-page: 1rem;
   --space-section: 1.5rem;
@@ -221,6 +237,20 @@
     0 8px 20px -6px oklch(0 0 0 / 0.5);
   --accent-from: oklch(0.7 0.16 290);
   --accent-to: oklch(0.74 0.11 200);
+  --ask-paper: oklch(0.2 0.012 60);
+  --ask-line: oklch(0.3 0.012 60);
+  --ask-wash: oklch(0.26 0.012 60);
+  --ask-bubble: oklch(0.29 0.01 60);
+  --ask-pill: oklch(0.25 0.012 60);
+  --ask-pill-line: oklch(0.34 0.014 60);
+  --ask-composer: oklch(0.25 0.012 60);
+  --ask-accent: oklch(0.7 0.13 40);
+  --ask-accent-hover: oklch(0.76 0.12 40);
+  --ask-accent-foreground: oklch(0.2 0.02 40);
+  --ask-accent-text: oklch(0.78 0.11 45);
+  --ask-composer-shadow:
+    0 1px 0 oklch(1 0 0 / 0.06) inset, 0 14px 36px -12px oklch(0 0 0 / 0.6),
+    0 2px 8px -2px oklch(0 0 0 / 0.4);
 }
 
 /* ... and the same values when the choice is "system" and the OS is dark. */
@@ -297,6 +327,20 @@
       0 8px 20px -6px oklch(0 0 0 / 0.5);
     --accent-from: oklch(0.7 0.16 290);
     --accent-to: oklch(0.74 0.11 200);
+    --ask-paper: oklch(0.2 0.012 60);
+    --ask-line: oklch(0.3 0.012 60);
+    --ask-wash: oklch(0.26 0.012 60);
+    --ask-bubble: oklch(0.29 0.01 60);
+    --ask-pill: oklch(0.25 0.012 60);
+    --ask-pill-line: oklch(0.34 0.014 60);
+    --ask-composer: oklch(0.25 0.012 60);
+    --ask-accent: oklch(0.7 0.13 40);
+    --ask-accent-hover: oklch(0.76 0.12 40);
+    --ask-accent-foreground: oklch(0.2 0.02 40);
+    --ask-accent-text: oklch(0.78 0.11 45);
+    --ask-composer-shadow:
+      0 1px 0 oklch(1 0 0 / 0.06) inset, 0 14px 36px -12px oklch(0 0 0 / 0.6),
+      0 2px 8px -2px oklch(0 0 0 / 0.4);
   }
 }
 
@@ -365,6 +409,18 @@
   --color-input: var(--input);
   --color-placeholder: var(--placeholder);
   --color-overlay: var(--overlay);
+
+  --color-ask-paper: var(--ask-paper);
+  --color-ask-line: var(--ask-line);
+  --color-ask-wash: var(--ask-wash);
+  --color-ask-bubble: var(--ask-bubble);
+  --color-ask-pill: var(--ask-pill);
+  --color-ask-pill-line: var(--ask-pill-line);
+  --color-ask-composer: var(--ask-composer);
+  --color-ask-accent: var(--ask-accent);
+  --color-ask-accent-hover: var(--ask-accent-hover);
+  --color-ask-accent-foreground: var(--ask-accent-foreground);
+  --color-ask-accent-text: var(--ask-accent-text);
 
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
@@ -499,6 +555,11 @@
   box-shadow: var(--glass-shadow-3);
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
   backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
+}
+
+/* Ask AI's floating composer: soft shadow, no blur. */
+@utility ask-composer-shadow {
+  box-shadow: var(--ask-composer-shadow);
 }
 
 /* Accent surfaces: the violet-to-teal gradient (text on it is --primary-foreground, tested). */
