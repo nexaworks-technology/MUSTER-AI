@@ -5,20 +5,30 @@ Muster AI is the product; NexaWorks is the company. The product name is `PRODUCT
 
 ## The mark
 
-Two interlocking ribbons forming an M: each rises as an outer leg, turns over a rounded lobe and
-falls diagonally across the middle; the right ribbon passes over the left at the crossing.
-It is a clean geometric redrawing of the knot on the founder's reference sheet
-(`docs/design/reference-logo-knot.png`), simplified so it stays legible at 16 px.
+The founder's original knot, **traced** from the reference sheet
+(`docs/design/reference-logo-knot.png`), not redrawn: two interlocking ribbons forming an M, tilted,
+with a large loop top-left, a smaller loop top-right, a loop bottom-left and a large oval loop
+bottom-right; the same over-under weave and white gaps at every crossing; and the small diamond inside
+the right-hand loop.
 
-- **Geometry (single source):** `src/components/brand/mark-geometry.ts` (paths, ribbon width,
-  crossing gap, viewBox 64 x 48).
+- **Geometry (single source):** `src/components/brand/mark-geometry.ts`: one filled path (the
+  silhouette and its holes, even-odd rule) in the pixel coordinates of the reference crop, plus the
+  tight `MARK_VIEWBOX`, the square `ICON_VIEWBOX` and the measured ribbon width.
+- **How it was made:** `scripts/brand-trace-logo.py` crops the big mark on the sheet, finds its edge at
+  the anti-aliased 45% coverage line (10x upsampled), keeps the real corners sharp, smooths only the
+  source's compression noise between them, and fits cubic curves. Pixel overlap with the reference at
+  the crop's own size (IoU): 0.988.
+- **Proof:** `pnpm exec tsx scripts/brand-logo-proof.ts` writes `docs/design/logo-exact-overlay.png`
+  (shipped mark at 50% over the reference, at the crop's exact size and at 6x) and
+  `docs/design/logo-exact-sidebyside.png` (reference and mark at large size, plus 32 px and 16 px).
 - **Component:** `MusterMark` and the `MusterLockup` (mark + wordmark) in
-  `src/components/brand/muster-mark.tsx`.
-- **Small drawing (16-32 px):** the same paths with no crossing gap and slightly heavier ribbons
-  (`small`), used for the favicon and the sidebar lockup.
+  `src/components/brand/muster-mark.tsx`. The same geometry at every size: there is no separate
+  small drawing.
 - **Favicons:** generated from the same geometry by `pnpm exec tsx scripts/brand-icons.ts`:
   `src/app/icon.svg` (any size), `icon1.png` (32), `icon2.png` (512), `apple-icon.png` (180, on warm
   white). Never edit the icon files by hand; change the geometry and regenerate.
+- **Source limit:** the reference mark is about 130 x 97 px. If a vector original exists, re-trace
+  from it with the same script; edges at very large sizes are only as precise as that source.
 
 ## Variants (the only two colours the mark may take)
 
@@ -56,9 +66,9 @@ terracotta starburst: that is the AI's mark, not the product logo.
 
 ## Clearspace and minimum size
 
-- **Clearspace:** at least one ribbon width (7.5 of the mark's 48-unit height, about 16% of the mark
+- **Clearspace:** at least one ribbon width (15.7 of the mark's 96.8-unit height, about 16% of the mark
   height) on every side, free of other text or graphics.
-- **Minimum size:** 16 px tall for the mark alone (use the small drawing below 32 px); 14 px cap
+- **Minimum size:** 16 px tall for the mark alone (the weave closes up below about 24 px; prefer 24 px or more); 14 px cap
   height for the lockup's wordmark.
 
 ## Do not
@@ -66,5 +76,5 @@ terracotta starburst: that is the AI's mark, not the product logo.
 - Do not put a gradient, shadow, glow or texture on the mark.
 - Do not rotate, skew, stretch or re-proportion it.
 - Do not recolour it outside the two variants (no terracotta mark, no grey mark).
-- Do not redraw the ribbons, change the over/under at the crossing, or add outlines.
+- Do not redraw, simplify or regularise the knot, change the over-under weave, remove the diamond, or add outlines.
 - Do not place the primary (violet) mark on dark surfaces or the reversed mark on light ones.

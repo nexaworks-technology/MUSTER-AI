@@ -2,7 +2,7 @@
  * Generates the favicon set from the mark's own geometry (src/components/brand/mark-geometry.ts),
  * so the icons can never drift from the logo. Run after changing the mark:
  *   pnpm exec tsx scripts/brand-icons.ts
- * Writes src/app/icon.svg (any size; the 16-32 px drawing), icon1.png (32), icon2.png (512),
+ * Writes src/app/icon.svg (any size), icon1.png (32), icon2.png (512),
  * apple-icon.png (180, on warm white: iOS fills transparency with black), and
  * docs/design/favicon-32.png (the 32 px icon on a plain background, actual size and 8x).
  */
@@ -14,23 +14,19 @@ import { BRAND, markSvg } from "../src/components/brand/mark-geometry";
 const APP = path.join(process.cwd(), "src/app");
 
 async function main() {
-  writeFileSync(path.join(APP, "icon.svg"), markSvg(BRAND.violet, { small: true }) + "\n");
+  writeFileSync(path.join(APP, "icon.svg"), markSvg(BRAND.violet) + "\n");
   const browser = await chromium.launch();
   const page = await browser.newPage();
-  async function png(
-    file: string,
-    size: number,
-    opts: { small?: boolean; bg?: string; pad?: number },
-  ) {
+  async function png(file: string, size: number, opts: { bg?: string; pad?: number }) {
     const pad = opts.pad ?? 0;
     const inner = size - 2 * pad;
     await page.setViewportSize({ width: size, height: size });
     await page.setContent(
-      `<body style="margin:0;background:${opts.bg ?? "transparent"};width:${size}px;height:${size}px;display:grid;place-items:center">${markSvg(BRAND.violet, { small: opts.small, size: inner })}</body>`,
+      `<body style="margin:0;background:${opts.bg ?? "transparent"};width:${size}px;height:${size}px;display:grid;place-items:center">${markSvg(BRAND.violet, { size: inner })}</body>`,
     );
     await page.screenshot({ path: file, omitBackground: !opts.bg });
   }
-  await png(path.join(APP, "icon1.png"), 32, { small: true });
+  await png(path.join(APP, "icon1.png"), 32, {});
   await png(path.join(APP, "icon2.png"), 512, {});
   await png(path.join(APP, "apple-icon.png"), 180, { bg: BRAND.warmWhite, pad: 22 });
 

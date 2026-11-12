@@ -66,3 +66,32 @@ RGB 91, 42, 122, as on the reference sheet).
 
 `signin-brand-desktop.png`, `signin-brand-mobile.png`, `sidebar-logo-light.png`,
 `sidebar-logo-dark.png`, `favicon-32.png` (the 32 px icon on white, actual size and 8x).
+
+## Correction (2026-11-12): the logo is now the traced original knot
+
+Founder ruling: the mark shipped above (`8782a7d`) was a redrawing and wrong. It is replaced by the
+original knot **traced** from `docs/design/reference-logo-knot.png`. No placement, layout, font or colour
+changed; only the geometry in `src/components/brand/mark-geometry.ts`, so the component and the favicons
+both follow.
+
+- **Method:** `scripts/brand-trace-logo.py` (committed, reproducible): crop of the big mark (sheet
+  x 40-190, y 50-166), 10x cubic upsample, edge at the 45% ink-coverage line, outlines found
+  (silhouette plus holes: 5 outlines, even-odd fill), real corners kept sharp, only the source's
+  compression noise smoothed between them, cubic curves fitted. Loops, weave gaps, crossings and the
+  diamond all come from the reference; nothing was drawn by hand.
+- **Overlay proof:** `docs/design/logo-exact-overlay.png` (shipped mark at 50% over the reference, at the
+  crop's exact 150 x 116 size and at 6x) and `docs/design/logo-exact-sidebyside.png` (reference and mark
+  at large size, plus 32 px and 16 px). Pixel overlap at the crop's own size: **IoU 0.988**, 89 of about
+  7,430 ink pixels differ, all single-pixel anti-aliased edge pixels; every crossing, gap and the
+  diamond coincide. `scripts/brand-logo-proof.ts` regenerates both images.
+- **Small sizes:** the small-size variant is dropped; the same geometry is used everywhere. At 32 px the
+  knot, its loops and the diamond read (`docs/design/favicon-32.png`); at 16 px the weave gaps close up
+  but the silhouette still reads, so this was not stopped as illegible.
+- **Known limit:** the reference mark is only about 130 x 97 px, so edges at very large sizes (the
+  sign-in panel mark is about 112 px tall, similar to the source) show slight unevenness from the
+  source raster. A vector original, if one exists, would remove that; re-run the same script on it.
+- **Colour:** unchanged, `#5B2A7A` and warm white `#F6EFE6`, solid. (The reference raster's own ink
+  renders darker, about `#1D0534`; the sheet's stated hex `#5B2A7A` is what ships, as instructed.)
+- **Verification:** typecheck and lint pass; `brand-pass` (5), `m1-foundation` sign-in (2) and the nav-fit
+  check (2) pass; a11y suites **light 26/26, dark 26/26**; AI-off run passed. Not run: the full gate and
+  the full e2e suite.
