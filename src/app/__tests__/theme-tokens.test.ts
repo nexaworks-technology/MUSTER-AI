@@ -178,6 +178,43 @@ describe("theme token layer", () => {
   }
 });
 
+describe("brand panel (sign-in, invite): a fixed look in both themes", () => {
+  for (const theme of ["light", "dark"] as const) {
+    const charcoal = colour(theme, "brand-charcoal");
+    // Worst case: each aurora wash at its peak, painted over the charcoal.
+    const backdrops = [
+      charcoal,
+      over(colour(theme, "brand-aurora-violet"), charcoal),
+      over(colour(theme, "brand-aurora-terracotta"), charcoal),
+    ];
+    it(`${theme}: wordmark and tagline are at least 4.5:1 on every part of the panel`, () => {
+      for (const bg of backdrops) {
+        expect(contrast(colour(theme, "brand-warm-white"), bg)).toBeGreaterThanOrEqual(4.5);
+        expect(contrast(colour(theme, "brand-panel-muted"), bg)).toBeGreaterThanOrEqual(4.5);
+      }
+    });
+    it(`${theme}: the reversed mark is at least 3:1 on the panel`, () => {
+      for (const bg of backdrops)
+        expect(contrast(colour(theme, "brand-warm-white"), bg)).toBeGreaterThanOrEqual(3);
+    });
+    it(`${theme}: the mark (theme variant) is at least 3:1 on the page and the sidebar`, () => {
+      expect(
+        contrast(colour(theme, "brand-mark"), colour(theme, "background")),
+      ).toBeGreaterThanOrEqual(3);
+      expect(
+        contrast(colour(theme, "brand-mark"), colour(theme, "ask-paper")),
+      ).toBeGreaterThanOrEqual(3);
+      expect(
+        contrast(colour(theme, "brand-mark"), colour(theme, "glass-solid-chrome")),
+      ).toBeGreaterThanOrEqual(3);
+    });
+  }
+  it("the brand panel colours are identical in light and dark", () => {
+    for (const n of ["brand-charcoal", "brand-warm-white", "brand-panel-muted", "brand-violet"])
+      expect(darkExplicit[`--${n}`]).toBe(root[`--${n}`]);
+  });
+});
+
 describe("glass rules", () => {
   // Comments and @supports conditions mention backdrop-filter without applying it.
   const css = GLOBALS_CSS.replace(/\/\*[\s\S]*?\*\//g, "").replace(

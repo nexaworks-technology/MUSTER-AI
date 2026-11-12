@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BrandSplit } from "@/components/brand/brand-split";
 import { PRODUCT_NAME } from "@/config/product";
 import { getSession } from "@/lib/auth/session";
 import { ROLE_LABELS } from "@/modules/settings/schemas";
@@ -61,16 +61,14 @@ export default async function InvitationPage({ params }: { params: Promise<{ tok
       : PRODUCT_NAME;
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md items-center px-4 py-10 md:py-16">
-      <Card className="w-full gap-6 py-6 md:py-8">
-        <CardHeader className="px-6 md:px-8">
-          <CardTitle>
-            <h1 className="text-xl font-semibold tracking-tight">{heading}</h1>
-          </CardTitle>
-          <CardDescription>{description}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4 px-6 text-sm leading-relaxed md:px-8">{body}</CardContent>
-      </Card>
-    </main>
+    <BrandSplit>
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <h1 className="text-foreground text-3xl font-semibold tracking-tight">{heading}</h1>
+          <p className="text-muted-foreground text-sm">{description}</p>
+        </div>
+        <div className="space-y-4 text-sm leading-relaxed">{body}</div>
+      </div>
+    </BrandSplit>
   );
 }

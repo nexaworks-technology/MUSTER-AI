@@ -30,6 +30,7 @@ import { getInitials } from "@/components/app/data-list";
 import { cookies } from "next/headers";
 import { ThemeToggle } from "@/components/app/theme-toggle";
 import { THEME_COOKIE, parseTheme } from "@/lib/theme";
+import { MusterLockup } from "@/components/brand/muster-mark";
 import { PRODUCT_NAME } from "@/config/product";
 import { visibleNav } from "@/config/features";
 import { unreadCount } from "@/modules/notifications/service";
@@ -125,8 +126,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
       {/* S1: Sidebar */}
       <aside className="glass-chrome z-30 m-2 overflow-hidden rounded-2xl border md:sticky md:top-3 md:m-3 md:flex md:h-[calc(100vh-1.5rem)] md:w-60 md:shrink-0 md:flex-col">
-        {/* Workspace Card at Top */}
-        <div className="border-border flex items-center justify-between gap-3 border-b px-4 py-3.5 md:py-2.5">
+        {/* Product lockup, then the workspace */}
+        <div className="border-border space-y-2.5 border-b px-4 py-3 md:py-2.5">
+          <MusterLockup size="sm" />
           <div className="flex min-w-0 items-center gap-2.5">
             <div className="bg-primary text-primary-foreground flex size-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold shadow-xs">
               {ctx.workspace.name.charAt(0).toUpperCase()}
@@ -157,7 +159,6 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
                 <div className="text-foreground truncate text-xs font-semibold tracking-tight">
                   {ctx.workspace.name}
                 </div>
-                <div className="text-muted-foreground truncate text-xs">{PRODUCT_NAME}</div>
               </div>
             )}
           </div>

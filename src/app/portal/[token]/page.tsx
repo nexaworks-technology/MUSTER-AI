@@ -4,6 +4,7 @@ import { StatusPill } from "@/components/app/status-pill";
 import { noteAuthFailure, openTokenPage, TOO_MANY } from "@/lib/http/action-guard";
 import { LIMITS } from "@/lib/http/guard";
 import { getPortalView, PortalAuthError } from "@/modules/portal/service";
+import { MusterLockup } from "@/components/brand/muster-mark";
 
 export const metadata: Metadata = { title: "Customer Portal" };
 
@@ -58,6 +59,7 @@ export default async function CustomerPortalPage({
       data-testid="portal-container"
     >
       <header className="border-b border-border/80 pb-6">
+        <MusterLockup size="sm" className="mb-5" />
         <h1 className="text-2xl font-semibold tracking-tight md:text-3xl text-foreground">{account.name} Portal</h1>
         <p className="text-muted-foreground mt-1.5 text-sm">
           Welcome back, {contact.name ?? contact.email}

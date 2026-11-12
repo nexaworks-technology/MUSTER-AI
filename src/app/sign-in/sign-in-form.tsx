@@ -30,7 +30,11 @@ export function SignInForm() {
           required
         />
       </div>
-      <Button type="submit" className="w-full" disabled={pending}>
+      <Button
+        type="submit"
+        className="bg-ask-accent-text text-background h-10 w-full rounded-lg text-sm shadow-sm hover:opacity-90"
+        disabled={pending}
+      >
         {pending ? "Signing in…" : "Sign in"}
       </Button>
     </form>

@@ -159,6 +159,15 @@
     0 1px 0 oklch(1 0 0 / 0.9) inset, 0 12px 32px -12px oklch(0.4 0.05 60 / 0.22),
     0 2px 8px -2px oklch(0.4 0.05 60 / 0.1);
 
+  /* Muster AI brand (docs/BRAND.md). The brand panel is a FIXED look in both themes. */
+  --brand-violet: oklch(0.391 0.135 309.8);
+  --brand-warm-white: oklch(0.955 0.014 74.4);
+  --brand-charcoal: oklch(0.223 0.008 31.2);
+  --brand-panel-muted: oklch(0.84 0.02 60);
+  --brand-aurora-violet: oklch(0.42 0.15 305 / 0.55);
+  --brand-aurora-terracotta: oklch(0.56 0.13 40 / 0.45);
+  --brand-mark: var(--brand-violet);
+
   /* Page and section rhythm (steps of Tailwind's spacing scale; see the md rule below) */
   --space-page: 1rem;
   --space-section: 1.5rem;
@@ -248,6 +257,13 @@
   --ask-accent-hover: oklch(0.76 0.12 40);
   --ask-accent-foreground: oklch(0.2 0.02 40);
   --ask-accent-text: oklch(0.78 0.11 45);
+  --brand-violet: oklch(0.391 0.135 309.8);
+  --brand-warm-white: oklch(0.955 0.014 74.4);
+  --brand-charcoal: oklch(0.223 0.008 31.2);
+  --brand-panel-muted: oklch(0.84 0.02 60);
+  --brand-aurora-violet: oklch(0.42 0.15 305 / 0.55);
+  --brand-aurora-terracotta: oklch(0.56 0.13 40 / 0.45);
+  --brand-mark: var(--brand-warm-white);
   --ask-composer-shadow:
     0 1px 0 oklch(1 0 0 / 0.06) inset, 0 14px 36px -12px oklch(0 0 0 / 0.6),
     0 2px 8px -2px oklch(0 0 0 / 0.4);
@@ -338,6 +354,13 @@
     --ask-accent-hover: oklch(0.76 0.12 40);
     --ask-accent-foreground: oklch(0.2 0.02 40);
     --ask-accent-text: oklch(0.78 0.11 45);
+    --brand-violet: oklch(0.391 0.135 309.8);
+    --brand-warm-white: oklch(0.955 0.014 74.4);
+    --brand-charcoal: oklch(0.223 0.008 31.2);
+    --brand-panel-muted: oklch(0.84 0.02 60);
+    --brand-aurora-violet: oklch(0.42 0.15 305 / 0.55);
+    --brand-aurora-terracotta: oklch(0.56 0.13 40 / 0.45);
+    --brand-mark: var(--brand-warm-white);
     --ask-composer-shadow:
       0 1px 0 oklch(1 0 0 / 0.06) inset, 0 14px 36px -12px oklch(0 0 0 / 0.6),
       0 2px 8px -2px oklch(0 0 0 / 0.4);
@@ -393,6 +416,9 @@
 @theme inline {
   --font-sans:
     var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Display face: the wordmark and page headings only (Sora, self-hosted by next/font). */
+  --font-display:
+    var(--font-sora), var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -409,6 +435,12 @@
   --color-input: var(--input);
   --color-placeholder: var(--placeholder);
   --color-overlay: var(--overlay);
+
+  --color-brand-violet: var(--brand-violet);
+  --color-brand-warm-white: var(--brand-warm-white);
+  --color-brand-charcoal: var(--brand-charcoal);
+  --color-brand-panel-muted: var(--brand-panel-muted);
+  --color-brand-mark: var(--brand-mark);
 
   --color-ask-paper: var(--ask-paper);
   --color-ask-line: var(--ask-line);
@@ -493,6 +525,11 @@
     letter-spacing: -0.02em;
   }
 
+  /* Page headings use the display face; body text keeps Inter. */
+  h1 {
+    font-family: var(--font-display);
+  }
+
   ::selection {
     background: var(--accent);
     color: var(--accent-foreground);
@@ -555,6 +592,15 @@
   box-shadow: var(--glass-shadow-3);
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
   backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
+}
+
+/* The sign-in / invite brand panel: warm charcoal with a violet and terracotta aurora wash. */
+@utility brand-panel {
+  background-color: var(--brand-charcoal);
+  background-image:
+    radial-gradient(70% 55% at 85% 8%, var(--brand-aurora-terracotta), transparent 70%),
+    radial-gradient(75% 60% at 10% 70%, var(--brand-aurora-violet), transparent 70%);
+  color: var(--brand-warm-white);
 }
 
 /* Ask AI's floating composer: soft shadow, no blur. */
