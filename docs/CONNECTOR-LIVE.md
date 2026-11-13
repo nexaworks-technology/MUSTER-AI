@@ -8,6 +8,27 @@ fixtures in each adapter's `__fixtures__/`). Where the code does not say, this d
 "not in code". Statements about how a vendor's live API behaves are marked
 **(vendor behaviour, unverified here)**: they come from vendor documentation, not from this repo.
 
+## Fix session (2026-11-13): blockers FIXED in `7015886`
+
+Code blockers from this audit and from the Stripe proof (B1) were fixed test-first in commit
+`7015886` (`fix(connectors): close the CONNECTOR-LIVE audit and B1 blockers`). Each blocker below is
+marked **FIXED (`7015886`)** where it appears; the original finding text is kept for history.
+Still open (not code): a stable public hostname (common blocker 2), rate-limit back-off (common
+blocker 3), and the vendor checks marked "needs a live check".
+
+| # | Blocker | Fix | Proof (tests) |
+|---|---|---|---|
+| 1 | Compose forwards no connector env to `web`/`worker` | Every name in `CONNECTOR_ENV_NAMES` (`src/lib/config/env.ts`) is forwarded to both services; also added the calendar and Zoom names the adapters read | `src/lib/config/__tests__/connector-env.test.ts` (compose, schema, `.env.example` and direct `process.env` reads kept in step) |
+| 2 | `RESEND_WEBHOOK_SECRET` not in schema / `.env.example` | Added to both and to the connector list (so compose forwards it) | same file |
+| 3 | Zendesk/Freshdesk form missing subdomain/domain/admin email; silent `app.*` fallback | Form fields added (Zendesk subdomain + admin email; Freshdesk domain), stored in the sealed credentials, passed to the adapters; a pasted address (`https://acme.zendesk.com/`) is reduced to `acme`; a missing value is refused before any request (`ConnectionSettingMissingError`) and shows as "Zendesk is missing its subdomain, so nothing was requested." on the card. The Settings action also did not accept `ZENDESK`/`FRESHDESK` at all; it now does | `src/modules/integrations/__tests__/support-key-settings.int.test.ts` |
+| 4 | Gmail first page only, cursor unused; Outlook nextLink not followed, cursor not saved | Gmail: FULL follows `nextPageToken` (100 per page) to the end; INCREMENTAL reads `history.list` since the saved `historyId` (paged, deduplicated) and saves the newest one; a 404 (expired history) falls back to a full read. Outlook follows `@odata.nextLink` to the last page and saves its `$deltatoken`. Neither makes a cursor up from the clock any more; a repeated page token/link, or a Graph link off `graph.microsoft.com`, is refused | `adapters/google-email/__tests__/paging.test.ts`, `adapters/microsoft-email/__tests__/paging.test.ts` |
+| 5 | B1: body-read timeout reported as "unexpected error" | `createLiveTransport` reads the body inside the error handling: any failure before the body is complete is `ProviderUnreachableError` ("… could not be reached") for every connector | `src/modules/integrations/__tests__/live-transport.test.ts` |
+| 6 | B1: Account 360 › Billing hides subscriptions | Subscriptions table (plan, amount/interval, quantity, status, renewal date, source) always shown; "No contract on file" now stands in for the contract sections only; invoices also show without a contract. Amount is "Restricted" without revenue access | `src/modules/billing/__tests__/subscriptions-section.test.ts` |
+| 7 | B1: no replace-key on a connected card | "Replace the … key" on every connected key-form card (Stripe, Chargebee, Mixpanel, Amplitude, Zendesk, Freshdesk), open by default when the card needs attention. `replaceApiKey` validates the new key with the provider using the saved settings, then swaps only the sealed key; integration id, `connectedAt`, settings, webhook secret and synced records stay; a refused key changes nothing. Audited (`integration.key_replaced` / `key_replace_failed`) without key values | `src/modules/integrations/__tests__/replace-key.int.test.ts` |
+
+Not done, by design: Freshdesk got no admin-email field. Its adapter signs in with the API key
+alone (`<key>:X`), so an email field would be collected and never used.
+
 ## How every connector works (shared)
 
 - **One HTTP layer.** Adapters never call `fetch`; they use an `HttpTransport` (`transport.ts`).
@@ -45,7 +66,7 @@ fixtures in each adapter's `__fixtures__/`). Where the code does not say, this d
 
 ### Blockers that apply to every connector
 
-1. **[config/code] `docker-compose.yml` does not pass any connector variable to `web` or `worker`.**
+1. **FIXED (`7015886`).** **[config/code] `docker-compose.yml` does not pass any connector variable to `web` or `worker`.**
    Its `environment:` lists are explicit and contain none of `HUBSPOT_CLIENT_ID`,
    `HUBSPOT_CLIENT_SECRET`, `SALESFORCE_CLIENT_ID`, `SALESFORCE_CLIENT_SECRET`, `SLACK_CLIENT_ID`,
    `SLACK_CLIENT_SECRET`, `SLACK_SIGNING_SECRET`, `GOOGLE_EMAIL_CLIENT_ID`,
@@ -229,13 +250,13 @@ status `CONNECTED` (`b1-step6-restored.png`). The backup file was deleted.
 2). The card shows a webhook address on the current quick tunnel, which will change; no webhook was
 registered in Stripe. Polling sync is what was proven.
 
-**Found during B1 (named, not fixed):**
-1. **[code] A timeout while reading a response body is reported as "unexpected error".**
+**Found during B1 (named, then fixed in `7015886`):**
+1. **FIXED (`7015886`).** **[code] A timeout while reading a response body is reported as "unexpected error".**
    `createLiveTransport` maps fetch failures to `ProviderUnreachableError`, but `res.text()` is outside
    that `try`, so an abort during the body read escapes as `TimeoutError` and the card says "stopped
    because of an unexpected error" instead of "Stripe could not be reached".
-2. **[UI] Account 360 › Billing does not show subscriptions** (above).
-3. **[UI] No "replace key" for a connected API-key integration.** The bad-key message says "Paste a new
+2. **FIXED (`7015886`).** **[UI] Account 360 › Billing does not show subscriptions** (above).
+3. **FIXED (`7015886`).** **[UI] No "replace key" for a connected API-key integration.** The bad-key message says "Paste a new
    restricted read-only key", but the card offers no field for it; the only path is Disconnect and
    connect again.
 4. **[environment] The quick tunnel degraded mid-session** (Chromium `ERR_HTTP2_PING_FAILED`, page
@@ -299,7 +320,7 @@ registered in Stripe. Polling sync is what was proven.
   inline, so live tickets may arrive with no message bodies. One page per run also means a large
   backlog takes many runs.
 - **Blockers, in order:**
-  1. **[code] The Settings connect form cannot connect Zendesk.** The adapter needs the subdomain
+  1. **FIXED (`7015886`).** **[code] The Settings connect form cannot connect Zendesk.** The adapter needs the subdomain
      (`site`) and the admin email (`username`), and the help text asks for both, but the form only
      renders a site field for Chargebee and a user-name field for Mixpanel/Amplitude. Without them
      the adapter falls back to the subdomain `app` (`app.zendesk.com`) and an empty email, so the
@@ -324,7 +345,7 @@ registered in Stripe. Polling sync is what was proven.
   view), and its default page size is 30, so live runs may return fewer tickets per run and no
   conversation bodies.
 - **Blockers, in order:**
-  1. **[code] The Settings connect form cannot connect Freshdesk.** The adapter needs the Freshdesk
+  1. **FIXED (`7015886`).** **[code] The Settings connect form cannot connect Freshdesk.** The adapter needs the Freshdesk
      domain (`site`); the form has no site field for Freshdesk, so the domain falls back to `app`
      (`app.freshdesk.com`). Code change needed; stopped here.
   2. Paging and `include=conversations` on live data (above): needs a live check.
@@ -353,7 +374,7 @@ registered in Stripe. Polling sync is what was proven.
      **(vendor behaviour, unverified here)**. In "Testing" status only listed test users can
      connect, and refresh tokens expire after 7 days; external production use needs Google's
      verification and a security assessment.
-  4. **[code] No paging or incremental read** (above): a live mailbox gets only its newest page,
+  4. **FIXED (`7015886`).** **[code] No paging or incremental read** (above): a live mailbox gets only its newest page,
      re-read every run. Code change needed for real use.
 
 ## Microsoft (Outlook)
@@ -374,7 +395,7 @@ registered in Stripe. Polling sync is what was proven.
   1. Common blockers 1 and 2.
   2. An Entra ID (Azure AD) app registration, multi-tenant + personal accounts, Web redirect URI
      above, client secret, delegated permissions above.
-  3. **[code] Delta paging** (above): a live mailbox larger than one page never syncs past page one.
+  3. **FIXED (`7015886`).** **[code] Delta paging** (above): a live mailbox larger than one page never syncs past page one.
   4. Organisation tenants may require admin consent for `Mail.ReadWrite` (vendor behaviour,
      unverified here).
 
@@ -392,7 +413,7 @@ registered in Stripe. Polling sync is what was proven.
 - **Blockers, in order:**
   1. A Resend account, a **verified sending domain** for `EMAIL_FROM` (the Docker demo still has the
      placeholder `verify@example.test`), and an API key.
-  2. **[config] `RESEND_WEBHOOK_SECRET` is not in the env schema, not in `.env.example` and not
+  2. **FIXED (`7015886`).** **[config] `RESEND_WEBHOOK_SECRET` is not in the env schema, not in `.env.example` and not
      forwarded by `docker-compose.yml`,** so bounce/complaint webhooks are always refused today.
      Code/config change needed.
   3. Common blocker 2 for the webhook URL.
@@ -403,17 +424,17 @@ registered in Stripe. Polling sync is what was proven.
 
 | Connector | Code / config blockers (need a code session) | Founder / vendor actions |
 |---|---|---|
-| All OAuth (HubSpot, Salesforce, Slack, Gmail, Microsoft) | Compose does not forward `*_CLIENT_ID`/`*_CLIENT_SECRET` (and `SLACK_SIGNING_SECRET`) | Stable public hostname for redirect URIs |
+| All OAuth (HubSpot, Salesforce, Slack, Gmail, Microsoft) | ~~Compose does not forward `*_CLIENT_ID`/`*_CLIENT_SECRET` (and `SLACK_SIGNING_SECRET`)~~ FIXED (`7015886`) | Stable public hostname for redirect URIs |
 | HubSpot | `crm.objects.deals.write` missing (export only) | Developer account + app, client id/secret |
 | Salesforce | Sandbox login host hard-coded | Connected App; API-enabled edition |
-| Stripe | **Live polling sync proven (B1)**; found: body-read timeout reported as unexpected error, Account 360 hides subscriptions, no replace-key | Restricted read key; webhook secret if real-time wanted |
+| Stripe | **Live polling sync proven (B1)**; B1 findings (body-read timeout wording, Account 360 subscriptions, replace-key) FIXED (`7015886`) | Restricted read key; webhook secret if real-time wanted |
 | Chargebee | none | Read-only key + site |
 | Slack | (compose, above) | Slack app, bot scopes, redirect + interactivity URLs |
-| Zendesk | **Connect form missing subdomain and admin email**; live comment bodies to check | API token |
-| Freshdesk | **Connect form missing domain**; live paging/conversations to check | API key |
-| Gmail | **No paging or incremental read** | Google project, consent screen, restricted-scope verification for external use |
-| Microsoft | **Delta paging not followed** | Entra app registration, admin consent in some tenants |
-| Resend | **`RESEND_WEBHOOK_SECRET` not in env schema / compose** | Verified sending domain, API key |
+| Zendesk | ~~Connect form missing subdomain and admin email~~ FIXED (`7015886`); live comment bodies to check | API token |
+| Freshdesk | ~~Connect form missing domain~~ FIXED (`7015886`); live paging/conversations to check | API key |
+| Gmail | ~~No paging or incremental read~~ FIXED (`7015886`) | Google project, consent screen, restricted-scope verification for external use |
+| Microsoft | ~~Delta paging not followed~~ FIXED (`7015886`) | Entra app registration, admin consent in some tenants |
+| Resend | ~~`RESEND_WEBHOOK_SECRET` not in env schema / compose~~ FIXED (`7015886`) | Verified sending domain, API key |
 
 Stripe and Chargebee have no code blocker: they can connect live from Settings today on the native
 dev server, and on Docker too (they need no env variables), for polling sync.
@@ -426,9 +447,9 @@ This code expects **an OAuth app** (client id + client secret + redirect URL + s
 accept a private-app access token. HubSpot's developer UI has changed recently; the names below
 follow its developer platform as of late 2025 and may be worded slightly differently on screen.
 
-**Before you start (needs a code/config session, see blockers):** a fixed public hostname for the
-app, and `docker-compose.yml` forwarding `HUBSPOT_CLIENT_ID` and `HUBSPOT_CLIENT_SECRET` if you test
-on the Docker stack. On the native dev server (`pnpm dev`) the second point does not apply.
+**Before you start:** a fixed public hostname for the app (still open, common blocker 2).
+`docker-compose.yml` now forwards `HUBSPOT_CLIENT_ID` and `HUBSPOT_CLIENT_SECRET` to `web` and
+`worker` (FIXED in `7015886`), so only the env file needs them.
 
 1. **Account type:** create a free **HubSpot developer account** at developers.hubspot.com (this is
    separate from a CRM portal). Inside it, create a **developer test account** if you want a sandbox
@@ -457,8 +478,8 @@ on the Docker stack. On the native dev server (`pnpm dev`) the second point does
      `pnpm dev`.
    - Docker stack: the env file passed to `docker compose --env-file` (for the demo, the
      `docker.env` kept outside the repo; for a real deployment, the `.env` next to
-     `docker-compose.yml`) gets the same two names, **and** the compose `web` and `worker` services
-     must forward them (code/config change, blocker 1). Then recreate `web` and `worker`.
+     `docker-compose.yml`) gets the same two names; compose forwards them to `web` and `worker`
+     (FIXED in `7015886`). Then recreate `web` and `worker`.
    - Leave `INTEGRATIONS_TRANSPORT` unset (it defaults to `live`) and `WRITE_BACK_LIVE` unset (no
      writes to HubSpot).
 7. **Connect:** sign in to Muster AI as an **Admin**, open **Settings › Integrations**, click
