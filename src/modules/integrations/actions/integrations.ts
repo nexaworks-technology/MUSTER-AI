@@ -7,9 +7,11 @@ import { z } from "zod";
 import { ForbiddenError } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import {
+  API_KEY_FORM_PROVIDERS,
   connectWithApiKey,
   ConnectError,
   disconnect,
+  replaceApiKey,
   testConnection,
 } from "../connections.service";
 import { relinkSlackMembers, runSyncNow } from "../status.service";
@@ -52,7 +54,7 @@ async function run(fn: () => Promise<Result>): Promise<never> {
 }
 
 const id = z.string().min(1).max(60);
-const apiKeyProvider = z.enum(["STRIPE", "CHARGEBEE", "MIXPANEL", "AMPLITUDE"]);
+const apiKeyProvider = z.enum(API_KEY_FORM_PROVIDERS);
 
 export async function connectApiKeyAction(provider: string, formData: FormData) {
   const p = apiKeyProvider.parse(provider);
@@ -129,6 +131,20 @@ export async function testConnectionAction(integrationId: string) {
   return run(async (): Promise<Result> => {
     const r = await testConnection(await actor(), id.parse(integrationId));
     return r.ok ? { tested: r.message } : { error: r.message };
+  });
+}
+
+/** A new key for a connected key-based integration; swapped only after the provider accepts it. */
+export async function replaceApiKeyAction(integrationId: string, formData: FormData) {
+  return run(async (): Promise<Result> => {
+    const r = await replaceApiKey(await actor(), id.parse(integrationId), {
+      apiKey: String(formData.get("apiKey") ?? ""),
+    });
+    return {
+      tested: [`Replaced the key. Synced records were kept.`, r.check?.message]
+        .filter(Boolean)
+        .join(" "),
+    };
   });
 }
 

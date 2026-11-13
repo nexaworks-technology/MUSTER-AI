@@ -9,7 +9,7 @@ import type { Actor } from "@/modules/accounts/service";
 import type { IntegrationAdapter } from "./adapter";
 import { adapterFor } from "./adapters";
 import { loadConnection } from "./connection";
-import { sealCredentials, type Credentials } from "./credentials";
+import { openCredentials, sealCredentials, type Credentials } from "./credentials";
 import { newNonce, signState, verifyState } from "./oauth";
 import { PROVIDER_NAMES } from "./providers";
 import { linkSlackMembers } from "./slack/service";
@@ -85,12 +85,35 @@ export async function completeOAuth(
   return saveConnection(actor, provider, credentials, [...adapter.auth.scopes], deps);
 }
 
+/** Providers connected with the key form on Settings › Integrations (the Usage API has its own). */
+export const API_KEY_FORM_PROVIDERS = [
+  "STRIPE",
+  "CHARGEBEE",
+  "MIXPANEL",
+  "AMPLITUDE",
+  "ZENDESK",
+  "FRESHDESK",
+] as const satisfies readonly IntegrationProvider[];
+
+/**
+ * "https://Acme.zendesk.com/" → "acme": people paste the whole address; the provider's own
+ * suffix and any scheme or path are dropped. Anything else is left for the format check.
+ */
+export function normalizeSite(raw: string): string {
+  return raw
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/\/.*$/, "")
+    .replace(/\.(chargebee|zendesk|freshdesk)\.com$/, "");
+}
+
 export const apiKeyInput = z.object({
   apiKey: z.string().trim().min(8, "Paste the whole key.").max(500),
   site: z
     .string()
-    .trim()
-    .regex(/^[a-z0-9-]{1,63}$/, "Use only the site name, e.g. acme-test.")
+    .transform(normalizeSite)
+    .pipe(z.string().regex(/^[a-z0-9-]{1,63}$/, "Use only the site name, e.g. acme-test."))
     .optional(),
   webhookSecret: z.string().trim().min(8).max(500).optional(),
   /** Mixpanel: the service account's user name. Amplitude: the project API key. */
@@ -103,7 +126,21 @@ export const apiKeyInput = z.object({
 const NEEDS_USERNAME: Partial<Record<IntegrationProvider, string>> = {
   MIXPANEL: "Enter the service account's user name.",
   AMPLITUDE: "Enter the project's API key as well as its secret key.",
+  ZENDESK: "Enter the Zendesk admin email the API token belongs to.",
 };
+
+/** Providers whose address needs the account's own name; checked before any request. */
+const NEEDS_SITE: Partial<Record<IntegrationProvider, string>> = {
+  CHARGEBEE: "Enter your Chargebee site name.",
+  ZENDESK: "Enter your Zendesk subdomain (the acme in acme.zendesk.com).",
+  FRESHDESK: "Enter your Freshdesk domain (the acme in acme.freshdesk.com).",
+};
+
+/** Second halves that must have a particular shape. */
+function checkUsername(provider: IntegrationProvider, username: string | undefined) {
+  if (provider === "ZENDESK" && username && !z.email().safeParse(username).success)
+    throw new ConnectError("The Zendesk admin email does not look like an email address.");
+}
 
 /** API-key providers (Stripe, Chargebee): validate the key with the provider, then store it sealed. */
 export async function connectWithApiKey(
@@ -117,8 +154,10 @@ export async function connectWithApiKey(
   const adapter = (deps.adapter ?? adapterFor)(provider);
   if (adapter.auth.kind !== "apiKey")
     throw new ConnectError(`${PROVIDER_NAMES[provider]} connects by signing in.`);
+  if (NEEDS_SITE[provider] && !input.site) throw new ConnectError(NEEDS_SITE[provider]!);
   if (NEEDS_USERNAME[provider] && !input.username)
     throw new ConnectError(NEEDS_USERNAME[provider]!);
+  checkUsername(provider, input.username);
   const settings = adapter.configSchema.safeParse(input.config ?? {});
   if (!settings.success)
     throw new ConnectError(
@@ -146,6 +185,84 @@ export async function connectWithApiKey(
     throw new ConnectError([d.plain, d.action].filter(Boolean).join(" "));
   }
   return saveConnection(actor, provider, credentials, [], deps, settings.data);
+}
+
+export const replaceKeyInput = apiKeyInput.pick({ apiKey: true });
+
+/**
+ * Replace the key of a connected key-based integration in place (CONNECTOR-LIVE.md, B1 finding 3).
+ * The new key is validated with the provider together with the connection's existing settings
+ * (site, user name, webhook secret, config). Only an accepted key is sealed over the old one; the
+ * integration row, connectedAt, sync history and synced records are untouched. A refused key
+ * changes nothing and is audited, never echoed.
+ */
+export async function replaceApiKey(
+  actor: Actor,
+  integrationId: string,
+  raw: unknown,
+  deps: ConnectDeps = {},
+) {
+  requirePermission(actor, "integrations:manage");
+  const { apiKey } = replaceKeyInput.parse(raw);
+  const db = scopedDb(actor);
+  const row = await db.integration.findUnique({ where: { id: integrationId } });
+  if (!row) throw new ConnectError("This integration does not exist.");
+  const name = PROVIDER_NAMES[row.provider];
+  if (row.status === "DISCONNECTED" || !row.credentialsEnc)
+    throw new ConnectError(`${name} is not connected. Connect it with a key first.`);
+  const adapter = (deps.adapter ?? adapterFor)(row.provider);
+  if (
+    adapter.auth.kind !== "apiKey" ||
+    !(API_KEY_FORM_PROVIDERS as readonly string[]).includes(row.provider)
+  )
+    throw new ConnectError(`${name} does not connect with a key.`);
+  const credentials: Credentials = { ...openCredentials(row.credentialsEnc), apiKey };
+  const settings = adapter.configSchema.safeParse(row.config ?? {});
+  try {
+    await adapter.auth.validate(
+      credentials,
+      (deps.transport ?? transportFor)(row.provider),
+      settings.success ? settings.data : undefined,
+    );
+  } catch (err) {
+    const d = adapter.describeError(err);
+    await writeAudit({
+      workspaceId: actor.workspaceId,
+      actorType: "USER",
+      actorId: actor.userId,
+      action: "integration.key_replace_failed",
+      targetType: "Integration",
+      targetId: row.id,
+      summary: `${name} refused the new key, so the saved key was kept: ${d.plain}`,
+    });
+    throw new ConnectError(
+      [d.plain, d.action, "The saved key was kept."].filter(Boolean).join(" "),
+    );
+  }
+  await db.$tenantTransaction(async (tx) => {
+    await tx.integration.update({
+      where: { id: row.id },
+      data: {
+        credentialsEnc: sealCredentials(credentials),
+        status: "CONNECTED",
+        lastErrorPlain: null,
+      },
+    });
+    await writeAudit(
+      {
+        workspaceId: actor.workspaceId,
+        actorType: "USER",
+        actorId: actor.userId,
+        action: "integration.key_replaced",
+        targetType: "Integration",
+        targetId: row.id,
+        summary: `Replaced the ${name} key after ${name} accepted it; synced records were kept`,
+      },
+      tx,
+    );
+  });
+  const check = await testConnection(actor, row.id, deps).catch(() => null);
+  return { integrationId: row.id, check };
 }
 
 async function saveConnection(
@@ -247,8 +364,7 @@ export async function testConnection(actor: Actor, integrationId: string, deps: 
   ) {
     result = {
       ok: false,
-      message:
-        `This Slack workspace is already connected to another ${PRODUCT_NAME} workspace, so Approve and Reject from Slack are off until it is disconnected there.`,
+      message: `This Slack workspace is already connected to another ${PRODUCT_NAME} workspace, so Approve and Reject from Slack are off until it is disconnected there.`,
     };
     await db.integration.update({
       where: { id: integrationId },

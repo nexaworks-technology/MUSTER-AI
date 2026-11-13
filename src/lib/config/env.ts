@@ -95,6 +95,17 @@ export const envSchema = z
     GOOGLE_EMAIL_CLIENT_SECRET: optionalString,
     MICROSOFT_EMAIL_CLIENT_ID: optionalString,
     MICROSOFT_EMAIL_CLIENT_SECRET: optionalString,
+    GOOGLE_CALENDAR_CLIENT_ID: optionalString,
+    GOOGLE_CALENDAR_CLIENT_SECRET: optionalString,
+    MICROSOFT_CALENDAR_CLIENT_ID: optionalString,
+    MICROSOFT_CALENDAR_CLIENT_SECRET: optionalString,
+    ZOOM_CLIENT_ID: optionalString,
+    ZOOM_CLIENT_SECRET: optionalString,
+    /**
+     * Resend delivery webhook (bounces, complaints): the Svix signing secret (`whsec_…`) shown when
+     * the webhook is added in Resend. Unset = every delivery event is refused with 401.
+     */
+    RESEND_WEBHOOK_SECRET: optionalString,
     /**
      * How Slack messages leave (D4, D-95): "log" writes them to `.dev-slack/` (development, test,
      * e2e, demo); "live" posts with the workspace's bot token. "log" is refused in production.
@@ -202,6 +213,33 @@ export const envSchema = z
   });
 
 export type Env = z.infer<typeof envSchema>;
+
+/**
+ * Every connector variable (CONNECTOR-LIVE.md). docker-compose.yml forwards each one to both `web`
+ * and `worker`, and .env.example lists each; a test keeps the three in step.
+ */
+export const CONNECTOR_ENV_NAMES: readonly string[] = [
+  "INTEGRATIONS_TRANSPORT",
+  "WRITE_BACK_LIVE",
+  "HUBSPOT_CLIENT_ID",
+  "HUBSPOT_CLIENT_SECRET",
+  "SALESFORCE_CLIENT_ID",
+  "SALESFORCE_CLIENT_SECRET",
+  "SLACK_CLIENT_ID",
+  "SLACK_CLIENT_SECRET",
+  "SLACK_SIGNING_SECRET",
+  "GOOGLE_EMAIL_CLIENT_ID",
+  "GOOGLE_EMAIL_CLIENT_SECRET",
+  "MICROSOFT_EMAIL_CLIENT_ID",
+  "MICROSOFT_EMAIL_CLIENT_SECRET",
+  "GOOGLE_CALENDAR_CLIENT_ID",
+  "GOOGLE_CALENDAR_CLIENT_SECRET",
+  "MICROSOFT_CALENDAR_CLIENT_ID",
+  "MICROSOFT_CALENDAR_CLIENT_SECRET",
+  "ZOOM_CLIENT_ID",
+  "ZOOM_CLIENT_SECRET",
+  "RESEND_WEBHOOK_SECRET",
+];
 
 /** Format issues as "NAME: message" lines — names only, never values (Rule 9). */
 export function describeEnvIssues(error: z.ZodError): string {

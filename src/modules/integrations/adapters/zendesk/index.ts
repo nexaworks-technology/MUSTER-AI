@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import type { AdapterContext, InboundRequest, IntegrationAdapter } from "../../adapter";
 import type { Credentials } from "../../credentials";
-import { describeProviderError } from "../../errors";
+import { ConnectionSettingMissingError, describeProviderError } from "../../errors";
 import type { NormalizedEvent } from "../../normalized";
 import { ProviderHttpError, requestJson } from "../../transport";
 
@@ -71,14 +71,19 @@ const zdIncrementalSchema = z.object({
   next_page: z.string().optional(),
 });
 
+/** Admin email + "/token:" + API token. A missing email is refused, never sent empty. */
 function basicAuthHeader(credentials: Credentials): string {
-  const user = credentials.username ?? "";
+  const user = credentials.username;
+  if (!user) throw new ConnectionSettingMissingError("Zendesk", "admin email");
   const token = credentials.apiKey ?? "";
   return `Basic ${Buffer.from(`${user}/token:${token}`).toString("base64")}`;
 }
 
+/** The account's subdomain (`<subdomain>.zendesk.com`). Never guessed. */
 function getSubdomain(credentials: Credentials, config?: ZendeskConfig): string {
-  return credentials.site ?? config?.subdomain ?? "app";
+  const subdomain = credentials.site ?? config?.subdomain;
+  if (!subdomain) throw new ConnectionSettingMissingError("Zendesk", "subdomain");
+  return subdomain;
 }
 
 const STATUS_MAP: Record<string, "OPEN" | "PENDING" | "SOLVED" | "CLOSED"> = {
@@ -149,17 +154,16 @@ export const zendeskAdapter: IntegrationAdapter<ZendeskConfig> = {
   },
 
   async testConnection(ctx: AdapterContext<ZendeskConfig>) {
+    // Missing settings throw before the try: they are described as such, not as "unreachable".
     const subdomain = getSubdomain(ctx.credentials, ctx.config);
+    const authorization = basicAuthHeader(ctx.credentials);
     try {
       const data = await requestJson(
         ctx.transport,
         {
           method: "GET",
           url: `https://${subdomain}.zendesk.com/api/v2/users/me.json`,
-          headers: {
-            authorization: basicAuthHeader(ctx.credentials),
-            accept: "application/json",
-          },
+          headers: { authorization, accept: "application/json" },
         },
         userMeSchema,
       );
@@ -181,6 +185,7 @@ export const zendeskAdapter: IntegrationAdapter<ZendeskConfig> = {
     opts: { kind: "FULL" | "INCREMENTAL"; cursor?: string },
   ) {
     const subdomain = getSubdomain(ctx.credentials, ctx.config);
+    const authorization = basicAuthHeader(ctx.credentials);
     const startTime = opts.cursor ?? "0";
     const url = new URL(`https://${subdomain}.zendesk.com/api/v2/incremental/tickets.json`);
     url.searchParams.set("start_time", startTime);
@@ -190,10 +195,7 @@ export const zendeskAdapter: IntegrationAdapter<ZendeskConfig> = {
       {
         method: "GET",
         url: url.toString(),
-        headers: {
-          authorization: basicAuthHeader(ctx.credentials),
-          accept: "application/json",
-        },
+        headers: { authorization, accept: "application/json" },
       },
       zdIncrementalSchema,
     );

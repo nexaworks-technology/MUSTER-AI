@@ -4,6 +4,10 @@ All notable user-facing changes. Format: [Keep a Changelog](https://keepachangel
 
 ## [Unreleased]
 
+### Fixed
+
+- Connectors (docs/CONNECTOR-LIVE.md): the Docker stack now passes every connector setting (HubSpot, Salesforce, Slack, Gmail, Outlook, calendars, Zoom, write-back, Resend delivery webhook) to the web app and the worker, so OAuth connects work there; `RESEND_WEBHOOK_SECRET` is a documented setting. Zendesk and Freshdesk can be connected from Settings with their subdomain/domain (and the Zendesk admin email); a missing value is a plain error on the card, never a guessed address. Gmail reads every page and then only what changed since the last run; Outlook follows every delta page and keeps its place. A timeout while a provider is still answering now reads "could not be reached" for every connector. Account 360 › Billing shows subscriptions (plan, amount, quantity, status, renewal date, source) even with no contract on file. A connected key-based integration (Stripe, Chargebee, Mixpanel, Amplitude, Zendesk, Freshdesk) can take a new key in place: the provider checks it first, and the connection and synced records stay.
+
 ### Added
 
 - AI cost controls: every AI job runs on the cheapest model tier except Ask AI answers and the weekly digest; bulk jobs (nightly narratives, plans, extraction, chase tasks) go through Anthropic's half-price batch service and finish when the batch completes; unchanged accounts make no model call; the workspace has a monthly AI token budget (80% alert, non-essential jobs pause at 100%, Ask AI keeps working) and Pilot metrics shows month-to-date AI usage with a labelled cost estimate. Meetings & QBRs has its own screen.

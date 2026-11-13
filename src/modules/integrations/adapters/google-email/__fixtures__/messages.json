@@ -55,6 +55,20 @@
       }
     },
     {
+      "note": "incremental read since the saved historyId: nothing new (authored from docs, not captured)",
+      "request": {
+        "method": "GET",
+        "path": "/gmail/v1/users/me/history"
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "historyId": "100200"
+        }
+      }
+    },
+    {
       "note": "list messages (authored from docs, not captured)",
       "request": {
         "method": "GET",

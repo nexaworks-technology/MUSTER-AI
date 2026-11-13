@@ -1,13 +1,16 @@
+import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { EmptyState } from "@/components/app/empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatArr, formatCalendarDate, formatDate, RESTRICTED } from "@/lib/format";
 import { formatMoney } from "@/lib/money";
-import { getBilling } from "@/modules/billing/service";
+import { getBilling, type BillingView } from "@/modules/billing/service";
+import { SOURCE_NAMES } from "@/modules/integrations/service";
 import { listContractDocuments } from "@/modules/files/service";
 import { ContractDocumentUpload } from "@/components/app/contract-document-upload";
 import { ALLOWED_BY_PURPOSE } from "@/config/uploads";
 import { loadAccount } from "../data";
+import { SubscriptionsSection } from "./subscriptions-section";
 
 export const metadata: Metadata = { title: "Contracts & billing" };
 
@@ -45,14 +48,32 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
     );
   const current = billing.contracts.find((c) => c.id === billing.currentContractId);
 
+  const sourceNames: Record<string, string | undefined> = SOURCE_NAMES;
+  const subscriptions = (
+    <SubscriptionsSection
+      moneyVisible={billing.moneyVisible}
+      subscriptions={billing.subscriptions.map((s) => ({
+        ...s,
+        sourceLabel: sourceNames[s.source] ?? s.source,
+      }))}
+    />
+  );
+  const invoices = <InvoicesSection billing={billing} money={money} />;
+
+  // No contract: the message stands in for the contract sections only; subscriptions and
+  // invoices synced from billing still show (CONNECTOR-LIVE.md, B1 finding 2).
   if (billing.contracts.length === 0) {
     return (
-      <div className="surface space-y-2 p-5" data-testid="no-contract">
-        <h2 className="text-base font-semibold">No contract on file</h2>
-        <p className="text-muted-foreground text-sm">
-          There is no contract recorded for this account, so there is no contract value, renewal
-          date or notice period to show. Nothing is estimated in its place.
-        </p>
+      <div className="space-y-section">
+        <div className="surface space-y-2 p-5" data-testid="no-contract">
+          <h2 className="text-base font-semibold">No contract on file</h2>
+          <p className="text-muted-foreground text-sm">
+            There is no contract recorded for this account, so there is no contract value, renewal
+            date or notice period to show. Nothing is estimated in its place.
+          </p>
+        </div>
+        {subscriptions}
+        {invoices}
       </div>
     );
   }
@@ -137,6 +158,7 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
           ) : null}
         </CardContent>
       </Card>
+      {subscriptions}
       {billing.moneyVisible ? (
         <section aria-labelledby="documents" className="space-y-3">
           <h2 id="documents" className="text-base font-semibold">
@@ -227,53 +249,65 @@ export default async function BillingPage({ params }: { params: Promise<{ id: st
         )}
       </section>
 
-      <section aria-labelledby="invoices" className="space-y-3">
-        <h2 id="invoices" className="text-base font-semibold">
-          Invoices
-        </h2>
-        {billing.invoices.length === 0 ? (
-          <EmptyState>No invoices on file.</EmptyState>
-        ) : (
-          <div className="surface overflow-x-auto" role="region" aria-label="Invoices" tabIndex={0}>
-            <table className="w-full min-w-144 text-sm">
-              <caption className="sr-only">Invoices, newest first</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Invoice</th>
-                  <th scope="col">Issued</th>
-                  <th scope="col">Due</th>
-                  <th scope="col">Status</th>
-                  <th scope="col" className="text-right">
-                    Amount
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {billing.invoices.map((i) => (
-                  <tr key={i.id} id={`invoice-${i.id}`} className="target:bg-muted scroll-mt-4">
-                    <td>{i.number}</td>
-                    <td>{formatCalendarDate(i.issuedAt)}</td>
-                    <td>{formatCalendarDate(i.dueAt)}</td>
-                    <td
-                      className={
-                        i.status === "FAILED" || i.status === "UNCOLLECTIBLE"
-                          ? "text-risk-at-risk font-medium"
-                          : undefined
-                      }
-                    >
-                      {INVOICE_STATUS[i.status]}
-                      {i.failureCount > 0
-                        ? ` (${i.failureCount} failed attempt${i.failureCount > 1 ? "s" : ""})`
-                        : ""}
-                    </td>
-                    <td className="text-right">{money(i.amountMinor, i.currency)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+      {invoices}
     </div>
+  );
+}
+
+function InvoicesSection({
+  billing,
+  money,
+}: {
+  billing: BillingView;
+  money: (minor: bigint | undefined | null, currency: string) => ReactNode;
+}) {
+  return (
+    <section aria-labelledby="invoices" className="space-y-3">
+      <h2 id="invoices" className="text-base font-semibold">
+        Invoices
+      </h2>
+      {billing.invoices.length === 0 ? (
+        <EmptyState>No invoices on file.</EmptyState>
+      ) : (
+        <div className="surface overflow-x-auto" role="region" aria-label="Invoices" tabIndex={0}>
+          <table className="w-full min-w-144 text-sm">
+            <caption className="sr-only">Invoices, newest first</caption>
+            <thead>
+              <tr>
+                <th scope="col">Invoice</th>
+                <th scope="col">Issued</th>
+                <th scope="col">Due</th>
+                <th scope="col">Status</th>
+                <th scope="col" className="text-right">
+                  Amount
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {billing.invoices.map((i) => (
+                <tr key={i.id} id={`invoice-${i.id}`} className="target:bg-muted scroll-mt-4">
+                  <td>{i.number}</td>
+                  <td>{formatCalendarDate(i.issuedAt)}</td>
+                  <td>{formatCalendarDate(i.dueAt)}</td>
+                  <td
+                    className={
+                      i.status === "FAILED" || i.status === "UNCOLLECTIBLE"
+                        ? "text-risk-at-risk font-medium"
+                        : undefined
+                    }
+                  >
+                    {INVOICE_STATUS[i.status]}
+                    {i.failureCount > 0
+                      ? ` (${i.failureCount} failed attempt${i.failureCount > 1 ? "s" : ""})`
+                      : ""}
+                  </td>
+                  <td className="text-right">{money(i.amountMinor, i.currency)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   );
 }

@@ -4,7 +4,7 @@ import type { AdapterContext, IntegrationAdapter } from "../../adapter";
 import type { Credentials } from "../../credentials";
 import { describeProviderError } from "../../errors";
 import type { NormalizedBatch, NormalizedMail } from "../../normalized";
-import { requestJson } from "../../transport";
+import { ProviderShapeError, requestJson } from "../../transport";
 
 const API = "https://graph.microsoft.com";
 const AUTH = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize";
@@ -72,6 +72,50 @@ function clientCredentials() {
     throw new Error("MICROSOFT_EMAIL_CLIENT_ID and MICROSOFT_EMAIL_CLIENT_SECRET are not set");
   }
   return { client_id: e.MICROSOFT_EMAIL_CLIENT_ID, client_secret: e.MICROSOFT_EMAIL_CLIENT_SECRET };
+}
+
+/** Graph messages as normalized mail; drafts and messages with no sender or recipient are skipped. */
+function toMail(messages: z.infer<typeof graphMessageSchema>[], myEmail: string): NormalizedMail[] {
+  const records: NormalizedMail[] = [];
+  for (const msg of messages) {
+    if (msg.isDraft) continue;
+    const fromAddress = msg.from?.emailAddress?.address?.trim().toLowerCase();
+    const toAddresses = msg.toRecipients
+      .map((r) => r.emailAddress?.address?.trim().toLowerCase())
+      .filter((addr): addr is string => Boolean(addr && addr.includes("@")));
+    if (!fromAddress || toAddresses.length === 0) continue;
+    const sentAt = new Date(msg.sentDateTime);
+    records.push({
+      externalId: msg.id,
+      threadExternalId: msg.conversationId,
+      direction: fromAddress === myEmail ? "OUTBOUND" : "INBOUND",
+      fromAddress,
+      fromName: msg.from?.emailAddress?.name,
+      toAddresses,
+      subject: msg.subject ?? "",
+      bodyText: msg.body?.content || msg.bodyPreview || "No body content",
+      sentAt: isNaN(sentAt.getTime()) ? new Date() : sentAt,
+    });
+  }
+  return records;
+}
+
+/**
+ * A page link Graph returned, checked before it is requested: it must be HTTPS on Microsoft
+ * Graph (the bearer token goes with it) and must not repeat a page already read in this run.
+ */
+function graphPageUrl(link: string, seen: Set<string>): string {
+  let url: URL;
+  try {
+    url = new URL(link);
+  } catch {
+    throw new ProviderShapeError("Graph sent a page link that is not a URL");
+  }
+  if (url.protocol !== "https:" || url.host !== new URL(API).host)
+    throw new ProviderShapeError("Graph sent a page link outside Microsoft Graph");
+  if (seen.has(url.toString())) throw new ProviderShapeError("Graph repeated a page link");
+  seen.add(url.toString());
+  return url.toString();
 }
 
 export const microsoftEmailAdapter: IntegrationAdapter<Cfg> = {
@@ -166,65 +210,32 @@ export const microsoftEmailAdapter: IntegrationAdapter<Cfg> = {
     );
     const myEmail = (user.mail || user.userPrincipalName).toLowerCase();
 
-    const url = new URL("/v1.0/me/mailFolders/inbox/messages/delta", API);
-    if (opts.kind === "INCREMENTAL" && opts.cursor) {
-      url.searchParams.set("$deltatoken", opts.cursor);
+    const first = new URL("/v1.0/me/mailFolders/inbox/messages/delta", API);
+    if (opts.kind === "INCREMENTAL" && opts.cursor)
+      first.searchParams.set("$deltatoken", opts.cursor);
+
+    // Graph pages a delta: follow @odata.nextLink until the last page, which carries the
+    // @odata.deltaLink whose token the next run starts from.
+    const seen = new Set<string>();
+    let next: string | undefined = first.toString();
+    let deltaToken: string | undefined;
+    while (next) {
+      const delta: z.infer<typeof deltaResponseSchema> = await requestJson(
+        t,
+        { method: "GET", url: next, headers: auth(c) },
+        deltaResponseSchema,
+      );
+      yield { kind: "mail", records: toMail(delta.value, myEmail) };
+      const link: string | undefined = delta["@odata.nextLink"];
+      next = link === undefined ? undefined : graphPageUrl(link, seen);
+      if (!next && delta["@odata.deltaLink"])
+        deltaToken =
+          new URL(graphPageUrl(delta["@odata.deltaLink"], seen)).searchParams.get("$deltatoken") ??
+          undefined;
     }
 
-    const delta = await requestJson(
-      t,
-      {
-        method: "GET",
-        url: url.toString(),
-        headers: auth(c),
-      },
-      deltaResponseSchema,
-    );
-
-    const records: NormalizedMail[] = [];
-    for (const msg of delta.value) {
-      if (msg.isDraft) continue;
-
-      const fromAddress = msg.from?.emailAddress?.address?.trim().toLowerCase();
-      const toAddresses = msg.toRecipients
-        .map((r) => r.emailAddress?.address?.trim().toLowerCase())
-        .filter((addr): addr is string => Boolean(addr && addr.includes("@")));
-
-      if (!fromAddress || toAddresses.length === 0) continue;
-
-      const isOutbound = fromAddress === myEmail;
-      const bodyText = msg.body?.content || msg.bodyPreview || "No body content";
-      const sentAt = new Date(msg.sentDateTime);
-
-      records.push({
-        externalId: msg.id,
-        threadExternalId: msg.conversationId,
-        direction: isOutbound ? "OUTBOUND" : "INBOUND",
-        fromAddress,
-        fromName: msg.from?.emailAddress?.name,
-        toAddresses,
-        subject: msg.subject ?? "",
-        bodyText,
-        sentAt: isNaN(sentAt.getTime()) ? new Date() : sentAt,
-      });
-    }
-
-    yield {
-      kind: "mail",
-      records,
-    };
-
-    let deltaToken = String(ctx.clock().getTime());
-    if (delta["@odata.deltaLink"]) {
-      const match = /\$deltatoken=([^&]+)/.exec(delta["@odata.deltaLink"]);
-      if (match) deltaToken = match[1]!;
-    }
-
-    yield {
-      kind: "mail",
-      records: [],
-      cursor: deltaToken,
-    };
+    // No cursor is made up: without a delta token the next run reads again from the start.
+    if (deltaToken) yield { kind: "mail", records: [], cursor: deltaToken };
   },
   writeBack: {
     fields: [{ key: "draft", label: "Draft in mailbox" }],

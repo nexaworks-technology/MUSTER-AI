@@ -20,6 +20,7 @@ export {
   ConnectError,
   connectWithApiKey,
   disconnect,
+  replaceApiKey,
   startOAuth,
   testConnection,
 } from "./connections.service";
@@ -30,7 +31,7 @@ export {
   setWriteBack,
   WriteBackRefusedError,
 } from "./writeback.service";
-export { PROVIDER_NAMES } from "./providers";
+export { PROVIDER_NAMES, SOURCE_NAMES } from "./providers";
 export { listIntegrations, runSyncNow, type ProviderCard } from "./status.service";
 export { DataHealthError, getDataHealth, retryDeadJob } from "./data-health.service";
 export {

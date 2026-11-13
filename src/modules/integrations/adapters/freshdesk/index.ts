@@ -2,7 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import type { AdapterContext, InboundRequest, IntegrationAdapter } from "../../adapter";
 import type { Credentials } from "../../credentials";
-import { describeProviderError } from "../../errors";
+import { ConnectionSettingMissingError, describeProviderError } from "../../errors";
 import type { NormalizedEvent, NormalizedTicket } from "../../normalized";
 import { ProviderHttpError, requestJson } from "../../transport";
 
@@ -51,8 +51,11 @@ function basicAuthHeader(credentials: Credentials): string {
   return `Basic ${Buffer.from(`${key}:X`).toString("base64")}`;
 }
 
+/** The account's domain (`<domain>.freshdesk.com`). Never guessed. */
 function getDomain(credentials: Credentials, config?: FreshdeskConfig): string {
-  return credentials.site ?? config?.domain ?? "app";
+  const domain = credentials.site ?? config?.domain;
+  if (!domain) throw new ConnectionSettingMissingError("Freshdesk", "domain");
+  return domain;
 }
 
 const FD_STATUS: Record<number, "OPEN" | "PENDING" | "SOLVED" | "CLOSED"> = {

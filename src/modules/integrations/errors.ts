@@ -7,6 +7,21 @@ import { ProviderHttpError, ProviderShapeError, ProviderUnreachableError } from 
  * Settings › Integrations and stored as Integration.lastErrorPlain / SyncJob.errorPlain, so it
  * never contains a provider response body, a token or a stack trace.
  */
+/**
+ * A connection is missing a setting its provider address or sign-in needs (a Zendesk subdomain
+ * or admin email, a Freshdesk domain). Thrown before any request, so nothing is ever sent to a
+ * guessed address (CONNECTOR-LIVE.md, Zendesk/Freshdesk blocker 1).
+ */
+export class ConnectionSettingMissingError extends Error {
+  constructor(
+    readonly provider: string,
+    readonly setting: string,
+  ) {
+    super(`${provider} is missing its ${setting}`);
+    this.name = "ConnectionSettingMissingError";
+  }
+}
+
 export interface PlainError {
   plain: string;
   action?: string;
@@ -54,6 +69,11 @@ export function describeProviderError(
     return {
       plain: `${provider} sent data in a shape we did not expect, so nothing from that page was saved.`,
       action: "We have been told. The next run tries again.",
+    };
+  if (err instanceof ConnectionSettingMissingError)
+    return {
+      plain: `${err.provider} is missing its ${err.setting}, so nothing was requested.`,
+      action: `Disconnect ${err.provider} and connect it again: ${credentialAction}`,
     };
   if (err instanceof UnfixturedRequestError) return { plain: `Test transport: ${err.message}` };
   return { plain: `The ${provider} sync stopped because of an unexpected error.` };

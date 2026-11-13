@@ -10,6 +10,7 @@ import {
   linkSlackMembersAction,
   connectApiKeyAction,
   disconnectAction,
+  replaceApiKeyAction,
   runSyncNowAction,
   saveSegmentSecretAction,
   testConnectionAction,
@@ -70,9 +71,16 @@ const KEY_HELP: Record<string, string> = {
   AMPLITUDE:
     "Enter the project's API key and secret key (Settings › Projects). We read daily totals per account through the Dashboard API; Amplitude cannot give us individual people, so the power-user list needs the Usage API or Mixpanel.",
   ZENDESK:
-    "Enter your Zendesk subdomain (site), admin email (username) and API token (Admin Center › Apps and integrations › Zendesk API). We read tickets and comments read-only.",
+    "Enter your Zendesk subdomain, the admin email the token belongs to, and an API token (Admin Center › Apps and integrations › Zendesk API). We read tickets and comments read-only.",
   FRESHDESK:
-    "Enter your Freshdesk domain (site) and API key (Profile settings › View API key). We read tickets and conversations read-only.",
+    "Enter your Freshdesk domain and API key (Profile settings › View API key). We read tickets and conversations read-only.",
+};
+
+/** Key-form providers whose address needs the account's own name (sent as `site`). */
+const SITE_LABEL: Record<string, string> = {
+  CHARGEBEE: "Site name",
+  ZENDESK: "Zendesk subdomain (the acme in acme.zendesk.com)",
+  FRESHDESK: "Freshdesk domain (the acme in acme.freshdesk.com)",
 };
 
 /**
@@ -202,9 +210,13 @@ function ProviderSection({ card, tz }: { card: ProviderCard; tz: string }) {
 
       {connected && i?.webhookUrl ? (
         <p className="text-muted-foreground text-sm">
-          Webhook address for {card.name} (payment events arrive in real time):{" "}
-          <code className="break-all">{i.webhookUrl}</code>
+          Webhook address for {card.name} ({card.category === "SUPPORT" ? "ticket" : "payment"}{" "}
+          events arrive in real time): <code className="break-all">{i.webhookUrl}</code>
         </p>
+      ) : null}
+
+      {connected && i && card.authKind === "apiKey" && card.provider !== "USAGE_API" ? (
+        <ReplaceKey card={card} />
       ) : null}
 
       {connected && i && card.writeBackFields.length > 0 ? <WriteBack card={card} /> : null}
@@ -464,10 +476,22 @@ function ConnectForm({ card }: { card: ProviderCard }) {
           />
         </div>
       ) : null}
-      {p === "CHARGEBEE" ? (
+      {SITE_LABEL[p] ? (
         <div className="space-y-1">
-          <Label htmlFor={`${p}-site`}>Site name</Label>
-          <Input id={`${p}-site`} name="site" autoComplete="off" required />
+          <Label htmlFor={`${p}-site`}>{SITE_LABEL[p]}</Label>
+          <Input
+            id={`${p}-site`}
+            name="site"
+            autoComplete="off"
+            required
+            placeholder={p === "CHARGEBEE" ? "acme-test" : "acme"}
+          />
+        </div>
+      ) : null}
+      {p === "ZENDESK" ? (
+        <div className="space-y-1">
+          <Label htmlFor={`${p}-user`}>Admin email (the user the API token belongs to)</Label>
+          <Input id={`${p}-user`} name="username" type="email" autoComplete="off" required />
         </div>
       ) : null}
       <div className="space-y-1">
@@ -485,13 +509,49 @@ function ConnectForm({ card }: { card: ProviderCard }) {
           <Label htmlFor={`${p}-wh`}>
             {p === "CHARGEBEE"
               ? "Webhook username:password, the same as on the Chargebee webhook (optional, for real-time payment events)"
-              : "Webhook signing secret (optional, for real-time payment events)"}
+              : card.category === "SUPPORT"
+                ? "Webhook secret (optional, for real-time ticket events)"
+                : "Webhook signing secret (optional, for real-time payment events)"}
           </Label>
           <Input id={`${p}-wh`} name="webhookSecret" type="password" autoComplete="off" />
         </div>
       ) : null}
       <Button type="submit">Connect {card.name}</Button>
     </form>
+  );
+}
+
+/**
+ * Replace the saved key without disconnecting (CONNECTOR-LIVE.md, B1 finding 3). Open by default
+ * when the card needs attention, since the error asks for a new key. Settings, webhook secret and
+ * synced records stay; the new key is checked with the provider before it replaces the old one.
+ */
+function ReplaceKey({ card }: { card: ProviderCard }) {
+  const i = card.integration!;
+  const p = card.provider;
+  const label =
+    p === "MIXPANEL"
+      ? "New service account secret"
+      : p === "AMPLITUDE"
+        ? "New secret key"
+        : "New API key";
+  return (
+    <details open={i.status === "ERROR"} data-testid={`replace-key-${p}`}>
+      <summary className="cursor-pointer text-sm">Replace the {card.name} key</summary>
+      <form action={replaceApiKeyAction.bind(null, i.id)} className="mt-2 space-y-3">
+        <p className="text-muted-foreground text-sm">
+          {card.name} checks the new key first; only an accepted key replaces the saved one. The
+          connection, its settings and every synced record stay as they are.
+        </p>
+        <div className="space-y-1">
+          <Label htmlFor={`${p}-new-key`}>{label}</Label>
+          <Input id={`${p}-new-key`} name="apiKey" type="password" autoComplete="off" required />
+        </div>
+        <Button type="submit" variant="outline">
+          Check and replace key
+        </Button>
+      </form>
+    </details>
   );
 }
 

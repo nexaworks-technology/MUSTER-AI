@@ -81,12 +81,18 @@ export async function requestJson<T>(
 
 const TIMEOUT_MS = 20_000;
 
-/** HTTPS to the provider. Header values (tokens) are never logged by this module. */
+/**
+ * HTTPS to the provider. Header values (tokens) are never logged by this module. The timeout
+ * covers the whole exchange, and any failure before the body is fully read (DNS, TLS, connect,
+ * a reset or a timeout mid-body) is ProviderUnreachableError, so every connector words it as
+ * "could not be reached" (CONNECTOR-LIVE.md, B1 finding 1).
+ */
 export function createLiveTransport(fetchImpl: typeof fetch = fetch): HttpTransport {
   return {
     mode: "live",
     async request(req) {
       let res: Response;
+      let text: string;
       try {
         res = await fetchImpl(req.url, {
           method: req.method,
@@ -94,12 +100,12 @@ export function createLiveTransport(fetchImpl: typeof fetch = fetch): HttpTransp
           body: req.body,
           signal: AbortSignal.timeout(TIMEOUT_MS),
         });
+        text = await res.text();
       } catch {
         throw new ProviderUnreachableError();
       }
       const headers: Record<string, string> = {};
       res.headers.forEach((v, k) => (headers[k.toLowerCase()] = v));
-      const text = await res.text();
       let body: unknown = text;
       if ((headers["content-type"] ?? "").includes("json") && text) {
         try {
