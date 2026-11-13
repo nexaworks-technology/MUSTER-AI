@@ -26,6 +26,16 @@ blocker 3), and the vendor checks marked "needs a live check".
 | 6 | B1: Account 360 › Billing hides subscriptions | Subscriptions table (plan, amount/interval, quantity, status, renewal date, source) always shown; "No contract on file" now stands in for the contract sections only; invoices also show without a contract. Amount is "Restricted" without revenue access | `src/modules/billing/__tests__/subscriptions-section.test.ts` |
 | 7 | B1: no replace-key on a connected card | "Replace the … key" on every connected key-form card (Stripe, Chargebee, Mixpanel, Amplitude, Zendesk, Freshdesk), open by default when the card needs attention. `replaceApiKey` validates the new key with the provider using the saved settings, then swaps only the sealed key; integration id, `connectedAt`, settings, webhook secret and synced records stay; a refused key changes nothing. Audited (`integration.key_replaced` / `key_replace_failed`) without key values | `src/modules/integrations/__tests__/replace-key.int.test.ts` |
 
+**Docker demo after the rebuild (same day, image built from `777d8aa`):** both `web` and `worker`
+list all 20 connector names in their environment (names checked, values never printed; the demo
+env file sets none, so they are empty and the connectors stay unconfigured). Muster Proof workspace:
+PROOF Alpha's Billing tab shows "No contract on file" and, below it, its Stripe subscription
+"PROOF Monthly · $360.00 / month · 3 · Active · Dec 1, 2026 · Stripe"
+(`connector-evidence/fix-billing-subscriptions-no-contract.png`); the connected Stripe card offers
+"Replace the Stripe key" (`fix-stripe-replace-key.png`); the Zendesk and Freshdesk forms show their
+new fields (`fix-zendesk-form.png`, `fix-freshdesk-form.png`). A live replace-key against Stripe was
+not run in this session (the proof keys are due to be revoked); it is covered by the tests above.
+
 Not done, by design: Freshdesk got no admin-email field. Its adapter signs in with the API key
 alone (`<key>:X`), so an email field would be collected and never used.
 
