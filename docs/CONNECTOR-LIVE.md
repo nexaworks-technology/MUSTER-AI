@@ -147,6 +147,102 @@ fixtures in each adapter's `__fixtures__/`). Where the code does not say, this d
   3. Customers only match accounts whose domain or a contact's email already exists in Muster, so
      the CRM (or a CSV import) should be connected first or Stripe customers stay unmatched.
 
+### Live proof B1, Stripe test mode (2026-11-13): PASS, with gaps named below
+
+Run against the Docker demo (image `a4048e5`) in a separate workspace, **Muster Proof**
+(`muster-proof`, admin `admin@muster-proof.test`), created by the create-only
+`scripts/proof-workspace.ts` (it refuses if the workspace or admin exists; Larkspur untouched, still
+72 accounts). Stripe account in **test mode**; no live key was used.
+
+**Keys.** The app's key is the founder's restricted test key "Muster AI read", pasted by the founder
+into Settings › Integrations › Stripe (never seen or logged by the agent). Seeding used a separate
+restricted test key with Write on Customers, Products, Prices, Subscriptions and Invoices, read from
+`STRIPE_PROOF_SEED_KEY` in the repo `.env` by `scripts/stripe-proof-seed.ts` (refuses non-test keys,
+masks key fragments in Stripe errors, never prints the key). Both keys are to be revoked after the
+session. The first seed attempts hit HTTP 403 because `.env` held the read key; the founder replaced
+it with the write key.
+
+**Step 2, seed (PASS).** Product "PROOF Plan", price "PROOF Monthly" USD 120.00 per unit per month,
+collection "send invoice" (no payment method, nothing charged):
+
+| Customer | Stripe customer | Subscription | Amount | Renews (current period end) |
+|---|---|---|---|---|
+| PROOF Alpha `billing@proof-alpha.test` | `cus_VcWbKBEbcqvwAG` | `sub_1UbHYfF8EaE0VfUbnIMh5zfI`, active, qty 3 | USD 360.00 / month | 2026-12-01 00:00 UTC |
+| PROOF Beta `billing@proof-beta.test` | `cus_VcWbLdN86h3klT` | `sub_1UbHZEF8EaE0VfUbhfPApvUV`, active, qty 2 | USD 240.00 / month | 2026-12-10 00:00 UTC |
+| PROOF Gamma `billing@proof-gamma.test` | `cus_VcWbCtQme7xU0i` | none | – | – |
+
+Beta's renewal was planned for 2026-12-15; Stripe refuses a first renewal later than one billing
+period ahead (about 2026-12-13 on 2026-11-13), so it is 2026-12-10. Stripe issued no invoices for these
+subscriptions (no proration, future billing anchor), so 0 invoices is the correct expectation.
+The test account also holds **28 older test customers** from before this session.
+
+**Accounts first.** The 3 PROOF accounts (domains `proof-alpha.test`, `proof-beta.test`,
+`proof-gamma.test`) were imported through the real Settings › Import screen before connecting:
+"3 created, 0 updated, 0 unchanged, 0 failed".
+
+**Step 3, first sync (PASS on data; one UI gap).** Settings card: "5 added, 0 updated, 0 unchanged,
+28 not matched" (`docs/connector-evidence/b1-step3-first-sync.png`). The 28 are the older test
+customers, each listed as "matches no account by domain or contact email, so its billing was not
+linked" (correct: never guessed, never created). Database (`Subscription`, source `STRIPE`):
+
+| Account | plan | interval | amount | qty | status | currentPeriodEnd |
+|---|---|---|---|---|---|---|
+| PROOF Alpha | PROOF Monthly | MONTH | 36000 minor = USD 360.00 | 3 | ACTIVE | 2026-12-01 00:00 |
+| PROOF Beta | PROOF Monthly | MONTH | 24000 minor = USD 240.00 | 2 | ACTIVE | 2026-12-10 00:00 |
+
+`ExternalRef` rows: Customer 3, Subscription 2. Invoices 0. Gamma linked, no subscription. In the
+product, **Revenue › Expected billing** shows "Dec 2026 $600.00, 2 subscriptions" and the same for
+the following five months (`b1-step3-revenue.png`): 360 + 240, matching exactly.
+**Gap:** the **Account 360 › Billing tab never shows subscriptions**. `getBilling()` returns them,
+but the page renders contracts and invoices only, and with no contract it stops at "No contract on
+file" (`b1-step3-account360-billing-gap.png`). Not fixed in this session. Also by design: ARR comes
+from contracts only, so these accounts show "no ARR on file" although they have subscriptions.
+
+**Step 4, second sync (PASS).** "0 added, 0 updated, 5 unchanged, 28 not matched"
+(`b1-step4-resync.png`). A database dump of every PROOF subscription, invoice, external ref and the
+counts was byte-identical before and after, including `updatedAt`: zero duplicates, zero changes.
+
+**Step 5, change flows in (PASS).** Beta's quantity changed in Stripe 2 → 5 (USD 600.00 / month,
+renewal unchanged 2026-12-10). After sync, Beta's subscription is `amountMinor 60000`, `quantity 5`,
+updated 2026-11-13 11:12:02 UTC, **same internal record** (`c6rwrriswahisqjipozt9mmkw`, no new row),
+`source = STRIPE`, its `ExternalRef` still mapping `sub_1UbHZEF8EaE0VfUbhfPApvUV` through this
+integration (provenance rule D-83: a provider updates in place a field it owns). Alpha unchanged.
+Revenue › Expected billing now "Dec 2026 $960.00, 2 subscriptions" (`b1-step5-revenue-after-change.png`).
+A follow-up sync was "0 added, 0 updated, 5 unchanged".
+How it got there, honestly: the first sync after the change failed ("The Stripe sync stopped because
+of an unexpected error", worker log `TimeoutError`), the second failed after writing Beta's update
+("Stripe could not be reached" on the invoices request; batches commit as they go, so the
+subscription update landed and was kept), the third succeeded. Direct checks from the worker container
+reached Stripe in about 0.3 s, so these were transient network failures on this machine, not Stripe
+errors. See "Found during B1" for the one code issue this exposed.
+
+**Step 6, bad key (PASS).** Settings has no way to replace a connected key except Disconnect (which
+would need the founder to paste the real key again), so the stored credential was swapped at the
+database layer for a deliberately invalid test-shaped key, after an exact backup of the sealed value.
+Sync then failed visibly and honestly: the card turned **"Needs attention"** with "Stripe rejected the
+saved credentials. Paste a new restricted read-only key." and kept "Last successful sync"
+(`b1-step6-bad-key.png`); the integration row went to `ERROR`; no record changed. The backup was
+written back (byte-identical, checked), and the next sync succeeded: "0 added, 0 updated, 5 unchanged",
+status `CONNECTED` (`b1-step6-restored.png`). The backup file was deleted.
+
+**Step 7, webhooks: DEFERRED.** Stripe webhooks need an endpoint at a stable hostname (common blocker
+2). The card shows a webhook address on the current quick tunnel, which will change; no webhook was
+registered in Stripe. Polling sync is what was proven.
+
+**Found during B1 (named, not fixed):**
+1. **[code] A timeout while reading a response body is reported as "unexpected error".**
+   `createLiveTransport` maps fetch failures to `ProviderUnreachableError`, but `res.text()` is outside
+   that `try`, so an abort during the body read escapes as `TimeoutError` and the card says "stopped
+   because of an unexpected error" instead of "Stripe could not be reached".
+2. **[UI] Account 360 › Billing does not show subscriptions** (above).
+3. **[UI] No "replace key" for a connected API-key integration.** The bad-key message says "Paste a new
+   restricted read-only key", but the card offers no field for it; the only path is Disconnect and
+   connect again.
+4. **[environment] The quick tunnel degraded mid-session** (Chromium `ERR_HTTP2_PING_FAILED`, page
+   loads of 10 to 45 s); steps 5 and 6 were driven against the same Docker app on `localhost:3300`
+   with the same signed-in session. The app's own **sign-in rate limit** (5 per email per 10 minutes)
+   refused the proof scripts once; they were changed to sign in once and reuse the session.
+
 ## Chargebee
 
 - **Auth as implemented:** API key + site (`kind: "apiKey"`), HTTP Basic with the key as user.
@@ -310,7 +406,7 @@ fixtures in each adapter's `__fixtures__/`). Where the code does not say, this d
 | All OAuth (HubSpot, Salesforce, Slack, Gmail, Microsoft) | Compose does not forward `*_CLIENT_ID`/`*_CLIENT_SECRET` (and `SLACK_SIGNING_SECRET`) | Stable public hostname for redirect URIs |
 | HubSpot | `crm.objects.deals.write` missing (export only) | Developer account + app, client id/secret |
 | Salesforce | Sandbox login host hard-coded | Connected App; API-enabled edition |
-| Stripe | none | Restricted read key; webhook secret if real-time wanted |
+| Stripe | **Live polling sync proven (B1)**; found: body-read timeout reported as unexpected error, Account 360 hides subscriptions, no replace-key | Restricted read key; webhook secret if real-time wanted |
 | Chargebee | none | Read-only key + site |
 | Slack | (compose, above) | Slack app, bot scopes, redirect + interactivity URLs |
 | Zendesk | **Connect form missing subdomain and admin email**; live comment bodies to check | API token |
