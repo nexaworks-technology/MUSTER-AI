@@ -98,9 +98,17 @@ alone (`<key>:X`), so an email field would be collected and never used.
 ## HubSpot
 
 - **Auth as implemented:** OAuth 2.0 authorization-code flow (`kind: "oauth2"`). Authorize URL
-  `https://app.hubspot.com/oauth/authorize`; token URL `https://api.hubapi.com/oauth/v1/token`;
+  `https://app.hubspot.com/oauth/authorize`; token URL `https://api.hubapi.com/oauth/2026-03/token` (moved from the retired `/oauth/v1/token`, see below);
   refresh-token rotation handled. **No private-app token path**: there is no form field to paste a
   token.
+- **Token endpoint (changed in the B2 session):** `POST /oauth/2026-03/token` for both the code
+  exchange and the refresh, form-encoded, parameters in the body only. HubSpot's
+  [v1 migration guide](https://developers.hubspot.com/docs/api-reference/legacy/authentication/oauth-tokens/v1/migration-guide)
+  retires `/oauth/v1/token` on 2027-02-16 and names `/oauth/2026-03/token` as the replacement (the
+  code makes no revoke or introspect calls). Pinned by `adapters/hubspot/__tests__/token-endpoint.test.ts`.
+- **Known later migration (logged, not done):** every CRM call is on `/crm/v3/` (owners, companies,
+  contacts, deals, search, write-back). HubSpot's date-versioned API will replace it; horizon
+  September 2027. Untouched here.
 - **Scopes requested (exact strings, `HUBSPOT_SCOPES`):** `crm.objects.companies.read`,
   `crm.objects.contacts.read`, `crm.objects.deals.read`, `crm.objects.owners.read`,
   `crm.objects.companies.write`.

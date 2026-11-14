@@ -159,10 +159,17 @@ async function* searchSince(
   }
 }
 
+/**
+ * The one token endpoint, for the code exchange and the refresh. HubSpot retires /oauth/v1/token on
+ * 2027-02-16; its migration guide names /oauth/2026-03/token (same form fields, same response,
+ * every parameter in the body). Pinned by __tests__/token-endpoint.test.ts.
+ */
+const TOKEN_PATH = "/oauth/2026-03/token";
+
 function tokenRequest(form: Record<string, string>) {
   return {
     method: "POST" as const,
-    url: `${API}/oauth/v1/token`,
+    url: `${API}${TOKEN_PATH}`,
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams(form).toString(),
   };
