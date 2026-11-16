@@ -560,6 +560,74 @@ registered in Stripe. Polling sync is what was proven.
      Code/config change needed.
   3. Common blocker 2 for the webhook URL.
 
+### Live proof B3, Resend (2026-11-16): PASS for send and honest failure, with two findings
+
+Workspace Muster Proof, Docker stack (web :3300, worker). No key value was printed anywhere; keys
+are described only by length and prefix. Evidence: `docs/connector-evidence/b3-step2-invite-sent.png`,
+`b3-step4-wrong-key.png`, `b3-step5-restored-send.png`.
+
+**1. Live transport proven.** Web and worker containers: `EMAIL_TRANSPORT=resend`,
+`EMAIL_FROM=Muster AI <hello@send.nexaworks.tech>`, `RESEND_API_KEY` length 36, prefix `re_` (not the
+old 29-character placeholder), `RESEND_WEBHOOK_SECRET` unset. The app's own `env()` parses and the
+staff path selects the Resend HTTP transport. A read-only `GET https://api.resend.com/domains` from
+the web container returned HTTP 200: `send.nexaworks.tech` **verified** (ap-northeast-1) and
+`nexaworks.tech` verified (eu-west-1). The key is therefore a full-access key; a sending-only key
+would be enough for the app and is the better choice for production.
+
+**2. Real send (the member invite).** Settings › Members, role CSM, `sahilghewari6@gmail.com`, 15:06:58 UTC.
+Form: "Invitation sent to sahilghewari6@gmail.com."
+- Resend (API listing): id `01a1e4e5-a8ec-7b33-a895-d299e51710ff`, from `Muster AI <hello@send.nexaworks.tech>`,
+  to `sahilghewari6@gmail.com`, subject "Proof Admin invited you to Muster Proof on Muster AI",
+  last event **delivered**.
+- Inbox: confirmed by the founder (Rocky) in Gmail: in the Inbox (tabs Updates, Important), not spam,
+  From exactly as set. Cited from the founder's report, no screenshot of the inbox is stored.
+- App record: one `Invitation` row (CSM, pending, expires 2026-11-23) and one `invitation.created` audit
+  entry ("Invited sahilghewari6@gmail.com as CSM").
+- **Not recorded by the app:** Resend's message id and any delivery status. The only way the app
+  could learn "delivered/bounced" is the webhook, which is deferred (below). Delivery is therefore
+  proven here from Resend's side and the inbox, not from an app screen.
+
+**3. Honesty test (wrong key).** The stack env file got an obviously invalid key (`re_WRONGKEY...`),
+web and worker were recreated (environment change only, no code change, so no image rebuild),
+and the same invite was sent at 16:09:32 UTC.
+- Form showed: **"Something went wrong. Nothing was changed. Try again."** A failure, never a success
+  message. Web log: `Email provider rejected the message (HTTP 401)`.
+- Resend showed **no new email** (still the single 15:06 message).
+- Records the failed attempt created: a new `Invitation` row (`cmwjglcy00001pv0yp4780zxg`, pending),
+  one `invitation.created` audit entry (16:09:32), and it **revoked** the earlier pending invitation
+  (`cmwjecw870001o90xc0veaf84`, `revokedAt` 16:09:32.613) that had been delivered. Nothing else.
+- Verdict: no fake success. But see finding F1.
+
+**4. Restore and re-prove.** The real key was restored from the founder's repo `.env`, web and worker
+recreated. Same containers show `resend`, the `send.nexaworks.tech` From, length 36, prefix `re_`;
+the same read-only `/domains` call returned HTTP 200 with `send.nexaworks.tech` verified. A new
+invite at 16:10:15 UTC: form "Invitation sent to sahilghewari6@gmail.com."; Resend id
+`01a1e51f-9aaf-71d3-89d8-aba39f129a36`, delivered; the failed-attempt invitation was revoked by this
+send (as designed for a re-invite) and `cmwjgmaal0001pf0y6j4hzet9` is the one pending invitation.
+
+**5. Webhook: DEFERRED.** Not registered, on the founder's decision: the delivery webhook needs a
+stable public hostname (`${APP_URL}/api/email/webhook`), and the current URL is a Cloudflare quick tunnel
+whose hostname changes on every restart. Registering it there would break silently. Until it is
+registered with `RESEND_WEBHOOK_SECRET` set, every delivery event is refused (401) and the app
+shows no delivery status.
+
+**Findings (no code changed in this session, as instructed):**
+- **F1 [truthfulness, member invite]:** the invitation and its audit entry are committed *before* the
+  email is sent. When the send fails the form says "Nothing was changed", which is **false**: an unsent
+  pending invitation exists, and a previously delivered pending invitation for the same address was
+  revoked (the person's earlier valid link is now dead). The error is also generic (the user is not told
+  the email failed, so cannot tell "retry" from "fix the mail setup"). Suggested fix: send first, or
+  roll back/mark the row `delivery failed` and say "The invitation was saved but the email could not be
+  sent", and revoke the older invite only after a successful send.
+- **F2 [observability]:** no provider message id and no delivery status stored for staff email, so
+  nothing in the app can prove a given email was delivered. Store the Resend id on the invitation
+  (or an email-log row) and fill the status from the webhook once it is registered.
+- Deviations during setup: the key was first placed in the repo `.env` rather than the stack env file
+  compose reads (copied across); the `EMAIL_FROM` line in the repo `.env` has a stray `→` character and
+  `EMAIL_TRANSPORT=log` there, so the stack env file was set from the founder's stated From value instead.
+  The repo `.env` was not modified.
+- Reminder: the key is full-access; rotate/replace with a sending-only key when convenient.
+
 ---
 
 ## Blocker summary
