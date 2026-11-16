@@ -129,12 +129,136 @@ alone (`<key>:X`), so an email field would be collected and never used.
   deals by the v3 objects API (if it is not, contacts and contracts arrive without their company);
   whether `/account-info/v3/details` needs an extra scope; HubSpot's search API rate limit.
 - **Blockers, in order:**
-  1. Common blockers 1 (compose does not forward `HUBSPOT_*`) and 2 (stable hostname).
-  2. A HubSpot developer account and app must be created and its client id/secret set (steps below).
+  1. Common blocker 1 (compose forwarding) FIXED (`7015886`); common blocker 2 (stable hostname) still open.
+  2. A HubSpot app must be registered and its client id/secret set. DONE in B2 (below), by the
+     project-based route, not the legacy one.
   3. **Expansion export would fail if used:** it creates deals but `crm.objects.deals.write` is not
      in the requested scopes, so HubSpot would refuse it. Only matters once write-back is turned on.
   4. `crm.objects.companies.write` is requested at connect time even though write-back is off by
      default; the consent screen will show a write permission. Not a blocker; a disclosure point.
+
+### Live proof B2, HubSpot, project-based app (2026-11-16): PASS, with findings below
+
+**Registration finding: legacy apps are retired.** HubSpot has retired legacy apps on this account,
+so the app is registered as a **developer project** (CLI), not in the old Apps UI. The HubSpot
+developer docs now describe this as the only path. What was done, and what differed:
+
+- **CLI:** `@hubspot/cli` 8.18.0 (`npm install -g @hubspot/cli@latest`; the docs page still says 7.6.0).
+  Authenticated with a personal access key the founder pasted into their own terminal. The account
+  the CLI signed in to is the portal `nexaworks` (247989832), which the CLI labels **standard**, not
+  a developer account. Uploads worked there regardless.
+- **Project:** `hs project create --project-base app --distribution private --auth oauth` with no
+  features, platform version `2026.09`, created in `~/hubspot-muster-app` (outside this repo, which
+  stays clean). `app-hsmeta.json`: name "Muster AI", distribution `private`, auth `oauth`,
+  `requiredScopes` exactly the five the code sends (`crm.objects.companies.read`,
+  `crm.objects.contacts.read`, `crm.objects.deals.read`, `crm.objects.owners.read`,
+  `crm.objects.companies.write`). The CLI template's default scopes (including `oauth`) were
+  replaced. The support email, URL and phone fields are still the template's `example.com`
+  placeholders; they did not block anything.
+- **Upload:** `hs project upload`: build #1 built and deployed. HubSpot printed a warning that the
+  `oauth` scope group "is required and has been automatically added" to the app's required scopes.
+  The code does not send `oauth`; the consent screen accepted the connect anyway. No "update your
+  platform" block was hit. Build #2 re-uploaded only to move the redirect URL (below).
+- **Credentials:** client id and secret were copied by the founder into the project `.env`; this
+  session copied just those two lines into the Docker stack's env file without printing them.
+  Both reach `web` and `worker` (names checked in the container env, values never read).
+- **Redirect URL** on the quick tunnel: `<tunnel>/api/integrations/hubspot/callback`. The quick
+  tunnel hostname changed twice during the preparation; each change needs the `redirectUrls` edit
+  and a re-upload. A stable hostname (common blocker 2) is still the real fix.
+
+**Token endpoint changed first (`138b0ca`).** The code posted to `/oauth/v1/token`, which HubSpot
+retires on 2027-02-16. HubSpot's migration guide names `/oauth/2026-03/token` (same form fields,
+same response); both the code exchange and the refresh now use it, pinned by
+`adapters/hubspot/__tests__/token-endpoint.test.ts` (written failing first). The live connect and
+refresh went through it. The `/crm/v3/` calls are untouched (logged above as a later migration).
+
+**Setup.** Developer test account "Muster Proof Test" (portal 248008004), seeded by hand: companies
+PROOF Alpha, Beta, Gamma (domains `proof-alpha.test`, `proof-beta.test`, `proof-gamma.test`, matched
+to the three accounts already imported by CSV in the Muster Proof workspace) and one billing contact
+each. HubSpot rejects `.test` email addresses in every creation path, so the contacts use
+`billing@proof-alpha.com`, `billing@proof-beta.com`, `billing@proof-gamma.com`. The HubSpot account
+also holds HubSpot's two sample contacts, which have no company.
+
+| # | Step | Result |
+|---|---|---|
+| 1 | Connect (founder's OAuth click, Muster Proof workspace) | **PASS**. Card "Connected · read-only", write-back off, `externalAccountId` 248008004 |
+| 2 | First sync | **PASS on accounts**: 3 accounts matched, none duplicated. Contacts: Alpha and Beta created; **Gamma's contact missing** (step 3) |
+| 3 | Gamma's contact | **PASS after a code fix** (`f02b9de`), see below |
+| 4 | Changed field | **PASS**: Alpha Industry set to "Computer Software" in HubSpot; the next incremental sync updated the account (`fieldSources {"industry": "HUBSPOT"}`) |
+| 5 | Changed contact field | **PASS**: Alpha's contact Job title set to "Billing Lead"; the same run updated the contact (`fieldSources {"title": "HUBSPOT"}`). This is the live proof of the contact fix |
+| 6 | No-change sync | **PASS**: 0 added, 0 updated; account and contact `updatedAt` unchanged |
+| 7 | Revoke | **PASS**: app uninstalled in HubSpot; Test connection and Run sync both fail honestly ("Needs attention", "HubSpot refused the request (HTTP 400)"), the run is recorded FAILED, and a fingerprint of all 6 records is identical before and after |
+| 8 | Reconnect (founder's click) | **PASS**: card healthy again, same integration and `connectedAt`, final sync 0 added / 0 updated, data fingerprint unchanged |
+| 9 | Webhooks | **DEFERRED**, same as Stripe: HubSpot sync is polling only in code, and the tunnel hostname is not stable |
+
+Sync runs, in order (IST; counts are created / updated / unchanged / not matched):
+
+| Time | Kind | Result | Note |
+|---|---|---|---|
+| 17:22:32 | FULL | 2 / 0 / 3 / 6 | contacts of Alpha and Beta created; Gamma's contact did not exist yet at the read |
+| 17:25:51 | INCREMENTAL | 0 / 0 / 3 / 4 | |
+| 17:35:54 | INCREMENTAL | 0 / 0 / 3 / 4 | Gamma still missing (the bug) |
+| 17:42:36 | INCREMENTAL | 0 / 0 / 2 / 3 | first run on the fixed image: nothing new in its window |
+| 17:43:08 | FULL | 1 / 0 / 5 / 6 | queued by hand to recover Gamma's contact |
+| 17:49:06 | INCREMENTAL | 0 / 2 / 2 / 2 | Alpha industry and Alpha contact title |
+| 17:50:35 | INCREMENTAL | 0 / 0 / 0 / 1 | no-change sync |
+| 18:59:06 | INCREMENTAL | FAILED, HTTP 400 | app uninstalled |
+| 19:06:33, 19:06:51 | INCREMENTAL | 0 / 0 / 0 / 1 | after the reconnect |
+
+The "not matched" figures are plain-words problems, not errors: the HubSpot owner (the founder's
+own address) is not a member of the Muster Proof workspace, so accounts stay with Proof Admin; and
+HubSpot's two sample contacts have no company in the sync.
+
+**Gamma's contact: timing first, then a real bug (`f02b9de`).** The contact was created in HubSpot
+at 11:52:54Z, 22 seconds after the first sync read the contact list, so that run missing it was
+timing. The later incremental runs should have found it and did not. Root cause, checked live
+against HubSpot with the integration's own saved connection (read-only): for **contacts**, a search
+on `hs_lastmodifieddate` is accepted (HTTP 200) but matches nothing, while `lastmodifieddate`
+returned all three proof contacts; companies and deals are fine on `hs_lastmodifieddate`. So no
+contact created or changed after the first full sync was ever read again. Fix: contacts use
+`lastmodifieddate` (`MODIFIED_PROPERTY` in the HubSpot adapter), with a regression test pinning the
+filter per object type (`incremental-filter.test.ts`, failing before the change). The existing test
+had only pinned the companies filter, which is how it survived. The cursors of the earlier runs had
+already moved past Gamma's contact, so the fix alone did not recover it; one FULL run, queued through
+the real queue, did (1 contact created).
+
+**Provenance** (stored, read from the database; the UI does not label CRM field sources): after the
+change run, `Account.fieldSources` for PROOF Alpha is `{"industry": "HUBSPOT"}` and
+`Contact.fieldSources` for `billing@proof-alpha.com` is `{"title": "HUBSPOT"}`. The contacts the connector created have `source = HUBSPOT`; the three accounts keep `source = CSV`, since the CSV import created them first and HubSpot only matched and updated them.
+
+**Deviations from the plan.**
+- Contacts use `billing@proof-*.com`, not `.test` (HubSpot refuses `.test` addresses).
+- **Owner mapping is unproven in this setup:** the HubSpot owner (the founder's Gmail) is not a
+  member of the Muster Proof workspace, so owners stayed Proof Admin and the card said so.
+  Expected behaviour; matching a real member by email was not exercised.
+- Webhooks deferred.
+- The CLI signs in to a *standard* portal, not a developer account.
+
+**Findings, not fixed in this session:**
+1. **No "Source: HubSpot" label** on account Overview or People pages. The provenance is stored but
+   not shown for CRM fields. Follow-up observation only.
+2. **Records missed by an incremental run stay missed.** An incremental run never looks back past
+   the last cursor, and the UI has no "full resync". A full run exists in code
+   (`enqueueSync(..., "FULL")`) but is not reachable from Settings.
+3. **A revoked app reads vaguely and has no reconnect path.** The card says "HubSpot refused the
+   request (HTTP 400)" with no hint that the app was uninstalled; a revoked sign-in should say so
+   and point at Reconnect. Once the card is "Needs attention" it offers only Disconnect; the
+   reconnect in this proof was Disconnect, then Connect (the audit log shows both). Reconnecting
+   kept the original `connectedAt`, as designed.
+4. **A check made soon after an uninstall can still pass.** HubSpot revokes the refresh token on
+   uninstall, but an access token already issued works until it expires (about 30 minutes).
+5. **Live replace-key (B1 finding 3):** the audit log shows an `integration.key_replaced` entry for
+   Stripe at 11:40:57Z (not made in this session), so that flow has run against real Stripe at least
+   once.
+6. `crm.objects.deals.write` is still not requested, so the expansion export would be refused if
+   used (unchanged from the audit).
+
+Evidence (`docs/connector-evidence/`): `b2-step1-sync-gamma-card.png`,
+`b2-step1-gamma-people.png` (Gamma empty), `b2-step1-card-after-full.png`,
+`b2-step1-gamma-people-after-fix.png`, `b2-step2-alpha-overview.png` (Industry "Computer Software"),
+`b2-step2-alpha-people.png` (title "Billing Lead"), `b2-step2-sync-card.png`,
+`b2-step3-nochange-sync.png`, `b2-step4-test-connection-revoked-2.png`, `b2-step4-sync-revoked.png`,
+`b2-step4-final-sync.png`.
 
 ## Salesforce
 
@@ -443,7 +567,7 @@ registered in Stripe. Polling sync is what was proven.
 | Connector | Code / config blockers (need a code session) | Founder / vendor actions |
 |---|---|---|
 | All OAuth (HubSpot, Salesforce, Slack, Gmail, Microsoft) | ~~Compose does not forward `*_CLIENT_ID`/`*_CLIENT_SECRET` (and `SLACK_SIGNING_SECRET`)~~ FIXED (`7015886`) | Stable public hostname for redirect URIs |
-| HubSpot | `crm.objects.deals.write` missing (export only) | Developer account + app, client id/secret |
+| HubSpot | **Live proof B2 PASS** (project-based app); token endpoint moved to `/oauth/2026-03/token` (`138b0ca`); contact incremental search fixed (`f02b9de`); open: `crm.objects.deals.write` missing (export only), vague revoked-app message, no full resync | Project-based app registered and installed (done); stable hostname |
 | Salesforce | Sandbox login host hard-coded | Connected App; API-enabled edition |
 | Stripe | **Live polling sync proven (B1)**; B1 findings (body-read timeout wording, Account 360 subscriptions, replace-key) FIXED (`7015886`) | Restricted read key; webhook secret if real-time wanted |
 | Chargebee | none | Read-only key + site |
