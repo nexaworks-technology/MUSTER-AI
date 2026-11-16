@@ -490,8 +490,83 @@ registered in Stripe. Polling sync is what was proven.
   1. **FIXED (`7015886`).** **[code] The Settings connect form cannot connect Freshdesk.** The adapter needs the Freshdesk
      domain (`site`); the form has no site field for Freshdesk, so the domain falls back to `app`
      (`app.freshdesk.com`). Code change needed; stopped here.
-  2. Paging and `include=conversations` on live data (above): needs a live check.
+  2. **FIXED (`2543c8b`).** **[code] `include=conversations` on the list call, and no ticket bodies.** Freshdesk's list
+     endpoint accepts only `stats`, `requester` and `description`; the old call would have been refused,
+     and `description_text` was never requested. Details and live proof below.
   3. Common blocker 2 for webhooks only.
+
+### Live proof B4, Freshdesk (2026-11-16): PASS, with notes below
+
+Muster Proof workspace, Docker stack rebuilt from `2543c8b` (web and worker built one after the other;
+the new list request is present in both images). Account `nexaworks-help.freshdesk.com`. The founder
+entered the domain and API key in the Settings form (and the new key later); no key value was seen,
+printed or stored anywhere in this write-up. Screenshots: `docs/connector-evidence/b4-step*.png`.
+
+**Adapter fix (`2543c8b`, adapter + fixtures + tests only).** Before: fixtures rewritten to the documented
+list and conversations shapes, 6 of 10 contract tests failed against the old adapter (first error:
+"No recorded fixture for GET /api/v2/tickets?include=conversations%2Crequester"). After: 10 of 10 pass; the
+Freshdesk, sync, ingest, support-connectors, support-key-settings and live-transport suites pass
+(6 files, 49 tests); typecheck, eslint and prettier clean. Changes: list asks `include=requester,description`
+and `per_page=100`; conversations come from `GET /tickets/{id}/conversations` (30 per page, stops at a
+short page, capped at 20 pages); private notes are skipped; the ticket description is always the first
+message (before, it was dropped whenever a ticket had replies).
+
+**Seed (3 tickets):** Freshdesk ids 4, 5, 6.
+
+| Ticket | Requester | Expected |
+|---|---|---|
+| T1 (4) "Invoice total does not match our plan" | `billing@proof-alpha.com` | PROOF Alpha, by contact email |
+| T2 (5) "Weekly usage export keeps failing" | `ops@proof-beta.test` | PROOF Beta, by domain |
+| T3 (6) "Question about your pricing plans" | `someone@unknown-co.test` | no account: unmatched queue |
+
+**Step 1, connect (PASS).** "Connected · read-only"; audit `integration.connected` (`b4-step1-connected.png`).
+
+**Step 2, first sync (PASS).** "2 added, 0 updated, 0 unchanged, 1 not matched. 1 record could not be used"
+(`b4-step2-first-sync.png`). Database: T1 on PROOF Alpha (`matchedBy CONTACT_EMAIL`, status OPEN,
+priority NORMAL, first message INBOUND from `billing@proof-alpha.com` linked to the contact), T2 on PROOF
+Beta (`DOMAIN`, OPEN, NORMAL, first message from `ops@proof-beta.test`, no contact link because no
+contact has that email). Rows: 2 Ticket, 2 Conversation, 2 Message (the descriptions, external ids
+`4_desc`, `5_desc`), 2 InboxItem, 6 external refs. T3 is one `UnmatchedInbound` row (candidate accounts:
+none); PROOF Gamma has 0 tickets. Nothing guessed.
+
+**Step 3, second sync (PASS).** "0 added, 0 updated, 0 unchanged, 1 not matched" (`b4-step3-second-sync.png`).
+A dump of every Freshdesk row (tickets, conversations, messages, inbox items, unmatched, external refs,
+including `updatedAt`) is byte-identical before and after (same checksum), and the workspace row counts
+are identical. T3 was not duplicated. Note: incremental runs read only tickets changed since the cursor
+(newest `updated_at`), so the card says "0 unchanged", not 2.
+
+**Step 4, changed field (PASS).** T1 priority set to High in Freshdesk. Sync: "0 added, 1 updated, 0
+unchanged, 1 not matched" (`b4-step4-changed-field.png`). The only difference in the dump is T1:
+priority NORMAL to HIGH and `updatedAt` moved; the internal id `cmwjqiqr8003ap81ezh5gmzij` is the
+same, and every row count is identical (no new row).
+
+**Step 5, bad key (PASS).** The founder reset the API key in Freshdesk (old key dead).
+- Test connection: "Needs attention", "Freshdesk rejected the credentials (HTTP 401)", integration
+  `ERROR` (`b4-step5a-test-connection.png`).
+- Sync: "Last sync failed … Freshdesk rejected the saved credentials … Last successful sync: Nov 16, 2026,
+  5:27 PM." (`b4-step5b-sync-bad-key.png`). `lastSyncAt` kept; the Freshdesk data dump and row counts are
+  identical to before the key was killed.
+- Replace the Freshdesk key (new key entered by the founder): audit `integration.key_replaced`
+  "Replaced the Freshdesk key after Freshdesk accepted it; synced records were kept", status
+  Connected (`b4-step5c-key-replaced.png`). Next sync clean: "0 added, 0 updated, 1 unchanged"
+  (`b4-step5d-clean-sync.png`); data again identical to before the bad key. No key value appears in the
+  audit trail or the web log.
+
+**Step 6, webhooks: DEFERRED.** A webhook needs a stable public hostname (`${APP_URL}/api/integrations/
+freshdesk/webhook/<id>`) and a custom `X-Freshdesk-Webhook-Secret` header on a Freshdesk automation; the
+quick tunnel's hostname changes on every restart. Not registered. Polling sync is what was proven.
+
+**Notes (no code changed for these):**
+1. The seed tickets have no replies, so the per-ticket conversations call ran live but returned no
+   conversations. Its paging and the private-note filter are proven by tests only, not live.
+2. Incremental runs read one list page (up to 100 tickets) sorted by created date; with more than 100
+   changed tickets the cursor could skip some. Not an issue at this size. Whether `order_by=updated_at` may be
+   combined with `updated_since` is not stated in the docs.
+3. The Freshdesk integration row stores no account id (`externalAccountId` empty), unlike Stripe and HubSpot.
+4. After a failed sync the card's hint says "Enter your Freshdesk domain and API key", while the replace
+   form takes only the key. Right after a replace the card still shows the old "Last sync failed" line
+   until the next sync runs.
+5. The proof ran against `localhost:3300`; Freshdesk polling needs no tunnel.
 
 ## Gmail
 
