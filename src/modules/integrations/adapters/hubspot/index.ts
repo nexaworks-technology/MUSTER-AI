@@ -127,6 +127,16 @@ async function* listAll<T extends z.ZodType>(
   }
 }
 
+/**
+ * The "modified since" property each object is searched by. Contacts use `lastmodifieddate`: a
+ * search on `hs_lastmodifieddate` is accepted (HTTP 200) but matches no contacts, so incremental
+ * runs silently never read a contact created or changed after the first full sync (found live in
+ * the B2 proof, docs/CONNECTOR-LIVE.md). Companies and deals use `hs_lastmodifieddate`.
+ */
+const MODIFIED_PROPERTY: Record<string, string> = { contacts: "lastmodifieddate" };
+const modifiedProperty = (objectType: string) =>
+  MODIFIED_PROPERTY[objectType] ?? "hs_lastmodifieddate";
+
 async function* searchSince(
   t: HttpTransport,
   c: Credentials,
@@ -144,7 +154,11 @@ async function* searchSince(
         headers: { ...auth(c), "content-type": "application/json" },
         body: JSON.stringify({
           filterGroups: [
-            { filters: [{ propertyName: "hs_lastmodifieddate", operator: "GTE", value: sinceMs }] },
+            {
+              filters: [
+                { propertyName: modifiedProperty(objectType), operator: "GTE", value: sinceMs },
+              ],
+            },
           ],
           properties,
           limit: PAGE,
