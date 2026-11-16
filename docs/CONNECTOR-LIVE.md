@@ -424,6 +424,83 @@ registered in Stripe. Polling sync is what was proven.
   1. Common blocker 2 for webhooks only.
   2. A read-only API key and the site name (founder action); the Settings form has both fields.
   3. Same matching dependency as Stripe.
+  4. **FIXED (`4ce97e1`).** **[code] `next_offset` is an array on the live site.** Found at connect in B5; details and proof below.
+
+### Live proof B5, Chargebee test site (2026-11-16): PASS, with the connect bug found and fixed on the way
+
+Muster Proof workspace, Docker stack, site `nexaworks-test.chargebee.com` (Product Catalog 2.0, test site). The
+founder created a read-only API key and entered site and key in the Settings form (and the new key later); no
+key value was seen, printed or stored here. Seed: plan "PROOF CB Monthly" USD 90 per unit per month;
+customers PROOF Alpha, PROOF Beta, PROOF Gamma (`billing@proof-*.test`, company set); one subscription on
+Gamma, quantity 4 ($360 per month, auto-collection off) with one open invoice of $360. Screenshots:
+`docs/connector-evidence/b5-step*.png`.
+
+**Connect failed first, then fixed (`4ce97e1`, adapter + fixture + tests only).** The card showed "Needs
+attention: Chargebee sent data in a shape we did not expect". Reproduced against the live site with the stored
+credential (read-only GETs, shapes only, no key printed): the failing call is `GET /customers?limit=1` (Test
+connection) and the rejected field is `next_offset`: "expected string, received array". Live Chargebee returns
+the cursor as a JSON array of two strings (for example `["1794861324000","2753"]`); the adapter and its
+fixtures assumed a string (the old fixtures held the array as text). Chargebee takes the cursor back only as
+the array's JSON text (the bare string form gets HTTP 400, "offset : wrong format"; the JSON text got page 2
+with HTTP 200 on customers, subscriptions and invoices). With `limit=100` the cursor is absent when the list
+fits one page, so a sync of a small site would have passed while Test connection and any list over 100 rows
+failed. Fix: the schema reads a string or an array, an array cursor goes back as its JSON text, and a cursor
+that does not move is refused instead of looping. Test-first: fixture `live-shape.json` (the live shape,
+extra fields included, every value fictional); 4 of 5 new tests failed on the old code with the live error,
+all pass after; the Chargebee adapter, sync, ingest, support-key-settings, replace-key and live-transport
+suites pass (82 tests); typecheck, eslint and prettier clean. No shared code was changed. The images were
+rebuilt after the fix.
+
+**What the site really holds.** Besides the seed, the test site carries Chargebee's 5 bundled demo customers
+(`cbdemo_*`, `@example.com`, INR) with 5 subscriptions and 2 invoices. They match no account here, so they
+are reported "not matched" and stored nowhere.
+
+**Step 1, connect (PASS after the fix).** "Connected · read-only", site `nexaworks-test` recorded as the
+account id (`b5-step1-test-connection.png`).
+
+**Step 2, first sync (PASS).** "5 added, 0 updated, 0 unchanged, 12 not matched. 12 records could not be used"
+(`b5-step2-first-sync.png`): 3 customers matched to the existing PROOF accounts (3 accounts before and after,
+none created), 1 subscription and 1 invoice created on Gamma; the 12 not matched are the 5 demo customers,
+5 demo subscriptions and 2 demo invoices. Gamma subscription: plan `proof-cb-monthly-USD-Monthly`, MONTH,
+36000 minor USD, quantity 4, ACTIVE, period end 2026-12-16, source CHARGEBEE. Invoice `1`: 36000 USD, OPEN,
+0 failures. Alpha and Beta each still have only their Stripe subscription. Revenue › Expected billing,
+Dec 2026: $960.00 with 2 subscriptions before, **$1,320.00 with 3 subscriptions** after
+(`b5-step0-revenue-before.png`, `b5-step2-revenue-after.png`).
+
+**Step 3, second sync (PASS).** "0 added, 0 updated, 0 unchanged" (`b5-step3-second-sync.png`). A dump of every
+subscription, invoice and Chargebee external reference (with `updatedAt`) is byte-identical before and after
+(same checksum), and the workspace row counts are identical.
+
+**Step 4, changed field (PASS, with one extra invoice).** Gamma's quantity changed 4 to 6 in Chargebee. Sync:
+"1 added, 1 updated, 0 unchanged" (`b5-step4-changed-field.png`). The subscription is the same internal record
+(`cbw3u7szxhrn5l7z5n5mmn1v4`), now quantity 6 and 54000 minor ($540 per month), only its updated time moved; no
+new subscription row. Expected billing Dec 2026: **$1,500.00** (`b5-step4-revenue-after-change.png`). The "1
+added" is an invoice: Chargebee itself created invoice `2` ($179.40, OPEN) at the quantity change, apparently
+for the mid-term change; the sync stored it correctly. Nothing else changed.
+
+**Step 5, bad key (PASS).** The founder deleted the read-only key in Chargebee.
+- Test connection: "Needs attention", "The API key was rejected by Chargebee. Paste a new read-only key.",
+  integration `ERROR` (`b5-step5a-test-connection.png`).
+- Sync: "Last sync failed … The API key was rejected by Chargebee. Paste a new read-only key. Last successful
+  sync: Nov 16, 2026, 6:03 PM." (`b5-step5b-sync-bad-key.png`). `lastSyncAt` kept; the Chargebee data dump and
+  the workspace row counts are identical to before the key was deleted.
+- Replace the Chargebee key (new key entered by the founder): audit `integration.key_replaced` "Replaced the
+  Chargebee key after Chargebee accepted it; synced records were kept", status Connected
+  (`b5-step5c-key-replaced.png`). Next sync clean: "0 added, 0 updated, 0 unchanged" (`b5-step5d-clean-sync.png`);
+  data again identical to before the bad key. No key value in the audit trail or the web log.
+
+**Step 6, webhooks: DEFERRED.** Chargebee webhooks (`payment_failed`, `payment_succeeded`) need a public URL at a
+stable hostname plus a Basic user:password set on the Chargebee webhook; the quick tunnel's hostname changes on
+every restart. Not registered. Polling sync is what was proven.
+
+**Notes (no code changed for these):**
+1. The product catalog's draft state did not matter: the live subscription and invoice came through the API.
+2. Chargebee created an extra invoice on the quantity change, so "no new record" held for the subscription only.
+3. Expected billing's last month (May 2027) shows $960 with 2 subscriptions: Gamma renews on the 16th, past the
+   six-month horizon's edge; cosmetic, not a data issue.
+4. The invoice and dunning-failure paths (`payment_failed` marks an invoice FAILED) were not exercised live; they
+   need a failed charge or the deferred webhook.
+5. The proof ran against `localhost:3300`; Chargebee polling needs no tunnel.
 
 ## Slack
 
