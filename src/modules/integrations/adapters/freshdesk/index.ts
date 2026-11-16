@@ -4,7 +4,7 @@ import type { AdapterContext, InboundRequest, IntegrationAdapter } from "../../a
 import type { Credentials } from "../../credentials";
 import { ConnectionSettingMissingError, describeProviderError } from "../../errors";
 import type { NormalizedEvent, NormalizedTicket } from "../../normalized";
-import { ProviderHttpError, requestJson } from "../../transport";
+import { ProviderHttpError, requestJson, type HttpTransport } from "../../transport";
 
 /**
  * Freshdesk adapter (spec §6B Support, M9 B6).
@@ -22,6 +22,8 @@ const fdConversationSchema = z.object({
   id: z.union([z.number(), z.string()]),
   body_text: z.string().default(""),
   incoming: z.boolean().default(true),
+  /** A private note is internal to the support team; it is never stored as a message. */
+  private: z.boolean().default(false),
   from_email: z.string().optional(),
   created_at: z.string(),
 });
@@ -56,6 +58,37 @@ function getDomain(credentials: Credentials, config?: FreshdeskConfig): string {
   const domain = credentials.site ?? config?.domain;
   if (!domain) throw new ConnectionSettingMissingError("Freshdesk", "domain");
   return domain;
+}
+
+const LIST_PAGE = 100;
+/** Freshdesk pages conversations 30 at a time; a shorter page is the last one. */
+const CONVERSATION_PAGE = 30;
+const MAX_CONVERSATION_PAGES = 20;
+
+const fdConversationsSchema = z.array(fdConversationSchema);
+
+/** A ticket's public conversations, from GET /tickets/{id}/conversations (documented, paged). */
+async function readConversations(
+  transport: HttpTransport,
+  origin: string,
+  headers: Record<string, string>,
+  ticketId: string | number,
+) {
+  const out: z.infer<typeof fdConversationSchema>[] = [];
+  for (let page = 1; page <= MAX_CONVERSATION_PAGES; page++) {
+    const batch = await requestJson(
+      transport,
+      {
+        method: "GET",
+        url: `${origin}/tickets/${encodeURIComponent(String(ticketId))}/conversations?page=${page}`,
+        headers,
+      },
+      fdConversationsSchema,
+    );
+    out.push(...batch.filter((c) => !c.private));
+    if (batch.length < CONVERSATION_PAGE) break;
+  }
+  return out;
 }
 
 const FD_STATUS: Record<number, "OPEN" | "PENDING" | "SOLVED" | "CLOSED"> = {
@@ -142,48 +175,54 @@ export const freshdeskAdapter: IntegrationAdapter<FreshdeskConfig> = {
     opts: { kind: "FULL" | "INCREMENTAL"; cursor?: string },
   ) {
     const domain = getDomain(ctx.credentials, ctx.config);
-    const url = new URL(`https://${domain}.freshdesk.com/api/v2/tickets`);
-    url.searchParams.set("include", "conversations,requester");
+    const headers = {
+      authorization: basicAuthHeader(ctx.credentials),
+      accept: "application/json",
+    };
+    const origin = `https://${domain}.freshdesk.com/api/v2`;
+    const url = new URL(`${origin}/tickets`);
+    // The list endpoint accepts only stats, requester and description. Conversations are not a
+    // valid include here (they exist on the single ticket), so they are read per ticket below.
+    url.searchParams.set("include", "requester,description");
+    url.searchParams.set("per_page", String(LIST_PAGE));
     if (opts.cursor) {
       url.searchParams.set("updated_since", opts.cursor);
     }
 
     const tickets = await requestJson(
       ctx.transport,
-      {
-        method: "GET",
-        url: url.toString(),
-        headers: {
-          authorization: basicAuthHeader(ctx.credentials),
-          accept: "application/json",
-        },
-      },
+      { method: "GET", url: url.toString(), headers },
       fdTicketsListSchema,
     );
 
     let latestUpdated = opts.cursor;
-    const mapped = tickets.map((t) => {
+    const mapped = [];
+    for (const t of tickets) {
       if (t.updated_at && (!latestUpdated || t.updated_at > latestUpdated)) {
         latestUpdated = t.updated_at;
       }
       const statusCode = typeof t.status === "number" ? t.status : Number(t.status) || 2;
       const priorityCode = typeof t.priority === "number" ? t.priority : Number(t.priority) || 2;
+      const replies = await readConversations(ctx.transport, origin, headers, t.id);
 
-      const conversations = t.conversations.length
-        ? t.conversations
-        : t.description_text
+      // The ticket's own description is the customer's first message; replies follow it.
+      const thread = [
+        ...(t.description_text
           ? [
               {
                 id: `${t.id}_desc`,
                 body_text: t.description_text,
                 incoming: true,
+                private: false,
                 from_email: t.requester?.email,
                 created_at: t.created_at,
               },
             ]
-          : [];
+          : []),
+        ...replies,
+      ];
 
-      return {
+      mapped.push({
         externalId: String(t.id),
         subject: t.subject,
         status: FD_STATUS[statusCode] ?? "OPEN",
@@ -192,15 +231,15 @@ export const freshdeskAdapter: IntegrationAdapter<FreshdeskConfig> = {
         requesterName: t.requester?.name,
         openedAt: new Date(t.created_at),
         updatedAt: t.updated_at ? new Date(t.updated_at) : undefined,
-        messages: conversations.map((c) => ({
+        messages: thread.map((c) => ({
           externalId: String(c.id),
           direction: c.incoming ? ("INBOUND" as const) : ("OUTBOUND" as const),
           fromAddress: c.from_email ?? (c.incoming ? t.requester?.email : undefined),
           bodyText: c.body_text || t.subject,
           sentAt: new Date(c.created_at),
         })),
-      };
-    });
+      });
+    }
 
     yield {
       kind: "tickets",
