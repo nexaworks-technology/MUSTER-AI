@@ -1,0 +1,302 @@
+{
+  "provider": "chargebee",
+  "description": "Chargebee as the live test site returned it (2026-11-16): next_offset is a real JSON ARRAY of two strings, extra fields on every object. Values scrubbed to fictional ones; shapes are unchanged.",
+  "interactions": [
+    {
+      "note": "validate / test connection: limit=1, next_offset is an ARRAY",
+      "request": {
+        "method": "GET",
+        "path": "/api/v2/customers",
+        "query": {
+          "limit": "1"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "list": [
+            {
+              "customer": {
+                "id": "cb_live_gamma",
+                "email": "billing@proof-gamma.test",
+                "company": "PROOF Gamma",
+                "auto_collection": "off",
+                "net_term_days": 0,
+                "allow_direct_debit": false,
+                "created_at": 1794861000,
+                "created_from_ip": "203.0.113.9",
+                "taxability": "taxable",
+                "updated_at": 1794861100,
+                "pii_cleared": "active",
+                "channel": "web",
+                "resource_version": 1794861100000,
+                "deleted": false,
+                "object": "customer",
+                "card_status": "no_card",
+                "promotional_credits": 0,
+                "refundable_credits": 0,
+                "excess_payments": 0,
+                "unbilled_charges": 0,
+                "preferred_currency_code": "USD",
+                "mrr": 0,
+                "auto_close_invoices": true
+              }
+            }
+          ],
+          "next_offset": ["1794861324000", "2753"]
+        }
+      }
+    },
+    {
+      "note": "customers page 2 (offset is the array's JSON text)",
+      "request": {
+        "method": "GET",
+        "path": "/api/v2/customers",
+        "query": {
+          "limit": "100",
+          "offset": "[\"1794861324000\",\"2753\"]"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "list": [
+            {
+              "customer": {
+                "id": "cb_live_beta",
+                "email": "billing@proof-beta.test",
+                "company": "PROOF Beta",
+                "auto_collection": "off",
+                "net_term_days": 0,
+                "allow_direct_debit": false,
+                "created_at": 1794861000,
+                "created_from_ip": "203.0.113.9",
+                "taxability": "taxable",
+                "updated_at": 1794861100,
+                "pii_cleared": "active",
+                "channel": "web",
+                "resource_version": 1794861100000,
+                "deleted": false,
+                "object": "customer",
+                "card_status": "no_card",
+                "promotional_credits": 0,
+                "refundable_credits": 0,
+                "excess_payments": 0,
+                "unbilled_charges": 0,
+                "preferred_currency_code": "USD",
+                "mrr": 0,
+                "auto_close_invoices": true
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "note": "customers page 1",
+      "request": {
+        "method": "GET",
+        "path": "/api/v2/customers",
+        "query": {
+          "limit": "100"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "list": [
+            {
+              "customer": {
+                "id": "cb_live_gamma",
+                "email": "billing@proof-gamma.test",
+                "company": "PROOF Gamma",
+                "auto_collection": "off",
+                "net_term_days": 0,
+                "allow_direct_debit": false,
+                "created_at": 1794861000,
+                "created_from_ip": "203.0.113.9",
+                "taxability": "taxable",
+                "updated_at": 1794861100,
+                "pii_cleared": "active",
+                "channel": "web",
+                "resource_version": 1794861100000,
+                "deleted": false,
+                "object": "customer",
+                "card_status": "no_card",
+                "promotional_credits": 0,
+                "refundable_credits": 0,
+                "excess_payments": 0,
+                "unbilled_charges": 0,
+                "preferred_currency_code": "USD",
+                "mrr": 0,
+                "auto_close_invoices": true
+              }
+            },
+            {
+              "customer": {
+                "id": "cb_live_alpha",
+                "email": "billing@proof-alpha.test",
+                "company": "PROOF Alpha",
+                "auto_collection": "off",
+                "net_term_days": 0,
+                "allow_direct_debit": false,
+                "created_at": 1794861000,
+                "created_from_ip": "203.0.113.9",
+                "taxability": "taxable",
+                "updated_at": 1794861100,
+                "pii_cleared": "active",
+                "channel": "web",
+                "resource_version": 1794861100000,
+                "deleted": false,
+                "object": "customer",
+                "card_status": "no_card",
+                "promotional_credits": 0,
+                "refundable_credits": 0,
+                "excess_payments": 0,
+                "unbilled_charges": 0,
+                "preferred_currency_code": "USD",
+                "mrr": 0,
+                "auto_close_invoices": true
+              }
+            }
+          ],
+          "next_offset": ["1794861324000", "2753"]
+        }
+      }
+    },
+    {
+      "note": "subscriptions page 2",
+      "request": {
+        "method": "GET",
+        "path": "/api/v2/subscriptions",
+        "query": {
+          "limit": "100",
+          "offset": "[\"1794861324000\",\"2754\"]"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "list": []
+        }
+      }
+    },
+    {
+      "note": "subscriptions page 1: next_offset array",
+      "request": {
+        "method": "GET",
+        "path": "/api/v2/subscriptions",
+        "query": {
+          "limit": "100"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "list": [
+            {
+              "subscription": {
+                "id": "cb_live_sub",
+                "billing_period": 1,
+                "billing_period_unit": "month",
+                "auto_collection": "off",
+                "customer_id": "cb_live_gamma",
+                "status": "active",
+                "current_term_start": 1794861500,
+                "current_term_end": 1797453500,
+                "next_billing_at": 1797453500,
+                "created_at": 1794861500,
+                "started_at": 1794861500,
+                "activated_at": 1794861500,
+                "created_from_ip": "203.0.113.9",
+                "updated_at": 1794861579,
+                "has_scheduled_changes": false,
+                "channel": "web",
+                "resource_version": 1794861579000,
+                "deleted": false,
+                "object": "subscription",
+                "currency_code": "USD",
+                "subscription_items": [
+                  {
+                    "item_price_id": "proof-cb-monthly-USD-Monthly",
+                    "item_type": "plan",
+                    "quantity": 4,
+                    "unit_price": 9000,
+                    "amount": 36000,
+                    "current_term_start": 1794861500,
+                    "current_term_end": 1797453500,
+                    "next_billing_at": 1797453500,
+                    "billing_period": 1,
+                    "billing_period_unit": "month",
+                    "free_quantity": 0,
+                    "object": "subscription_item"
+                  }
+                ],
+                "due_invoices_count": 1,
+                "due_since": 1794861500,
+                "total_dues": 36000,
+                "mrr": 36000,
+                "exchange_rate": 1,
+                "base_currency_code": "USD",
+                "has_scheduled_advance_invoices": false,
+                "decommissioned": false,
+                "create_pending_invoices": false,
+                "auto_close_invoices": true
+              }
+            }
+          ],
+          "next_offset": ["1794861324000", "2754"]
+        }
+      }
+    },
+    {
+      "note": "invoices",
+      "request": {
+        "method": "GET",
+        "path": "/api/v2/invoices",
+        "query": {
+          "limit": "100"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "list": [
+            {
+              "invoice": {
+                "id": "1",
+                "customer_id": "cb_live_gamma",
+                "subscription_id": "cb_live_sub",
+                "recurring": true,
+                "status": "payment_due",
+                "date": 1794861500,
+                "due_date": 1794861500,
+                "net_term_days": 0,
+                "price_type": "tax_exclusive",
+                "exchange_rate": 1,
+                "total": 36000,
+                "amount_due": 36000,
+                "amount_adjusted": 0,
+                "amount_paid": 0,
+                "write_off_amount": 0,
+                "credits_applied": 0,
+                "updated_at": 1794861579,
+                "resource_version": 1794861579000,
+                "deleted": false,
+                "object": "invoice",
+                "currency_code": "USD",
+                "dunning_status": null
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

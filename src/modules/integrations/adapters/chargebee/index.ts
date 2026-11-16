@@ -4,7 +4,12 @@ import type { AdapterContext, IntegrationAdapter } from "../../adapter";
 import type { Credentials } from "../../credentials";
 import { describeProviderError } from "../../errors";
 import type { NormalizedBatch, NormalizedEvent } from "../../normalized";
-import { ProviderHttpError, requestJson, type HttpTransport } from "../../transport";
+import {
+  ProviderHttpError,
+  ProviderShapeError,
+  requestJson,
+  type HttpTransport,
+} from "../../transport";
 
 /**
  * Chargebee (API key + site; a read-only key is recommended). Read-only: customers are matched
@@ -22,7 +27,12 @@ type Cfg = Record<string, never>;
 const listOf = <T extends z.ZodType>(key: string, item: T) =>
   z.object({
     list: z.array(z.object({ [key]: item })),
-    next_offset: z.string().optional(),
+    /**
+     * The live site returns the cursor as a JSON array of two strings (["1794861324000","2753"]);
+     * older answers (and the recorded fixtures) carry it as a string. Chargebee takes either back as
+     * the same text, so both are read and kept as text (see `offsetText`).
+     */
+    next_offset: z.union([z.string(), z.array(z.string())]).nullish(),
   });
 
 const customer = z.object({
@@ -144,6 +154,10 @@ function mapInvoice(i: z.infer<typeof invoice>, failedAt?: number) {
   };
 }
 
+/** The cursor as the text Chargebee accepts back: an array becomes its JSON text, a string stays. */
+const offsetText = (o: string | string[] | null | undefined) =>
+  o == null ? undefined : typeof o === "string" ? o : JSON.stringify(o);
+
 async function* pages<T extends z.ZodType>(
   t: HttpTransport,
   c: Credentials,
@@ -164,8 +178,11 @@ async function* pages<T extends z.ZodType>(
       listOf(key, item),
     );
     yield body.list.map((e) => e[key] as z.infer<T>);
-    offset = body.next_offset;
-    if (!offset) return;
+    const next = offsetText(body.next_offset);
+    if (!next) return;
+    // A cursor that did not move would repeat the same page for ever.
+    if (next === offset) throw new ProviderShapeError(`next_offset: repeated cursor ${next}`);
+    offset = next;
   }
 }
 
