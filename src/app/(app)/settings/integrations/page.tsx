@@ -71,7 +71,7 @@ const KEY_HELP: Record<string, string> = {
   AMPLITUDE:
     "Enter the project's API key and secret key (Settings › Projects). We read daily totals per account through the Dashboard API; Amplitude cannot give us individual people, so the power-user list needs the Usage API or Mixpanel.",
   ZENDESK:
-    "Enter your Zendesk subdomain, the admin email the token belongs to, and an API token (Admin Center › Apps and integrations › Zendesk API). We read tickets and comments read-only.",
+    "Create a confidential OAuth client in Zendesk (Admin Center › Apps and integrations › APIs › OAuth clients) and enter your subdomain with the client's Identifier and Secret. Zendesk no longer issues API tokens. We read tickets and comments read-only (scope: read).",
   FRESHDESK:
     "Enter your Freshdesk domain and API key (Profile settings › View API key). We read tickets and conversations read-only.",
 };
@@ -489,21 +489,51 @@ function ConnectForm({ card }: { card: ProviderCard }) {
         </div>
       ) : null}
       {p === "ZENDESK" ? (
+        <>
+          <div className="space-y-1">
+            <Label htmlFor={`${p}-client-id`}>
+              OAuth client ID (shown as Identifier in Zendesk)
+            </Label>
+            <Input id={`${p}-client-id`} name="clientId" autoComplete="off" />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor={`${p}-client-secret`}>OAuth client secret</Label>
+            <Input
+              id={`${p}-client-secret`}
+              name="clientSecret"
+              type="password"
+              autoComplete="off"
+            />
+          </div>
+          <details>
+            <summary className="cursor-pointer text-sm">
+              Legacy: an API token (only for accounts that still have one; Zendesk switches tokens
+              off on 30 April 2027)
+            </summary>
+            <div className="mt-2 space-y-3">
+              <div className="space-y-1">
+                <Label htmlFor={`${p}-user`}>Admin email (the user the API token belongs to)</Label>
+                <Input id={`${p}-user`} name="username" type="email" autoComplete="off" />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor={`${p}-key`}>API token</Label>
+                <Input id={`${p}-key`} name="apiKey" type="password" autoComplete="off" />
+              </div>
+            </div>
+          </details>
+        </>
+      ) : (
         <div className="space-y-1">
-          <Label htmlFor={`${p}-user`}>Admin email (the user the API token belongs to)</Label>
-          <Input id={`${p}-user`} name="username" type="email" autoComplete="off" required />
+          <Label htmlFor={`${p}-key`}>
+            {p === "MIXPANEL"
+              ? "Service account secret"
+              : p === "AMPLITUDE"
+                ? "Secret key"
+                : "API key"}
+          </Label>
+          <Input id={`${p}-key`} name="apiKey" type="password" autoComplete="off" required />
         </div>
-      ) : null}
-      <div className="space-y-1">
-        <Label htmlFor={`${p}-key`}>
-          {p === "MIXPANEL"
-            ? "Service account secret"
-            : p === "AMPLITUDE"
-              ? "Secret key"
-              : "API key"}
-        </Label>
-        <Input id={`${p}-key`} name="apiKey" type="password" autoComplete="off" required />
-      </div>
+      )}
       {card.hasWebhooks ? (
         <div className="space-y-1">
           <Label htmlFor={`${p}-wh`}>
@@ -537,18 +567,40 @@ function ReplaceKey({ card }: { card: ProviderCard }) {
         : "New API key";
   return (
     <details open={i.status === "ERROR"} data-testid={`replace-key-${p}`}>
-      <summary className="cursor-pointer text-sm">Replace the {card.name} key</summary>
+      <summary className="cursor-pointer text-sm">
+        Replace the {card.name} {p === "ZENDESK" ? "OAuth client" : "key"}
+      </summary>
       <form action={replaceApiKeyAction.bind(null, i.id)} className="mt-2 space-y-3">
         <p className="text-muted-foreground text-sm">
-          {card.name} checks the new key first; only an accepted key replaces the saved one. The
-          connection, its settings and every synced record stay as they are.
+          {card.name} checks the new {p === "ZENDESK" ? "client" : "key"} first; only an accepted{" "}
+          {p === "ZENDESK" ? "client" : "key"} replaces the saved one. The connection, its settings
+          and every synced record stay as they are.
         </p>
-        <div className="space-y-1">
-          <Label htmlFor={`${p}-new-key`}>{label}</Label>
-          <Input id={`${p}-new-key`} name="apiKey" type="password" autoComplete="off" required />
-        </div>
+        {p === "ZENDESK" ? (
+          <>
+            <div className="space-y-1">
+              <Label htmlFor={`${p}-new-client-id`}>New OAuth client ID</Label>
+              <Input id={`${p}-new-client-id`} name="clientId" autoComplete="off" required />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor={`${p}-new-client-secret`}>New OAuth client secret</Label>
+              <Input
+                id={`${p}-new-client-secret`}
+                name="clientSecret"
+                type="password"
+                autoComplete="off"
+                required
+              />
+            </div>
+          </>
+        ) : (
+          <div className="space-y-1">
+            <Label htmlFor={`${p}-new-key`}>{label}</Label>
+            <Input id={`${p}-new-key`} name="apiKey" type="password" autoComplete="off" required />
+          </div>
+        )}
         <Button type="submit" variant="outline">
-          Check and replace key
+          {p === "ZENDESK" ? "Check and replace client" : "Check and replace key"}
         </Button>
       </form>
     </details>

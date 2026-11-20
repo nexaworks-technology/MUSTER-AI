@@ -8,7 +8,7 @@ import { getFlowProducer, getQueue } from "@/lib/jobs/queues";
 import { logger } from "@/lib/logger";
 import { adapterFor } from "./adapters";
 import { loadConnection, type ConnectionDeps } from "./connection";
-import { describeProviderError } from "./errors";
+import { describeProviderError, OAuthClientRefusedError } from "./errors";
 import { UnfixturedRequestError } from "./fixture-transport";
 import {
   addCounts,
@@ -166,7 +166,8 @@ export async function runSync(raw: unknown, deps: ConnectionDeps = {}): Promise<
   } catch (err) {
     const described = describe(err, integration.provider, name, deps);
     const credentialProblem =
-      err instanceof ProviderHttpError && (err.status === 401 || err.status === 403);
+      (err instanceof ProviderHttpError && (err.status === 401 || err.status === 403)) ||
+      err instanceof OAuthClientRefusedError;
     await db.$tenantTransaction(async (tx) => {
       await tx.syncJob.update({
         where: { id: job.id },

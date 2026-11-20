@@ -7,8 +7,10 @@ import {
   API_KEY_FORM_PROVIDERS,
   connectWithApiKey,
   ConnectError,
+  replaceApiKey,
   testConnection,
 } from "../connections.service";
+import { runSync } from "../sync.jobs";
 import { openCredentials, sealCredentials } from "../credentials";
 import { ConnectionSettingMissingError } from "../errors";
 import { createFixtureTransport, type FixtureInteraction } from "../fixture-transport";
@@ -194,5 +196,181 @@ describe("no silent fallback in the adapters", () => {
     const after = await scopedDb(actor).integration.findUniqueOrThrow({ where: { id: row.id } });
     expect(after.status).toBe("ERROR");
     expect(after.lastErrorPlain).toMatch(/missing its subdomain/);
+  });
+});
+
+/**
+ * Zendesk OAuth (B7): the client ID and secret connect an account that cannot have an API token. The
+ * secret is sealed with the other credentials; a refused client saves nothing and the card shows
+ * "Needs attention" with the likely cause, keeping the last good sync.
+ */
+const OAUTH_OK: FixtureInteraction = {
+  request: { method: "POST", path: "/oauth/tokens", bodyIncludes: "grant_type=client_credentials" },
+  response: {
+    status: 201,
+    headers: {},
+    body: {
+      access_token: "int-oauth-token",
+      token_type: "bearer",
+      scope: "read",
+      expires_in: 1800,
+    },
+  },
+};
+const OAUTH_REFUSED: FixtureInteraction = {
+  request: { method: "POST", path: "/oauth/tokens" },
+  response: { status: 400, headers: {}, body: { error: "invalid_client" } },
+};
+const ZD_EXPORT_EMPTY: FixtureInteraction = {
+  request: { method: "GET", path: "/api/v2/incremental/tickets.json" },
+  response: {
+    status: 200,
+    headers: {},
+    body: { tickets: [], users: [], count: 0, end_of_stream: true, end_time: null },
+  },
+};
+
+describe("Zendesk OAuth connect", () => {
+  it("connects with a subdomain, client ID and secret: no admin email, sealed, Bearer on the reads", async () => {
+    const { actor } = await createTestAdmin("zd-oauth-ok");
+    const { transport, deps: d } = deps([OAUTH_OK, ZD_ME]);
+    await connectWithApiKey(
+      actor,
+      "ZENDESK",
+      {
+        site: "https://Acme.zendesk.com/",
+        clientId: "zd-cid",
+        clientSecret: "zd-client-secret-123",
+      },
+      d,
+    );
+    const api = transport.calls.filter((c) => !c.url.endsWith("/oauth/tokens"));
+    expect(api.length).toBeGreaterThan(0);
+    for (const c of api) expect(c.headers?.authorization).toBe("Bearer int-oauth-token");
+    const stored = await storedCredentials(actor.workspaceId, "ZENDESK");
+    expect(stored).toMatchObject({
+      site: "acme",
+      clientId: "zd-cid",
+      clientSecret: "zd-client-secret-123",
+      status: "CONNECTED",
+    });
+    expect(stored.username).toBeUndefined();
+    expect(stored.apiKey).toBeUndefined();
+    // The raw column never holds the secret in the clear.
+    const raw = await scopedDb(actor).integration.findFirstOrThrow({
+      where: { provider: "ZENDESK" },
+      select: { credentialsEnc: true },
+    });
+    expect(raw.credentialsEnc).not.toContain("zd-client-secret-123");
+  });
+
+  it("refuses a missing subdomain or half-filled client before any request", async () => {
+    const { actor } = await createTestAdmin("zd-oauth-missing");
+    const { transport, deps: d } = deps([OAUTH_OK, ZD_ME]);
+    await expect(
+      connectWithApiKey(
+        actor,
+        "ZENDESK",
+        { clientId: "zd-cid", clientSecret: "zd-client-secret-123" },
+        d,
+      ),
+    ).rejects.toThrow(/subdomain/i);
+    await expect(
+      connectWithApiKey(actor, "ZENDESK", { site: "acme", clientId: "zd-cid" }, d),
+    ).rejects.toThrow();
+    expect(transport.calls).toEqual([]);
+  });
+
+  it("a refused client saves nothing and names the likely cause", async () => {
+    const { actor } = await createTestAdmin("zd-oauth-refused");
+    const { deps: d } = deps([OAUTH_REFUSED]);
+    const err = await connectWithApiKey(
+      actor,
+      "ZENDESK",
+      { site: "acme", clientId: "zd-cid", clientSecret: "wrong-secret-123" },
+      d,
+    ).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(ConnectError);
+    expect((err as Error).message).toMatch(/revoked|deleted/i);
+    expect((err as Error).message).not.toContain("wrong-secret-123");
+    const rows = await scopedDb(actor).integration.findMany({ where: { provider: "ZENDESK" } });
+    expect(rows).toEqual([]);
+  });
+
+  it("a revoked client turns the card to Needs attention, keeps the last good sync, and Replace swaps the client", async () => {
+    const { actor } = await createTestAdmin("zd-oauth-revoked");
+    const ok = deps([OAUTH_OK, ZD_ME, ZD_EXPORT_EMPTY]);
+    const { integrationId } = await connectWithApiKey(
+      actor,
+      "ZENDESK",
+      { site: "acme", clientId: "zd-cid", clientSecret: "zd-client-secret-123" },
+      ok.deps,
+    );
+    const payload = (runKey: string) => ({
+      workspaceId: actor.workspaceId,
+      integrationId,
+      kind: "INCREMENTAL" as const,
+      trigger: "MANUAL" as const,
+      runKey,
+    });
+    const good = await runSync(payload("good"), ok.deps);
+    expect(good.status).toBe("SUCCEEDED");
+    const lastSync = (
+      await scopedDb(actor).integration.findUniqueOrThrow({ where: { id: integrationId } })
+    ).lastSyncAt;
+    expect(lastSync).not.toBeNull();
+
+    // The founder deletes the OAuth client in Zendesk: the token endpoint refuses it.
+    const revoked = deps([OAUTH_REFUSED]);
+    const bad = await runSync(payload("bad"), revoked.deps);
+    expect(bad.status).toBe("FAILED");
+    expect(bad.errorPlain).toMatch(/OAuth client/);
+    const failed = await scopedDb(actor).integration.findUniqueOrThrow({
+      where: { id: integrationId },
+    });
+    expect(failed.status).toBe("ERROR"); // "Needs attention"
+    expect(failed.lastErrorPlain).toMatch(/revoked|deleted/i);
+    expect(failed.lastSyncAt?.getTime()).toBe(lastSync?.getTime()); // last good sync kept
+    const check = await testConnection(actor, integrationId, revoked.deps);
+    expect(check.ok).toBe(false);
+    expect(check.message).toMatch(/OAuth client/);
+
+    // A refused replacement changes nothing; an accepted one swaps the client in place.
+    await expect(
+      replaceApiKey(
+        actor,
+        integrationId,
+        { clientId: "zd-cid-2", clientSecret: "still-wrong-secret" },
+        revoked.deps,
+      ),
+    ).rejects.toThrow(/saved client was kept/i);
+    expect((await storedCredentials(actor.workspaceId, "ZENDESK")).clientId).toBe("zd-cid");
+    const fresh = deps([OAUTH_OK, ZD_ME, ZD_EXPORT_EMPTY]);
+    await replaceApiKey(
+      actor,
+      integrationId,
+      { clientId: "zd-cid-2", clientSecret: "fresh-client-secret" },
+      fresh.deps,
+    );
+    expect(await storedCredentials(actor.workspaceId, "ZENDESK")).toMatchObject({
+      clientId: "zd-cid-2",
+      clientSecret: "fresh-client-secret",
+      site: "acme",
+      status: "CONNECTED",
+    });
+    const clean = await runSync(payload("clean"), fresh.deps);
+    expect(clean.status).toBe("SUCCEEDED");
+  });
+
+  it("the legacy email + API token path keeps working for accounts that still have a token", async () => {
+    const { actor } = await createTestAdmin("zd-legacy-still");
+    const { transport, deps: d } = deps([ZD_ME]);
+    await connectWithApiKey(
+      actor,
+      "ZENDESK",
+      { apiKey: "zd-token-12345", site: "acme", username: "admin@acme.test" },
+      d,
+    );
+    expect(transport.calls.some((c) => c.url.endsWith("/oauth/tokens"))).toBe(false);
   });
 });

@@ -8,6 +8,18 @@ import { ProviderHttpError, ProviderShapeError, ProviderUnreachableError } from 
  * never contains a provider response body, a token or a stack trace.
  */
 /**
+ * An OAuth token endpoint refused the client credentials (Zendesk client_credentials: the client was
+ * revoked or deleted, or the secret is wrong). A credential problem, so the card shows "Needs
+ * attention". Carries only the HTTP status: never the client secret or the provider's body.
+ */
+export class OAuthClientRefusedError extends Error {
+  constructor(readonly status: number) {
+    super(`The OAuth token endpoint refused the client (HTTP ${status})`);
+    this.name = "OAuthClientRefusedError";
+  }
+}
+
+/**
  * A connection is missing a setting its provider address or sign-in needs (a Zendesk subdomain
  * or admin email, a Freshdesk domain). Thrown before any request, so nothing is ever sent to a
  * guessed address (CONNECTOR-LIVE.md, Zendesk/Freshdesk blocker 1).

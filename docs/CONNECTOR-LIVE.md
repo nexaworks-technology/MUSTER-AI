@@ -594,8 +594,38 @@ customers." (`b6-stage1-connected-banner.png`, `b6-stage1-slack-card.webp`). The
 
 ## Zendesk
 
-- **Auth as implemented:** API token (`kind: "apiKey"`), HTTP Basic `<admin email>/token:<token>`.
-  Base URL `https://<subdomain>.zendesk.com`. Validated with `GET /api/v2/users/me.json`.
+- **Why OAuth (B7, 2026-11-20): Zendesk is removing API tokens.** Zendesk announced it on 1 June 2026. Accounts
+  created on or after **28 July 2026** cannot create or use API tokens; from **27 October 2026** nobody can create a
+  token; on **30 April 2027** every remaining token stops working for good. A trial created in November 2026 can
+  therefore never hold a token, and OAuth is the only connection path. Source: Zendesk's announcement, "Announcing the
+  removal of API tokens as an authentication method for API requests" (support.zendesk.com, article 10851263566234).
+- **Auth as implemented (primary): OAuth client, `client_credentials` grant** (`kind: "apiKey"` in the adapter
+  framework: the Settings form collects fields, no browser redirect). The admin creates a **confidential OAuth
+  client** in Admin Center (Apps and integrations › APIs › OAuth clients) and pastes its Identifier and Secret with
+  the subdomain; the admin email is not needed. Per the OAuth migration guide and the "Create Token for Grant Type"
+  reference, before a sync or Test connection the adapter sends `POST https://<subdomain>.zendesk.com/oauth/tokens`,
+  `Content-Type: application/x-www-form-urlencoded`, body `grant_type=client_credentials&client_id=…&client_secret=…&scope=read`,
+  and reads `access_token` from the 201 response (no refresh token; default lifetime 30 minutes). The token is
+  fetched **once per run** and sent as `Authorization: Bearer <token>` on every API call. **On a 401 from the API the
+  token is refetched once and the call retried once**, then the run fails honestly. Scope is **`read`**, Zendesk's
+  documented read-all scope ("GET endpoints, including permission to sideload related resources"), the least that
+  covers the incremental export, `show_many`, comments and `users/me`; no write scope is requested (Rule 7). The client
+  ID and secret live in the same sealed credentials blob (`clientId`, `clientSecret`); they are never logged or echoed.
+  Both fields or neither: a half-filled client is refused before any request.
+- **Failure honesty:** if the token endpoint refuses the client (any 4xx: client revoked or deleted, or wrong
+  secret), Test connection and sync show **"Needs attention"** with "Zendesk refused the OAuth client: it was likely
+  revoked or deleted in Admin Center, or the client secret is wrong", keep the last good sync, and read nothing. A 5xx or
+  an unreachable endpoint is not blamed on the credentials. Replace the OAuth client (Settings card, "Replace the Zendesk
+  OAuth client") swaps in a new ID and secret only after Zendesk accepts them; it also moves a legacy-token connection
+  onto OAuth. Zendesk's reference does not document the status code of a refused client, so any 4xx is treated alike
+  (live check 5 below).
+- **Auth as implemented (legacy, until 30 April 2027):** API token, HTTP Basic `<admin email>/token:<token>`,
+  used only when no OAuth client fields are stored. Existing accounts keep working until Zendesk switches tokens off.
+- **Base URL:** `https://<subdomain>.zendesk.com`. Validated with `GET /api/v2/users/me.json`.
+- **Distribution, a later step (not part of this work):** Zendesk's developer policy does not let a third-party
+  integration use a customer's own OAuth client; a product sold to many customers needs a **global OAuth client
+  requested from Zendesk** (authorization-code grant per customer). The customer-created client used here is right for
+  our own proof and single-tenant use only.
 - **Env names:** none (meant to be entered in Settings).
 - **Redirect URL:** none.
 - **Syncs (fixed after the B7 preflight, branch `proof/zendesk`):**
@@ -626,9 +656,12 @@ customers." (`b6-stage1-connected-banner.png`, `b6-stage1-slack-card.webp`). The
   string ids, which hid the requester-email gap below.
 - **Phase 2 live checks still open (not confirmed in the docs):**
   1. Whether `start_time=0` is accepted for a first export.
-  2. The status code Zendesk returns for a deleted API token (the docs only say deleting a token deactivates it).
+  2. ~~The status code for a deleted API token~~: replaced by check 5 (a deleted OAuth client).
   3. Whether the `users` sideload on the incremental export carries `email` (the `show_many` fallback exists either way).
-  4. Whether API-token access has to be switched on in Admin Center (Apps and integrations › APIs › Zendesk API).
+  4. ~~Whether API-token access has to be switched on in Admin Center~~: answered by the announcement above (tokens
+     cannot be created on a new account at all). Replaced by: whether the OAuth client needs anything switched on.
+  5. Whether scope `read` covers every call (export, `show_many`, comments, `users/me`) with the client_credentials
+     token, and the status code Zendesk returns when the client is deleted (replaces the old deleted-token check 2).
 - **Blockers, in order:**
   1. **FIXED (`7015886`).** **[code] The Settings connect form cannot connect Zendesk.** (The adapter needs the
      subdomain and the admin email; the form now collects both.)
@@ -880,7 +913,7 @@ shows no delivery status.
 | Stripe | **Live polling sync proven (B1)**; B1 findings (body-read timeout wording, Account 360 subscriptions, replace-key) FIXED (`7015886`) | Restricted read key; webhook secret if real-time wanted |
 | Chargebee | none | Read-only key + site |
 | Slack | (compose, above) | Slack app, bot scopes, redirect + interactivity URLs |
-| Zendesk | ~~Connect form missing subdomain and admin email~~ FIXED (`7015886`); live comment bodies to check | API token |
+| Zendesk | ~~Connect form missing subdomain and admin email~~ FIXED (`7015886`); OAuth client added (B7, API tokens are being removed); live comment bodies to check | OAuth client ID + secret (Admin Center; no API token) |
 | Freshdesk | ~~Connect form missing domain~~ FIXED (`7015886`); live paging/conversations to check | API key |
 | Gmail | ~~No paging or incremental read~~ FIXED (`7015886`) | Google project, consent screen, restricted-scope verification for external use |
 | Microsoft | ~~Delta paging not followed~~ FIXED (`7015886`) | Entra app registration, admin consent in some tenants |

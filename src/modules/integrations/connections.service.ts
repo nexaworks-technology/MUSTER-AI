@@ -126,7 +126,8 @@ export const apiKeyInput = z.object({
 const NEEDS_USERNAME: Partial<Record<IntegrationProvider, string>> = {
   MIXPANEL: "Enter the service account's user name.",
   AMPLITUDE: "Enter the project's API key as well as its secret key.",
-  ZENDESK: "Enter the Zendesk admin email the API token belongs to.",
+  ZENDESK:
+    "Enter the Zendesk admin email the API token belongs to, or connect with an OAuth client ID and secret instead.",
 };
 
 /** Providers whose address needs the account's own name; checked before any request. */
@@ -150,25 +151,36 @@ export async function connectWithApiKey(
   deps: ConnectDeps = {},
 ) {
   requirePermission(actor, "integrations:manage");
-  const input = apiKeyInput.parse(raw);
+  const oauth = wantsZendeskOAuth(provider, raw) ? zendeskOAuthInput.parse(raw) : undefined;
+  const input = oauth ?? apiKeyInput.parse(raw);
   const adapter = (deps.adapter ?? adapterFor)(provider);
   if (adapter.auth.kind !== "apiKey")
     throw new ConnectError(`${PROVIDER_NAMES[provider]} connects by signing in.`);
   if (NEEDS_SITE[provider] && !input.site) throw new ConnectError(NEEDS_SITE[provider]!);
-  if (NEEDS_USERNAME[provider] && !input.username)
-    throw new ConnectError(NEEDS_USERNAME[provider]!);
-  checkUsername(provider, input.username);
+  if (!oauth) {
+    const legacy = input as z.infer<typeof apiKeyInput>;
+    if (NEEDS_USERNAME[provider] && !legacy.username)
+      throw new ConnectError(NEEDS_USERNAME[provider]!);
+    checkUsername(provider, legacy.username);
+  }
   const settings = adapter.configSchema.safeParse(input.config ?? {});
   if (!settings.success)
     throw new ConnectError(
       settings.error.issues[0]?.message ?? "Check the settings and try again.",
     );
-  const credentials: Credentials = {
-    apiKey: input.apiKey,
-    username: input.username,
-    site: input.site,
-    webhookSecret: input.webhookSecret,
-  };
+  const credentials: Credentials = oauth
+    ? {
+        clientId: oauth.clientId,
+        clientSecret: oauth.clientSecret,
+        site: oauth.site,
+        webhookSecret: oauth.webhookSecret,
+      }
+    : {
+        apiKey: (input as z.infer<typeof apiKeyInput>).apiKey,
+        username: (input as z.infer<typeof apiKeyInput>).username,
+        site: input.site,
+        webhookSecret: input.webhookSecret,
+      };
   const transport = (deps.transport ?? transportFor)(provider);
   try {
     await adapter.auth.validate(credentials, transport, settings.data);
@@ -180,11 +192,30 @@ export async function connectWithApiKey(
       actorId: actor.userId,
       action: "integration.connect_failed",
       targetType: "Integration",
-      summary: `${PROVIDER_NAMES[provider]} refused the key: ${d.plain}`,
+      summary: `${PROVIDER_NAMES[provider]} refused the ${oauth ? "OAuth client" : "key"}: ${d.plain}`,
     });
     throw new ConnectError([d.plain, d.action].filter(Boolean).join(" "));
   }
   return saveConnection(actor, provider, credentials, [], deps, settings.data);
+}
+
+/**
+ * Zendesk OAuth client (client_credentials), the primary way to connect: Zendesk no longer issues API
+ * tokens (CONNECTOR-LIVE.md, B7). The admin email is not needed.
+ */
+export const zendeskOAuthInput = z.object({
+  clientId: z.string().trim().min(1, "Enter the OAuth client ID.").max(500),
+  clientSecret: z.string().trim().min(8, "Paste the whole client secret.").max(500),
+  site: apiKeyInput.shape.site,
+  webhookSecret: apiKeyInput.shape.webhookSecret,
+  config: apiKeyInput.shape.config,
+});
+
+/** True when a Zendesk form carries OAuth client fields (they win over a legacy token). */
+function wantsZendeskOAuth(provider: IntegrationProvider, raw: unknown): boolean {
+  if (provider !== "ZENDESK" || typeof raw !== "object" || raw === null) return false;
+  const r = raw as Record<string, unknown>;
+  return Boolean(r.clientId) || Boolean(r.clientSecret);
 }
 
 export const replaceKeyInput = apiKeyInput.pick({ apiKey: true });
@@ -203,7 +234,6 @@ export async function replaceApiKey(
   deps: ConnectDeps = {},
 ) {
   requirePermission(actor, "integrations:manage");
-  const { apiKey } = replaceKeyInput.parse(raw);
   const db = scopedDb(actor);
   const row = await db.integration.findUnique({ where: { id: integrationId } });
   if (!row) throw new ConnectError("This integration does not exist.");
@@ -216,7 +246,18 @@ export async function replaceApiKey(
     !(API_KEY_FORM_PROVIDERS as readonly string[]).includes(row.provider)
   )
     throw new ConnectError(`${name} does not connect with a key.`);
-  const credentials: Credentials = { ...openCredentials(row.credentialsEnc), apiKey };
+  const existingCredentials = openCredentials(row.credentialsEnc);
+  // Zendesk: an OAuth client replaces an OAuth client, or a legacy token (the way off API tokens).
+  const oauth =
+    wantsZendeskOAuth(row.provider, raw) ||
+    (row.provider === "ZENDESK" && existingCredentials.clientId !== undefined);
+  const credentials: Credentials = oauth
+    ? (() => {
+        const c = zendeskOAuthInput.pick({ clientId: true, clientSecret: true }).parse(raw);
+        const { apiKey: _key, username: _user, ...kept } = existingCredentials;
+        return { ...kept, clientId: c.clientId, clientSecret: c.clientSecret };
+      })()
+    : { ...existingCredentials, apiKey: replaceKeyInput.parse(raw).apiKey };
   const settings = adapter.configSchema.safeParse(row.config ?? {});
   try {
     await adapter.auth.validate(
@@ -233,10 +274,12 @@ export async function replaceApiKey(
       action: "integration.key_replace_failed",
       targetType: "Integration",
       targetId: row.id,
-      summary: `${name} refused the new key, so the saved key was kept: ${d.plain}`,
+      summary: `${name} refused the new ${oauth ? "OAuth client" : "key"}, so the saved ${oauth ? "client" : "key"} was kept: ${d.plain}`,
     });
     throw new ConnectError(
-      [d.plain, d.action, "The saved key was kept."].filter(Boolean).join(" "),
+      [d.plain, d.action, oauth ? "The saved client was kept." : "The saved key was kept."]
+        .filter(Boolean)
+        .join(" "),
     );
   }
   await db.$tenantTransaction(async (tx) => {
@@ -256,7 +299,7 @@ export async function replaceApiKey(
         action: "integration.key_replaced",
         targetType: "Integration",
         targetId: row.id,
-        summary: `Replaced the ${name} key after ${name} accepted it; synced records were kept`,
+        summary: `Replaced the ${name} ${oauth ? "OAuth client" : "key"} after ${name} accepted it; synced records were kept`,
       },
       tx,
     );

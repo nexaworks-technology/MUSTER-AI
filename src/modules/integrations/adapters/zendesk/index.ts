@@ -2,14 +2,27 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import type { AdapterContext, InboundRequest, IntegrationAdapter } from "../../adapter";
 import type { Credentials } from "../../credentials";
-import { ConnectionSettingMissingError, describeProviderError } from "../../errors";
+import {
+  ConnectionSettingMissingError,
+  describeProviderError,
+  OAuthClientRefusedError,
+} from "../../errors";
 import type { NormalizedEvent } from "../../normalized";
 import { logger } from "@/lib/logger";
-import { ProviderHttpError, requestJson, type HttpTransport } from "../../transport";
+import {
+  ProviderHttpError,
+  ProviderShapeError,
+  requestJson,
+  type HttpTransport,
+} from "../../transport";
 
 /**
- * Zendesk adapter (spec §6B Support, M9 B6).
- * Basic auth with admin email + "/token:" + API token.
+ * Zendesk adapter (spec §6B Support, M9 B6, B7).
+ * Primary auth: an OAuth client (client_credentials grant, scope `read`): a token is fetched from
+ * https://<subdomain>.zendesk.com/oauth/tokens once per run and sent as a Bearer header; a 401 from
+ * the API refetches once and retries once. Zendesk removed API-token creation (CONNECTOR-LIVE.md, B7),
+ * so the legacy path (admin email + "/token:" + API token, Basic auth) stays only for accounts that
+ * still hold a token, until Zendesk switches tokens off on 30 April 2027.
  * Reads tickets incrementally via /api/v2/incremental/tickets.json?include=users (requester_id only
  * comes back on a ticket; the sideloaded users carry the email, users/show_many is the fallback) and
  * each ticket's comments via GET /api/v2/tickets/{id}/comments.json (cursor-paged). The description
@@ -98,6 +111,102 @@ function basicAuthHeader(credentials: Credentials): string {
   return `Basic ${Buffer.from(`${user}/token:${token}`).toString("base64")}`;
 }
 
+/** Read-only: GET endpoints including sideloads (Zendesk's documented `read` scope). */
+export const OAUTH_SCOPE = "read";
+
+const tokenResponseSchema = z.object({
+  access_token: z.string().min(1),
+  token_type: z.string().optional(),
+  scope: z.string().optional(),
+  expires_in: z.number().optional(),
+});
+
+/** True when the connection holds an OAuth client; it wins over a legacy token. */
+const usesOAuth = (c: Credentials) => !!(c.clientId || c.clientSecret);
+
+/** Both client fields or neither; a half-filled client is refused before any request. */
+function requireClient(c: Credentials): { clientId: string; clientSecret: string } {
+  if (!c.clientId) throw new ConnectionSettingMissingError("Zendesk", "OAuth client ID");
+  if (!c.clientSecret) throw new ConnectionSettingMissingError("Zendesk", "OAuth client secret");
+  return { clientId: c.clientId, clientSecret: c.clientSecret };
+}
+
+/**
+ * client_credentials grant, form-encoded, as the OAuth migration guide shows. A refusal of the
+ * client (any 4xx) is OAuthClientRefusedError; a 5xx or an unreachable endpoint is left as it is,
+ * so an outage is never blamed on the credentials. The secret is never logged or echoed.
+ */
+async function fetchAccessToken(
+  transport: HttpTransport,
+  subdomain: string,
+  c: Credentials,
+): Promise<string> {
+  const { clientId, clientSecret } = requireClient(c);
+  const res = await transport.request({
+    method: "POST",
+    url: `https://${subdomain}.zendesk.com/oauth/tokens`,
+    headers: { "content-type": "application/x-www-form-urlencoded", accept: "application/json" },
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: clientId,
+      client_secret: clientSecret,
+      scope: OAUTH_SCOPE,
+    }).toString(),
+  });
+  if (res.status >= 400 && res.status < 500) throw new OAuthClientRefusedError(res.status);
+  if (res.status < 200 || res.status >= 300) throw new ProviderHttpError(res.status);
+  const parsed = tokenResponseSchema.safeParse(res.body);
+  if (!parsed.success) throw new ProviderShapeError("oauth token response: no access_token");
+  return parsed.data.access_token;
+}
+
+/** How a run talks to Zendesk: every API read goes through `get`, which owns the credentials. */
+interface ZdApi {
+  origin: string;
+  get<T>(url: string, schema: z.ZodType<T>): Promise<T>;
+}
+
+/**
+ * OAuth: one token per run, fetched on first use; a 401 refetches once and retries once, then fails
+ * honestly. Legacy token: a fixed Basic header, no retry. Missing settings throw before any request.
+ */
+function createApi(transport: HttpTransport, credentials: Credentials, subdomain: string): ZdApi {
+  const origin = `https://${subdomain}.zendesk.com/api/v2`;
+  if (!usesOAuth(credentials)) {
+    const headers = { authorization: basicAuthHeader(credentials), accept: "application/json" };
+    return {
+      origin,
+      get: (url, schema) => requestJson(transport, { method: "GET", url, headers }, schema),
+    };
+  }
+  requireClient(credentials);
+  let token: string | undefined;
+  const send = async <T>(url: string, schema: z.ZodType<T>) => {
+    token ??= await fetchAccessToken(transport, subdomain, credentials);
+    return requestJson(
+      transport,
+      {
+        method: "GET",
+        url,
+        headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+      },
+      schema,
+    );
+  };
+  return {
+    origin,
+    async get(url, schema) {
+      try {
+        return await send(url, schema);
+      } catch (err) {
+        if (!(err instanceof ProviderHttpError) || err.status !== 401) throw err;
+        token = undefined; // expired or revoked: fetch a new one, once
+        return send(url, schema);
+      }
+    },
+  };
+}
+
 /** The account's subdomain (`<subdomain>.zendesk.com`). Never guessed. */
 function getSubdomain(credentials: Credentials, config?: ZendeskConfig): string {
   const subdomain = credentials.site ?? config?.subdomain;
@@ -146,47 +255,31 @@ const sameText = (a: string, b: string) =>
  * Requesters the sideload did not carry, read with GET /api/v2/users/show_many.json (up to 100 ids
  * a request). A requester still missing afterwards stays unresolved; nothing is guessed.
  */
-async function resolveMissingUsers(
-  transport: HttpTransport,
-  origin: string,
-  headers: Record<string, string>,
-  known: Map<string, ZdUser>,
-  wanted: string[],
-) {
+async function resolveMissingUsers(api: ZdApi, known: Map<string, ZdUser>, wanted: string[]) {
   const missing = [...new Set(wanted)].filter((id) => !known.get(id)?.email);
   for (let i = 0; i < missing.length; i += SHOW_MANY_MAX_IDS) {
     const ids = missing.slice(i, i + SHOW_MANY_MAX_IDS);
-    const url = new URL(`${origin}/users/show_many.json`);
+    const url = new URL(`${api.origin}/users/show_many.json`);
     url.searchParams.set("ids", ids.join(","));
-    const res = await requestJson(
-      transport,
-      { method: "GET", url: url.toString(), headers },
-      zdShowManySchema,
-    );
+    const res = await api.get(url.toString(), zdShowManySchema);
     for (const u of res.users) known.set(idKey(u.id), u);
   }
 }
 
 /** A ticket's comments, oldest first, internal notes dropped (same rule as Freshdesk). */
 async function readComments(
-  transport: HttpTransport,
-  origin: string,
-  headers: Record<string, string>,
+  api: ZdApi,
   ticketId: string,
   known: Map<string, ZdUser>,
 ): Promise<ZdComment[]> {
   const out: ZdComment[] = [];
   let after: string | undefined;
   for (let page = 1; page <= MAX_COMMENT_PAGES; page++) {
-    const url = new URL(`${origin}/tickets/${encodeURIComponent(ticketId)}/comments.json`);
+    const url = new URL(`${api.origin}/tickets/${encodeURIComponent(ticketId)}/comments.json`);
     url.searchParams.set("page[size]", String(COMMENT_PAGE_SIZE));
     url.searchParams.set("include", "users"); // authors' emails for the message addresses
     if (after) url.searchParams.set("page[after]", after);
-    const res = await requestJson(
-      transport,
-      { method: "GET", url: url.toString(), headers },
-      zdCommentsPageSchema,
-    );
+    const res = await api.get(url.toString(), zdCommentsPageSchema);
     for (const u of res.users) if (u.email && !known.has(idKey(u.id))) known.set(idKey(u.id), u);
     out.push(...res.comments.filter((c) => c.public));
     if (!res.meta?.has_more || !res.meta.after_cursor) return sortByTime(out);
@@ -231,18 +324,12 @@ export function verifyZendeskSignature(req: InboundRequest, secret: string, now:
   return timingSafeEqual(expectedBuf, gotBuf);
 }
 
-async function mapTicket(
-  transport: HttpTransport,
-  origin: string,
-  headers: Record<string, string>,
-  t: ZdTicket,
-  users: Map<string, ZdUser>,
-) {
+async function mapTicket(api: ZdApi, t: ZdTicket, users: Map<string, ZdUser>) {
   const ticketId = idKey(t.id);
   const requester = t.requester_id ? users.get(idKey(t.requester_id)) : undefined;
   const requesterEmail = requester?.email || undefined;
   const requesterName = requester?.name || undefined;
-  const comments = await readComments(transport, origin, headers, ticketId, users);
+  const comments = await readComments(api, ticketId, users);
 
   const description = (t.description ?? "").trim();
   const isRequester = (c: ZdComment) =>
@@ -314,41 +401,27 @@ export const zendeskAdapter: IntegrationAdapter<ZendeskConfig> = {
     kind: "apiKey",
     async validate(credentials, transport, config) {
       const subdomain = getSubdomain(credentials, config as ZendeskConfig);
-      await requestJson(
-        transport,
-        {
-          method: "GET",
-          url: `https://${subdomain}.zendesk.com/api/v2/users/me.json`,
-          headers: {
-            authorization: basicAuthHeader(credentials),
-            accept: "application/json",
-          },
-        },
-        userMeSchema,
-      );
+      const api = createApi(transport, credentials, subdomain);
+      await api.get(`${api.origin}/users/me.json`, userMeSchema);
     },
   },
 
   async testConnection(ctx: AdapterContext<ZendeskConfig>) {
     // Missing settings throw before the try: they are described as such, not as "unreachable".
     const subdomain = getSubdomain(ctx.credentials, ctx.config);
-    const authorization = basicAuthHeader(ctx.credentials);
+    const api = createApi(ctx.transport, ctx.credentials, subdomain);
     try {
-      const data = await requestJson(
-        ctx.transport,
-        {
-          method: "GET",
-          url: `https://${subdomain}.zendesk.com/api/v2/users/me.json`,
-          headers: { authorization, accept: "application/json" },
-        },
-        userMeSchema,
-      );
+      const data = await api.get(`${api.origin}/users/me.json`, userMeSchema);
       return {
         ok: true,
         message: `Connected to Zendesk as ${data.user.email ?? data.user.name ?? "admin"}`,
         externalAccountId: String(data.user.id),
       };
     } catch (err) {
+      if (err instanceof OAuthClientRefusedError) {
+        const d = describeOAuthRefusal();
+        return { ok: false, message: `${d.plain} ${d.action}` };
+      }
       if (err instanceof ProviderHttpError) {
         return { ok: false, message: `Zendesk rejected the credentials (HTTP ${err.status})` };
       }
@@ -361,8 +434,8 @@ export const zendeskAdapter: IntegrationAdapter<ZendeskConfig> = {
     opts: { kind: "FULL" | "INCREMENTAL"; cursor?: string },
   ) {
     const subdomain = getSubdomain(ctx.credentials, ctx.config);
-    const headers = { authorization: basicAuthHeader(ctx.credentials), accept: "application/json" };
-    const origin = `https://${subdomain}.zendesk.com/api/v2`;
+    const api = createApi(ctx.transport, ctx.credentials, subdomain);
+    const origin = api.origin;
 
     let start = opts.cursor ?? "0";
     let saved = opts.cursor;
@@ -371,25 +444,19 @@ export const zendeskAdapter: IntegrationAdapter<ZendeskConfig> = {
       url.searchParams.set("start_time", start);
       // The export returns requester_id only; the sideloaded users carry the email.
       url.searchParams.set("include", "users");
-      const data = await requestJson(
-        ctx.transport,
-        { method: "GET", url: url.toString(), headers },
-        zdIncrementalSchema,
-      );
+      const data = await api.get(url.toString(), zdIncrementalSchema);
 
       const users = new Map<string, ZdUser>(data.users.map((u) => [idKey(u.id), u]));
       // Deleted tickets stay in the export for a while; they are never ingested (and never OPEN).
       const live = data.tickets.filter((t) => t.status.toLowerCase() !== "deleted");
       await resolveMissingUsers(
-        ctx.transport,
-        origin,
-        headers,
+        api,
         users,
         live.flatMap((t) => (t.requester_id ? [idKey(t.requester_id)] : [])),
       );
 
       const records = [];
-      for (const t of live) records.push(await mapTicket(ctx.transport, origin, headers, t, users));
+      for (const t of live) records.push(await mapTicket(api, t, users));
 
       // An empty export may carry end_time null: the saved cursor then stays where it was.
       const next = data.end_time ? String(data.end_time) : undefined;
@@ -473,10 +540,21 @@ export const zendeskAdapter: IntegrationAdapter<ZendeskConfig> = {
   },
 
   describeError(err: unknown) {
+    if (err instanceof OAuthClientRefusedError) return describeOAuthRefusal();
     return describeProviderError(
       err,
       "Zendesk",
-      "Enter your Zendesk subdomain, admin email and API token.",
+      "Enter your Zendesk subdomain and the OAuth client ID and secret (Admin Center › Apps and integrations › APIs › OAuth clients).",
     );
   },
 };
+
+/** The token endpoint refused the client: say which credential is likely wrong. */
+function describeOAuthRefusal() {
+  return {
+    plain:
+      "Zendesk refused the OAuth client: it was likely revoked or deleted in Admin Center, or the client secret is wrong.",
+    action:
+      "Check the OAuth client in Zendesk Admin Center, then replace the saved client ID and secret.",
+  };
+}

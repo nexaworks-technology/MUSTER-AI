@@ -9,7 +9,8 @@ import {
   type FixtureTransport,
 } from "../../../fixture-transport";
 import type { NormalizedBatch, NormalizedTicket } from "../../../normalized";
-import { ProviderHttpError } from "../../../transport";
+import { OAuthClientRefusedError } from "../../../errors";
+import { ProviderHttpError, type HttpRequest, type HttpResponse } from "../../../transport";
 import type { FixtureInteraction } from "../../../fixture-transport";
 import { MAX_COMMENT_PAGES, MAX_EXPORT_PAGES, zendeskAdapter, verifyZendeskSignature } from "..";
 
@@ -386,5 +387,192 @@ describe("Zendesk contract", () => {
     const err429 = new ProviderHttpError(429, 60);
     const desc429 = zendeskAdapter.describeError(err429);
     expect(desc429.plain).toContain("rate limit");
+  });
+});
+
+/**
+ * OAuth (client_credentials). Zendesk removed API-token creation (CONNECTOR-LIVE.md, B7): the primary
+ * connection is now an OAuth client. Shapes are authored from Zendesk's OAuth migration guide and the
+ * Create Token for Grant Type reference, not captured.
+ */
+function oauthCtx(
+  transport: AdapterContext<{ subdomain?: string }>["transport"],
+  extra: Record<string, string> = {},
+): AdapterContext<{ subdomain?: string }> {
+  return {
+    workspaceId: "ws_zendesk",
+    integrationId: "int_zendesk",
+    credentials: {
+      clientId: "zd-client-id-fixture",
+      clientSecret: "zd-client-secret-fixture",
+      site: "larkspur",
+      ...extra,
+    },
+    config: { subdomain: "larkspur" },
+    transport,
+    clock: () => NOW,
+  };
+}
+const oauthWorld = () =>
+  createFixtureTransport([
+    ...loadFixture("zendesk", "oauth-token"),
+    ...loadFixture("zendesk", "tickets"),
+  ]);
+const isTokenFetch = (r: HttpRequest) => r.method === "POST" && r.url.endsWith("/oauth/tokens");
+const json = (status: number, body: unknown): HttpResponse => ({ status, headers: {}, body });
+
+/** A transport driven by a function; records every request. */
+function scripted(handler: (req: HttpRequest, calls: HttpRequest[]) => HttpResponse) {
+  const calls: HttpRequest[] = [];
+  return {
+    mode: "fixture" as const,
+    calls,
+    async request(req: HttpRequest) {
+      calls.push(req);
+      return handler(req, calls);
+    },
+  };
+}
+
+describe("Zendesk OAuth client_credentials", () => {
+  it("fetches a token the documented way: form-encoded POST to the subdomain's /oauth/tokens, scope read", async () => {
+    const t = oauthWorld();
+    for await (const _ of zendeskAdapter.sync(oauthCtx(t), { kind: "FULL" })) void _;
+    const fetches = t.calls.filter(isTokenFetch);
+    expect(fetches).toHaveLength(1); // once per run, not once per request
+    const f = fetches[0]!;
+    expect(f.url).toBe("https://larkspur.zendesk.com/oauth/tokens");
+    expect(f.headers?.["content-type"]).toBe("application/x-www-form-urlencoded");
+    expect(f.headers?.authorization).toBeUndefined();
+    const body = new URLSearchParams(f.body);
+    expect(Object.fromEntries(body)).toEqual({
+      grant_type: "client_credentials",
+      client_id: "zd-client-id-fixture",
+      client_secret: "zd-client-secret-fixture",
+      scope: "read",
+    });
+  });
+
+  it("sends Authorization: Bearer on the export, show_many and comments calls", async () => {
+    const t = createFixtureTransport([
+      ...loadFixture("zendesk", "oauth-token"),
+      exportPage({ users: [], tickets: [ticket(501, 5001)] }),
+      showMany("5001", [{ id: 5001, name: "Via ShowMany", email: "sm@acme.test" }]),
+      commentsOf(501, [comment(6001, 5001, "Opening text", "2026-11-04T09:00:00Z")]),
+    ]);
+    for await (const _ of zendeskAdapter.sync(oauthCtx(t), { kind: "FULL" })) void _;
+    const api = t.calls.filter((c) => !isTokenFetch(c));
+    expect(api.map((c) => new URL(c.url).pathname)).toEqual([
+      "/api/v2/incremental/tickets.json",
+      "/api/v2/users/show_many.json",
+      "/api/v2/tickets/501/comments.json",
+    ]);
+    for (const c of api)
+      expect(c.headers?.authorization).toBe("Bearer fixture-oauth-access-token-aaaa");
+    expect(t.unmatched).toEqual([]);
+  });
+
+  it("Test connection reads users/me.json with the Bearer token", async () => {
+    const t = oauthWorld();
+    const res = await zendeskAdapter.testConnection(oauthCtx(t));
+    expect(res.ok).toBe(true);
+    const me = t.calls.find((c) => c.url.endsWith("/api/v2/users/me.json"));
+    expect(me?.headers?.authorization).toBe("Bearer fixture-oauth-access-token-aaaa");
+  });
+
+  it("validates OAuth client fields at connect time through the same token fetch", async () => {
+    const t = oauthWorld();
+    if (zendeskAdapter.auth.kind !== "apiKey") throw new Error("Zendesk auth is not apiKey");
+    await zendeskAdapter.auth.validate(oauthCtx(t).credentials, t, { subdomain: "larkspur" });
+    expect(t.calls.filter(isTokenFetch)).toHaveLength(1);
+    expect(t.calls.some((c) => c.url.endsWith("/api/v2/users/me.json"))).toBe(true);
+  });
+
+  it("on a 401 from the API refetches the token exactly once and retries exactly once", async () => {
+    let tokens = 0;
+    const t = scripted((req) => {
+      if (isTokenFetch(req)) {
+        tokens += 1;
+        return json(201, { access_token: `tok-${tokens}`, token_type: "bearer", scope: "read" });
+      }
+      if (req.headers?.authorization === "Bearer tok-1")
+        return json(401, { error: "invalid_token" });
+      return json(200, { tickets: [], users: [], count: 0, end_of_stream: true, end_time: null });
+    });
+    const out: NormalizedBatch[] = [];
+    for await (const b of zendeskAdapter.sync(oauthCtx(t), { kind: "FULL" })) out.push(b);
+    expect(out).toHaveLength(1);
+    expect(t.calls.filter(isTokenFetch)).toHaveLength(2);
+    const exports = t.calls.filter((c) => c.url.includes("/incremental/tickets.json"));
+    expect(exports.map((c) => c.headers?.authorization)).toEqual(["Bearer tok-1", "Bearer tok-2"]);
+  });
+
+  it("fails honestly when the retry is also a 401: no third attempt", async () => {
+    let tokens = 0;
+    const t = scripted((req) => {
+      if (isTokenFetch(req)) {
+        tokens += 1;
+        return json(201, { access_token: `tok-${tokens}`, token_type: "bearer", scope: "read" });
+      }
+      return json(401, { error: "invalid_token" });
+    });
+    const it_ = zendeskAdapter.sync(oauthCtx(t), { kind: "FULL" })[Symbol.asyncIterator]();
+    await expect(it_.next()).rejects.toMatchObject({ name: "ProviderHttpError", status: 401 });
+    expect(t.calls.filter(isTokenFetch)).toHaveLength(2);
+    expect(t.calls.filter((c) => !isTokenFetch(c))).toHaveLength(2);
+  });
+
+  it("a refused token request (client revoked or secret wrong) names the likely cause and reads nothing", async () => {
+    const t = scripted((req) =>
+      isTokenFetch(req) ? json(400, { error: "invalid_client" }) : json(200, {}),
+    );
+    const res = await zendeskAdapter.testConnection(oauthCtx(t));
+    expect(res.ok).toBe(false);
+    expect(res.message).toMatch(/OAuth client/i);
+    expect(res.message).toMatch(/revoked|deleted/i);
+    expect(res.message).toMatch(/secret/i);
+    expect(res.message).not.toContain("zd-client-secret-fixture");
+
+    const batches: NormalizedBatch[] = [];
+    const run = async () => {
+      for await (const b of zendeskAdapter.sync(oauthCtx(t), { kind: "FULL" })) batches.push(b);
+    };
+    await expect(run()).rejects.toBeInstanceOf(OAuthClientRefusedError);
+    expect(batches).toEqual([]); // nothing yielded, so nothing saved and the cursor stays
+    expect(t.calls.every(isTokenFetch)).toBe(true); // no API call was made without a token
+
+    const d = zendeskAdapter.describeError(new OAuthClientRefusedError(400));
+    expect(d.plain).toMatch(/revoked|deleted/i);
+    expect(d.plain).toMatch(/secret/i);
+    expect(d.action).toMatch(/client ID and secret/i);
+  });
+
+  it("a token endpoint outage is not blamed on the credentials", async () => {
+    const t = scripted((req) => (isTokenFetch(req) ? json(503, {}) : json(200, {})));
+    const res = await zendeskAdapter.testConnection(oauthCtx(t));
+    expect(res.ok).toBe(false);
+    expect(res.message).not.toMatch(/revoked/i);
+  });
+
+  it("prefers OAuth when client fields are present and the legacy token path still works without them", async () => {
+    const both = oauthWorld();
+    await zendeskAdapter.testConnection(
+      oauthCtx(both, { apiKey: "legacy-token", username: "admin@larkspur.test" }),
+    );
+    expect(both.calls.some(isTokenFetch)).toBe(true);
+    expect(both.calls.at(-1)?.headers?.authorization).toMatch(/^Bearer /);
+
+    const legacy = world();
+    await zendeskAdapter.testConnection(ctx(legacy));
+    expect(legacy.calls.some(isTokenFetch)).toBe(false);
+    expect(legacy.calls[0]?.headers?.authorization).toMatch(/^Basic /);
+  });
+
+  it("refuses a half-filled OAuth client before any request", async () => {
+    const t = oauthWorld();
+    const c = oauthCtx(t);
+    c.credentials = { clientId: "only-an-id", site: "larkspur" };
+    await expect(zendeskAdapter.testConnection(c)).rejects.toThrow(/client secret/i);
+    expect(t.calls).toHaveLength(0);
   });
 });

@@ -86,6 +86,8 @@ export async function connectApiKeyAction(provider: string, formData: FormData) 
       site: optional("site"),
       webhookSecret: optional("webhookSecret"),
       username: optional("username"),
+      clientId: optional("clientId"),
+      clientSecret: optional("clientSecret"),
       config,
     });
     return { connected: p.toLowerCase() };
@@ -137,11 +139,14 @@ export async function testConnectionAction(integrationId: string) {
 /** A new key for a connected key-based integration; swapped only after the provider accepts it. */
 export async function replaceApiKeyAction(integrationId: string, formData: FormData) {
   return run(async (): Promise<Result> => {
+    const text = (k: string) => String(formData.get(k) ?? "").trim() || undefined;
     const r = await replaceApiKey(await actor(), id.parse(integrationId), {
       apiKey: String(formData.get("apiKey") ?? ""),
+      clientId: text("clientId"),
+      clientSecret: text("clientSecret"),
     });
     return {
-      tested: [`Replaced the key. Synced records were kept.`, r.check?.message]
+      tested: [`Replaced the credentials. Synced records were kept.`, r.check?.message]
         .filter(Boolean)
         .join(" "),
     };

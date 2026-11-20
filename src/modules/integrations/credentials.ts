@@ -21,6 +21,9 @@ export const credentialsSchema = z.object({
     .string()
     .regex(/^[a-z0-9-]{1,63}$/)
     .optional(),
+  /** Zendesk OAuth client (client_credentials grant): the client's Identifier and Secret. */
+  clientId: z.string().min(1).optional(),
+  clientSecret: z.string().min(1).optional(),
   /** Per-integration webhook secret (D3). Chargebee: "user:password" for Basic auth. */
   webhookSecret: z.string().min(1).optional(),
 });

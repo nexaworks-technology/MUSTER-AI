@@ -1,0 +1,23 @@
+{
+  "provider": "zendesk",
+  "description": "Fictional Zendesk OAuth responses in the DOCUMENTED shapes (authored from the OAuth migration guide and the Create Token for Grant Type reference, not captured): client_credentials returns 201 with access_token, token_type bearer, scope and expires_in, and no refresh_token.",
+  "interactions": [
+    {
+      "note": "client_credentials token fetch, form-encoded, scope read",
+      "request": {
+        "method": "POST",
+        "path": "/oauth/tokens",
+        "bodyIncludes": "grant_type=client_credentials"
+      },
+      "response": {
+        "status": 201,
+        "body": {
+          "access_token": "fixture-oauth-access-token-aaaa",
+          "token_type": "bearer",
+          "scope": "read",
+          "expires_in": 1800
+        }
+      }
+    }
+  ]
+}
