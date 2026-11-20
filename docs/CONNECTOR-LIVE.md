@@ -523,6 +523,75 @@ every restart. Not registered. Polling sync is what was proven.
   3. Sensitive decisions are refused from Slack by design (`SENSITIVE_DECISIONS_FROM_SLACK`); not a
      blocker, a behaviour to expect.
 
+### Live proof B6, Slack (2026-11-19 and 2026-11-20): PASS for connect, delivery, decisions and revoke, with findings and deviations
+
+Muster Proof workspace, Docker stack, the founder's own Slack workspace, quick tunnel. No secret value was
+printed, logged or committed; Slack credentials went into the stack env file by the founder's own hands and were
+checked by name and non-empty only. Rocky's independent verification closes B6, not this write-up. Screenshots:
+`docs/connector-evidence/b6-*`. Times are UTC unless noted; the founder's Slack shows local time (UTC+5:30).
+
+**App setup (founder, at api.slack.com/apps).** App "Muster AI", created from scratch. Bot Token Scopes exactly
+`chat:write`, `im:write`, `users:read`, `users:read.email`; no user scopes. Token rotation **off** (opting in is
+permanent; the page offers it, do not click it). OAuth Redirect URL `${APP_URL}/api/integrations/slack/callback`;
+Interactivity Request URL `${APP_URL}/api/integrations/slack/interactivity`. **Socket Mode must be OFF.** It was on
+for this app, and while it is on Slack hides the Request URL field and sends clicks over a websocket, so Muster's
+endpoint would never see a button click. Credentials `SLACK_CLIENT_ID`, `SLACK_CLIENT_SECRET`,
+`SLACK_SIGNING_SECRET` (plus `SLACK_DELIVERY=live`) in the env file; web and worker recreated.
+
+**Stage 1: connect and member linking (PASS).** Member invited as CS Leader by the Proof Admin, accepted, made owner
+of PROOF Alpha, Beta and Gamma. Connect clicked, workspace approved. Card: status "Connected · messages your team";
+body "1 member linked by verified email. Approvals, big signals and a morning digest (from 07:00) go to them as direct
+messages. Sensitive approvals show "Open in app to review" and cannot be decided from Slack."; banner "Connected
+Slack. It sends approvals, big signals and a morning digest to your team as direct messages; it never messages
+customers." (`b6-stage1-connected-banner.png`, `b6-stage1-slack-card.webp`). The card does not show the workspace name.
+
+**Stage 2.**
+
+| Step | Result | Evidence |
+|---|---|---|
+| 0 State check | PASS | Tunnel `stylus-stood-oclc-exclusively` answered sign-in 200; founder confirmed the Interactivity URL matched it exactly. The tunnel died twice in all (once in stage 1, once during Step 4); each time a fresh tunnel, `APP_URL` and `AUTH_URL` updated, web and worker recreated with the ports override, and the founder re-pasted both Slack URLs. Current host at the end: `vacations-ambien-physically-helps`. |
+| 1 Seed approvals | PARTIAL, adapted | Through the real path only (Approvals › Draft check-in, written by hand, from a Signal or Ticket). Every approval on PROOF Alpha and PROOF Beta came out **sensitive (complaint)**, even from a signal with no customer text, because both accounts carry a COMPLAINT extraction. No plain approval was possible, so stopped and reported. Rocky created Freshdesk ticket #7 on PROOF Gamma; the Freshdesk card's Run sync now put it on Gamma (ticket `cmwnx0ph7008ak51eng9oo6g5`, Open, NORMAL); two plain drafts from it were `isSensitive` false, no reasons. |
+| 2 DM delivery and shape | PASS | Founder reported from Slack. Sensitive DMs (five, 18:47 to 18:48) show only "Open in app to review" and "Sensitive (complaint): decided in the app only.", the one with "cancel" shows "Sensitive (cancellation, complaint)"; no Approve or Reject (Q-31 holds). Plain Gamma DMs (19:01) show Approve, Reject and Open in app. Each approval was delivered once. The founder counted 9 messages at one point where 8 were expected from the approvals made here; the ninth was not identified (probably a message from earlier setup or checks). |
+| 3 Decide from Slack | PASS, with a deviation | Approve: Gamma (a) `cmwnx1dex002ilb0ykeuob0cs` APPROVED via SLACK 19:09:45, decider the founder's member, audit `approval.approved` `{"via":"SLACK"}`, email SENT through Resend. The founder also approved Gamma (b) `cmwnx1kmj002ulb0ykmjfhaqi` at 19:09:53 (meant for Reject), so it was SENT too. A fresh plain approval for the Reject test, `cmwnxiofx003mlb0y3ahamtws`: REJECTED via SLACK 19:15:10, audit `{"via":"SLACK","note":"Rejected from Slack."}`, outbound CANCELLED, nothing sent. Replay: a second Approve click on (a) produced no second decision and no second email (one `approval.approved`, one outbound row). The app logs nothing for an ignored click, so that the click reached Muster is not proven; the outcome is the passing one. In all three cases the Slack message stayed exactly as it was (`b6-step2-3-dms-unchanged.png`). |
+| 4 Sensitive stays in-app | PASS, with a deviation | (c) `cmwnwlopd0026lb0ya7atyzrw` ("PROOF B6 (c): Cancelling the duplicate charge", Alpha, reasons cancellation + complaint). Decided in the app only: REJECTED via APP, audit has no Slack involvement, outbound CANCELLED. The decider was the **Proof Admin** member, not the founder's: Rocky's session did it on the founder's behalf. |
+| 5 Exactly once under retry | PASS (restart only) | Worker restarted once. All 10 `approval.requested` events were already processed, 0 attempts, and no new DM arrived afterwards. No delivery failure was forced, so true retry-after-error is not proven. |
+| 6 Revoke and reconnect | PASS | Founder revoked the tokens. Test connection: card "Needs attention", banner **"Slack rejected the saved credentials. Reconnect Slack from Settings › Integrations."** (no raw `token_revoked` or 401 text), "1 member linked" body unchanged, approvals and other data untouched. The card has no Connect button, and a CS Leader is refused (**"Only Admins can connect integrations."**, `b6-step6-connect-admin-only.png`), so the Proof Admin opened `/api/integrations/slack/connect` directly and the founder clicked Allow. Audit `integration.reconnected` 08:35:57 on 2026-11-20; card back to Connected; `SlackUserLink` count still exactly 1. Approval (d) `cmwoq6a30001go80yehvnuy7s` (plain, Gamma) created 08:36:36, its delivery event processed 08:36:40 with 0 attempts, and the founder reported the DM arrived with Approve, Reject and Open in app buttons: the new token delivers. |
+| 7 Morning digest and big-signal DMs | DEFERRED | Digest needs the 07:00 workspace-time run; big signals are driven by webhook signals, which wait for the stable hostname at deploy. Not tested. |
+
+**Findings (no code changes made).**
+1. The Slack card never shows the connected workspace's name.
+2. No screen says WHICH member is linked; the UI shows only a count.
+3. The "Link Slack members" result line ("5 not matched") does not explain what was not matched.
+4. A user OAuth token and, later, the bot token were each visible in a founder screenshot during setup and
+   revoke. Both are revoked (Revoke All OAuth Tokens, then a fresh install); Muster uses only the bot token.
+5. Quick-tunnel hostnames change, so every change meant new Slack URLs. The old DMs' "Open in app" links also
+   point at the dead hostname and cannot be edited. The stable domain at deploy ends both.
+6. **After Approve or Reject, the Slack message does not change and no confirmation is visible to the user.** The
+   code answers with a private message (`replace_original: false`) in the HTTP response to the click; Slack does
+   not show a reply sent that way (it needs the payload's `response_url`, which the code never reads), so the
+   texts "Approved. Email: sent." and "Rejected." are probably never seen. A user cannot tell from Slack whether a
+   decision registered.
+7. The plain-approval DM carries no subject or draft text, so two drafts for one ticket look identical.
+8. A "Needs attention" Slack card has no Connect button, and a CS Leader sees the card but cannot reconnect.
+9. Sensitivity is account-wide once a COMPLAINT extraction exists: every approval on that account is sensitive, so
+   Slack can never decide any of them.
+10. HubSpot, Stripe, Chargebee and Freshdesk all showed "could not be reached" for the 02:02 nightly sync on
+    2026-11-20 (network outage on the host at the time, the same one that dropped the tunnel); each says the next run
+    tries again.
+
+**Deviations and cleanup.**
+- The compose ports override (3300, 55432, 56379, 53310, 59000/59001, `AUTH_URL` to web) lives outside the repo.
+  Postgres and Redis were recreated during stage 1 setup; Rocky verified the data intact afterwards.
+- Approving a check-in really sends through live Resend, so the Alpha, Beta and Gamma contact emails were
+  temporarily set to the founder's own inbox for this proof, and were **restored** afterwards to
+  `billing@proof-alpha.com`, `billing@proof-beta.com` and `billing@proof-gamma.com`. Both sent emails went only to
+  that inbox; 2 outbound rows are SENT, 7 CANCELLED.
+- Approvals were created through the real draft flow on a local admin session at `localhost:3300`; the hosted
+  tunnel host is not a local development host.
+- Five extra approvals (four from the failed attempt to find a plain source, plus (d)) were rejected in-app at
+  the end (REJECTED via APP, no send). Two pending approvals in other workspaces (Sundial Fitness, Meridianhaven
+  Consulting) were not touched.
+
 ## Zendesk
 
 - **Auth as implemented:** API token (`kind: "apiKey"`), HTTP Basic `<admin email>/token:<token>`.
