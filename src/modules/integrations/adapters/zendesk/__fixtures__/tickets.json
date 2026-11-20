@@ -1,13 +1,10 @@
 {
   "provider": "zendesk",
-  "description": "Fictional Zendesk tickets: authored from docs, not captured.",
+  "description": "Fictional Zendesk data in the DOCUMENTED live shapes (authored from the Ticketing API reference, not captured): the incremental ticket export returns tickets with only requester_id plus the sideloaded users array, no comments; comments come from GET /tickets/{id}/comments.json with cursor pagination; a deleted ticket keeps appearing in the export with status deleted.",
   "interactions": [
     {
-      "note": "validate / test connection (authored from docs, not captured)",
-      "request": {
-        "method": "GET",
-        "path": "/api/v2/users/me.json"
-      },
+      "note": "validate / test connection",
+      "request": { "method": "GET", "path": "/api/v2/users/me.json" },
       "response": {
         "status": 200,
         "body": {
@@ -21,80 +18,169 @@
       }
     },
     {
-      "note": "incremental tickets export (authored from docs, not captured)",
+      "note": "incremental ticket export from the start, users sideloaded: 101 (matched requester), 102 (unknown requester), 103 (deleted). end_of_stream true.",
       "request": {
         "method": "GET",
-        "path": "/api/v2/incremental/tickets.json"
+        "path": "/api/v2/incremental/tickets.json",
+        "query": { "start_time": "0", "include": "users" }
       },
       "response": {
         "status": 200,
         "body": {
           "tickets": [
             {
-              "id": "zd_101",
-              "subject": "Cannot export CSV reports",
-              "status": "open",
-              "priority": "high",
-              "requester_id": 1001,
+              "url": "https://larkspur.zendesk.com/api/v2/tickets/101.json",
+              "id": 101,
+              "external_id": null,
               "created_at": "2026-11-04T09:00:00Z",
               "updated_at": "2026-11-04T09:30:00Z",
+              "type": "problem",
+              "subject": "Cannot export CSV reports",
+              "raw_subject": "Cannot export CSV reports",
               "description": "CSV export fails with error 500 every morning.",
-              "comments": [
-                {
-                  "id": "zd_comm_1001",
-                  "body": "CSV export fails with error 500 every morning.",
-                  "author_id": 1001,
-                  "public": true,
-                  "created_at": "2026-11-04T09:00:00Z"
-                },
-                {
-                  "id": "zd_comm_1002",
-                  "body": "We are looking into this server-side error.",
-                  "author_id": 901,
-                  "public": true,
-                  "created_at": "2026-11-04T09:30:00Z"
-                }
-              ]
+              "priority": "high",
+              "status": "open",
+              "requester_id": 1001,
+              "submitter_id": 1001,
+              "assignee_id": 901,
+              "organization_id": null,
+              "group_id": 5001,
+              "tags": []
             },
             {
-              "id": "zd_102",
-              "subject": "General inquiry from unknown visitor",
-              "status": "open",
-              "priority": "normal",
-              "requester_id": 1002,
+              "url": "https://larkspur.zendesk.com/api/v2/tickets/102.json",
+              "id": 102,
+              "external_id": null,
               "created_at": "2026-11-04T10:00:00Z",
               "updated_at": "2026-11-04T10:00:00Z",
-              "description": "Hello, I have a question about pricing.",
-              "comments": [
-                {
-                  "id": "zd_comm_1003",
-                  "body": "Hello, I have a question about pricing.",
-                  "author_id": 1002,
-                  "public": true,
-                  "created_at": "2026-11-04T10:00:00Z"
-                }
-              ]
+              "type": "question",
+              "subject": "General inquiry from unknown visitor",
+              "raw_subject": "General inquiry from unknown visitor",
+              "description": "Hello, I have a question about plans.",
+              "priority": null,
+              "status": "new",
+              "requester_id": 1002,
+              "submitter_id": 1002,
+              "assignee_id": null,
+              "organization_id": null,
+              "group_id": 5001,
+              "tags": []
+            },
+            {
+              "url": "https://larkspur.zendesk.com/api/v2/tickets/103.json",
+              "id": 103,
+              "external_id": null,
+              "created_at": "2026-11-03T08:00:00Z",
+              "updated_at": "2026-11-04T11:00:00Z",
+              "type": "incident",
+              "subject": "Duplicate ticket, deleted by an agent",
+              "raw_subject": "Duplicate ticket, deleted by an agent",
+              "description": "Same as 101.",
+              "priority": "normal",
+              "status": "deleted",
+              "requester_id": 1001,
+              "submitter_id": 1001,
+              "assignee_id": null,
+              "organization_id": null,
+              "group_id": 5001,
+              "tags": []
             }
           ],
           "users": [
-            {
-              "id": 901,
-              "name": "Larkspur Admin",
-              "email": "admin@larkspur.test"
-            },
-            {
-              "id": 1001,
-              "name": "Halden Ops",
-              "email": "ops@halden.test"
-            },
+            { "id": 1001, "name": "Halden Ops", "email": "ops@halden.test", "role": "end-user" },
             {
               "id": 1002,
-              "name": "Stranger Danger",
-              "email": "unknown@stranger.test"
+              "name": "Stranger",
+              "email": "unknown@stranger.test",
+              "role": "end-user"
+            },
+            { "id": 901, "name": "Larkspur Admin", "email": "admin@larkspur.test", "role": "admin" }
+          ],
+          "count": 3,
+          "end_of_stream": true,
+          "end_time": 1762340000,
+          "next_page": "https://larkspur.zendesk.com/api/v2/incremental/tickets.json?start_time=1762340000"
+        }
+      }
+    },
+    {
+      "note": "comments of 101: the opening comment (same text as the ticket description), an internal note (public false) and a public agent reply",
+      "request": {
+        "method": "GET",
+        "path": "/api/v2/tickets/101/comments.json",
+        "query": { "page[size]": "100", "include": "users" }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "comments": [
+            {
+              "id": 9001,
+              "type": "Comment",
+              "author_id": 1001,
+              "body": "CSV export fails with error 500 every morning.",
+              "html_body": "<div class=\"zd-comment\"><p>CSV export fails with error 500 every morning.</p></div>",
+              "plain_body": "CSV export fails with error 500 every morning.",
+              "public": true,
+              "created_at": "2026-11-04T09:00:00Z"
+            },
+            {
+              "id": 9002,
+              "type": "Comment",
+              "author_id": 901,
+              "body": "Internal: this looks like the known export bug, do not tell the customer the cause yet.",
+              "html_body": "<div class=\"zd-comment\"><p>Internal: this looks like the known export bug.</p></div>",
+              "plain_body": "Internal: this looks like the known export bug, do not tell the customer the cause yet.",
+              "public": false,
+              "created_at": "2026-11-04T09:20:00Z"
+            },
+            {
+              "id": 9003,
+              "type": "Comment",
+              "author_id": 901,
+              "body": "We are looking into this server-side error.",
+              "html_body": "<div class=\"zd-comment\"><p>We are looking into this server-side error.</p></div>",
+              "plain_body": "We are looking into this server-side error.",
+              "public": true,
+              "created_at": "2026-11-04T09:30:00Z"
             }
           ],
-          "count": 2,
-          "end_time": 1762340000
+          "users": [
+            { "id": 1001, "name": "Halden Ops", "email": "ops@halden.test", "role": "end-user" },
+            { "id": 901, "name": "Larkspur Admin", "email": "admin@larkspur.test", "role": "admin" }
+          ],
+          "meta": { "has_more": false, "after_cursor": null, "before_cursor": null },
+          "links": { "next": null, "prev": null }
+        }
+      }
+    },
+    {
+      "note": "comments of 102: only the opening comment",
+      "request": {
+        "method": "GET",
+        "path": "/api/v2/tickets/102/comments.json",
+        "query": { "page[size]": "100", "include": "users" }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "comments": [
+            {
+              "id": 9101,
+              "type": "Comment",
+              "author_id": 1002,
+              "body": "Hello, I have a question about plans.",
+              "html_body": "<div class=\"zd-comment\"><p>Hello, I have a question about plans.</p></div>",
+              "plain_body": "Hello, I have a question about plans.",
+              "public": true,
+              "created_at": "2026-11-04T10:00:00Z"
+            }
+          ],
+          "users": [
+            { "id": 1002, "name": "Stranger", "email": "unknown@stranger.test", "role": "end-user" }
+          ],
+          "meta": { "has_more": false, "after_cursor": null, "before_cursor": null },
+          "links": { "next": null, "prev": null }
         }
       }
     }

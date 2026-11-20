@@ -174,6 +174,8 @@ export const normalizedTicket = z.object({
   priority: z.enum(["LOW", "NORMAL", "HIGH", "URGENT"]).default("NORMAL"),
   requesterEmail: email.optional(),
   requesterName: optionalText,
+  /** Why there is no requesterEmail, when the provider could not give one (shown, never guessed). */
+  requesterUnresolvedReason: z.string().trim().min(1).max(500).optional(),
   openedAt: date,
   updatedAt: date.optional(),
   closedAt: date.optional(),

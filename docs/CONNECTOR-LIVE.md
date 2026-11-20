@@ -598,22 +598,41 @@ customers." (`b6-stage1-connected-banner.png`, `b6-stage1-slack-card.webp`). The
   Base URL `https://<subdomain>.zendesk.com`. Validated with `GET /api/v2/users/me.json`.
 - **Env names:** none (meant to be entered in Settings).
 - **Redirect URL:** none.
-- **Syncs:** `GET /api/v2/incremental/tickets.json?start_time=<cursor>` → `Ticket`, its comments →
-  `Message`, matched to accounts by requester email/domain (unmatched go to the unmatched queue).
-- **Paging:** one request per sync run; the next run continues from the returned cursor. Not a loop.
-- **Webhooks:** HMAC-SHA256 over timestamp + body with `X-Zendesk-Webhook-Signature` and
-  `-Timestamp`, 5-minute tolerance, against the secret entered on the connect form.
-- **Live vs fixture differences:** the fixture's tickets carry a `comments` array. **(vendor
-  behaviour, unverified here)** the live incremental tickets endpoint does not return comments
-  inline, so live tickets may arrive with no message bodies. One page per run also means a large
-  backlog takes many runs.
+- **Syncs (fixed after the B7 preflight, branch `proof/zendesk`):**
+  `GET /api/v2/incremental/tickets.json?start_time=<cursor or 0>&include=users`. A live ticket carries only
+  `requester_id`; the email comes from the sideloaded `users`, and any requester the sideload missed is read with
+  `GET /api/v2/users/show_many.json?ids=…` (100 ids a request). A requester still unresolved stays empty and the
+  ticket goes to the unmatched queue with the reason "Zendesk returned no email for requester N, so the ticket could
+  not be matched to an account"; an email is never guessed. Each ticket's comments are read with
+  `GET /api/v2/tickets/{id}/comments.json?page[size]=100&include=users`, following `meta.after_cursor` until
+  `has_more` is false. The ticket **description is always the first message** (id `<ticket>_desc`); the first comment
+  is the same text and is dropped; later **public** comments follow in time order. **Comments with `public: false`
+  (internal notes) are never stored**, the same rule as Freshdesk (decided 2026-11-20). A ticket with
+  `status: "deleted"` is never ingested and never mapped to OPEN (the export keeps deleted tickets for a while); any
+  other unknown status still maps to OPEN. Matching is by requester email, then domain; unmatched go to the
+  unmatched queue.
+- **Paging and the scale limit:** the export is looped in one run until `end_of_stream`, **at most 10 pages
+  (about 10,000 tickets, `MAX_EXPORT_PAGES`)**, matching Zendesk's 10 export requests a minute; the cursor saved is the
+  last `end_time` reached and the next run continues from it, with a log line when the cap is hit. Comments: at most
+  20 pages of 100 per ticket (`MAX_COMMENT_PAGES`), logged when reached. A run on a large backlog therefore takes
+  several runs, and each exported ticket costs one comments request. An empty export may return `end_time: null`;
+  that is a valid answer, the saved cursor does not move and the run reports 0 added.
+- **Webhooks:** HMAC-SHA256 over timestamp + body with `X-Zendesk-Webhook-Signature` and `-Timestamp`, 5-minute
+  tolerance, against the secret entered on the connect form. Private comments in a webhook payload are skipped too.
+  Live webhooks stay deferred (tunnel hostname).
+- **Live vs fixture:** the fixture is now in the documented live shapes (authored from the Ticketing API
+  reference, not captured): export tickets with `requester_id` and a `users` sideload, no embedded `comments`;
+  comments from the per-ticket endpoint; a `deleted` ticket in the export. The old fixture embedded comments and used
+  string ids, which hid the requester-email gap below.
+- **Phase 2 live checks still open (not confirmed in the docs):**
+  1. Whether `start_time=0` is accepted for a first export.
+  2. The status code Zendesk returns for a deleted API token (the docs only say deleting a token deactivates it).
+  3. Whether the `users` sideload on the incremental export carries `email` (the `show_many` fallback exists either way).
+  4. Whether API-token access has to be switched on in Admin Center (Apps and integrations › APIs › Zendesk API).
 - **Blockers, in order:**
-  1. **FIXED (`7015886`).** **[code] The Settings connect form cannot connect Zendesk.** The adapter needs the subdomain
-     (`site`) and the admin email (`username`), and the help text asks for both, but the form only
-     renders a site field for Chargebee and a user-name field for Mixpanel/Amplitude. Without them
-     the adapter falls back to the subdomain `app` (`app.zendesk.com`) and an empty email, so the
-     validation call fails. Code change needed; stopped here per the brief.
-  2. Comment bodies on live tickets (above): needs a live check, likely a code change.
+  1. **FIXED (`7015886`).** **[code] The Settings connect form cannot connect Zendesk.** (The adapter needs the
+     subdomain and the admin email; the form now collects both.)
+  2. **FIXED (B7 fix commit).** Requester email, comment bodies, deleted tickets, empty export and paging, as above.
   3. Common blocker 2 for webhooks only.
 
 ## Freshdesk

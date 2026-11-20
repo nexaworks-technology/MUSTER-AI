@@ -78,7 +78,9 @@ describe("Support connectors integration (Zendesk & Freshdesk)", () => {
     });
 
     const timestamp = String(Math.floor(NOW.getTime() / 1000));
-    const sig = createHmac("sha256", secret).update(timestamp + rawPayload).digest("base64");
+    const sig = createHmac("sha256", secret)
+      .update(timestamp + rawPayload)
+      .digest("base64");
 
     const req = {
       headers: {
@@ -191,7 +193,11 @@ describe("Support connectors integration (Zendesk & Freshdesk)", () => {
       {
         workspaceId: admin.workspaceId,
         integrationId: integration.id,
-        credentials: { apiKey: "fixture-zendesk-api-token", username: "admin@larkspur.test", site: "larkspur" },
+        credentials: {
+          apiKey: "fixture-zendesk-api-token",
+          username: "admin@larkspur.test",
+          site: "larkspur",
+        },
         config: {},
         transport,
         clock: () => NOW,
@@ -208,18 +214,32 @@ describe("Support connectors integration (Zendesk & Freshdesk)", () => {
 
     // 1 matched ticket on Halden
     const haldenTicket = await db.ticket.findFirst({
-      where: { workspaceId: admin.workspaceId, externalId: "zd_101" },
+      where: { workspaceId: admin.workspaceId, externalId: "101" },
     });
     expect(haldenTicket).toBeDefined();
     expect(haldenTicket?.accountId).toBe(halden.id);
 
     // 1 unmatched ticket in UnmatchedInbound
     const unmatched = await db.unmatchedInbound.findFirst({
-      where: { workspaceId: admin.workspaceId, externalId: "zd_102" },
+      where: { workspaceId: admin.workspaceId, externalId: "102" },
     });
     expect(unmatched).toBeDefined();
     expect(unmatched?.provider).toBe("ZENDESK");
     expect(unmatched?.fromAddress).toBe("unknown@stranger.test");
+
+    // The deleted ticket (103) was never ingested; the matched one carries its opening message
+    // first and no internal note.
+    expect(
+      await db.ticket.count({ where: { workspaceId: admin.workspaceId, externalId: "103" } }),
+    ).toBe(0);
+    const msgs = await db.message.findMany({
+      where: { workspaceId: admin.workspaceId, conversationId: haldenTicket!.conversationId! },
+      orderBy: { sentAt: "asc" },
+    });
+    expect(msgs.map((m) => m.bodyText)).toEqual([
+      "CSV export fails with error 500 every morning.",
+      "We are looking into this server-side error.",
+    ]);
 
     // SYNC-TWICE PROOF: running the identical batches a second time changes nothing
     const secondRunResults = [];
@@ -234,6 +254,50 @@ describe("Support connectors integration (Zendesk & Freshdesk)", () => {
 
     const totalTicketsAfter = await db.ticket.count({ where: { workspaceId: admin.workspaceId } });
     expect(totalTicketsAfter).toBe(1); // exactly 1, no duplicate
+  });
+
+  it("Zendesk: a ticket whose requester email could not be resolved is unmatched with an honest reason", async () => {
+    const { actor: admin } = await createTestAdmin("zendesk-unresolved");
+    const db = scopedDb(admin);
+    const integration = await db.integration.create({
+      data: {
+        workspaceId: admin.workspaceId,
+        provider: "ZENDESK",
+        status: "CONNECTED",
+        credentialsEnc: sealCredentials({ apiKey: "tok", username: "a@b.test", site: "x" }),
+      },
+    });
+    const reason =
+      "Zendesk returned no email for requester 777, so the ticket could not be matched to an account";
+    await ingestBatch(
+      { workspaceId: admin.workspaceId, integrationId: integration.id, source: "ZENDESK" as const },
+      {
+        kind: "tickets",
+        records: [
+          {
+            externalId: "777",
+            subject: "No email on file",
+            status: "OPEN",
+            priority: "NORMAL",
+            requesterUnresolvedReason: reason,
+            openedAt: NOW,
+            messages: [
+              {
+                externalId: "777_desc",
+                direction: "INBOUND",
+                toAddresses: [],
+                bodyText: "Hi",
+                sentAt: NOW,
+              },
+            ],
+          },
+        ],
+      },
+    );
+    const row = await db.unmatchedInbound.findFirst({
+      where: { workspaceId: admin.workspaceId, externalId: "777" },
+    });
+    expect(row?.reason).toBe(reason);
   });
 
   it("Freshdesk: verifies shared secret, dedupes webhook, and ingests tickets", async () => {

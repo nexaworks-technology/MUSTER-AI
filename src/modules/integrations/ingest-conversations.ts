@@ -156,7 +156,10 @@ export async function ingestTickets(
             subject: t.subject,
             bodyText: t.messages[0]?.bodyText ?? t.subject,
             receivedAt: t.openedAt,
-            reason: `Ticket requester ${t.requesterEmail ?? "unknown"} could not be matched to an account`,
+            reason: t.requesterEmail
+              ? `Ticket requester ${t.requesterEmail} could not be matched to an account`
+              : (t.requesterUnresolvedReason ??
+                "The ticket has no requester email, so it could not be matched to an account"),
             candidateAccountIds: [],
           },
         });
