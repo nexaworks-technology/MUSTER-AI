@@ -493,7 +493,7 @@ async function execute(b: Prepared, first?: StructuredResult<unknown>): Promise<
 
   // Handle citations become the real records first; the checker below is unchanged.
   const candidate = built.aliasRefs ? resolveHandles(result.output, built.bundle) : result.output;
-  const evaluation = evaluateOutput(def, built.bundle, candidate, built.facts);
+  const evaluation = evaluateOutput(def, built.bundle, candidate, built.facts, built.askerText);
   if (evaluation.status !== "SUCCEEDED")
     return finish(
       ctx,

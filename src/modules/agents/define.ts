@@ -24,6 +24,11 @@ export interface BuiltContext {
    * resolves them to the real records before the citation checker runs (see `aliases.ts`).
    */
   aliasRefs?: boolean;
+  /**
+   * What the asker typed (Ask AI's question and their earlier turns). The number check does not
+   * count the asker's own numerals restated with their unit ("the next 30 days") as record claims.
+   */
+  askerText?: string[];
 }
 
 /** What a side effect wrote, recorded on AgentRun.effects (Rule 5). */

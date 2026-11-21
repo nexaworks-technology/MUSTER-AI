@@ -143,6 +143,10 @@ export const askAi = defineAgent<AskAiInput, AskAiOutput>({
       bundle,
       // Records carry short cite handles: copying a long random id is where answers went wrong.
       aliasRefs: true,
+      askerText: [
+        ...input.history.filter((h) => h.role === "USER").map((h) => h.text),
+        input.question,
+      ],
       vars: {
         question: input.question,
         history:

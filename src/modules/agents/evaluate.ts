@@ -15,6 +15,8 @@ export function evaluateOutput(
   bundle: ContextBundle,
   raw: unknown,
   facts: Record<string, number> = {},
+  /** What the asker wrote (Ask AI only); see `checkNumbers`. */
+  askerText: string[] = [],
 ): Evaluation {
   const parsed = def.outputSchema.safeParse(raw);
   if (!parsed.success)
@@ -30,7 +32,7 @@ export function evaluateOutput(
     ...(def.uncited?.(output) ?? []),
   ];
   const cited = citedRecords([...output.citations, ...extra], bundle);
-  problems.push(...checkNumbers(def.narrative?.(output) ?? [], cited));
+  problems.push(...checkNumbers(def.narrative?.(output) ?? [], cited, askerText));
   if (problems.length) return { status: "UNCITED", problems };
   return {
     status: "SUCCEEDED",

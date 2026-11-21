@@ -4,6 +4,7 @@ import { EmptyState } from "@/components/app/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { listTickets } from "@/modules/support/service";
+import { sourceLabel } from "@/modules/integrations/service";
 import { loadAccount } from "../data";
 
 export const metadata: Metadata = { title: "Tickets" };
@@ -41,6 +42,7 @@ export default async function TicketsPage({ params }: { params: Promise<{ id: st
                   {t.isEscalated ? " · escalated" : ""} · opened {formatDate(t.openedAt, tz)}
                   {t.isOpen ? ` · open ${t.ageDays} day${t.ageDays === 1 ? "" : "s"}` : ""}
                   {t.contactName ? ` · from ${t.contactName}` : ""}
+                  {sourceLabel(t.source) ? ` · ${sourceLabel(t.source)}` : ""}
                 </span>
                 {t.isOpen && (t.priority === "HIGH" || t.priority === "URGENT" || t.isEscalated) ? (
                   <Badge variant="danger" className="ml-2">

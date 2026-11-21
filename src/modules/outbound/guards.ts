@@ -17,6 +17,45 @@ export const GUARDS = [
 ] as const;
 export type GuardName = (typeof GUARDS)[number];
 
+/** What a campaign send must still pass (it is approved once, then sent to many people). */
+const CAMPAIGN_GUARDS: readonly GuardName[] = [
+  "contact_recently_emailed",
+  "quiet_hours",
+  "serious_ticket_open",
+  "account_lost",
+  "suppressed",
+];
+/** What an approved survey send must still pass. */
+const SURVEY_GUARDS: readonly GuardName[] = [
+  "contact_recently_emailed",
+  "account_recently_emailed",
+  "quiet_hours",
+  "serious_ticket_open",
+  "account_lost",
+  "suppressed",
+];
+
+/**
+ * The guards that stop this send. A person-approved email is stopped only by suppression (and the
+ * pre-checks); the other guards apply to automatic sends and are recorded for information. The one
+ * rule dispatch applies and the Approvals page labels with (DEMO-WALKTHROUGH note: a human send
+ * listed "Not passed: quiet hours" beside "sent").
+ */
+export function gatingGuards(m: {
+  sendMode: string;
+  sourceKey: string | null;
+}): readonly GuardName[] {
+  if (m.sendMode === "APPROVED")
+    return m.sourceKey?.startsWith("survey:") ? SURVEY_GUARDS : ["suppressed"];
+  if (m.sendMode === "CAMPAIGN") return CAMPAIGN_GUARDS;
+  return GUARDS;
+}
+
+/** Whether a recorded check stopped (or would stop) this send; a pre-check always does. */
+export function checkGates(guard: string, gating: readonly GuardName[]): boolean {
+  return !(GUARDS as readonly string[]).includes(guard) || gating.includes(guard as GuardName);
+}
+
 export interface GuardResult {
   guard: GuardName;
   passed: boolean;

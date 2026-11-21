@@ -7,7 +7,7 @@ import { customerTransport, type CustomerTransport } from "@/lib/email/customerT
 import { markActed } from "@/modules/outcomes/service";
 import { getSettingsData } from "@/modules/settings/service";
 import { renderCampaignText } from "@/modules/campaigns/service";
-import { evaluateGuards, type GuardName, type GuardResult } from "./guards";
+import { evaluateGuards, gatingGuards, type GuardResult } from "./guards";
 import { detectSensitive } from "./sensitive";
 
 /**
@@ -278,35 +278,12 @@ export async function dispatch(
   const checks = await preChecks(ctx, m);
   const gctx = await guardContext(ctx, m, now);
   const guards = evaluateGuards(gctx);
-  const suppressed = guards.find((g) => g.guard === "suppressed")!;
   const results: Check[] = [...checks, ...guards];
-  const CAMPAIGN_GUARDS: GuardName[] = [
-    "contact_recently_emailed",
-    "quiet_hours",
-    "serious_ticket_open",
-    "account_lost",
-    "suppressed",
-  ];
   const isSurvey = Boolean(m.sourceKey && m.sourceKey.startsWith("survey:"));
-  const SURVEY_GUARDS: GuardName[] = [
-    "contact_recently_emailed",
-    "account_recently_emailed",
-    "quiet_hours",
-    "serious_ticket_open",
-    "account_lost",
-    "suppressed",
-  ];
-  const blocking =
-    m.sendMode === "APPROVED"
-      ? isSurvey
-        ? [...checks, ...guards.filter((g) => SURVEY_GUARDS.includes(g.guard))].filter((c) => !c.passed)
-        : [...checks, suppressed].filter((c) => !c.passed)
-      : m.sendMode === "CAMPAIGN"
-        ? [
-            ...checks,
-            ...guards.filter((g) => CAMPAIGN_GUARDS.includes(g.guard)),
-          ].filter((c) => !c.passed)
-        : [...checks, ...guards].filter((c) => !c.passed);
+  const gating = gatingGuards(m);
+  const blocking = [...checks, ...guards.filter((g) => gating.includes(g.guard))].filter(
+    (c) => !c.passed,
+  );
 
   if (blocking.length) {
     if (isSurvey && checks.every((c) => c.passed)) {

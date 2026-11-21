@@ -29,6 +29,8 @@ export interface GenerateQbrInput {
   accountId: string;
   period: string;
   canViewRevenue?: boolean;
+  /** One per request (a click): a retry after a failure gets a new one and so a fresh run. */
+  nonce?: string;
 }
 
 function toQbrView(doc: Document): QbrDocumentView {
@@ -134,10 +136,14 @@ export async function generateQbr(
       action: "QBR_NARRATIVE",
       accountId: input.accountId,
       qbrPeriod: period,
+      ...(input.nonce ? { nonce: input.nonce } : {}),
     },
     {
       type: "qbr.generate",
-      id: `${input.accountId}:${period}`,
+      // One run per request: a retry after a failure is a new request, never the failed run again.
+      id: input.nonce
+        ? `${input.accountId}:${period}:${input.nonce}`
+        : `${input.accountId}:${period}`,
     },
     deps,
   );
@@ -152,7 +158,6 @@ export async function generateQbr(
 
   const agentOutput =
     (run.output as {
-      title?: string;
       summary?: string;
       decisions?: string[];
       actionItems?: Array<{ title: string; ownerName?: string }>;
@@ -197,7 +202,7 @@ export async function generateQbr(
       workspaceId: ctx.workspaceId,
       accountId: input.accountId,
       kind: "QBR",
-      title: agentOutput.title ?? `${period} Executive Business Review`,
+      title: `${period} Business Review: ${account.name}`,
       origin: "AI",
       agentRunId: outcome.runId,
       metrics: {

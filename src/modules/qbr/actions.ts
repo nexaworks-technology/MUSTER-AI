@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
@@ -42,7 +43,12 @@ export async function generateQbrAction(
 
   let documentId: string;
   try {
-    const doc = await generateQbr(a, { accountId: parsed.data.accountId, period: period.value });
+    // Each submission is its own request, so "Try again" after a failure is a fresh run (FAIL 35).
+    const doc = await generateQbr(a, {
+      accountId: parsed.data.accountId,
+      period: period.value,
+      nonce: randomUUID(),
+    });
     documentId = doc.id;
   } catch (e) {
     const message = e instanceof Error ? e.message : "";

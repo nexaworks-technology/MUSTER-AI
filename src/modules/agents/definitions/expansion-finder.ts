@@ -64,6 +64,31 @@ export const expansionFinderOutput = z
   });
 export type ExpansionFinderOutput = z.infer<typeof expansionFinderOutput>;
 
+/**
+ * The limit figures a seats/credits signal measured, plus how far over the limit that is, computed
+ * here (D-75: code computes, the model only repeats). Without the difference the agent could only
+ * say "8 seats over" by computing it, which the number check rightly refuses (DEMO FAIL 32).
+ */
+export function limitFigures(values: unknown): Record<string, number> {
+  const v = (values ?? {}) as Record<string, unknown>;
+  const num = (x: unknown) => (typeof x === "number" && Number.isFinite(x) ? x : null);
+  const used = num(v.used);
+  const out: Record<string, number> = {};
+  const seats = num(v.seats);
+  if (used !== null && seats !== null) {
+    out.seatsInUse = used;
+    out.seatsPurchased = seats;
+    if (used > seats) out.seatsOverLimit = used - seats;
+  }
+  const credits = num(v.credits);
+  if (used !== null && credits !== null) {
+    out.creditsUsed = used;
+    out.creditsPurchased = credits;
+    if (used > credits) out.creditsOverLimit = used - credits;
+  }
+  return out;
+}
+
 export async function expansionFinderContext(
   db: ScopedDb,
   input: ExpansionFinderInput,
@@ -91,7 +116,7 @@ export async function expansionFinderContext(
   const [signals, contract, usage, goals, owner, contact] = await Promise.all([
     db.signal.findMany({
       where: { id: { in: opp.signalIds } },
-      select: { id: true, ruleKey: true, title: true, explanation: true },
+      select: { id: true, ruleKey: true, title: true, explanation: true, values: true },
       orderBy: { id: "asc" },
     }),
     db.contract.findFirst({
@@ -136,7 +161,7 @@ export async function expansionFinderContext(
     ...signals.map((s): ContextRecord => ({
       sourceType: "Signal",
       sourceId: s.id,
-      fields: { rule: s.ruleKey, title: s.title, explanation: s.explanation },
+      fields: { rule: s.ruleKey, title: s.title, explanation: s.explanation, ...limitFigures(s.values) },
     })),
     ...(contract
       ? [
@@ -193,13 +218,13 @@ export async function expansionFinderContext(
 
 export const expansionFinder = defineAgent({
   key: "expansion-finder",
-  version: "1.0.0",
+  version: "1.1.0",
   description:
     "Explains an expansion opportunity from usage and limit records and drafts a conversation, never a hard pitch; the draft goes to Approvals",
   modelTier: jobTier("expansion-finder"),
   tierReason:
     "A short note and one customer-facing draft from a few records: tone and accuracy matter (§6.1).",
-  prompt: { name: "expansion-finder", version: "1.0.0" },
+  prompt: { name: "expansion-finder", version: "1.1.0" },
   inputSchema: expansionFinderInput,
   outputSchema: expansionFinderOutput,
   buildContext: expansionFinderContext,

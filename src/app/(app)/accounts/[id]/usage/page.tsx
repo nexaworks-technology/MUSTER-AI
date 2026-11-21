@@ -3,6 +3,7 @@ import { EmptyState } from "@/components/app/empty-state";
 import { LineChart } from "@/components/app/line-chart";
 import { formatCalendarDate } from "@/lib/format";
 import { getUsage } from "@/modules/usage/service";
+import { sourceLabel } from "@/modules/integrations/service";
 import { loadAccount } from "../data";
 
 export const metadata: Metadata = { title: "Usage" };
@@ -63,6 +64,11 @@ export default async function UsagePage({
         <h2 id="usage-chart" className="text-base font-semibold">
           {metricLabel}, last {points.length} weeks
         </h2>
+        {usage.lastSource && sourceLabel(usage.lastSource) ? (
+          <p className="text-muted-foreground text-xs" data-testid="usage-source">
+            Usage {sourceLabel(usage.lastSource)}.
+          </p>
+        ) : null}
         {window ? (
           <p
             className="bg-accent text-accent-foreground rounded-md px-3 py-2 text-sm"

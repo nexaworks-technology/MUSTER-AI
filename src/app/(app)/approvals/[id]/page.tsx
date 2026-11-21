@@ -12,6 +12,7 @@ import {
   parseProof,
   resolveProof,
 } from "@/modules/approvals/service";
+import { checkGates, gatingGuards } from "@/modules/outbound/service";
 
 export const metadata: Metadata = { title: "Approval" };
 
@@ -153,22 +154,8 @@ export default async function ApprovalPage({ params }: { params: Promise<{ id: s
               </ol>
             </details>
           ) : null}
-          {guards.length ? (
-            <details className="text-sm" data-testid="guard-results">
-              <summary className="cursor-pointer">
-                Send checks ({guards.filter((g) => !g.passed).length} not passed)
-              </summary>
-              <ul className="mt-2 space-y-1">
-                {guards.map((g) => (
-                  <li key={g.guard}>
-                    <Badge variant={g.passed ? "success" : "danger"}>
-                      {g.passed ? "Passed" : "Not passed"}
-                    </Badge>{" "}
-                    {g.detail}
-                  </li>
-                ))}
-              </ul>
-            </details>
+          {guards.length && message ? (
+            <SendChecks guards={guards} gating={gatingGuards(message)} />
           ) : null}
         </section>
       ) : null}
@@ -194,5 +181,44 @@ export default async function ApprovalPage({ params }: { params: Promise<{ id: s
         </p>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * The checks recorded on the send. Only those that gate this kind of send can stop it; the rest
+ * apply to automatic sends and are shown as such, never as "Not passed" beside "sent".
+ */
+function SendChecks({
+  guards,
+  gating,
+}: {
+  guards: Array<{ guard: string; passed: boolean; detail: string }>;
+  gating: ReturnType<typeof gatingGuards>;
+}) {
+  const stopped = guards.filter((g) => !g.passed && checkGates(g.guard, gating)).length;
+  const autoOnly = guards.filter((g) => !g.passed && !checkGates(g.guard, gating)).length;
+  return (
+    <details className="text-sm" data-testid="guard-results">
+      <summary className="cursor-pointer">
+        Send checks ({stopped} not passed
+        {autoOnly ? `, ${autoOnly} for automatic sends only` : ""})
+      </summary>
+      <ul className="mt-2 space-y-1">
+        {guards.map((g) => {
+          const gates = checkGates(g.guard, gating);
+          return (
+            <li key={g.guard}>
+              <Badge variant={g.passed ? "success" : gates ? "danger" : "neutral"}>
+                {g.passed ? "Passed" : gates ? "Not passed" : "Automatic sends only"}
+              </Badge>{" "}
+              {g.detail}
+              {!g.passed && !gates
+                ? " This holds automatic sends only; a person approved this one, so it did not apply."
+                : ""}
+            </li>
+          );
+        })}
+      </ul>
+    </details>
   );
 }

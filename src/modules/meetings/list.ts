@@ -17,6 +17,8 @@ export interface MeetingIndexRow {
   accountName: string | null;
   hasBrief: boolean;
   hasSummary: boolean;
+  /** Where the meeting came from (DEMO FAIL 53). */
+  source: string;
 }
 
 export interface QbrIndexRow {
@@ -67,6 +69,7 @@ export async function listMeetingsIndex(
     accountId: string | null;
     briefDocumentId: string | null;
     summaryAgentRunId: string | null;
+    source: string;
     account: { name: string } | null;
   }): MeetingIndexRow => ({
     id: m.id,
@@ -78,6 +81,7 @@ export async function listMeetingsIndex(
     accountName: m.account?.name ?? null,
     hasBrief: m.briefDocumentId !== null,
     hasSummary: m.summaryAgentRunId !== null,
+    source: m.source,
   });
   const include = { account: { select: { name: true } } };
   const [upcoming, past, qbrs] = await Promise.all([

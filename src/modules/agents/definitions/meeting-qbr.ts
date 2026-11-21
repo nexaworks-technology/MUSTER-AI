@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { liveSnapshotWhere } from "@/modules/health/service";
 import type { Prisma } from "@prisma/client";
+import type { ScopedDb } from "@/lib/db/scoped";
 import { defineAgent, type BuiltContext, type Effect } from "../define";
 import { baseAgentOutput, type ContextBundle } from "../schemas";
 import { jobTier } from "@/lib/ai/routing";
@@ -16,39 +17,56 @@ export const meetingQbrInput = z.object({
 });
 export type MeetingQbrInput = z.infer<typeof meetingQbrInput>;
 
+/**
+ * Every node is typed: the live provider rejects an untyped JSON-schema node, and `z.unknown()`
+ * becomes one (DEMO-WALKTHROUGH FAIL 34/35). No title and no metrics: the document title is built
+ * from the meeting or the period, and figures live in the locked metrics, never in model output
+ * (D-75).
+ */
+const lines = z.array(z.string().min(1).max(1_000)).max(12).default([]);
 export const meetingQbrOutput = z.object({
   ...baseAgentOutput.shape,
-  title: z.string().min(1).max(500).default("Meeting Brief"),
-  summary: z.string().min(1).max(4000).default("Summary"),
-  decisions: z.array(z.string()).default([]),
+  summary: z.string().min(1).max(4000),
+  decisions: lines,
   actionItems: z
     .array(
       z.object({
         title: z.string().min(1).max(500),
-        description: z.string().default(""),
-        assigneeEmail: z.string().nullable().optional(),
-        dueDate: z.string().nullable().optional(),
+        description: z.string().max(2_000).default(""),
+        assigneeEmail: z.string().nullable().default(null),
+        dueDate: z.string().nullable().default(null),
       }),
     )
+    .max(20)
     .default([]),
-  suggestedQuestions: z.array(z.string()).default([]),
-  healthHighlights: z.array(z.string()).default([]),
-  metrics: z.record(z.string(), z.unknown()).default({}),
-  narrative: z.array(z.unknown()).default([]),
+  suggestedQuestions: lines,
+  healthHighlights: lines,
+  recentActivity: lines,
+  openItems: lines,
 });
 export type MeetingQbrOutput = z.infer<typeof meetingQbrOutput>;
 
 export const meetingQbr = defineAgent({
   key: "meeting-qbr",
-  version: "1.0.0",
+  version: "1.1.0",
   description:
     "Prepares pre-call briefs, meeting summaries with action item handoffs, and QBR narrative blocks",
   modelTier: jobTier("meeting-qbr"),
   tierReason:
     "High-utility briefings and accurate conversation summaries require standard tone and precision.",
-  prompt: { name: "meeting-brief", version: "1.0.0" },
+  prompt: { name: "meeting-brief", version: "1.1.0" },
   forbiddenNumericFields: [],
   approvalPolicy: "INTERNAL",
+  // Every number the model writes must be in a record it cites (Rule 1, D-75).
+  narrative: (o) => [
+    o.summary,
+    ...o.decisions,
+    ...o.actionItems.flatMap((a) => [a.title, a.description]),
+    ...o.suggestedQuestions,
+    ...o.healthHighlights,
+    ...o.recentActivity,
+    ...o.openItems,
+  ],
   inputSchema: meetingQbrInput,
   outputSchema: meetingQbrOutput,
 
@@ -99,55 +117,7 @@ export const meetingQbr = defineAgent({
         }
       }
 
-      // Latest health snapshot
-      const snapshot = await db.healthScoreSnapshot.findFirst({
-        where: liveSnapshotWhere({ accountId: input.accountId }),
-        orderBy: { asOf: "desc" },
-        include: { riskReason: true },
-      });
-      if (snapshot) {
-        bundle.push({
-          sourceType: "HealthScoreSnapshot",
-          sourceId: snapshot.id,
-          fields: {
-            overall: snapshot.overall ? Number(snapshot.overall) : null,
-            riskLevel: snapshot.riskLevel,
-            riskReason: snapshot.riskReason?.message ?? null,
-          },
-        });
-      }
-
-      // Active contract
-      const contract = await db.contract.findFirst({
-        where: { accountId: input.accountId, status: "ACTIVE" },
-        orderBy: { startDate: "desc" },
-      });
-      if (contract) {
-        bundle.push({
-          sourceType: "Contract",
-          sourceId: contract.id,
-          fields: {
-            status: contract.status,
-            renewalDate: contract.renewalDate?.toISOString().slice(0, 10) ?? null,
-          },
-        });
-      }
-
-      // Open promises
-      const promises = await db.promise.findMany({
-        where: { accountId: input.accountId, status: { in: ["OPEN", "LATE", "BROKEN"] } },
-        take: 5,
-      });
-      for (const p of promises) {
-        bundle.push({
-          sourceType: "Promise",
-          sourceId: p.id,
-          fields: {
-            what: p.what,
-            status: p.status,
-          },
-        });
-      }
+      bundle.push(...(await accountRecords(db, input.accountId)));
 
       return {
         bundle,
@@ -157,7 +127,7 @@ export const meetingQbr = defineAgent({
           meetingTitle,
         },
         accountId: input.accountId,
-        prompt: { name: "meeting-brief", version: "1.0.0" },
+        prompt: { name: "meeting-brief", version: "1.1.0" },
         tier: jobTier("meeting-brief"),
       };
     }
@@ -212,7 +182,15 @@ export const meetingQbr = defineAgent({
       };
     }
 
-    // QBR_NARRATIVE
+    // QBR_NARRATIVE: the records the review may speak to; the figures are in the locked metrics.
+    // The period is a record too, so a narrative that names it ("Q4 2026") can cite where that came
+    // from instead of being refused for a numeral no record holds.
+    bundle.push({
+      sourceType: "QbrPeriod",
+      sourceId: input.qbrPeriod ?? "current",
+      fields: { period: input.qbrPeriod ?? "Current Quarter" },
+    });
+    bundle.push(...(await accountRecords(db, input.accountId)));
     return {
       bundle,
       vars: {
@@ -220,7 +198,7 @@ export const meetingQbr = defineAgent({
         periodLabel: input.qbrPeriod ?? "Current Quarter",
       },
       accountId: input.accountId,
-      prompt: { name: "qbr-narrative", version: "1.0.0" },
+      prompt: { name: "qbr-narrative", version: "1.1.0" },
       tier: jobTier("qbr-narrative"),
     };
   },
@@ -230,23 +208,23 @@ export const meetingQbr = defineAgent({
     const db = ctx.db;
 
     if (input.action === "PREPARE_BRIEF") {
-      const narrativeJson = (
-        output.narrative.length
-          ? output.narrative
-          : [
-              { type: "summary", text: output.summary },
-              { type: "health", items: output.healthHighlights },
-              { type: "questions", items: output.suggestedQuestions },
-            ]
-      ) as Prisma.InputJsonValue;
+      const meeting = input.meetingId
+        ? await db.meeting.findUnique({ where: { id: input.meetingId }, select: { title: true } })
+        : null;
+      const narrativeJson = [
+        { type: "summary", text: output.summary },
+        { type: "health", items: output.healthHighlights },
+        { type: "activity", items: output.recentActivity },
+        { type: "open_items", items: output.openItems },
+        { type: "questions", items: output.suggestedQuestions },
+      ] satisfies Prisma.InputJsonValue;
 
       const doc = await db.document.create({
         data: {
           workspaceId: ctx.workspaceId,
           accountId: ctx.accountId!,
           kind: "PRE_CALL_BRIEF",
-          title: output.title,
-          metrics: (output.metrics ?? {}) as Prisma.InputJsonValue,
+          title: `Pre-call Brief: ${meeting?.title ?? "Upcoming meeting"}`,
           narrative: narrativeJson,
           origin: "AI",
           agentRunId: ctx.runId,
@@ -327,3 +305,75 @@ export const meetingQbr = defineAgent({
     };
   },
 });
+
+
+/** Health, contract, plan goals, open promises and open tickets: what a brief or review cites. */
+async function accountRecords(db: ScopedDb, accountId: string): Promise<ContextBundle> {
+  const [snapshot, contract, goals, promises, tickets] = await Promise.all([
+    db.healthScoreSnapshot.findFirst({
+      where: liveSnapshotWhere({ accountId }),
+      orderBy: { asOf: "desc" },
+      include: { riskReason: true },
+    }),
+    db.contract.findFirst({
+      where: { accountId, status: "ACTIVE" },
+      orderBy: { startDate: "desc" },
+    }),
+    db.goal.findMany({
+      where: { accountId },
+      orderBy: { createdAt: "asc" },
+      take: 10,
+      select: { id: true, text: true, status: true, successPlan: { select: { title: true } } },
+    }),
+    db.promise.findMany({
+      where: { accountId, status: { in: ["OPEN", "LATE", "BROKEN"] } },
+      take: 5,
+    }),
+    db.ticket.findMany({
+      where: { accountId, status: { notIn: ["SOLVED", "CLOSED"] } },
+      orderBy: { openedAt: "desc" },
+      take: 5,
+      select: { id: true, subject: true, status: true, priority: true, openedAt: true },
+    }),
+  ]);
+  const out: ContextBundle = [];
+  if (snapshot)
+    out.push({
+      sourceType: "HealthScoreSnapshot",
+      sourceId: snapshot.id,
+      fields: {
+        overall: snapshot.overall ? Number(snapshot.overall) : null,
+        riskLevel: snapshot.riskLevel,
+        riskReason: snapshot.riskReason?.message ?? null,
+      },
+    });
+  if (contract)
+    out.push({
+      sourceType: "Contract",
+      sourceId: contract.id,
+      fields: {
+        status: contract.status,
+        renewalDate: contract.renewalDate?.toISOString().slice(0, 10) ?? null,
+      },
+    });
+  for (const g of goals)
+    out.push({
+      sourceType: "Goal",
+      sourceId: g.id,
+      fields: { goal: g.text, status: g.status, plan: g.successPlan?.title ?? null },
+    });
+  for (const p of promises)
+    out.push({ sourceType: "Promise", sourceId: p.id, fields: { what: p.what, status: p.status } });
+  for (const t of tickets)
+    out.push({
+      sourceType: "Ticket",
+      sourceId: t.id,
+      fields: {
+        subject: t.subject,
+        status: t.status,
+        priority: t.priority,
+        openedAt: t.openedAt.toISOString().slice(0, 10),
+      },
+    });
+  return out;
+}

@@ -6,10 +6,20 @@ import { CONTACT_STATUS_LABELS, ROLE_LABELS } from "@/modules/contacts/schemas";
 import { can } from "@/lib/auth/permissions";
 import { draftIntroAction } from "@/modules/contacts/actions/champion-guard";
 import { listPeople, loadChampionGuard } from "@/modules/contacts/service";
+import { sourceLabel } from "@/modules/integrations/service";
 import { loadAccount } from "../data";
 import { MakeChampion } from "./make-champion";
 
 export const metadata: Metadata = { title: "People" };
+
+const CHANNEL_WORDS: Record<string, string> = {
+  EMAIL: "email",
+  TICKET: "support ticket",
+  CHAT: "chat",
+  CALL: "call",
+  MEETING: "meeting",
+  NOTE: "note",
+};
 
 export default async function PeoplePage({
   params,
@@ -123,8 +133,15 @@ export default async function PeoplePage({
                 >
                   {CONTACT_STATUS_LABELS[p.status]}
                 </span>
+                {sourceLabel(p.source) ? (
+                  <span data-testid="contact-source"> · {sourceLabel(p.source)}</span>
+                ) : null}
                 {" · "}Last contact:{" "}
-                {p.lastContactAt ? formatDate(p.lastContactAt, tz) : "none recorded"}
+                <span data-testid="last-contact">
+                  {p.lastContact
+                    ? `${formatDate(p.lastContact.at, tz)}${p.lastContact.channel ? ` (${CHANNEL_WORDS[p.lastContact.channel] ?? "message"} from them)` : ""}`
+                    : "none recorded"}
+                </span>
               </div>
             </div>
             {account.canEdit && !p.currentRoles.includes("CHAMPION") ? (

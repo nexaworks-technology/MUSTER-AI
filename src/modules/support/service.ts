@@ -34,6 +34,8 @@ export async function listTickets(actor: Actor, accountId: string, asOf = new Da
       openedAt: t.openedAt,
       closedAt: t.closedAt,
       contactName: t.contact?.name ?? null,
+      /** Where the ticket came from (DEMO FAIL 53). */
+      source: t.source,
       /** Whole days the ticket has been open (still open) or was open (closed). */
       ageDays: Math.floor(((t.closedAt ?? asOf).getTime() - t.openedAt.getTime()) / 86_400_000),
       messages: t.conversation?.messages ?? [],

@@ -84,6 +84,7 @@ function urgencyLabel(d: Driver, today: CalendarDate): string {
       return `${d.severity === "CRITICAL" ? "Critical" : d.severity === "WARN" ? "Warning" : "Info"} signal`;
     case "RENEWAL": {
       const days = daysBetween(today, d.renewalDate);
+      if (days < 0) return `renewal overdue by ${-days} day${days === -1 ? "" : "s"}`;
       return `renews in ${days} day${days === 1 ? "" : "s"}`;
     }
     case "APPROVAL":

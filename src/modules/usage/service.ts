@@ -34,6 +34,8 @@ export interface UsageView {
   metric: "distinct-users" | "peak-daily";
   weekly: WeeklyPoint[];
   lastActiveDate: Date | null;
+  /** Where the latest usage row came from (DEMO FAIL 53); null with no usage. */
+  lastSource: string | null;
   /** The window people, seats and features are counted over; null = the last 28 days to now. */
   period: { from: CalendarDate; to: CalendarDate } | null;
   activeUsers28d: number | null;
@@ -87,7 +89,7 @@ export async function getUsage(
       db.usageDaily.findFirst({
         where: { accountId, activeUsers: { gt: 0 }, date: { lte: asOf } },
         orderBy: { date: "desc" },
-        select: { date: true },
+        select: { date: true, source: true },
       }),
       db.$queryRaw<Array<{ n: bigint }>>(Prisma.sql`
       SELECT count(DISTINCT "externalUserId") AS n FROM "UserUsageDaily"
@@ -126,6 +128,7 @@ export async function getUsage(
     metric: useUsers ? "distinct-users" : "peak-daily",
     weekly,
     lastActiveDate: lastActive?.date ?? null,
+    lastSource: lastActive?.source ?? null,
     period: window ?? null,
     activeUsers28d: useUsers ? Number(active28[0]?.n ?? 0) : null,
     seatsPurchased: contract?.seatsPurchased ?? null,

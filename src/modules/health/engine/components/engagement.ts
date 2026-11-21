@@ -59,8 +59,18 @@ function lastCustomerReply(b: AccountBundle, env: ComponentEnv): ComponentResult
   };
 }
 
+/**
+ * Not scored: the model has no curve for meeting recency (`model.ts`), and choosing one is a
+ * product decision (docs/QUESTIONS.md). The reason says so instead of claiming meeting data is
+ * missing, which was false with a calendar connected (DEMO-WALKTHROUGH FAIL 9). Null, so it never
+ * lowers a score (Rule 4).
+ */
 function lastMeeting(): ComponentResult {
-  return missing("last_meeting", "days_since_meeting", "No meeting data connected yet.");
+  return missing(
+    "last_meeting",
+    "days_since_meeting",
+    "Not scored: this health model has no rule yet for how recent a meeting should be, so meetings neither raise nor lower the score. The account's meetings are on its Timeline.",
+  );
 }
 
 function replyRate(b: AccountBundle, env: ComponentEnv): ComponentResult {

@@ -155,7 +155,7 @@ describe("Health Analyst runs", () => {
     const n = await healthNarrative(actor, accountId);
     expect(n.run).toMatchObject({
       status: "SUCCEEDED",
-      promptVersion: "1.0.0",
+      promptVersion: "1.1.0",
       model: "model-from-env-standard",
     });
     expect(n.items).toEqual([

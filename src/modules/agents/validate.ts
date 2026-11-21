@@ -58,14 +58,62 @@ function numbersIn(text: string): Map<number, string> {
 }
 
 /**
- * Every number in the narrative (counts, money, dates, percentages) must appear in a record the
- * narrative cites (founder point 6). No LLM originates a number (D-75).
+ * The asker's own numerals with the word that follows them ("30 days" in "due in the next 30
+ * days?"). Restating them is not a claim about a record (DEMO-WALKTHROUGH FAIL 46).
  */
-export function checkNumbers(texts: string[], cited: ContextBundle): string[] {
+function askerPhrases(askerText: string[]): string[] {
+  const out: string[] = [];
+  for (const t of askerText) {
+    const tokens = t.split(/\s+/).map((w) => w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ""));
+    tokens.forEach((tok, i) => {
+      const unit = tokens[i + 1];
+      if (/^\d+(?:[.,]\d+)*$/.test(tok) && unit && /^\p{L}+$/u.test(unit))
+        out.push(`${tok} ${unit.toLowerCase()}`);
+    });
+  }
+  return out;
+}
+
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * Removes every restatement of an asker phrase ("30 days", "30-day"), so the window the asker named
+ * is not checked however often the answer repeats it. The same numeral with another unit ("30
+ * seats") is not the asker's phrase and is still checked against the cited records.
+ */
+function withoutAskerPhrases(texts: string[], askerText: string[]): string[] {
+  const phrases = [...new Set(askerPhrases(askerText))];
+  return texts.map((text) => {
+    let out = text;
+    for (const phrase of phrases) {
+      const [num, unit] = phrase.split(" ") as [string, string];
+      // The same unit word, singular or plural, after a space or a hyphen ("30 days", "30-day").
+      const stem = unit.replace(/s$/i, "");
+      const re = new RegExp(
+        `(?<![\\p{L}\\p{N}.,])${escapeRe(num)}(?:\\s+|-)${escapeRe(stem)}s?(?![\\p{L}\\p{N}])`,
+        "giu",
+      );
+      out = out.replace(re, " ");
+    }
+    return out;
+  });
+}
+
+/**
+ * Every number in the narrative (counts, money, dates, percentages) must appear in a record the
+ * narrative cites (founder point 6). No LLM originates a number (D-75). The one exception is the
+ * asker's own words restated (`askerText`: Ask AI's question and earlier questions only): a
+ * numeral with the unit word the asker gave it, however often it is repeated.
+ */
+export function checkNumbers(
+  texts: string[],
+  cited: ContextBundle,
+  askerText: string[] = [],
+): string[] {
   const known = new Set<number>();
   for (const r of cited) for (const v of numbersIn(recordText(r)).keys()) known.add(v);
   const problems: string[] = [];
-  for (const t of texts)
+  for (const t of askerText.length ? withoutAskerPhrases(texts, askerText) : texts)
     for (const [value, raw] of numbersIn(t))
       if (!known.has(value)) problems.push(`the number "${raw}" is not in any record it cites`);
   return [...new Set(problems)];

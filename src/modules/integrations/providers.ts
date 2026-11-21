@@ -56,3 +56,26 @@ export function recordSourceFor(provider: IntegrationProvider): ProviderSource |
   if (provider === "SLACK") return null;
   return SOURCE_OF[provider] ?? (provider as ProviderSource);
 }
+
+/**
+ * Where a record or value came from, in words, for the record's own page (DEMO-WALKTHROUGH FAIL
+ * 51/53). Read from the stored source only; an unknown source gives null, never a guess.
+ */
+export function sourceLabel(source: string): string | null {
+  if (source === "MANUAL") return "entered by a person";
+  const name = SOURCE_NAMES[source as RecordSource];
+  return name ? `from ${name}` : null;
+}
+
+/** A field's own source when the merge recorded one (`fieldSources`), else the record's source. */
+export function fieldSourceLabel(
+  fieldSources: unknown,
+  recordSource: string,
+  field: string,
+): string | null {
+  const own =
+    fieldSources && typeof fieldSources === "object"
+      ? (fieldSources as Record<string, unknown>)[field]
+      : undefined;
+  return sourceLabel(typeof own === "string" ? own : recordSource);
+}

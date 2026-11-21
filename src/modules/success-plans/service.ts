@@ -34,13 +34,41 @@ export interface AccountSuccessPlanView {
   plan: SuccessPlanView;
   milestones: SuccessPlanMilestone[];
   progressPercent: number;
+  /** What the percentage counted, shown beside it (Rule 1). */
+  progressBasis: ProgressBasis;
   goals: Goal[];
 }
 
+export interface ProgressBasis {
+  milestones: number;
+  milestonesDone: number;
+  /** Goals on the plan, a dropped goal excluded (it is no longer part of the plan). */
+  goals: number;
+  goalsAchieved: number;
+}
+
+/**
+ * Done over total, milestones and goals together: a completed milestone or an achieved goal is
+ * done (DEMO-WALKTHROUGH FAIL 40: a plan with goals and no milestones always read 0%).
+ */
+function progressOf(
+  milestones: SuccessPlanMilestone[],
+  goals: Array<Pick<Goal, "status">> = [],
+): { percent: number; basis: ProgressBasis } {
+  const counted = goals.filter((g) => g.status !== "DROPPED");
+  const basis: ProgressBasis = {
+    milestones: milestones.length,
+    milestonesDone: milestones.filter((m) => m.completed).length,
+    goals: counted.length,
+    goalsAchieved: counted.filter((g) => g.status === "ACHIEVED").length,
+  };
+  const total = basis.milestones + basis.goals;
+  const done = basis.milestonesDone + basis.goalsAchieved;
+  return { percent: total === 0 ? 0 : Math.round((done / total) * 100), basis };
+}
+
 function calculateProgress(milestones: SuccessPlanMilestone[]): number {
-  if (milestones.length === 0) return 0;
-  const done = milestones.filter((m) => m.completed).length;
-  return Math.round((done / milestones.length) * 100);
+  return progressOf(milestones).percent;
 }
 
 function toPlanView(plan: SuccessPlan): SuccessPlanView {
@@ -170,11 +198,14 @@ export async function getAccountSuccessPlan(
 
   if (!plan) return null;
 
-  const planView = toPlanView(plan);
+  const base = toPlanView(plan);
+  const progress = progressOf(base.milestones, plan.goals);
+  const planView = { ...base, progressPercent: progress.percent };
   return {
     plan: planView,
     milestones: planView.milestones,
-    progressPercent: planView.progressPercent,
+    progressPercent: progress.percent,
+    progressBasis: progress.basis,
     goals: plan.goals,
   };
 }

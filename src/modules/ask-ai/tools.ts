@@ -444,7 +444,7 @@ export const ASK_TOOLS: AskTool[] = [
   define({
     name: "listRenewals",
     description:
-      "Open renewals in your book within the next 30/60/90/180/365 days: date, confidence, band, forecast category; ARR at risk only with revenue access.",
+      "Open renewals in your book within the next 30/60/90/180/365 days, plus any still open after their date (overdue: true): date, confidence, band, forecast category; ARR at risk only with revenue access.",
     input: z.object({
       days: z
         .union([z.literal(30), z.literal(60), z.literal(90), z.literal(180), z.literal(365)])
@@ -464,6 +464,7 @@ export const ASK_TOOLS: AskTool[] = [
             accountName: r.account.name,
             renewalDate: day(r.renewalDate),
             daysToRenewal: r.daysToRenewal,
+            overdue: r.overdue,
             confidence: r.confidence,
             band: r.band,
             category: r.category,

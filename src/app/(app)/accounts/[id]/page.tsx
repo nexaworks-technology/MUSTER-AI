@@ -9,6 +9,7 @@ import { STAGE_LABELS, TIER_LABELS } from "@/modules/accounts/schemas";
 import { CONTACT_STATUS_LABELS, ROLE_LABELS } from "@/modules/contacts/schemas";
 import { listPeople } from "@/modules/contacts/service";
 import { getMissingDataQuestion, listOwners } from "@/modules/accounts/service";
+import { fieldSourceLabel, sourceLabel } from "@/modules/integrations/service";
 import { loadAccount } from "./data";
 
 export const metadata: Metadata = { title: "Account" };
@@ -26,6 +27,22 @@ export default async function AccountOverviewPage({ params }: { params: Promise<
     p.currentRoles.some((r) => r === "CHAMPION" || r === "DECISION_MAKER"),
   );
 
+  // Each field says where its value came from (DEMO-WALKTHROUGH FAIL 51): the field's own source
+  // when a connector set it, else the record's.
+  const withSource = (value: string | null, field: string): React.ReactNode => {
+    if (!value) return "Not recorded";
+    const from = fieldSourceLabel(account.fieldSources, account.source, field);
+    return (
+      <>
+        {value}
+        {from ? (
+          <span className="text-muted-foreground ml-1.5 text-xs" data-testid={`source-${field}`}>
+            {from}
+          </span>
+        ) : null}
+      </>
+    );
+  };
   const facts: Array<[string, React.ReactNode]> = [
     [
       "Tier",
@@ -41,10 +58,14 @@ export default async function AccountOverviewPage({ params }: { params: Promise<
           : "No contract on file"
         : RESTRICTED,
     ],
-    ["Plan", account.plan ?? "Not recorded"],
-    ["Industry", account.industry ?? "Not recorded"],
-    ["Company size", account.employeeBand ? `${account.employeeBand} employees` : "Not recorded"],
-    ["Domain", account.domain ?? "Not recorded"],
+    ["Plan", withSource(account.plan, "plan")],
+    ["Industry", withSource(account.industry, "industry")],
+    [
+      "Company size",
+      withSource(account.employeeBand ? `${account.employeeBand} employees` : null, "employeeBand"),
+    ],
+    ["Domain", withSource(account.domain, "domain")],
+    ["Record", sourceLabel(account.source) ? `Created ${sourceLabel(account.source)}` : "Not recorded"],
     [
       "Last touch",
       account.lastTouchAt ? formatDate(account.lastTouchAt, tz) : "No contact recorded",

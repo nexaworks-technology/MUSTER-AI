@@ -288,13 +288,18 @@ describe("Engagement components", () => {
     expect(run("ENGAGEMENT", "last_customer_reply", bundle()).score).toBeNull();
   });
 
-  it("meetings have no data source yet", () => {
+  // DEMO-WALKTHROUGH FAIL 9: it said "No meeting data connected yet." with a calendar connected and
+  // meetings on file. The model has no rule (curve) for meeting recency, so the part is not scored;
+  // it now says exactly that, and never claims meeting data is missing (docs/QUESTIONS.md).
+  it("meetings are not scored by this model, and it says so honestly", () => {
     const r = run("ENGAGEMENT", "last_meeting", bundle());
     expect(r.score).toBeNull();
     expect(r.reason).toMatchObject({
       kind: "MISSING_DATA",
-      message: "No meeting data connected yet.",
+      message:
+        "Not scored: this health model has no rule yet for how recent a meeting should be, so meetings neither raise nor lower the score. The account's meetings are on its Timeline.",
     });
+    expect(r.reason.message).not.toMatch(/no meeting data|not connected/i);
   });
 
   it("email reply rate over the 90 days ending 14 days ago", () => {

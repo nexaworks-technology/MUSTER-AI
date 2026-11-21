@@ -5,6 +5,7 @@ import { ExtractionLabels } from "@/components/app/extraction-labels";
 import { formatDateTime } from "@/lib/format";
 import { SentimentPanel } from "@/components/app/sentiment-view";
 import { conversationPageFor, listConversations } from "@/modules/conversations/service";
+import { sourceLabel } from "@/modules/integrations/service";
 import { getSentiment } from "@/modules/sentiment/service";
 import { loadAccount } from "../data";
 
@@ -55,6 +56,7 @@ export default async function ConversationsPage({
                 <span className="font-medium">{c.subject ?? "(no subject)"}</span>{" "}
                 <span className="text-muted-foreground">
                   · {formatDateTime(c.lastMessageAt, tz)}
+                  {sourceLabel(c.source) ? ` · ${sourceLabel(c.source)}` : ""}
                 </span>
               </summary>
               <ol className="border-border mt-2 space-y-2 border-l-2 pl-3">

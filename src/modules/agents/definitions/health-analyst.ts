@@ -79,7 +79,17 @@ export async function healthAnalystContext(
         message: r.message,
         value: round1(r.value),
         baseline: round1(r.baseline),
-        period: r.periodStart && r.periodEnd ? `${day(r.periodStart)} – ${day(r.periodEnd)}` : null,
+        // Named for what they are: the window the value was measured over, and what the baseline
+        // is. A bare "period" read as the span of the change ("fell … in one week") when the
+        // reason compares this week with the account's 90-day normal (DEMO-WALKTHROUGH).
+        valueMeasuredOver:
+          r.periodStart && r.periodEnd ? `${day(r.periodStart)} – ${day(r.periodEnd)}` : null,
+        ...(r.baseline !== null
+          ? {
+              baselineIs:
+                "what the message compares the value with (for usage, this account's own normal period named in the message), not the start of the measured window",
+            }
+          : {}),
       },
     })),
     ...signals.map((s) => ({
@@ -99,12 +109,12 @@ export async function healthAnalystContext(
 
 export const healthAnalyst = defineAgent({
   key: "health-analyst",
-  version: "1.0.0",
+  version: "1.1.0",
   description:
     "Writes the top 1–2 risks or opportunities for an account from its health reasons and signals",
   modelTier: jobTier("health-analyst"),
   tierReason: "A short narrative from structured reasons: needs judgement, not depth (§6.1).",
-  prompt: { name: "health-analyst", version: "1.0.0" },
+  prompt: { name: "health-analyst", version: "1.1.0" },
   inputSchema: healthAnalystInput,
   outputSchema: healthAnalystOutput,
   async buildContext(_db, input, ctx) {

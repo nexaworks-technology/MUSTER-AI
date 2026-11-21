@@ -18,7 +18,13 @@ import { formatMoney } from "@/lib/money";
 import { recordProductEvent } from "@/lib/pilot/capture";
 import { healthOverview } from "@/modules/health/service";
 import { listRenewals } from "@/modules/renewals/service";
-import { countMyRenewalsDue, getToday, SECTIONS } from "@/modules/today/service";
+import {
+  countMyRenewalsDue,
+  getToday,
+  hasCalendarConnected,
+  meetingsEmptyText,
+  SECTIONS,
+} from "@/modules/today/service";
 
 export const metadata: Metadata = { title: "Today" };
 
@@ -76,11 +82,12 @@ export default async function TodayPage({ searchParams }: { searchParams: Search
   // The card and the "next 90 days" list read the same Renewal records as the Renewals page, on
   // the member's own accounts ("only for my accounts", spec §5). `renewalsAll90` is the Renewals
   // page's own total, shown only to explain an empty own-book list.
-  const [sections, health, renewalsDue30, renewalsAll90] = await Promise.all([
+  const [sections, health, renewalsDue30, renewalsAll90, calendarConnected] = await Promise.all([
     getToday(ctx, { cursors }),
     healthOverview(ctx),
     countMyRenewalsDue(ctx, 30),
     listRenewals(ctx, { days: 90 }),
+    hasCalendarConnected(ctx),
   ]);
 
   const empty = sections.every((s) => s.total === 0);
@@ -271,7 +278,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Search
                   <div className="p-4">
                     <EmptyState>
                       {s.key === "MEETING"
-                        ? "No calendar connected. Meetings appear here once one is."
+                        ? meetingsEmptyText(calendarConnected)
                         : s.key === "RENEWAL" && renewalsAll90.total > 0
                           ? `None of your own accounts renew in the next 90 days. The Renewals page lists ${renewalsAll90.total} across everyone you can see.`
                           : "Nothing here."}

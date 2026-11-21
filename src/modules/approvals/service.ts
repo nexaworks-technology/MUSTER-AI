@@ -5,6 +5,7 @@
  */
 export { resolveLevel, minLevel, LEVELS, DEFAULT_LEVELS, type LevelInput } from "./level-resolver";
 export {
+  approvalAssignee,
   requestApproval,
   requestApprovalInput,
   listApprovals,

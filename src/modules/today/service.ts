@@ -225,7 +225,10 @@ export async function todayCandidates(
     ]).map((r): Candidate => ({
       itemType: "RENEWAL",
       refId: r.account.id,
-      title: `${r.account.name} renews`,
+      title:
+        calendarDateOf(r.renewalDate) < today
+          ? `${r.account.name} renewal is overdue`
+          : `${r.account.name} renews`,
       ...acct({ ...r.account, renewalDate: r.renewalDate }),
       driver: { kind: "RENEWAL", renewalDate: calendarDateOf(r.renewalDate) },
     })),
@@ -378,3 +381,25 @@ export {
   type Ranked,
   type Reason,
 } from "./ranking";
+
+/**
+ * Today's empty Meetings section in words: only a workspace with no calendar connected is told to
+ * connect one (DEMO-WALKTHROUGH FAIL 5: it said "No calendar connected" with Google Calendar
+ * connected and simply no meeting today).
+ */
+export function meetingsEmptyText(calendarConnected: boolean): string {
+  return calendarConnected
+    ? "No meetings with your accounts today."
+    : "No calendar connected. Meetings appear here once one is.";
+}
+
+/** Whether a Google or Microsoft calendar is connected (and not disconnected) in this workspace. */
+export async function hasCalendarConnected(ctx: TenantContext): Promise<boolean> {
+  const n = await scopedDb(ctx).integration.count({
+    where: {
+      provider: { in: ["GOOGLE_CALENDAR", "MICROSOFT_CALENDAR"] },
+      status: { not: "DISCONNECTED" },
+    },
+  });
+  return n > 0;
+}

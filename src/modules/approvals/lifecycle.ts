@@ -132,7 +132,7 @@ export async function requestApproval(
     isSensitive: sensitive.isSensitive,
     autoSendEnabled: settings.outbound.autoSendEnabled,
   });
-  const assigneeId = account.ownerMembershipId ?? (await fallbackLeader(ctx));
+  const assigneeId = await approvalAssignee(ctx, account.ownerMembershipId);
   return db.$tenantTransaction(async (tx) => {
     const approval = await tx.approval.create({
       data: {
@@ -239,6 +239,17 @@ export async function requestApproval(
 }
 
 /** The account owner decides; with no owner, the first CS Leader (then Admin) does. */
+/**
+ * Who an approval waits on: the account's owner, else the first active CS Leader, else the first
+ * Admin. Every approval on an account uses this, play drafts included (DEMO FAIL 24).
+ */
+export async function approvalAssignee(
+  ctx: TenantContext,
+  ownerMembershipId: string | null,
+): Promise<string | null> {
+  return ownerMembershipId ?? (await fallbackLeader(ctx));
+}
+
 async function fallbackLeader(ctx: TenantContext): Promise<string | null> {
   const db = scopedDb(ctx);
   for (const role of ["CS_LEADER", "ADMIN"] as const) {

@@ -49,7 +49,10 @@ export interface RenewalRow {
   id: string;
   account: { id: string; name: string; owner: string | null };
   renewalDate: Date;
+  /** Negative once the date has passed. */
   daysToRenewal: number;
+  /** Still open after its renewal date: shown as overdue, never dropped (DEMO FAIL 29). */
+  overdue: boolean;
   noticeDeadline: Date | null;
   confidence: number;
   band: "HIGH" | "MEDIUM" | "LOW";
@@ -70,12 +73,14 @@ const OPEN = ["UPCOMING", "IN_PROGRESS"] as const;
 
 /**
  * The one definition of "an open renewal due within `days`", shared by the Renewals page and Today
- * (FIX-2026-11-11): open stage, renewal date from `asOf` to `asOf + days`, both ends included.
+ * (FIX-2026-11-11): open stage, renewal date on or before `asOf + days`. An open renewal whose date
+ * has already passed is overdue and is in every window (DEMO-WALKTHROUGH FAIL 29): it has neither
+ * renewed nor churned, so it is the most urgent one, not one to drop.
  */
 export function openRenewalWindow(asOf: string, days: number) {
   return {
     stage: { in: [...OPEN] },
-    renewalDate: { gte: utcMidnight(asOf), lte: utcMidnight(addDays(asOf, days)) },
+    renewalDate: { lte: utcMidnight(addDays(asOf, days)) },
   } satisfies Prisma.RenewalWhereInput;
 }
 
@@ -113,6 +118,7 @@ function toRow(actor: Actor, r: DbRow, asOf: CalendarDate): RenewalRow {
     },
     renewalDate: r.renewalDate,
     daysToRenewal: daysBetween(asOf, calendarDateOf(r.renewalDate)),
+    overdue: daysBetween(asOf, calendarDateOf(r.renewalDate)) < 0,
     noticeDeadline: r.noticeDeadline,
     confidence: r.confidence,
     band: r.confidenceBand,

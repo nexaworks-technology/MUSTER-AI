@@ -18,8 +18,10 @@ function createSummaryProvider(accountId: string, transcriptId: string, csmEmail
           ],
           proposedActions: [],
           title: "Executive Sync Summary",
-          summary: "Reviewed Q4 milestones and agreed on integration next steps.",
-          decisions: ["Agreed to finalize API v2 integration by next Friday."],
+          // No figures the transcript does not hold: since meeting-qbr 1.1.0 every number in the
+          // summary must be in a cited record (D-75).
+          summary: "Reviewed the milestones and agreed on integration next steps.",
+          decisions: ["Agreed to finalize the API integration by next Friday."],
           actionItems: [
             {
               title: "Update API endpoint configuration",

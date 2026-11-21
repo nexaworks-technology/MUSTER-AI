@@ -122,3 +122,15 @@ describe("rankItems", () => {
     );
   });
 });
+
+describe("an overdue renewal (DEMO-WALKTHROUGH FAIL 29)", () => {
+  it("keeps the top renewal urgency and says overdue, not a negative count", () => {
+    const driver = { kind: "RENEWAL" as const, renewalDate: "2026-10-21" };
+    expect(urgencyOf(driver, TODAY)).toBe(0.9);
+    const [r] = rankItems([c({ refId: "q", itemType: "RENEWAL", driver })], {
+      today: TODAY,
+      canViewRevenue: false,
+    });
+    expect(r!.rankReasons).toContainEqual({ kind: "urgency", label: "renewal overdue by 12 days" });
+  });
+});

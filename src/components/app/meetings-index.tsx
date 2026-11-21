@@ -4,6 +4,7 @@ import { EmptyState } from "@/components/app/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { formatDateTime } from "@/lib/format";
 import type { MeetingIndexRow, MeetingsIndex } from "@/modules/meetings/service";
+import { sourceLabel } from "@/modules/integrations/service";
 
 function MeetingList({
   rows,
@@ -24,6 +25,7 @@ function MeetingList({
             <div className="font-medium">{m.title}</div>
             <div className="text-muted-foreground text-xs">
               {formatDateTime(m.startsAt, tz)}
+              {sourceLabel(m.source) ? ` · ${sourceLabel(m.source)}` : ""}
               {showAccount ? (
                 <>
                   {" · "}

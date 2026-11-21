@@ -97,7 +97,7 @@ signals. 16 approvals were waiting after the build (3 sensitive); 2 were decided
 
 ## Feature checklist
 
-**Result: 37 PASS · 16 FAIL · 1 not verifiable here** (54 checks). Product bugs were recorded, not fixed.
+**Result at the walk (68b7ed4): 37 PASS · 16 FAIL · 1 not verifiable here** (54 checks). Product bugs were recorded, not fixed. **After `fix/demo-walkthrough-fails`: 15 of the 16 fixed and re-walked; row 9 is honestly relabelled and waits on a model decision (Q-94). See "Re-walk after the fixes" at the end.**
 
 ### Workspace and seed
 
@@ -112,7 +112,7 @@ signals. 16 approvals were waiting after the build (3 sensitive); 2 were decided
 | # | Check | Result | What I saw |
 |---|---|---|---|
 | 4 | Today for each role | PASS | Marcus: 6 approvals, 4 at risk, $201,240 ARR at risk, overdue "Reach Jules Martin about the lapsed renewal", ranked signals ("No reply to a request for 9 days · Lindqvist", "Payment failed: invoice MDM-4275 · Saltire"). Jonah: 2 at risk (Halvorsen, Glenrock), ARR "Locked — Revenue access required", only his accounts. |
-| 5 | Empty Meetings section wording | **FAIL** | With Google Calendar connected and no meeting today, Today says "No calendar connected. Meetings appear here once one is." The copy is hard-wired for every empty list (`src/app/(app)/today/page.tsx:274`). |
+| 5 | Empty Meetings section wording | **FAIL → fixed** (Re-walk below) | With Google Calendar connected and no meeting today, Today says "No calendar connected. Meetings appear here once one is." The copy is hard-wired for every empty list (`src/app/(app)/today/page.tsx:274`). |
 
 ### Accounts list and filters
 
@@ -126,9 +126,9 @@ signals. 16 approvals were waiting after the build (3 sensitive); 2 were decided
 |---|---|---|---|
 | 7 | Overview | PASS | Tier "High-touch (set by ARR rule)", ARR $148,000, Enterprise, Logistics, 1000+; key people: Delia Marsh (Decision maker), Priyanka Nair (Champion · Former employee · Left the company). |
 | 8 | Health with reasons | PASS | 39 At Risk. "Why At Risk: Typical weekday active users fell from 61.4 to 13 (−79%)…", Pulse Worried, every part's reasons with linked records (usage, people, features, tickets). Health Analyst: "Champion Priyanka Nair left Nov 13, 2026 and all 7 power users have been inactive since Oct 19, 2026…", citing its reasons and signals. |
-| 9 | Engagement › last meeting | **FAIL** | Says "No meeting data connected yet." although Halvorsen has a meeting on Sep 7 and one on Nov 24, and a calendar is connected. The component is hard-wired to "missing" (`src/modules/health/engine/components/engagement.ts:62`), so meetings never count. |
+| 9 | Engagement › last meeting | **FAIL → relabelled** (Q-94) | Says "No meeting data connected yet." although Halvorsen has a meeting on Sep 7 and one on Nov 24, and a calendar is connected. The component is hard-wired to "missing" (`src/modules/health/engine/components/engagement.ts:62`), so meetings never count. |
 | 10 | People and stakeholder map | PASS | Roles per person (Champion, Decision maker, Exec sponsor, Daily users), Priyanka "Status: Left the company". Champion Guard: "Priyanka Nair needs a back-up", next-best people with reasons and "Draft an introduction". |
-| 11 | People › last contact | **FAIL** | Every contact reads "Last contact: none recorded", while Champion Guard on the same page says Delia "Wrote to us 1 time… most recently on Nov 17, 2026". `Contact.lastContactAt` is never derived from mail or tickets in product code; only the Larkspur seed writes it. |
+| 11 | People › last contact | **FAIL → fixed** (Re-walk below) | Every contact reads "Last contact: none recorded", while Champion Guard on the same page says Delia "Wrote to us 1 time… most recently on Nov 17, 2026". `Contact.lastContactAt` is never derived from mail or tickets in product code; only the Larkspur seed writes it. |
 | 12 | Tickets | PASS | 2 open · 1 closed; "Exports failing since the depot change · Open · High · escalated · open 9 days". |
 | 13 | Billing (Halvorsen, Saltire) | PASS | Contract (80 seats, renewal Feb 4, 2027, 60-day notice, terms), subscription with Source "Stripe", invoices. Saltire: Growth $48,000/yr ×56 and "Data connectors add-on $450/month ×12 Past due"; MDM-4275 "Payment failed (2 failed attempts)", MDM-4276 Open, older ones Paid. |
 | 14 | Timeline | PASS | Play task, tickets opened/closed/escalated, Jonah's note, emails, "Email from mailer-daemon@halvorsen-freight.test: Undeliverable: Quarterly review prep", weekly usage-drop event. |
@@ -139,7 +139,7 @@ signals. 16 approvals were waiting after the build (3 sensitive); 2 were decided
 |---|---|---|---|
 | 15 | Portfolio Health | PASS | At Risk 4 / Watch 10 / Healthy 21 / no data 0 with ARR per band; 30-day trend from real weekly points ("Moved to a worse band: 13, better: 1"; "Brambleway Health 70 → 41, Watch → At Risk"); "Score and CSM disagree: Corvid". |
 | 16 | Lost account on the Health page | PASS | "Not scored (1): Pellucid Studio — Lost (Oct 12, 2026) · Lost account. Health is only calculated for active customers, so it is not scored." |
-| 17 | Lost account's own Health tab | **FAIL** | Pellucid › Health says "Health has not been calculated for this account yet. It is calculated every night and whenever someone presses Recompute." It never will be; it should say Lost / not scored. |
+| 17 | Lost account's own Health tab | **FAIL → fixed** (Re-walk below) | Pellucid › Health says "Health has not been calculated for this account yet. It is calculated every night and whenever someone presses Recompute." It never will be; it should say Lost / not scored. |
 | 18 | Signals | PASS | 112 open. Each shows what it means, how it is detected, false-alarm causes, proof links, Acknowledge / Mark false alarm, Draft check-in. |
 | 19 | Inbox | PASS | Matched emails and tickets with "Matched by the sender's email"; Watcher reading with quotes, e.g. Fenwick "Intent: complaint · Sensitive (complaint) · Always goes to a human · Sentiment: negative 'the attendance reports take too long to build'". |
 | 20 | Unmatched item | PASS | Inbox › Unmatched: "Pricing for a team of 40 analysts from ops@northbeam-capital.test… Why it is here: Ticket requester ops@northbeam-capital.test could not be matched to an account", with "Place on account". (An unmatched *email* is discarded by the privacy rule in mail ingest, so story 12 uses a ticket.) |
@@ -152,7 +152,7 @@ signals. 16 approvals were waiting after the build (3 sensitive); 2 were decided
 | 21 | Plain approvals waiting | PASS | Renewal drafts (Corvid, Elmstead, Harbourline), Onboarding check-in (Tamsin), Adoption nudges, Champion Loss play drafts; each with "Why, with proof" and the full email. |
 | 22 | Sensitive approvals | PASS | Brambleway: "Sensitive: complaint, escalation. A person always decides this; it can never be sent automatically." Halvorsen check-in: complaint. Fenwick renewal: cancellation, complaint. |
 | 23 | Decided history | PASS | Rejected Redwater's play draft with a reason → "Rejected by Rhea Kapoor… 'Generic template; I will call the owner myself first.'", email cancelled. Approved Harbourline's renewal draft → "Email status: sent (log transport)" with the send checks listed. The Decided tab shows both. |
-| 24 | Assignee on play drafts | **FAIL** | The four Champion Loss drafts show "Unassigned" even where the account has an owner (Halvorsen → Jonah), so they sit in nobody's queue; agent drafts on the same accounts are assigned to the owner. |
+| 24 | Assignee on play drafts | **FAIL → fixed** (Re-walk below) | The four Champion Loss drafts show "Unassigned" even where the account has an owner (Halvorsen → Jonah), so they sit in nobody's queue; agent drafts on the same accounts are assigned to the owner. |
 | 25 | "Open in app to review" in Slack | Not verifiable here | This is Slack DM behaviour (`src/modules/integrations/slack/service.ts:210`). Slack can't be connected without a live connector, which this task excludes. The in-app equivalent (row 22) passes. |
 
 Note (not counted): a human-approved send lists "Not passed: quiet hours… weekends" and "Not passed: Auto-send is
@@ -166,23 +166,23 @@ reads like a failure.
 | 26 | Plays | PASS | Champion Loss PUBLISHED v1, 4 runs (Halvorsen, Glenrock, Marlowe, Redwater), all WAITING on approval, 0 skips, $163,120 protected ARR; the other plays listed as drafts. |
 | 27 | Onboarding | PASS | Tamsin Bio, day 32, Stalled: "SSO setup (customer) overdue 11 days"; steps done by Jonah, "First dashboard built — Done Oct 23: product usage showed it" with proof, Connect data / Training / Review open; handoff facts sourced from the contract and roles. |
 | 28 | Renewals (upcoming) | PASS | 5 renewals in 90 days, lowest confidence first, every factor with its sources; renewal briefs on Halvorsen and others. |
-| 29 | Overdue renewal | **FAIL** | Quarry Lane's renewal (Nov 9) is open on the account tab, but missing from the Renewals page at every window (30 to 365 days) and from the forecast. The tab says "in -12 days" rather than overdue, and its confidence is frozen from an earlier pass ("Health is Watch (score 58.4)" while the account shows 56): open renewals past their date leave the nightly radar (`src/modules/renewals/sync.service.ts:125`). |
+| 29 | Overdue renewal | **FAIL → fixed** (Re-walk below) | Quarry Lane's renewal (Nov 9) is open on the account tab, but missing from the Renewals page at every window (30 to 365 days) and from the forecast. The tab says "in -12 days" rather than overdue, and its confidence is frozen from an earlier pass ("Health is Watch (score 58.4)" while the account shows 56): open renewals past their date leave the nightly radar (`src/modules/renewals/sync.service.ts:125`). |
 | 30 | Revenue | PASS | Waterfall Aug 23 – Nov 21: New $36,000 (Tamsin), **Expansion $24,000** (Lindqvist upgrade), Churn −$28,000 (Pellucid), opening + movements = closing; money at risk $148,000 (Halvorsen); billing schedule; coverage; team load. |
 | 31 | Expansion opportunity | PASS | Lindqvist: "108 people used the product in the last 28 days on 100 seats: 8 seats over the limit… Estimate: $9,600.00 ARR (8 seats × $1,200.00 per seat, from their subscription)", why: seats + "New team using the product: Research (10 people)". |
-| 32 | Expansion approval for Lindqvist | **FAIL** | 4 of 4 Expansion Finder answers were refused as UNCITED, so there is no Lindqvist draft. Last one, from the in-app "Ask the Expansion Finder" as Marcus: UI "The Expansion Finder's answer was not usable (uncited), so nothing was written."; run detail: `quote "seatsUsed: 108" is not in UsageDaily…; quote "seatsPurchased: 100" is not in Contract…; the number "8" is not in any record it cites`. The guard works; the agent can't pass it when the account is over its limit. (A long-tail expansion draft exists: Penrith Cycles "5 of 5 seats in use".) |
+| 32 | Expansion approval for Lindqvist | **FAIL → fixed** (Re-walk below) | 4 of 4 Expansion Finder answers were refused as UNCITED, so there is no Lindqvist draft. Last one, from the in-app "Ask the Expansion Finder" as Marcus: UI "The Expansion Finder's answer was not usable (uncited), so nothing was written."; run detail: `quote "seatsUsed: 108" is not in UsageDaily…; quote "seatsPurchased: 100" is not in Contract…; the number "8" is not in any record it cites`. The guard works; the agent can't pass it when the account is over its limit. (A long-tail expansion draft exists: Penrith Cycles "5 of 5 seats in use".) |
 
 ### Meetings, QBR, Surveys, Portal
 
 | # | Check | Result | What I saw |
 |---|---|---|---|
 | 33 | Meetings | PASS | 2 upcoming (Halvorsen sync Nov 24, Orchid & Vale QBR Nov 27), 6 past, each linked to its account. |
-| 34 | Pre-call brief | **FAIL** | The brief for the Orchid & Vale QBR failed: agent run `meeting-qbr` FAILED, `JSON schema must have a type defined if anyOf/oneOf/allOf are not used`. No brief exists. |
-| 35 | QBR draft | **FAIL** | Same error for `generateQbr` (seed run). In the UI (Generate QBR, Orchid & Vale, "Q4 2026"): "The QBR could not be generated. Nothing was created. Try again." and the server log shows `Failed to generate QBR narrative: run`; the retry reuses the failed run, so retrying the same period cannot succeed. Likely cause: `metrics: z.record(z.string(), z.unknown())` / `narrative: z.array(z.unknown())` in `src/modules/agents/definitions/meeting-qbr.ts:36-37` become untyped JSON schema the live provider rejects. "Business reviews (QBRs) (0)". |
+| 34 | Pre-call brief | **FAIL → fixed** (Re-walk below) | The brief for the Orchid & Vale QBR failed: agent run `meeting-qbr` FAILED, `JSON schema must have a type defined if anyOf/oneOf/allOf are not used`. No brief exists. |
+| 35 | QBR draft | **FAIL → fixed** (Re-walk below) | Same error for `generateQbr` (seed run). In the UI (Generate QBR, Orchid & Vale, "Q4 2026"): "The QBR could not be generated. Nothing was created. Try again." and the server log shows `Failed to generate QBR narrative: run`; the retry reuses the failed run, so retrying the same period cannot succeed. Likely cause: `metrics: z.record(z.string(), z.unknown())` / `narrative: z.array(z.unknown())` in `src/modules/agents/definitions/meeting-qbr.ts:36-37` become untyped JSON schema the live provider rejects. "Business reviews (QBRs) (0)". |
 | 36 | Surveys | PASS | NPS and CSAT active; responses: Fenwick 2 (CSAT) and 3 (NPS detractor) with comments, Lindqvist 10, Orchid & Vale 9, Saltire 8; Fenwick Health › Sentiment "2 survey response(s)… averaging 35/100, impact −6.5 pts". |
-| 37 | Issue a portal link from the app | **FAIL** | No page or action calls `createPortalAccess`; a CSM can't give a customer access. For the walk, one link was issued with that same service function from a scratch script (not committed). |
+| 37 | Issue a portal link from the app | **FAIL → fixed** (Re-walk below) | No page or action calls `createPortalAccess`; a CSM can't give a customer access. For the walk, one link was issued with that same service function from a scratch script (not committed). |
 | 38 | Portal viewed as the customer | PASS | `/portal/<token>`: "Orchid & Vale Partners Portal — Welcome back, Imogen Vale", "Shared Success Plans: FY27 finance transformation · ACTIVE", "Business Reviews & Reports: No reports shared yet." Only that account's shared plan is shown. |
-| 39 | Portal shows the plan's goals | **FAIL** | The three goals (one Achieved) don't appear; the portal page never renders goals although the service has `updatePortalGoalProgress`. |
-| 40 | Success plan progress | **FAIL** | Orchid & Vale › Plans: "Progress: 0%" with 1 of 3 goals ACHIEVED. |
+| 39 | Portal shows the plan's goals | **FAIL → fixed** (Re-walk below) | The three goals (one Achieved) don't appear; the portal page never renders goals although the service has `updatePortalGoalProgress`. |
+| 40 | Success plan progress | **FAIL → fixed** (Re-walk below) | Orchid & Vale › Plans: "Progress: 0%" with 1 of 3 goals ACHIEVED. |
 
 ### Leader reports and digest
 
@@ -190,7 +190,7 @@ reads like a failure.
 |---|---|---|---|
 | 41 | Leader report | PASS | Portfolio health trend generated as Marcus: At Risk 4, Watch 10, Healthy 21, ARR in At Risk $201,240, each figure linked to its records; weekly points from Oct 24. |
 | 42 | Digest content | PASS | "Portfolio health declined this week: 3 accounts moved to a worse band and none moved to a better band, leaving 4 accounts At Risk and 10 on Watch now"; "5 renewals are due in the next 90 days"; 6 open tickets, 3 escalated, 5 high/urgent; every line linked. Delivered by email to the 2 leaders (log transport). |
-| 43 | Digest: ticket responses | **FAIL** | "all 3 tickets opened during the period remain unanswered — no ticket opened in this period has had a first response." Every seeded ticket has a support reply 3 hours after opening, ingested on the same ticket; Zendesk ingest never sets `Ticket.firstResponseAt`, so Support risk and the digest call answered tickets unanswered. |
+| 43 | Digest: ticket responses | **FAIL → fixed** (Re-walk below) | "all 3 tickets opened during the period remain unanswered — no ticket opened in this period has had a first response." Every seeded ticket has a support reply 3 hours after opening, ingested on the same ticket; Zendesk ingest never sets `Ticket.firstResponseAt`, so Support risk and the digest call answered tickets unanswered. |
 
 ### Ask AI (as Marcus, live model)
 
@@ -198,7 +198,7 @@ reads like a failure.
 |---|---|---|---|
 | 44 | "Give me a summary of portfolio health: how many accounts are Healthy, Watch and At Risk, and which accounts are At Risk?" | PASS | "Healthy: 21 · Watch: 10 · At Risk: 4 · Not enough data: 0". At Risk: Halvorsen (39.09; −79% users, champion left Nov 13), Brambleway (40.91; 5 of 5 support messages negative, −74%), Glenrock (43), Marlowe (43.27). Matches the seed. 5 citations (portfolio health + each account's Health page) and "What it read" all open (HTTP 200). It also says the tool returned 10 of the 14 Watch/At Risk accounts. |
 | 45 | "Why is Halvorsen Freight at risk?" | PASS | Score 39.09; Adoption (−79%, 0 of 7 power users, 43 of 80 seats, Alerts and Scheduled reports unused), Engagement (last reply 59 days ago, no meeting for 75 days), Relationship (champion left Nov 13, Jonah's Worried Pulse), Support (2 high tickets, escalation, data-quality theme), renewal Feb 4, 2027. Matches the seed. 22 citations; every link opens. |
-| 46 | "What renewals are due in the next 30 days?" | **FAIL** | "I could not answer that with sources I can show you." Run UNCITED: `the number "30" is not in any record it cites`. The number check counts the 30 from the user's own question as an uncited claim. Seeded truth: Elmstead (Dec 9), Harbourline (Dec 17), Corvid (Dec 19). Extra information, not counted: "Which renewals are due within the next month, soonest first?" answered exactly those three with dates, ARR and confidence, each cited to its renewal tab (all open). |
+| 46 | "What renewals are due in the next 30 days?" | **FAIL → fixed** (Re-walk below) | "I could not answer that with sources I can show you." Run UNCITED: `the number "30" is not in any record it cites`. The number check counts the 30 from the user's own question as an uncited claim. Seeded truth: Elmstead (Dec 9), Harbourline (Dec 17), Corvid (Dec 19). Extra information, not counted: "Which renewals are due within the next month, soonest first?" answered exactly those three with dates, ARR and confidence, each cited to its renewal tab (all open). |
 
 ### Settings, scoping, integrations, provenance
 
@@ -208,9 +208,9 @@ reads like a failure.
 | 48 | Role scoping (signed in as Jonah) | PASS | Accounts "Showing 1–12 of 12", exactly his book; Marcus's Brambleway and Lindqvist pages return 404; /revenue returns 404 (no revenue access); Approvals shows only his 8; Ask AI threads are his own. |
 | 49 | Integrations cards | PASS | HubSpot, Salesforce, Stripe "Connected · read-only", write-back off by default, Stripe webhook address shown; unconnected providers show connect forms. The demo's connections were created by the script **without credentials**, so the cards say "No sync has run yet" and a manual sync would not reach any provider. |
 | 50 | Data-quality conflict | PASS | Settings › Data quality: "Sources disagree · Ashby Mercer Logistics — Salesforce says the industry is 'Freight forwarding', but here it is 'Logistics' (set by HubSpot). Nothing was changed. HubSpot was connected first, so the rule prefers its value." and the same for employee band. |
-| 51 | Per-field provenance on the record | **FAIL** | `Account.fieldSources` is populated by ingest but shown nowhere: Ashby Mercer's overview lists Industry "Logistics" and size "201-1000" with no source. Only the Data-quality text names the source. |
+| 51 | Per-field provenance on the record | **FAIL → fixed** (Re-walk below) | `Account.fieldSources` is populated by ingest but shown nowhere: Ashby Mercer's overview lists Industry "Logistics" and size "201-1000" with no source. Only the Data-quality text names the source. |
 | 52 | Source label on billing records | PASS | Subscriptions table "Source: Stripe". |
-| 53 | Source labels on other records | **FAIL** | Accounts, contacts, tickets, emails, meetings and usage show no source (HubSpot, Zendesk, Gmail, Google Calendar, Mixpanel); the only source labels in the UI are on Billing. |
+| 53 | Source labels on other records | **FAIL → fixed** (Re-walk below) | Accounts, contacts, tickets, emails, meetings and usage show no source (HubSpot, Zendesk, Gmail, Google Calendar, Mixpanel); the only source labels in the UI are on Billing. |
 
 ## Environment notes from the walk
 
@@ -247,3 +247,33 @@ One full `pnpm gate`, run against the local Docker Postgres test database:
 7. Health `last_meeting` hard-wired to missing (FAIL 9); Lost account's Health tab wording (FAIL 17); Today meetings
    empty-state copy (FAIL 5); play drafts unassigned (FAIL 24); provenance not shown outside Billing and Data quality
    (FAIL 51, 53).
+
+
+## Re-walk after the fixes (branch `fix/demo-walkthrough-fails`)
+
+Same Muster Demo database (`nexaworks_demo`), dev server on `muster-demo.localhost:3410`, no worker, log-only email,
+live model via the configured key. Each fix was written test-first; the live rows below were run by hand against the
+workspace. No health weight, threshold or citation/number guard was loosened.
+
+| # | Row | After | Evidence |
+|---|---|---|---|
+| 34 | Pre-call brief | **PASS** | `meeting-qbr` output schema now has a type on every node (it had `z.unknown()`). Live brief for the Orchid & Vale QBR: run SUCCEEDED, document "Pre-call Brief: Orchid & Vale QBR", health, goals, open items and questions, every number in a cited record. New test runs every agent's schema through the provider's own transform (it also found Play Builder, Q-95). |
+| 35 | QBR draft | **PASS** | Live QBR "Q4 2026 Business Review: Orchid & Vale Partners" generated twice (two clicks = two runs). The period is a citable record; titles are built by code; a retry carries a fresh nonce, so "Try again" is a new run (test: FAILED run, then SUCCEEDED run). Two QBRs now exist for Orchid & Vale in this database from the proof runs. |
+| 46 | "What renewals are due in the next 30 days?" | **PASS** | 3 of 3 live asks SUCCEEDED (before: refused). The asker's own "30 days" is not a claim; a record fact in the answer, or the same numeral with another unit, is still checked (tests for both halves). The answer also names the overdue Quarry Lane renewal. Residual risk in Q-96. |
+| 32 | Expansion approval for Lindqvist | **PASS** | 3 of 3 live runs DRAFTED (before: 4 of 4 refused). The signal now carries `seatsInUse`, `seatsPurchased`, `seatsOverLimit` computed by code; the prompt says to cite by record and leave quotes out. Each draft is a PENDING approval assigned to Marcus (the owner). The proof runs created three Lindqvist expansion drafts in Approvals. |
+| 29 | Overdue renewal | **PASS** | Quarry Lane: on the Renewals page at 30 days "Overdue: still open, overdue by 12 days", in the forecast (Medium, $30,000), on Today ("renewal overdue by 12 days"); the nightly sync re-scored it (as of Nov 21, was frozen at Nov 7) and its notice reason says "passed 42 days ago". The leader report counts overdue renewals as their own figure. |
+| 43 | Digest: ticket responses | **PASS (data)** | First response is recorded at ingest and on re-sync, for Zendesk and Freshdesk (the shared ticket ingest). All 10 demo tickets now have `firstResponseAt` (3 hours after opening); a second re-sync changed nothing. The weekly digest was **not regenerated** in this re-walk. |
+| 37 | Issue a portal link from the app | **PASS** | Account › Plans › "Customer portal": pick a contact, "Create portal link"; the link is shown once with "Nothing was sent; send it to them yourself", the list shows active links with Revoke. Refuses a contact of another account, one with no email, and a member who cannot edit the account. |
+| 39 | Portal shows the plan's goals | **PASS** | Portal for Aled Price: "FY27 finance transformation" with "Close the books in three days — Achieved", the two others "In progress". |
+| 40 | Success plan progress | **PASS** | Plans tab: "Progress: 33% (1 of 3 goals achieved)". Counts milestones and goals; a dropped goal is left out. |
+| 51 / 53 | Provenance | **PASS** | Ashby Mercer overview: "Industry Logistics from HubSpot", "Company size 201-1000 employees from HubSpot", "Record Created from HubSpot"; the field's own source wins over the record's. People, Tickets, Conversations, Meetings and Usage show their source. |
+| 17 | Lost account's Health tab | **PASS** | Pellucid › Health: "Lost, not scored (lost Oct 12, 2026). Health is only calculated for active customers." |
+| 11 | People › last contact | **PASS** | Halvorsen: Delia "Nov 17, 2026 (support ticket from them)", Priyanka "Sep 23, 2026 (email from them)", Oskar "none recorded". Derived from the messages each person sent, the records Champion Guard reads. (Delia's Nov 17 is her latest message from any channel; Champion Guard counts the email channel.) |
+| 24 | Assignee on play drafts | **PASS (tests)** | Play drafts, and approvals held by the send guards, go to the account owner, else the first CS Leader, else the first Admin, through the one shared rule. Verified by integration tests; the existing Champion Loss drafts in this database keep their old (unassigned) rows, since the seed ran before the fix. |
+| 5 | Empty Meetings wording | **PASS** | Today as Rhea: "No meetings with your accounts today." (Google Calendar connected). Without a calendar it still says to connect one. |
+| 9 | Engagement › last meeting | **Relabelled, not fixed** | No curve exists for meeting recency (weight 20, no rule); choosing one changes the model. It now says "Not scored: this health model has no rule yet for how recent a meeting should be…" instead of the false "No meeting data connected yet". Q-94. |
+| (note) | Send-checks label on a human send | **PASS (tests)** | Checks that cannot stop a person-approved send read "Automatic sends only", not "Not passed". One shared rule (`gatingGuards`) is used by dispatch and by the Approvals page. Not re-walked live (no new approval was decided). |
+| (wording) | Health Analyst: "in one week" | **PASS (tests)** | The reason record now gives `valueMeasuredOver` and says the baseline is what the value is compared with; prompt 1.1.0 forbids "in the window" phrasing. Not regenerated live. |
+
+Not done or not verified live: the weekly digest re-run, the live send-checks label, the live Health Analyst wording, and
+existing Champion Loss draft assignees in this database. Open questions raised: Q-94 to Q-97.

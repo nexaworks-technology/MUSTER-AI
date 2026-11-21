@@ -31,7 +31,7 @@ export {
   setWriteBack,
   WriteBackRefusedError,
 } from "./writeback.service";
-export { PROVIDER_NAMES, SOURCE_NAMES } from "./providers";
+export { PROVIDER_NAMES, SOURCE_NAMES, fieldSourceLabel, sourceLabel } from "./providers";
 /** The single ingest path a connector sync uses; also driven by scripts/demo-workspace.ts. */
 export { ingestBatch, type IngestTarget } from "./ingest.service";
 export type { NormalizedKind } from "./normalized";

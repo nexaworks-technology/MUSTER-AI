@@ -98,6 +98,7 @@ export async function listConversations(actor: Actor, accountId: string, cursor 
       channel: c.channel,
       subject: c.subject,
       lastMessageAt: c.lastMessageAt,
+      source: c.source,
       transcripts: c.transcripts.map((t) => ({ ...t, labels: labelsFor(t.id) })),
       messages: c.messages.map((m) => ({
         id: m.id,

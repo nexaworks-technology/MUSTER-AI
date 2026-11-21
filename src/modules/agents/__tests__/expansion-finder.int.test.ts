@@ -194,7 +194,7 @@ describe("Expansion Finder (M7 B4)", () => {
     const r = await W.db.agentRun.findFirstOrThrow({ where: { agentKey: "expansion-finder" } });
     expect(r).toMatchObject({
       promptName: "expansion-finder",
-      promptVersion: "1.0.0",
+      promptVersion: "1.1.0",
       model: "model-from-env-standard",
       status: "SUCCEEDED",
     });
@@ -276,5 +276,63 @@ describe("Expansion Finder (M7 B4)", () => {
     expect(out).toMatchObject({ kind: "run" });
     if (out.kind === "run") expect(out.status).not.toBe("SUCCEEDED");
     expect(await w.db.approval.count()).toBe(0);
+  });
+
+  // DEMO-WALKTHROUGH FAIL 32 (Lindqvist, 108 of 100 seats): the agent could not say how far over the
+  // limit the account is without computing it, and the number check refused the computed "8".
+  // Code now gives it that figure as data on the signal; the guard is unchanged.
+  it("an account over its seats is given the over-limit count, computed by code", async () => {
+    const w = await world("ExpFinderOver");
+    const seen: string[] = [];
+    const out = await run(
+      w,
+      provider(
+        (ids) =>
+          good(ids, {
+            narrative:
+              "52 people used the product in the last 28 days on 40 seats, 12 seats over the limit.",
+            citations: [
+              { sourceType: "Signal", sourceId: ids.Signal },
+              { sourceType: "Contract", sourceId: ids.Contract, quote: "40" },
+            ],
+          }),
+        seen,
+      ),
+    );
+    expect(seen[0]).toContain('"seatsOverLimit": 12');
+    expect(out).toMatchObject({ kind: "run", status: "SUCCEEDED" });
+    expect(await w.db.approval.count()).toBe(1);
+  });
+
+  it("a quote written as field name and value is still refused (the quote check is unchanged)", async () => {
+    const w = await world("ExpFinderQuote");
+    const out = await run(
+      w,
+      provider((ids) =>
+        good(ids, {
+          citations: [
+            { sourceType: "Signal", sourceId: ids.Signal },
+            { sourceType: "UsageDaily", sourceId: ids.UsageDaily, quote: "seatsUsed: 52" },
+          ],
+        }),
+      ),
+    );
+    expect(out).toMatchObject({ kind: "run", status: "UNCITED" });
+    expect(await w.db.approval.count()).toBe(0);
+  });
+
+  it("the prompt tells the agent to leave quotes out, and never to quote a field name", async () => {
+    const seen: string[] = [];
+    const w = await world("ExpFinderPrompt");
+    let system = "";
+    const p = provider((ids) => good(ids), seen);
+    const inner = p.generateStructured.bind(p);
+    p.generateStructured = async (req) => {
+      system = req.system;
+      return inner(req);
+    };
+    await run(w, p);
+    expect(system).toMatch(/Leave `quote` out of every citation/);
+    expect(system).toMatch(/never a field name/i);
   });
 });

@@ -11,7 +11,7 @@ import { can } from "@/lib/auth/permissions";
 import { requireSession, resolveWorkspaceContext } from "@/lib/auth/session";
 import { formatCalendarDate } from "@/lib/format";
 import { formatMoney } from "@/lib/money";
-import { listRenewals, CATEGORY_WORDS, type Forecast } from "@/modules/renewals/service";
+import { listRenewals, CATEGORY_WORDS, renewalTiming, type Forecast } from "@/modules/renewals/service";
 import { listMembers } from "@/modules/settings/service";
 
 export const metadata: Metadata = { title: "Renewals" };
@@ -119,7 +119,7 @@ export default async function RenewalsPage({ searchParams }: { searchParams: Sea
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Renewals</h1>
         <p className="text-muted-foreground text-sm">
-          Open renewals renewing within {list.days} days, lowest confidence first. Confidence is
+          Open renewals renewing within {list.days} days, and any still open after their date (overdue), lowest confidence first. Confidence is
           worked out from records by fixed rules; open a row to see each reason and its sources.
         </p>
       </div>
@@ -229,8 +229,12 @@ export default async function RenewalsPage({ searchParams }: { searchParams: Sea
                       </td>
                       <td className="px-4 py-3">
                         <span className="text-foreground font-medium">{formatCalendarDate(r.renewalDate)}</span>
-                        <span className="text-muted-foreground block text-xs">
-                          in {r.daysToRenewal} days
+                        <span
+                          className={`block text-xs ${r.overdue ? "text-destructive font-medium" : "text-muted-foreground"}`}
+                          data-testid="renewal-timing"
+                        >
+                          {r.overdue ? "Overdue: still open, " : ""}
+                          {renewalTiming(r.daysToRenewal)}
                           {r.noticeDeadline
                             ? `, notice by ${formatCalendarDate(r.noticeDeadline)}`
                             : ", no notice period on file"}

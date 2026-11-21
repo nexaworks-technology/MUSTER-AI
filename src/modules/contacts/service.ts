@@ -17,16 +17,39 @@ import { ROLE_LABELS, type setChampionInput } from "./schemas";
 export async function listPeople(actor: Actor, accountId: string) {
   const account = await getAccount(actor, accountId);
   if (!account) throw new AccountNotFoundError();
-  const contacts = await scopedDb(actor).contact.findMany({
-    where: { accountId },
-    orderBy: [{ name: "asc" }, { id: "asc" }],
-    include: { roles: { orderBy: { validFrom: "desc" } } },
+  const db = scopedDb(actor);
+  const [contacts, wrote] = await Promise.all([
+    db.contact.findMany({
+      where: { accountId },
+      orderBy: [{ name: "asc" }, { id: "asc" }],
+      include: { roles: { orderBy: { validFrom: "desc" } } },
+    }),
+    // The latest message each person sent us, from any source: the record Champion Guard reads
+    // (DEMO-WALKTHROUGH FAIL 11). One statement whatever the number of people.
+    db.message.findMany({
+      where: { accountId, direction: "INBOUND", fromContactId: { not: null } },
+      orderBy: [{ fromContactId: "asc" }, { sentAt: "desc" }, { id: "desc" }],
+      distinct: ["fromContactId"],
+      select: { id: true, fromContactId: true, sentAt: true, conversation: { select: { channel: true } } },
+    }),
+  ]);
+  const latest = new Map(wrote.map((m) => [m.fromContactId!, m]));
+  return contacts.map((c) => {
+    const m = latest.get(c.id);
+    // A date kept on the contact (by hand or a CRM) counts too, whichever is later.
+    const lastContact =
+      m && (!c.lastContactAt || m.sentAt >= c.lastContactAt)
+        ? { at: m.sentAt, channel: m.conversation.channel, messageId: m.id }
+        : c.lastContactAt
+          ? { at: c.lastContactAt, channel: null, messageId: null }
+          : null;
+    return {
+      ...c,
+      lastContact,
+      currentRoles: c.roles.filter((r) => r.validTo === null).map((r) => r.role),
+      pastRoles: c.roles.filter((r) => r.validTo !== null),
+    };
   });
-  return contacts.map((c) => ({
-    ...c,
-    currentRoles: c.roles.filter((r) => r.validTo === null).map((r) => r.role),
-    pastRoles: c.roles.filter((r) => r.validTo !== null),
-  }));
 }
 
 /** Makes one contact the account's champion; the previous champion's role is closed, not deleted. */

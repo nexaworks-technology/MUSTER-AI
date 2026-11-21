@@ -206,7 +206,8 @@ async function renewalsData(s: Scope): Promise<ReportContent> {
   const upcomingWhere = {
     accountId: { in: ids },
     stage: { in: [...OPEN_STAGES] },
-    renewalDate: { gte: day(s.today), lte: day(addDays(s.today, UPCOMING_DAYS)) },
+    // Open renewals past their date are overdue, still to come (the Renewals screen's window).
+    renewalDate: { lte: day(addDays(s.today, UPCOMING_DAYS)) },
   } satisfies Prisma.RenewalWhereInput;
   const [inPeriod, upcoming] = none(ids)
     ? [[], []]
@@ -220,6 +221,7 @@ async function renewalsData(s: Scope): Promise<ReportContent> {
           select: {
             id: true,
             accountId: true,
+            renewalDate: true,
             arrAtRiskMinor: true,
             currency: true,
             confidenceBand: true,
@@ -261,6 +263,7 @@ async function renewalsData(s: Scope): Promise<ReportContent> {
       currency: r.currency,
       band: r.confidenceBand,
       category: r.forecastCategory,
+      overdue: r.renewalDate < day(s.today),
     })),
   });
 }

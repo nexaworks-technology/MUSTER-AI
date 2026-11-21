@@ -6,6 +6,8 @@ export { dispatch, DispatchRefusedError, type DispatchResult, type DispatchDeps 
 export {
   evaluateGuards,
   allPassed,
+  gatingGuards,
+  checkGates,
   GUARDS,
   type GuardResult,
   type GuardName,

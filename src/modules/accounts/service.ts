@@ -235,6 +235,7 @@ export async function getAccount(actor: Actor, accountId: string) {
       timezone: true,
       lastTouchAt: true,
       source: true,
+      fieldSources: true,
       arrMinor: arrVisible,
       arrCurrency: arrVisible,
       owner: { select: { user: { select: { name: true, email: true } } } },

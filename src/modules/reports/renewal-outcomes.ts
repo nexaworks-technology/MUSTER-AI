@@ -25,7 +25,8 @@ export interface RenewalOutcomesInput {
     forecastArrAtRiskMinor: bigint | null;
     supersedesId: string | null;
   }>;
-  upcoming: Array<ForecastRenewal & { accountId: string }>;
+  /** Open renewals due within `upcomingDays`, and any still open after their date (`overdue`). */
+  upcoming: Array<ForecastRenewal & { accountId: string; overdue?: boolean }>;
 }
 
 const BAND_WORD = { HIGH: "High", MEDIUM: "Medium", LOW: "Low" } as const;
@@ -99,7 +100,13 @@ export function renewalOutcomesReport(i: RenewalOutcomesInput): ReportContent {
     count(
       `Renewals due in the next ${i.upcomingDays} days`,
       "Renewal",
-      idsOf(i.upcoming.map((r) => r.id)),
+      idsOf(i.upcoming.filter((r) => !r.overdue).map((r) => r.id)),
+      withQuery("/renewals", `days=${i.upcomingDays}`, i.query),
+    ),
+    count(
+      "Overdue renewals, still open after their date",
+      "Renewal",
+      idsOf(i.upcoming.filter((r) => r.overdue).map((r) => r.id)),
       withQuery("/renewals", `days=${i.upcomingDays}`, i.query),
     ),
     ...(["HIGH", "MEDIUM", "LOW"] as const).map((b) => {

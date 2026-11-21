@@ -4,7 +4,7 @@ import { EmptyState } from "@/components/app/empty-state";
 import { CategoryControl, CategoryState, Reasons, BAND_WORDS } from "@/components/renewals/reasons";
 import { formatCalendarDate } from "@/lib/format";
 import { formatMoney } from "@/lib/money";
-import { CATEGORY_WORDS, getAccountRenewals } from "@/modules/renewals/service";
+import { CATEGORY_WORDS, getAccountRenewals, renewalTiming } from "@/modules/renewals/service";
 import { loadAccount } from "../data";
 
 export const metadata: Metadata = { title: "Renewal" };
@@ -60,7 +60,11 @@ export default async function RenewalTab({
             <h2 className="text-lg font-semibold">Renews {formatCalendarDate(r.renewalDate)}</h2>
             <p className="text-sm">
               Confidence <strong data-testid="confidence">{r.confidence}%</strong> (
-              {BAND_WORDS[r.band]}), in {r.daysToRenewal} days.{" "}
+              {BAND_WORDS[r.band]}),{" "}
+              <span data-testid="renewal-timing" className={r.overdue ? "text-destructive font-medium" : undefined}>
+                {renewalTiming(r.daysToRenewal)}
+              </span>
+              .{" "}
               {!r.moneyVisible
                 ? "Contract value: Restricted."
                 : r.arrMinor != null && r.currency

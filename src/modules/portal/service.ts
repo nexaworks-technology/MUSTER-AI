@@ -2,7 +2,15 @@ import { randomBytes, createHash } from "node:crypto";
 import { findPortalAccessByTokenHash } from "@/lib/db/token-access";
 import { scopedDb, type TenantContext } from "@/lib/db/scoped";
 import type { PortalAccess, SuccessPlan, Document, Survey, Goal, GoalStatus } from "@prisma/client";
+import { z } from "zod";
 import { writeAudit } from "@/lib/audit";
+import { env } from "@/lib/config/env";
+import {
+  AccountNotFoundError,
+  getAccount,
+  requireEditableAccount,
+  type Actor,
+} from "@/modules/accounts/service";
 
 export class PortalAuthError extends Error {
   constructor(message: string) {
@@ -32,7 +40,8 @@ export interface PortalSession {
 export interface PortalView {
   account: { id: string; name: string };
   contact: { id: string; name: string | null; email: string | null };
-  successPlans: SuccessPlan[];
+  /** Shared plans with their goals (a dropped goal is no longer part of the plan). */
+  successPlans: Array<SuccessPlan & { goals: Array<Pick<Goal, "id" | "text" | "status">> }>;
   qbrDocuments: Document[];
   surveys: Survey[];
 }
@@ -202,6 +211,14 @@ export async function getPortalView(rawToken: string): Promise<PortalView> {
         status: "ACTIVE",
       },
       orderBy: { createdAt: "desc" },
+      // The plan's goals are what the customer shares it for (DEMO-WALKTHROUGH FAIL 39).
+      include: {
+        goals: {
+          where: { status: { not: "DROPPED" } },
+          orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+          select: { id: true, text: true, status: true },
+        },
+      },
     }),
     db.document.findMany({
       where: {
@@ -283,4 +300,94 @@ export async function updatePortalGoalProgress(
 
     return updated;
   });
+}
+
+/**
+ * Issuing portal access from the app (DEMO-WALKTHROUGH FAIL 37). Only a member who may edit the
+ * account gives one of its contacts a link; the link is returned once (only its hash is stored) for
+ * the person to send themselves: nothing is emailed from here (Rule 3).
+ */
+export const issuePortalLinkInput = z.object({
+  accountId: z.string().min(1),
+  contactId: z.string().min(1),
+});
+
+export async function issuePortalLink(
+  actor: Actor,
+  raw: unknown,
+): Promise<{ url: string; expiresAt: Date; contactName: string }> {
+  const input = issuePortalLinkInput.parse(raw);
+  await requireEditableAccount(actor, input.accountId);
+  const contact = await scopedDb(actor).contact.findFirst({
+    where: { id: input.contactId, accountId: input.accountId },
+    select: { id: true, name: true, email: true },
+  });
+  if (!contact) throw new Error("That person is not a contact on this account.");
+  if (!contact.email)
+    throw new Error("That person has no email on file, so the link could not be tied to them.");
+  const { rawToken, access } = await createPortalAccess(actor, input);
+  return {
+    url: `${env().APP_URL.replace(/\/$/, "")}/portal/${rawToken}`,
+    expiresAt: access.expiresAt,
+    contactName: contact.name,
+  };
+}
+
+export interface PortalLinkRow {
+  id: string;
+  contactName: string;
+  contactEmail: string | null;
+  createdAt: Date;
+  expiresAt: Date;
+  lastUsedAt: Date | null;
+  revokedAt: Date | null;
+  active: boolean;
+}
+
+/** The account's portal links, newest first; never the token (it is not stored). */
+export async function listPortalLinks(actor: Actor, accountId: string): Promise<PortalLinkRow[]> {
+  const account = await getAccount(actor, accountId);
+  if (!account) throw new AccountNotFoundError();
+  const now = Date.now();
+  const rows = await scopedDb(actor).portalAccess.findMany({
+    where: { accountId },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    take: 50,
+    select: {
+      id: true,
+      createdAt: true,
+      expiresAt: true,
+      lastUsedAt: true,
+      revokedAt: true,
+      contact: { select: { name: true, email: true } },
+    },
+  });
+  return rows.map((r) => ({
+    id: r.id,
+    contactName: r.contact.name,
+    contactEmail: r.contact.email,
+    createdAt: r.createdAt,
+    expiresAt: r.expiresAt,
+    lastUsedAt: r.lastUsedAt,
+    revokedAt: r.revokedAt,
+    active: r.revokedAt === null && r.expiresAt.getTime() > now,
+  }));
+}
+
+export const revokePortalLinkInput = z.object({
+  accountId: z.string().min(1),
+  portalAccessId: z.string().min(1),
+});
+
+/** Revokes one of this account's links; an id from another account is refused. */
+export async function revokePortalLink(actor: Actor, raw: unknown): Promise<void> {
+  const input = revokePortalLinkInput.parse(raw);
+  await requireEditableAccount(actor, input.accountId);
+  const link = await scopedDb(actor).portalAccess.findFirst({
+    where: { id: input.portalAccessId, accountId: input.accountId },
+    select: { id: true, revokedAt: true },
+  });
+  if (!link) throw new AccountNotFoundError();
+  if (link.revokedAt) return;
+  await revokePortalAccess(actor, link.id);
 }

@@ -8,6 +8,13 @@ import { MusterLockup } from "@/components/brand/muster-mark";
 
 export const metadata: Metadata = { title: "Customer Portal" };
 
+const GOAL_WORDS: Record<string, string> = {
+  OPEN: "In progress",
+  ACHIEVED: "Achieved",
+  MISSED: "Missed",
+  DROPPED: "Dropped",
+};
+
 export default async function CustomerPortalPage({
   params,
 }: {
@@ -79,13 +86,29 @@ export default async function CustomerPortalPage({
             {successPlans.map((plan) => (
               <div
                 key={plan.id}
-                className="surface-card rounded-xl border border-border/80 flex flex-col items-start gap-2 p-5 sm:flex-row sm:items-center sm:justify-between sm:gap-4 shadow-xs hover:shadow-sm transition-all"
+                className="surface-card rounded-xl border border-border/80 p-5 shadow-xs hover:shadow-sm transition-all"
                 data-testid="portal-plan"
               >
-                <h3 className="font-medium text-foreground">{plan.title}</h3>
-                <StatusPill variant={plan.status === "ACTIVE" ? "success" : "accent"} size="sm">
-                  <span className="tracking-wide uppercase text-[10px]">{plan.status}</span>
-                </StatusPill>
+                <div className="w-full space-y-2">
+                  <div className="flex items-center justify-between gap-4">
+                    <h3 className="font-medium text-foreground">{plan.title}</h3>
+                    <StatusPill variant={plan.status === "ACTIVE" ? "success" : "accent"} size="sm">
+                      <span className="tracking-wide uppercase text-[10px]">{plan.status}</span>
+                    </StatusPill>
+                  </div>
+                  {plan.goals.length === 0 ? (
+                    <p className="text-muted-foreground text-sm">No goals on this plan yet.</p>
+                  ) : (
+                    <ul className="space-y-1 text-sm" aria-label={`Goals of ${plan.title}`}>
+                      {plan.goals.map((g) => (
+                        <li key={g.id} className="flex items-center justify-between gap-3" data-testid="portal-goal">
+                          <span>{g.text}</span>
+                          <span className="text-muted-foreground text-xs">{GOAL_WORDS[g.status]}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
             ))}
           </div>

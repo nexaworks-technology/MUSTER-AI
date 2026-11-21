@@ -99,3 +99,27 @@ describe("renewal outcomes", () => {
 
   it("every figure is proven", () => everyFigureIsProven(r));
 });
+
+describe("an overdue open renewal (DEMO-WALKTHROUGH FAIL 29)", () => {
+  const r = renewalOutcomesReport({
+    ...input,
+    upcoming: [
+      ...input.upcoming,
+      {
+        id: "late",
+        accountId: "q",
+        arrMinor: 50_00n,
+        currency: "USD",
+        band: "MEDIUM",
+        category: null,
+        overdue: true,
+      },
+    ],
+  });
+  it("is counted as overdue, not as due, and stays in the forecast like the Renewals screen", () => {
+    expect(fig(r, "Renewals due in the next 90 days").sources.ids).toEqual(["r1", "r2", "r3"]);
+    expect(fig(r, "Overdue renewals, still open after their date").sources.ids).toEqual(["late"]);
+    expect(fig(r, "Forecast ARR, Medium confidence").sources.ids).toContain("late");
+    everyFigureIsProven(r);
+  });
+});

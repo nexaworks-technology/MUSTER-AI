@@ -30,6 +30,7 @@ import { cohortBaseline } from "./engine/baselines";
 import { describeSource, sourceLookups, type ResolvedSource } from "./sources";
 import type { SourceRef } from "./engine/types";
 import { writeSnapshot, type WriteResult } from "./snapshots";
+import { formatCalendarDate } from "@/lib/format";
 
 /**
  * Health module public surface (ARCHITECTURE §4). Every number comes from the deterministic
@@ -881,3 +882,16 @@ export type { Outcome as LabelledOutcome } from "./engine/backtest";
 
 /** D-158: the one filter every live-health reader must use (excludes back-test rows). */
 export { liveSnapshotWhere } from "./live";
+
+/**
+ * The Health tab with no snapshot, in words. A Lost account is never scored, so it must not be
+ * told it will be "tonight" (DEMO-WALKTHROUGH FAIL 17); the Health page already says "Not scored".
+ */
+export function noHealthText(account: {
+  lifecycleStage: string;
+  churnedAt: Date | null;
+}): string {
+  if (account.lifecycleStage === "LOST")
+    return `Lost, not scored${account.churnedAt ? ` (lost ${formatCalendarDate(account.churnedAt)})` : ""}. Health is only calculated for active customers.`;
+  return "Health has not been calculated for this account yet. It is calculated every night and whenever someone presses Recompute.";
+}

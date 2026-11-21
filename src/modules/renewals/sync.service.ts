@@ -14,7 +14,8 @@ import { inputFromBundle } from "./inputs";
  * snapshot). For the chunk's accounts it:
  *
  * 1. creates or refreshes a `Renewal` row for every ACTIVE contract whose renewal date falls in the
- *    next `horizonDays`: deterministic confidence with its reasons and sources. A contract with no
+ *    next `horizonDays`, and keeps refreshing an open row after its date has passed (overdue):
+ *    deterministic confidence with its reasons and sources. A contract with no
  *    renewal date gets no row and no guess; the M2 missing-data helper already asks for the date;
  * 2. detects outcomes from contract records only: a later contract that starts within the renewal
  *    grace of the old one's end is RENEWED; an ENDED or CANCELLED contract with no successor is
@@ -121,13 +122,22 @@ export async function syncRenewals(
     r.stage = result === "RENEWED" ? "RENEWED" : "CHURNED"; // not recomputed below
   }
 
-  // ── 2. The radar: ACTIVE contracts renewing inside the horizon ─────────────────────────────
+  // ── 2. The radar: ACTIVE contracts renewing inside the horizon, and open renewals whose date
+  // has passed with no outcome yet (overdue: still scored every night, DEMO FAIL 29). A contract
+  // whose date passed before it was ever tracked gets no row: that needs a person, not a guess.
+  const stillOpen = (c: (typeof contracts)[number]) =>
+    existing.some(
+      (r) =>
+        r.contractId === c.id &&
+        day(r.renewalDate) === day(c.renewalDate!) &&
+        (r.stage === "UPCOMING" || r.stage === "IN_PROGRESS"),
+    );
   const radar = contracts.filter(
     (c) =>
       c.status === "ACTIVE" &&
       c.renewalDate !== null &&
-      c.renewalDate >= today &&
-      day(c.renewalDate) <= horizon,
+      day(c.renewalDate) <= horizon &&
+      (c.renewalDate >= today || stillOpen(c)),
   );
   if (radar.length === 0) return counts;
   const ids = [...new Set(radar.map((c) => c.accountId))];

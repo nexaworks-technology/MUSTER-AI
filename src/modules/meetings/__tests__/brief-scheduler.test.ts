@@ -118,7 +118,7 @@ describe("Pre-call brief scheduler and worker job (T-30)", () => {
       include: { briefDocument: true },
     });
     expect(updated.briefDocument).not.toBeNull();
-    expect(updated.briefDocument!.title).toBe("Auto Brief for Acme");
+    expect(updated.briefDocument!.title).toBe("Pre-call Brief: Upcoming QBR Prep");
     expect(updated.briefDocument!.kind).toBe("PRE_CALL_BRIEF");
   });
 
@@ -161,6 +161,6 @@ describe("Pre-call brief scheduler and worker job (T-30)", () => {
       include: { briefDocument: true },
     });
     expect(afterSweep.briefDocument).not.toBeNull();
-    expect(afterSweep.briefDocument!.title).toBe("Auto Brief for Acme");
+    expect(afterSweep.briefDocument!.title).toBe("Pre-call Brief: Sweep Imminent Meeting");
   });
 });

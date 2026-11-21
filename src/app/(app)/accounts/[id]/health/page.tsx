@@ -8,7 +8,7 @@ import { RecomputeButton } from "@/components/app/recompute-button";
 import { DisagreementMark, RISK_WORDS, RiskBadge } from "@/components/app/risk-badge";
 import { formatCalendarDate, formatDateTime } from "@/lib/format";
 import { healthNarrative } from "@/modules/agents/service";
-import { getAccountHealth, type AccountHealth } from "@/modules/health/service";
+import { getAccountHealth, noHealthText, type AccountHealth } from "@/modules/health/service";
 import { loadAccount } from "../data";
 
 export const metadata: Metadata = { title: "Health" };
@@ -118,10 +118,7 @@ export default async function HealthPage({
           {account.canEdit ? <RecomputeButton accountId={account.id} /> : null}
         </div>
         {!s ? (
-          <EmptyState data-testid="no-health">
-            Health has not been calculated for this account yet. It is calculated every night and
-            whenever someone presses Recompute.
-          </EmptyState>
+          <EmptyState data-testid="no-health">{noHealthText(account)}</EmptyState>
         ) : (
           <div className="flex flex-wrap items-center gap-3.5">
             <span

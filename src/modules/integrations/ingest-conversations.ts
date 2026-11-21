@@ -37,6 +37,24 @@ function extractDomain(emailStr?: string | null): string | null {
 }
 
 /**
+ * When support first answered: the earliest reply on the ticket that is not the requester's
+ * (adapters mark those OUTBOUND; a reply from the requester's own address never counts). None yet
+ * is null, never a guess (DEMO-WALKTHROUGH FAIL 43: answered tickets read as unanswered).
+ */
+export function firstResponseAt(t: NormalizedTicket): Date | null {
+  const requester = t.requesterEmail?.toLowerCase() ?? null;
+  const replies = t.messages
+    .filter(
+      (m) =>
+        m.direction === "OUTBOUND" &&
+        m.sentAt.getTime() >= t.openedAt.getTime() &&
+        (!requester || m.fromAddress?.toLowerCase() !== requester),
+    )
+    .map((m) => m.sentAt.getTime());
+  return replies.length ? new Date(Math.min(...replies)) : null;
+}
+
+/**
  * Ingests support tickets (Zendesk, Freshdesk) on the existing M5 framework.
  * Maps to Ticket + Conversation + Message + InboxItem through ExternalRef.
  * Unmatched tickets route to UnmatchedInbound.
@@ -54,18 +72,33 @@ export async function ingestTickets(
       // Ticket already known: check if status/priority/closedAt changed
       const current = await tx.ticket.findUnique({
         where: { id: existingTicketId },
-        select: { status: true, priority: true, closedAt: true, conversationId: true },
+        select: {
+          status: true,
+          priority: true,
+          closedAt: true,
+          conversationId: true,
+          firstResponseAt: true,
+        },
       });
+      // Recorded once: a ticket ingested before its first reply (or before this was recorded at
+      // all) gets it on the next sync; a set value is never moved.
+      const responded = current?.firstResponseAt ?? firstResponseAt(t);
       let updated = false;
       if (
         current &&
         (current.status !== t.status ||
           current.priority !== t.priority ||
-          current.closedAt?.toISOString() !== t.closedAt?.toISOString())
+          current.closedAt?.toISOString() !== t.closedAt?.toISOString() ||
+          current.firstResponseAt?.getTime() !== responded?.getTime())
       ) {
         await tx.ticket.update({
           where: { id: existingTicketId },
-          data: { status: t.status, priority: t.priority, closedAt: t.closedAt },
+          data: {
+            status: t.status,
+            priority: t.priority,
+            closedAt: t.closedAt,
+            firstResponseAt: responded,
+          },
         });
         updated = true;
       }
@@ -199,6 +232,7 @@ export async function ingestTickets(
         status: t.status,
         priority: t.priority,
         openedAt: t.openedAt,
+        firstResponseAt: firstResponseAt(t),
         closedAt: t.closedAt,
         source: target.source,
       },

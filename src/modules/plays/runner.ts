@@ -7,6 +7,7 @@ import { logger } from "@/lib/logger";
 import { getQueue } from "@/lib/jobs/queues";
 import { dispatch, detectSensitive, type DispatchDeps } from "@/modules/outbound/service";
 import { getSettingsData } from "@/modules/settings/service";
+import { approvalAssignee } from "@/modules/approvals/service";
 import {
   adoptionCoach,
   expansionFinder,
@@ -669,6 +670,7 @@ export async function executeStep(
             where: { id: dispatchResult.approvalId },
             data: {
               status: "PENDING",
+              assigneeId: await approvalAssignee(ctx, account!.ownerMembershipId ?? null),
               requiredLevel: "DRAFT_FOR_APPROVAL",
               reason: `Held by the send guards: ${dispatchResult.heldReason}`,
             },
@@ -705,6 +707,8 @@ export async function executeStep(
           requiredLevel: level,
           proof: [{ sourceType: "Play", sourceId: run.play.id }],
           reason: `Play draft: ${run.play.name} - ${step.name}`,
+          // In the owner's queue like every other draft on the account (DEMO FAIL 24).
+          assigneeId: await approvalAssignee(ctx, account!.ownerMembershipId ?? null),
           isSensitive,
           sensitiveReasons: isSensitive
             ? [...sens.reasons, ...(step.sensitive ? ["play_step_sensitive"] : [])]

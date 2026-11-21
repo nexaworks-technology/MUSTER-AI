@@ -33,7 +33,9 @@ describe("People tab does not grow with rows", () => {
     expect(after.people.result.length).toBe(before.people.result.length + 4);
     expectBounded(after.people.queries, before.people.queries);
     expectBounded(after.guard.queries, before.guard.queries);
-    expect(after.people.queries).toBeLessThanOrEqual(6);
+    // 7 since DEMO-WALKTHROUGH FAIL 11: one set-based read of each person's latest message for
+    // "Last contact" (the same record Champion Guard reads). Still constant in the number of rows.
+    expect(after.people.queries).toBeLessThanOrEqual(7);
     expect(after.guard.queries).toBeLessThanOrEqual(36);
   });
 });

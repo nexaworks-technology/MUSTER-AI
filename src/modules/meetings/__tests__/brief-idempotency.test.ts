@@ -14,14 +14,16 @@ const makeMockProvider = (accountId: string): AiProvider => ({
         citations: [{ sourceType: "Account", sourceId: accountId }],
         proposedActions: [],
         title: "Pre-call Brief: Brightwell Executive Catchup",
-        summary: "Brightwell Logistics is preparing for Q4 renewal with healthy usage.",
+        summary: "Brightwell Logistics is preparing for its renewal with healthy usage.",
         decisions: [],
         actionItems: [],
         suggestedQuestions: [
           "How are the recent webhook integrations performing?",
           "Are there any blockers for the upcoming renewal?",
         ],
-        healthHighlights: ["Overall health is at 88 (Good)"],
+        // In words: since 1.1.0 every number in a brief must be in a cited record (D-75), and this
+        // answer cites only the account record.
+        healthHighlights: ["Overall health is good"],
         metrics: { overallHealth: 88, band: "GOOD" },
         narrative: [
           { type: "summary", text: "Healthy account heading into renewal." },
