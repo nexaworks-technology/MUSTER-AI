@@ -58,6 +58,9 @@ you must flag the disagreement in `docs/QUESTIONS.md` — never silently follow 
   — its own deterministic workspace (refuses the demo/test/fresh ones); then
   `pnpm exec tsx --env-file=.env scripts/perf-scale.ts --workspace scale-test [--as-of YYYY-MM-DD]` (nightly per phase) and
   `NODE_ENV=test pnpm exec tsx --env-file=.env scripts/perf-pages.ts --workspace scale-test` (page 1/2/last timings + statements)
+- Muster Demo workspace (create-only, fictional, every feature; docs/DEMO-WALKTHROUGH.md):
+  `pnpm exec tsx --env-file=<env file> scripts/demo-workspace.ts [--skip-ai]` — raw inputs through the ingest path,
+  then the product's own pipelines and agents for that workspace only; refuses if `muster-demo` or its logins exist
 - Fresh workspace in setup (M5 `/setup` demo): `pnpm db:seed -- --empty-workspace` (Juniper Labs, admin@juniper.test)
 - Connectors on recorded fixtures (tests, e2e, demo; refused in production): `INTEGRATIONS_TRANSPORT=fixture`
 - Typecheck: `pnpm typecheck` · Lint: `pnpm lint` · Format check: `pnpm format:check`
